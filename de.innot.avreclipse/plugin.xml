@@ -1,0 +1,1299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.3"?>
+<plugin>
+
+<!--
+	<extension
+		point="org.eclipse.core.runtime.contentTypes">
+		<content-type
+			base-type="org.eclipse.core.runtime.text"
+			file-extensions="hex"
+			id="de.innot.avreclipse.contenttype.hexdump"
+			name="HEX Dump">
+		</content-type>
+	</extension>
+-->
+
+	<extension point="org.eclipse.ui.preferencePages">
+		<page name="AVR"
+			class="de.innot.avreclipse.ui.preferences.PreferencePage"
+			id="de.innot.avreclipse.preferences.PreferencePage">
+		</page>
+	</extension>
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="de.innot.avreclipse.ui.preferences.PreferenceInitializer">
+		</initializer>
+	</extension>
+
+	<extension id="de.innot.avreclipse.wizardpage" name="AVR Wizard Pages"
+		point="org.eclipse.cdt.managedbuilder.ui.newWizardPages">
+		<wizardPage ID="de.innot.avreclipse.mcuselectpage"
+			pageClass="de.innot.avreclipse.ui.MCUselectPage">
+			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.base" />
+			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.debug" />
+			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.release" />
+		</wizardPage>
+	</extension>
+
+	<extension point="org.eclipse.ui.views">
+		<category id="de.innot.avreclipse" name="AVR" />
+		<view category="de.innot.avreclipse"
+			class="de.innot.avreclipse.ui.views.avrdevice.AVRDeviceView" 
+			icon="icons/sample.gif"
+			id="de.innot.avreclipse.views.AVRDeviceView" 
+			name="AVR Device Explorer" />
+	</extension>
+	
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+			targetID="org.eclipse.cdt.ui.CPerspective">
+			<viewShortcut id="de.innot.avreclipse.views.AVRDeviceView" />
+			<view id="de.innot.avreclipse.views.AVRDeviceView"
+				relative="org.eclipse.ui.views.TaskList" 
+				relationship="stack" />
+		</perspectiveExtension>
+	</extension>
+
+
+
+	<extension id="de.innot.avreclipse.builddef"
+        point="org.eclipse.cdt.managedbuilder.core.buildDefinitions"
+		name="AVR Build Definitions test" >
+		<managedBuildRevision fileVersion="4.0.0" />
+		
+<!-- 
+####################################################################################### 
+#    winAVR Assembler                                                                 # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.assembler.winavr"
+			command="avr-as" 
+			name="winAVR Assembler" 
+			outputFlag="-o"
+			errorParsers="org.eclipse.cdt.core.GASErrorParser">
+			
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildType">
+					<value
+						id="org.eclipse.cdt.build.core.buildType.debug" />
+					<value
+						id="org.eclipse.cdt.build.core.buildType.release" />
+				</property>
+			</supportedProperties>
+
+			<optionCategory owner="de.innot.avreclipse.tool.assembler.winavr"
+				name="General" id="de.innot.avreclipse.asm.category.general" />
+			<option id="de.innot.avreclipse.asm.option.flags"
+				name="Assembler Flags"
+				category="de.innot.avreclipse.asm.category.general" 
+				valueType="string"  />
+			<option id="de.innot.avreclipse.asm.option.include.paths"
+				name="Include paths (-I)"
+				category="de.innot.avreclipse.asm.category.general" 
+				valueType="includePath"
+				browseType="directory"
+				command="-I" />
+			<option id="de.innot.avreclipse.asm.option.warnings.nowarn"
+				name="Suppress warnings (-W)"
+				category="de.innot.avreclipse.asm.category.general"
+				valueType="boolean" 
+				defaultValue="false"
+				command="-W" />
+				
+			<option id="de.innot.avreclipse.asm.option.avr_target_mcu"
+				name="MCU Type"
+				valueType="string"
+				command="-mmcu=" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+			
+			<inputType id="de.innot.avreclipse.tool.assembler.input"
+				sourceContentType="org.eclipse.cdt.core.asmSource" 
+				sources="s,S" />
+				
+			<outputType id="de.innot.avreclipse.tool.assembler.output"
+				outputs="o" 
+				buildVariable="OBJS" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR Compiler                                                                  # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.compiler.winavr" 
+			name="winAVR Compiler" 
+			command="avr-gcc"
+			errorParsers="org.eclipse.cdt.core.GCCErrorParser"
+			outputFlag="-o">
+			
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildType">
+					<value
+						id="org.eclipse.cdt.build.core.buildType.debug" />
+					<value
+						id="org.eclipse.cdt.build.core.buildType.release" />
+				</property>
+			</supportedProperties>
+
+			<envVarBuildPath 
+				pathType="buildpathInclude"
+				variableList="CPATH,C_INCLUDE_PATH" />
+			
+			<optionCategory	id="de.innot.avreclipse.compiler.category.directories" 
+				name="Directories" />
+			<option id="de.innot.avreclipse.compiler.option.incpath"
+				name="Include Paths (-I)" 
+				category="de.innot.avreclipse.compiler.category.directories"
+				valueType="includePath"
+				browseType="directory"
+				command="-I" />
+
+			<optionCategory id="de.innot.avreclipse.compiler.category.syms"
+				name="Symbols" >
+			</optionCategory>
+			<option id="de.innot.avreclipse.compiler.option.def"
+				name="Define Syms (-D)" 
+				category="de.innot.avreclipse.compiler.category.syms"
+				valueType="definedSymbols"
+				command="-D" />
+			<option id="de.innot.avreclipse.compiler.option.undef"
+				name="Undefine Syms (-U)"
+				category="de.innot.avreclipse.compiler.category.syms"
+				valueType="stringList"
+				command="-U" />
+
+			<optionCategory id="de.innot.avreclipse.compiler.category.warnings"
+				name="Warnings" />
+			<option id="de.innot.avreclipse.compiler.option.nowarn" 
+				name="No Warnings (-w)" 
+				category="de.innot.avreclipse.compiler.category.warnings"
+				valueType="boolean"
+				defaultValue="false"
+				command="-w" />
+			<option id="de.innot.avreclipse.compiler.option.allwarn" 
+				name="All Warnings (-Wall)"
+				category="de.innot.avreclipse.compiler.category.warnings"
+				valueType="boolean"
+				defaultValue="true"
+				command="-Wall" />
+			<option id="de.innot.avreclipse.compiler.option.warnerr" 
+				name="Warnings as Errors (-Werror)"
+				category="de.innot.avreclipse.compiler.category.warnings"
+				valueType="boolean"
+				defaultValue="false"
+				command="-Werror" />
+				
+			<optionCategory id="de.innot.avreclipse.compiler.category.debugging" 
+				name="Debugging" />
+			<option id="de.innot.avreclipse.compiler.option.debug" 
+				name="Generate Debugging Info (-g)" 
+				category="de.innot.avreclipse.compiler.category.debugging"
+				valueType="boolean"
+				command="-g" >
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value"
+					value="false"
+					extensionAdjustment="false" >
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.release" />
+				</enablement>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value"
+					value="true"
+					extensionAdjustment="false" >
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.debug" />
+				</enablement>
+			</option>
+			
+			<optionCategory
+				id="de.innot.avreclipse.compiler.category.optimization"
+				name="Optimization" />
+			<option id="de.innot.avreclipse.compiler.option.optimize"
+				name="Optimization Level"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				valueType="enumerated" >
+				<enumeratedOptionValue command="-O0"
+					name="No Optimizations (-O0)"
+					id="de.innot.avreclipse.compiler.optimize.none" />
+				<enumeratedOptionValue command="-O1"
+					name="Slight Optimizations (-O1)"
+					id="de.innot.avreclipse.compiler.optimize.one" />
+				<enumeratedOptionValue command="-O2"
+					name="Moderate Optimizations (-O2)"
+					id="de.innot.avreclipse.compiler.optimize.two" />
+				<enumeratedOptionValue command="-O3"
+					name="Heavy Optimizations (-O3)"
+					id="de.innot.avreclipse.compiler.optimize.three" />
+				<enumeratedOptionValue command="-Os"
+					id="de.innot.avreclipse.compiler.optimize.size"
+					name="Size Optimizations (-Os)">
+				</enumeratedOptionValue>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value" 
+					value="de.innot.avreclipse.compiler.optimize.size"
+					extensionAdjustment="false">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.release" />
+				</enablement>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value" 
+					value="de.innot.avreclipse.compiler.optimize.none"
+					extensionAdjustment="false">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.debug" />
+				</enablement>
+			</option>
+			
+			<optionCategory id="de.innot.avreclipse.compiler.category.misc"
+				name="Miscellaneous" />
+			<option id="de.innot.avreclipse.compiler.option.verbose"
+				name="Verbose (-v)" 
+				category="de.innot.avreclipse.compiler.category.misc"
+				valueType="boolean" 
+				defaultValue="false"
+				command="-v" />
+			<option id="de.innot.avreclipse.compiler.option.ansi"
+				name="ANSI Compatibility Mode (-ansi)"
+				category="de.innot.avreclipse.compiler.category.misc"
+				valueType="boolean" 
+				defaultValue="false"
+				command="-ansi" />
+			<option id="de.innot.avreclipse.compiler.option.otherflags"
+				name="Other flags"
+				category="de.innot.avreclipse.compiler.category.misc" 
+				valueType="string"
+				defaultValue="-c" />
+				
+			<option id="de.innot.avreclipse.compiler.option.avr_target_mcu"
+				name="MCU Type"
+				valueType="string" 
+				command="-mmcu=" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+			<option id="de.innot.avreclipse.compiler.option.avr_target_fcpu" 
+				name="MCU Clock Frequency"
+				valueType="string" 
+				command="-DF_CPU=" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+				
+				
+			<inputType id="de.innot.avreclipse.compiler.winavr.input"
+				name="C Source Files"
+				sourceContentType="org.eclipse.cdt.core.cSource"
+				sources="c"
+				dependencyContentType="org.eclipse.cdt.core.cHeader"
+				dependencyExtensions="h"
+				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.internal.DefaultIndexerDependencyCalculator" />
+<!-- 			languageId="org.eclipse.cdt.core.gcc" 
+				scannerConfigDiscoveryProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC" />
+-->
+
+			<outputType id="de.innot.avreclipse.compiler.winavr.output"
+				name="Object Files"
+				outputs="o" 
+				buildVariable="OBJS" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR Linker                                                                    # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.linker.winavr" 
+			name="winAVR Linker"
+			command="avr-gcc"
+			outputFlag="-o"
+			errorParsers="org.eclipse.cdt.core.GLDErrorParser" >
+			
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+				</property>
+			</supportedProperties>
+			
+			<envVarBuildPath 
+				pathType="buildpathLibrary"
+				variableList="LIBRARY_PATH" />
+			
+			<optionCategory id="de.innot.avreclipse.linker.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.linker.option.genmap" 
+				name="Map Filename"
+				category="de.innot.avreclipse.linker.category.general" 
+				command="-Wl,-Map," 
+				browseType="file" 
+				defaultValue=".map"
+				valueType="string" />
+			<option id="de.innot.avreclipse.linker.option.nosyms" 
+				name="Omit Symbols (-s)" 
+				category="de.innot.avreclipse.linker.category.general"
+				valueType="boolean" 
+				defaultValue="false" 
+				command="-s" />
+			<option id="de.innot.avreclipse.linker.option.otherlinkargs"
+				name="Other Arguments" 
+				category="de.innot.avreclipse.linker.category.general"
+				valueType="string" />
+
+			<optionCategory id="de.innot.avreclipse.linker.category.libs"
+				name="Libraries" />
+			<option id="de.innot.avreclipse.linker.option.libs"
+				name="Libraries (-l)"
+				category="de.innot.avreclipse.linker.category.libs" 
+				valueType="libs"
+				browseType="none" 
+				command="-l" />
+			<option id="de.innot.avreclipse.linker.option.libpath" 
+				name="Libraries Path (-L)" 
+				category="de.innot.avreclipse.linker.category.libs"
+				valueType="stringList" 
+				browseType="directory"
+				command="-L" />
+				
+			<optionCategory id="de.innot.avreclipse.linker.category.objs"
+				name="Objects" />
+			<option id="de.innot.avreclipse.linker.option.otherlink"
+				name="(-Xlinker) Options" 
+				category="de.innot.avreclipse.linker.category.objs"
+				valueType="stringList" 
+				command="-Xlinker" />
+			<option id="de.innot.avreclipse.linker.option.otherobjs"
+				name="Other Objects (*.o)" 
+				category="de.innot.avreclipse.linker.category.objs"
+				valueType="userObjs"
+				browseType="file" />
+				
+			<option id="de.innot.avreclipse.linker.option.avr_target_mcu" 
+				name="MCU Type"
+				valueType="string" 
+				command="-mmcu=">
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+				
+			<inputType id="de.innot.avreclipse.tool.linker.input" 
+				name="OBJ Files"
+				sourceContentType="org.eclipse.cdt.managedbuilder.core.compiledObjectFile"
+				sources="obj"
+				multipleOfType="true"
+				buildVariable="OBJS" >
+			</inputType>
+
+			<outputType id="de.innot.avreclipse.tool.linker.output" 
+				name="ELF Binary Files"
+				outputs="elf"
+				nameProvider="org.eclipse.cdt.managedbuilder.makegen.gnu.GnuLinkOutputNameProvider"
+				buildVariable="ELFS" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR Archiver                                                                  # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.archiver.winavr" 
+			name="winAVR Archiver" 
+			command="avr-ar" 
+			isAbstract="true">
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.staticLib" />
+				</property>
+			</supportedProperties>
+			
+			<optionCategory id="de.innot.avreclipse.archiver.category.general" 
+				name="General" />
+			<option id="de.innot.avreclipse.archiver.option.flags" 
+				name="Archiver flags" 
+				category="de.innot.avreclipse.archiver.category.general" 
+				valueType="string" 
+				defaultValue="-r" />
+				
+			<inputType id="de.innot.avreclipse.archiver.input" 
+				sourceContentType="org.eclipse.cdt.managedbuilder.core.compiledObjectFile" 
+				sources="o" 
+				multipleOfType="true" 
+				buildVariable="OBJS">
+				<additionalInput 
+					paths="$(LIBS)" 
+					kind="additionalinput" />
+			</inputType>
+			
+			<outputType id="de.innot.avreclipse.archiver.output" 
+				outputs="a" 
+				outputPrefix="lib"
+				primaryOutput="true"
+				nameProvider="org.eclipse.cdt.managedbuilder.makegen.gnu.GnuLinkOutputNameProvider" 
+				buildVariable="ARCHIVES" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR Generate Flash ROM image                                                  #
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.objcopy.flash.winavr" 
+			name="winAVR Create Flash image"
+			isAbstract="true"
+			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT}"
+			command="-avr-objcopy" 
+			announcement="Create Flash image (ihex format)" >
+			
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+				</property>
+			</supportedProperties>
+			
+			
+			<optionCategory id="de.innot.avreclipse.objcopy.flash.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.objcopy.option.flash.stdopts"
+				name="Options to create flash image"
+				category="de.innot.avreclipse.objcopy.flash.category.general"
+				valueType="string"
+				defaultValue="-R .eeprom -O ihex" />
+			<option id="de.innot.avreclipse.objcopy.option.flash.addopts"
+				name="Additional Options for objcopy"
+				category="de.innot.avreclipse.objcopy.flash.category.general"
+				valueType="string" />
+			<option id="de.innot.avreclipse.objcopy.flash.option.output"
+				name="Output Filename"
+				category="de.innot.avreclipse.objcopy.flash.category.general"
+				valueType="string"
+				value="${BuildArtifactFileBaseName}.flash.hex"
+				defaultValue="${BuildArtifactFileBaseName}.flash.hex"
+				tip="Name of the flash image." >
+				<enablement
+					type="CMD_USAGE" >
+					<false/>
+				</enablement>
+			</option>
+
+<!--  	
+	Using an option for the input filename is an ugly clutch, but the linker /archiver,
+	as final build target will not generate a build variable. 
+-->
+			<option id="de.innot.avreclipse.objcopy.flash.option.input"
+				name="Input File"
+				valueType="string"
+				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
+				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+
+			
+			<inputType id="de.innot.avreclipse.tool.objcopy.flash.input"
+				primaryInput="false"
+				multipleOfType="true"
+				option="de.innot.avreclipse.objcopy.flash.option.input" />
+				
+			<outputType id="de.innot.avreclipse.tool.objcopy.flash.output"
+				name="Hex dump for flash rom"
+				option="de.innot.avreclipse.objcopy.flash.option.output"
+				buildVariable="FLASH_IMAGE" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR Generate EEPROM image                                                     # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.objcopy.eeprom.winavr" 
+			name="winAVR Create EEPROM image"
+			isAbstract="true"
+			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT}"
+			command="-avr-objcopy" 
+			announcement="Create eeprom image (ihex format)" >
+			
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+				</property>
+			</supportedProperties>
+
+			<optionCategory id="de.innot.avreclipse.objcopy.eeprom.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.objcopy.option.eeprom.stdopts"
+				name="Options to create eeprom image"
+				category="de.innot.avreclipse.objcopy.eeprom.category.general"
+				valueType="string"
+				defaultValue="-j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex" />
+			<option id="de.innot.avreclipse.objcopy.eeprom.option.addopts"
+				name="Additional Options for objcopy"
+				category="de.innot.avreclipse.objcopy.eeprom.category.general"
+				valueType="string" />
+			<option id="de.innot.avreclipse.objcopy.eeprom.option.output"
+				name="Output Filename"
+				category="de.innot.avreclipse.objcopy.eeprom.category.general"
+				valueType="string"
+				value="${BuildArtifactFileBaseName}.eeprom.hex"
+				defaultValue="${BuildArtifactFileBaseName}.eeprom.hex"
+				tip="Name of the eeprom image." >
+				<enablement
+					type="CMD_USAGE" >
+					<false/>
+				</enablement>
+			</option>
+
+<!--  	
+	Using an option for the input filename is an ugly clutch, but the linker /archiver,
+	as final build target will not generate a build variable. 
+-->
+			<option id="de.innot.avreclipse.objcopy.eeprom.option.input"
+				name="Input File"
+				valueType="string"
+				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
+				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+			<inputType id="de.innot.avreclipse.tool.objcopy.eeprom.input"
+				primaryInput="false"
+				multipleOfType="true"
+				option="de.innot.avreclipse.objcopy.eeprom.option.input" />
+				
+			<outputType id="de.innot.avreclipse.tool.objcopy.eeprom.output"
+				option="de.innot.avreclipse.objcopy.eeprom.option.output"
+				primaryOutput="true"
+				buildVariable="EEPROM_IMAGE" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    winAVR create Extended Listing                                                   # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.objdump.winavr" 
+			name="winAVR Create Extended Listing"
+			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} >${OUTPUT}"
+			command="-avr-objdump" >
+
+			<supportedProperties>
+				<property id="de.innot.avreclipse.buildType">
+					<value id="de.innot.avreclipse.buildType.debug" />
+					<value id="de.innot.avreclipse.buildType.release" />
+				</property>
+			</supportedProperties>
+
+			<optionCategory id="de.innot.avreclipse.objdump.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.objdump.option.stdopts"
+				name="Options to create Extended Listing"
+				category="de.innot.avreclipse.objdump.category.general"
+				valueType="string"
+				defaultValue="-h -S" />
+			<option id="de.innot.avreclipse.objdump.option.addopts"
+				name="Additional Options for objdump"
+				category="de.innot.avreclipse.objdump.category.general"
+				valueType="string" />
+			<option id="de.innot.avreclipse.objdump.option.output"
+				name="Output Filename"
+				category="de.innot.avreclipse.objdump.category.general"
+				valueType="string"
+				value="${BuildArtifactFileBaseName}.lss"
+				defaultValue="${BuildArtifactFileBaseName}.lss"
+				tip="Name of the lss file." >
+				<enablement
+					type="CMD_USAGE" >
+					<false/>
+				</enablement>
+			</option>
+							
+<!--  	
+	Using an option for the input filename is an ugly clutch, but the linker /archiver,
+	as final build target will not generate a build variable. 
+-->
+			<option id="de.innot.avreclipse.objdump.option.input"
+				name="Input File"
+				valueType="string"
+				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
+				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+
+			<inputType id="de.innot.avreclipse.tool.objdump.input"
+				primaryInput="false"
+				multipleOfType="true"
+				option="de.innot.avreclipse.objdump.option.input" />
+				
+			<outputType id="de.innot.avreclipse.tool.objdump.output"
+				option="de.innot.avreclipse.objdump.option.output"
+				primaryOutput="true"
+				buildVariable="LSS" />
+		</tool>
+		
+<!-- 
+####################################################################################### 
+#    winAVR display size of target                                                    # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.size.winavr" 
+			name="winAVR Print Size"
+			command="-avr-size" 
+			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS}" >
+
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+					<value id="de.innot.avreclipse.buildArtefactType.staticLib" />
+				</property>
+			</supportedProperties>
+
+			<optionCategory id="de.innot.avreclipse.size.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.objdump.option.format"
+				name="Size Format"
+				category="de.innot.avreclipse.size.category.general"
+				valueType="enumerated" >
+				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.avr"
+					name="AVR Format" 
+					command="--format=avr" />
+				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.berkeley"
+					name="Berkeley Format" 
+					command="--format=berkeley" />
+				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.sysv"
+					name="SysV Format" 
+					command="--format=sysv" />
+ 			</option>
+			<option id="de.innot.avreclipse.size.option.totals"
+				name="Show Totals"
+				category="de.innot.avreclipse.size.category.general"
+				valueType="boolean"
+				defaultValue="true"
+				command="-t" >
+				<enablement 
+					type="UI_ENABLEMENT|CMD_USAGE" >
+					<checkOption
+						optionId="de.innot.avreclipse.objdump.option.format"
+				  		value="de.innot.avreclipse.objdump.option.format.berkeley" />
+				</enablement>
+			</option>			
+
+			<option id="de.innot.avreclipse.size.option.avr_target_mcu"
+				name="MCU Type"
+				valueType="string" 
+				command="--mcu=" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+			
+<!--  	
+	Using an option for the input filename is an ugly clutch, but the linker /archiver,
+	as final build target will not generate a build variable. 
+-->
+			<option id="de.innot.avreclipse.size.option.input"
+				name="Input File"
+				valueType="string"
+				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
+				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
+				<enablement
+					type="UI_VISIBILITY" >
+					<false/>
+				</enablement>
+			</option>
+
+			<inputType id="de.innot.avreclipse.tool.size.input"
+				primaryInput="false"
+				multipleOfType="true"
+				option="de.innot.avreclipse.size.option.input" />
+ 				
+			<outputType id="de.innot.avreclipse.tool.size.output"
+				outputNames="sizedummy"
+				primaryOutput="true" 
+				buildVariable="SIZEDUMMY"/>
+		</tool>
+		
+
+		
+<!-- 
+####################################################################################### 
+#    Default builder                                                                  # 
+####################################################################################### 
+-->
+		<builder id="de.innot.avreclipse.target.gnu.builder" 
+			name="GNU Make Builder"
+			isAbstract="true"
+			command="make"
+			autoBuildTarget="all"
+			incrementalBuildTarget="all" 
+			cleanBuildTarget="clean" 
+			ignoreErrCmd="-k"
+			buildfileGenerator="org.eclipse.cdt.managedbuilder.makegen.gnu.GnuMakefileGenerator"
+			errorParsers="org.eclipse.cdt.core.MakeErrorParser"
+			isVariableCaseSensitive="true"
+			macroInputDirRelPathValue="$(dir $&lt;)"
+			macroInputFileBaseNameValue="$(basename $(notdir $&lt;))"
+			macroInputFileExtValue="$(suffix $(notdir $&lt;))"
+			macroInputFileNameValue="$(notdir $&lt;)"
+			macroInputFileRelPathValue="$&lt;"
+			macroOutputDirRelPathValue="$(dir $@)"
+			macroOutputFileBaseNameValue="$(basename (notdir $@))"
+			macroOutputFileExtValue="$(suffix $(notdir $@)"
+			macroOutputFileNameValue="$(notdir $@)"
+			macroOutputFileRelPathValue="$@" 
+			parallelBuildCmd="-j*"
+			reservedMacroNames="ROOT,DEPS,OBJS,.*_SRCS,EXECUTABLES,SUBDIRS,LIBS,USER_OBJS,.*_INPUTS,.*_OUTPUTS"
+			variableFormat="${=}" 
+			/>
+
+<!-- 
+####################################################################################### 
+#    Default toolchain                                                                # 
+####################################################################################### 
+-->
+		<toolChain id="de.innot.avreclipse.toolchain.winavr.base"
+			name="WinAVR Toolchain"
+			configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier" 
+			configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier" >
+			
+  			<targetPlatform id="de.innot.avreclipse.targetplatform.avr" 
+				name="AVR Cross-Target"
+				archList="all"
+				osList="all" 
+				binaryParser="org.eclipse.cdt.core.ELF" />
+
+			<optionCategory id="de.innot.avreclipse.toolchain.category.target"
+				name="Target Hardware" 
+				owner="de.innot.avreclipse.toolchain.winavr.base" />
+			<option id="de.innot.avreclipse.toolchain.options.target.mcutype"
+				name="MCU Type"
+				category="de.innot.avreclipse.toolchain.category.target"
+				valueType="enumerated"
+				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
+				valueHandlerExtraArgument="AVR_TARGET_MCU" 
+				tip="Select the MCU target type">
+				<enumeratedOptionValue command="-mmcu=at90pwm2"
+					name="AT90PWM2" id="de.innot.avreclipse.mcus.at90pwm2" />
+				<enumeratedOptionValue command="-mmcu=at90pwm3"
+					name="AT90PWM3" id="de.innot.avreclipse.mcus.at90pwm3" />
+				<enumeratedOptionValue command="-mmcu=at43usb320"
+					name="AT43USB320" id="de.innot.avreclipse.mcus.at43usb320" />
+				<enumeratedOptionValue command="-mmcu=at43usb355"
+					name="AT43USB355" id="de.innot.avreclipse.mcus.at43usb355" />
+				<enumeratedOptionValue command="-mmcu=at90usb646"
+					name="AT90USB646" id="de.innot.avreclipse.mcus.at90usb646" />
+				<enumeratedOptionValue command="-mmcu=at90usb647"
+					name="AT90USB647" id="de.innot.avreclipse.mcus.at90usb647" />
+				<enumeratedOptionValue command="-mmcu=at90usb1286"
+					name="AT90USB1286" id="de.innot.avreclipse.mcus.at90usb1286" />
+				<enumeratedOptionValue command="-mmcu=at90usb1287"
+					name="AT90USB1287" id="de.innot.avreclipse.mcus.at90usb1287" />
+				<enumeratedOptionValue command="-mmcu=at76c711"
+					name="AT76C711" id="de.innot.avreclipse.mcus.at76c711" />
+				<enumeratedOptionValue command="-mmcu=at86rf401"
+					name="AT86RF401" id="de.innot.avreclipse.mcus.at86rf401" />
+				<enumeratedOptionValue command="-mmcu=at90can32"
+					name="AT90CAN32" id="de.innot.avreclipse.mcus.at90can32" />
+				<enumeratedOptionValue command="-mmcu=at90can64"
+					name="AT90CAN64" id="de.innot.avreclipse.mcus.at90can64" />
+				<enumeratedOptionValue command="-mmcu=at90can128"
+					name="AT90CAN128" id="de.innot.avreclipse.mcus.at90can128" />
+				<enumeratedOptionValue command="-mmcu=at90s1200"
+					name="AT90S1200" id="de.innot.avreclipse.mcus.at90s1200" />
+				<enumeratedOptionValue command="-mmcu=at90s2313"
+					name="AT90S2313" id="de.innot.avreclipse.mcus.at90s2313" />
+				<enumeratedOptionValue command="-mmcu=at90s2323"
+					name="AT90S2323" id="de.innot.avreclipse.mcus.at90s2323" />
+				<enumeratedOptionValue command="-mmcu=at90s2333"
+					name="AT90S2333" id="de.innot.avreclipse.mcus.at90s2333" />
+				<enumeratedOptionValue command="-mmcu=at90s2343"
+					name="AT90S2343" id="de.innot.avreclipse.mcus.at90s2343" />
+				<enumeratedOptionValue command="-mmcu=at90s4414"
+					name="AT90S4414" id="de.innot.avreclipse.mcus.at90s4414" />
+				<enumeratedOptionValue command="-mmcu=at90s4433"
+					name="AT90S4433" id="de.innot.avreclipse.mcus.at90s4433" />
+				<enumeratedOptionValue command="-mmcu=at90s4434"
+					name="AT90S4434" id="de.innot.avreclipse.mcus.90s4434" />
+				<enumeratedOptionValue command="-mmcu=at90s8515"
+					name="AT90S8515" id="de.innot.avreclipse.mcus.at90s8515" />
+				<enumeratedOptionValue command="-mmcu=at90s8534"
+					name="AT90S8534" id="de.innot.avreclipse.mcus.at90s8534" />
+				<enumeratedOptionValue command="-mmcu=at90s8535"
+					name="AT90S8535" id="de.innot.avreclipse.mcus.at90s8535" />
+				<enumeratedOptionValue command="-mmcu=at94k"
+					name="AT94k" id="de.innot.avreclipse.mcus.at94k" />
+				<enumeratedOptionValue command="-mmcu=attiny11"
+					name="ATTiny11" id="de.innot.avreclipse.mcus.attiny11" />
+				<enumeratedOptionValue command="-mmcu=attiny12"
+					name="ATTiny12" id="de.innot.avreclipse.mcus.attiny12" />
+				<enumeratedOptionValue command="-mmcu=attiny13"
+					name="ATTiny13" id="de.innot.avreclipse.mcus.attiny13" />
+				<enumeratedOptionValue command="-mmcu=attiny15"
+					name="ATTiny15" id="de.innot.avreclipse.mcus.attiny15" />
+				<enumeratedOptionValue command="-mmcu=attiny22"
+					name="ATTiny22" id="de.innot.avreclipse.mcus.attiny22" />
+				<enumeratedOptionValue command="-mmcu=attiny2313"
+					name="ATTiny2313" id="de.innot.avreclipse.mcus.attiny2313" />
+				<enumeratedOptionValue command="-mmcu=attiny24"
+					name="ATTiny24" id="de.innot.avreclipse.mcus.attiny24" />
+				<enumeratedOptionValue command="-mmcu=attiny25"
+					name="ATTiny25" id="de.innot.avreclipse.mcus.attiny25" />
+				<enumeratedOptionValue command="-mmcu=attiny26"
+					name="ATTiny26" id="de.innot.avreclipse.mcus.attiny26" />
+				<enumeratedOptionValue command="-mmcu=attiny261"
+					name="ATTiny261" id="de.innot.avreclipse.mcus.attiny261" />
+				<enumeratedOptionValue command="-mmcu=attiny28"
+					name="ATTiny28" id="de.innot.avreclipse.mcus.attiny28" />
+				<enumeratedOptionValue command="-mmcu=attiny44"
+					name="ATTiny44" id="de.innot.avreclipse.mcus.attiny44" />
+				<enumeratedOptionValue command="-mmcu=attiny45"
+					name="ATTiny45" id="de.innot.avreclipse.mcus.attiny45" />
+				<enumeratedOptionValue command="-mmcu=attiny461"
+					name="ATTiny461" id="de.innot.avreclipse.mcus.attiny461" />
+				<enumeratedOptionValue command="-mmcu=attiny84"
+					name="ATTiny84" id="de.innot.avreclipse.mcus.attiny84" />
+				<enumeratedOptionValue command="-mmcu=attiny85"
+					name="ATTiny85" id="de.innot.avreclipse.mcus.attiny85" />
+				<enumeratedOptionValue command="-mmcu=attiny861"
+					name="ATTiny861" id="de.innot.avreclipse.mcus.attiny861" />
+				<enumeratedOptionValue command="-mmcu=atmega8"
+					name="ATMega8" id="de.innot.avreclipse.mcus.atmega8" />
+				<enumeratedOptionValue command="-mmcu=atmega8515"
+					name="ATMega8515" id="de.innot.avreclipse.mcus.atmega8515" />
+				<enumeratedOptionValue command="-mmcu=atmega8535"
+					name="ATMega8535" id="de.innot.avreclipse.mcus.atmega8535" />
+				<enumeratedOptionValue command="-mmcu=atmega88"
+					name="ATMega88" id="de.innot.avreclipse.mcus.atmega88" />
+				<enumeratedOptionValue command="-mmcu=atmega103"
+					name="ATMega103" id="de.innot.avreclipse.mcus.atmega103" />
+				<enumeratedOptionValue isDefault="true"
+					command="-mmcu=atmega16" name="ATMega16"
+					id="de.innot.avreclipse.mcus.atmega16" />
+				<enumeratedOptionValue command="-mmcu=atmega161"
+					name="ATMega161" id="de.innot.avreclipse.mcus.atmega161" />
+				<enumeratedOptionValue command="-mmcu=atmega162"
+					name="ATMega162" id="de.innot.avreclipse.mcus.atmega162" />
+				<enumeratedOptionValue command="-mmcu=atmega163"
+					name="ATMega163" id="de.innot.avreclipse.mcus.atmega163" />
+				<enumeratedOptionValue command="-mmcu=atmega164p"
+					name="ATMega164p" id="de.innot.avreclipse.mcus.atmega164p" />
+				<enumeratedOptionValue command="-mmcu=atmega165"
+					name="ATMega165" id="de.innot.avreclipse.mcus.atmega165" />
+				<enumeratedOptionValue command="-mmcu=atmega165p"
+					name="ATMega165p" id="de.innot.avreclipse.mcus.atmega165p" />
+				<enumeratedOptionValue command="-mmcu=atmega168"
+					name="ATMega168" id="de.innot.avreclipse.mcus.atmega168" />
+				<enumeratedOptionValue command="-mmcu=atmega169"
+					name="ATMega169" id="de.innot.avreclipse.mcus.atmega169" />
+				<enumeratedOptionValue command="-mmcu=atmega169p"
+					name="ATMega169p" id="de.innot.avreclipse.mcus.atmega169p" />
+				<enumeratedOptionValue command="-mmcu=atmega2560"
+					name="ATMega2560" id="de.innot.avreclipse.mcus.atmega2560" />
+				<enumeratedOptionValue command="-mmcu=atmega2561"
+					name="ATMega2561" id="de.innot.avreclipse.mcus.atmega2561" />
+				<enumeratedOptionValue command="-mmcu=atmega32"
+					name="ATMega32" id="de.innot.avreclipse.mcus.atmega32" />
+				<enumeratedOptionValue command="-mmcu=atmega323"
+					name="ATMega323" id="de.innot.avreclipse.mcus.atmega323" />
+				<enumeratedOptionValue command="-mmcu=atmega324p"
+					name="ATMega324p" id="de.innot.avreclipse.mcus.atmega324p" />
+				<enumeratedOptionValue command="-mmcu=atmega325"
+					name="ATMega325" id="de.innot.avreclipse.mcus.atmega325" />
+				<enumeratedOptionValue command="-mmcu=atmega3250"
+					name="ATMega3250" id="de.innot.avreclipse.mcus.atmega3250" />
+				<enumeratedOptionValue command="-mmcu=atmega329"
+					name="ATMega329" id="de.innot.avreclipse.mcus.atmega329" />
+				<enumeratedOptionValue command="-mmcu=atmega3290"
+					name="ATMega3290" id="de.innot.avreclipse.mcus.atmega3290" />
+				<enumeratedOptionValue command="-mmcu=atmega48"
+					name="ATMega48" id="de.innot.avreclipse.mcus.atmega48" />
+				<enumeratedOptionValue command="-mmcu=atmega406"
+					name="ATMega406" id="de.innot.avreclipse.mcus.atmega406" />
+				<enumeratedOptionValue command="-mmcu=atmega64"
+					name="ATMega64" id="de.innot.avreclipse.mcus.atmega64" />
+				<enumeratedOptionValue command="-mmcu=atmega640"
+					name="ATMega640" id="de.innot.avreclipse.mcus.atmega640" />
+				<enumeratedOptionValue command="-mmcu=atmega644"
+					name="ATMega644" id="de.innot.avreclipse.mcus.atmega644" />
+				<enumeratedOptionValue command="-mmcu=atmega644p"
+					name="ATMega644p" id="de.innot.avreclipse.mcus.atmega644p" />
+				<enumeratedOptionValue command="-mmcu=atmega645"
+					name="ATMega645" id="de.innot.avreclipse.mcus.atmega645" />
+				<enumeratedOptionValue command="-mmcu=atmega6450"
+					name="ATMega6450" id="de.innot.avreclipse.mcus.atmega6450" />
+				<enumeratedOptionValue command="-mmcu=atmega649"
+					name="ATMega649" id="de.innot.avreclipse.mcus.atmega649" />
+				<enumeratedOptionValue command="-mmcu=atmega6490"
+					name="ATMega6490" id="de.innot.avreclipse.mcus.atmega6490" />
+				<enumeratedOptionValue command="-mmcu=atmega128"
+					name="ATMega128" id="de.innot.avreclipse.mcus.atmega128" />
+				<enumeratedOptionValue command="-mmcu=atmega1280"
+					name="ATMega1280" id="de.innot.avreclipse.mcus.atmega1280" />
+				<enumeratedOptionValue command="-mmcu=atmega1281"
+					name="ATMega1281" id="de.innot.avreclipse.mcus.atmega1281" />
+			</option>
+			<option id="de.innot.avreclipse.toolchain.options.target.fcpu"
+				name="MCU Clock Frequency" 
+				category="de.innot.avreclipse.toolchain.category.target"
+				valueType="string" 
+				defaultValue="1000000" 
+				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
+				valueHandlerExtraArgument="AVR_TARGET_FCPU" 
+				tip="Clock frequency in Hz" />
+
+			<optionCategory id="de.innot.avreclipse.toolchain.category.addtools"
+				name="Additional Tools in Toolchain"
+				owner="de.innot.avreclipse.toolchain.winavr.base" />
+			<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash"
+				name="Generate HEX file for Flash memory"
+				category="de.innot.avreclipse.toolchain.category.addtools"
+				valueType="boolean"
+				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
+				valueHandlerExtraArgument="de.innot.avreclipse.tool.objcopy.flash.winavr" >
+				<enablement 
+					type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.app" />
+				</enablement>
+			</option>
+			<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom"
+				name="Generate HEX file for EEPROM"
+				category="de.innot.avreclipse.toolchain.category.addtools"
+				valueType="boolean"
+				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
+				valueHandlerExtraArgument="de.innot.avreclipse.tool.objcopy.eeprom.winavr" >
+				<enablement 
+					type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.app" />
+				</enablement>
+			</option>
+			<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump"
+				name="Generate Extended Listing (Source + generated Assembler)"
+				category="de.innot.avreclipse.toolchain.category.addtools"
+				valueType="boolean"
+				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
+				valueHandlerExtraArgument="de.innot.avreclipse.tool.objdump.winavr" >
+			</option>
+			<option id="de.innot.avreclipse.toolchain.options.toolchain.size"
+				name="Print Size"
+				category="de.innot.avreclipse.toolchain.category.addtools"
+				valueType="boolean"
+				tip="Prints the size of the final target"
+				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
+				valueHandlerExtraArgument="de.innot.avreclipse.tool.size.winavr" />
+ 	
+ 			
+			<builder superClass="de.innot.avreclipse.target.gnu.builder"
+				id="de.innot.avreclipse.target.builder.winavr.base" />
+
+			<tool id="de.innot.avreclipse.tool.assembler.winavr.base"
+				superClass="de.innot.avreclipse.tool.assembler.winavr" />
+			
+			<tool id="de.innot.avreclipse.tool.compiler.winavr.base"
+				superClass="de.innot.avreclipse.tool.compiler.winavr" />
+
+			<tool id="de.innot.avreclipse.tool.linker.winavr.base"
+				superClass="de.innot.avreclipse.tool.linker.winavr">
+				<enablement type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.app" />
+				</enablement>
+			</tool>
+			
+			<tool id="de.innot.avreclipse.tool.archiver.winavr.base"
+				superClass="de.innot.avreclipse.tool.archiver.winavr">
+				<enablement type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.staticLib" />
+				</enablement>
+			</tool>
+
+
+		</toolChain>
+
+<!-- 
+####################################################################################### 
+#    Default configuration                                                            # 
+####################################################################################### 
+-->
+		<configuration id="de.innot.avreclipse.config.winavr.base"
+			artifactExtension="elf" 
+			cleanCommand="rm -rf" >
+			<enablement type="CONTAINER_ATTRIBUTE"
+				attribute="artifactExtension" value="a"
+				extensionAdjustment="false">
+				<checkBuildProperty
+					property="org.eclipse.cdt.build.core.buildArtefactType"
+					value="de.innot.avreclipse.buildArtefactType.staticLib" />
+			</enablement>
+		</configuration>
+
+<!-- 
+####################################################################################### 
+#    Application project                                                              # 
+####################################################################################### 
+-->
+		<projectType id="de.innot.avreclipse.project.winavr.elf"
+			buildArtefactType="de.innot.avreclipse.buildArtefactType.app" >
+
+			<configuration id="de.innot.avreclipse.configuration.app.debug"
+				name="Debug"
+				parent="de.innot.avreclipse.config.winavr.base"
+				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" >
+				<toolChain id="de.innot.avreclipse.toolchain.winavr.app.debug"
+					superClass="de.innot.avreclipse.toolchain.winavr.base" 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
+					
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
+						value="false"
+						defaultValue="false"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom.app.debug"
+						value="false"
+						defaultValue="false"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.app.debug"
+						value="true"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"
+						value="true"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+
+					<targetPlatform
+						id="de.innot.avreclipse.targetplatform.winavr.app.debug"
+						superClass="de.innot.avreclipse.targetplatform.avr" />
+					<builder
+						id="de.innot.avreclipse.target.builder.winavr.app.debug"
+						superClass="de.innot.avreclipse.target.builder.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.assembler.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.assembler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.compiler.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.linker.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.objdump.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+					<tool
+						id="de.innot.avreclipse.tool.objcopy.flash.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.objcopy.flash.winavr" >
+						<enablement type="ALL">
+							<false/>
+						</enablement>
+					</tool>
+					<tool
+						id="de.innot.avreclipse.tool.objcopy.eeprom.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" >
+						<enablement type="ALL">
+							<false/>
+						</enablement>
+					</tool>
+					<tool 
+						id="de.innot.avreclipse.tool.size.winavr.app.debug"
+						superClass="de.innot.avreclipse.tool.size.winavr" >
+					</tool>
+				</toolChain>
+			</configuration>
+
+			<configuration id="de.innot.avreclipse.configuration.app.release" 
+				name="Release"
+				parent="de.innot.avreclipse.config.winavr.base"
+				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release">
+				<toolChain id="de.innot.avreclipse.toolchain.winavr.app.release"
+					superClass="de.innot.avreclipse.toolchain.winavr.base" 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
+
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom.app.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.app.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+
+					<targetPlatform
+						id="de.innot.avreclipse.targetplatform.winavr.app.release "
+						superClass="de.innot.avreclipse.targetplatform.avr" />
+					<builder
+						id="de.innot.avreclipse.target.builder.winavr.app.release"
+						superClass="de.innot.avreclipse.target.builder.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.assembler.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.assembler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.compiler.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.linker.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.objdump.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+					<tool
+						id="de.innot.avreclipse.tool.objcopy.flash.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.objcopy.flash.winavr" />
+					<tool
+						id="de.innot.avreclipse.tool.objcopy.eeprom.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" />
+					<tool 
+						id="de.innot.avreclipse.tool.size.winavr.app.release"
+						superClass="de.innot.avreclipse.tool.size.winavr" />
+				</toolChain>
+			</configuration>
+		</projectType>
+
+<!-- 
+####################################################################################### 
+#    Static library project                                                           # 
+####################################################################################### 
+-->
+		<projectType id="de.innot.avreclipse.project.winavr.staticlib"
+			buildArtefactType="de.innot.avreclipse.buildArtefactType.staticLib">
+			
+			<configuration id="de.innot.avreclipse.configuration.lib.debug"
+				name="Debug"
+				parent="de.innot.avreclipse.config.winavr.base"
+				artifactExtension="a" 
+				cleanCommand="rm -f"
+				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug">
+				<toolChain id="de.innot.avreclipse.toolchain.winavr.lib.debug"
+					superClass="de.innot.avreclipse.toolchain.winavr.base" 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.size.output" > 
+
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.debug"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.lib.debug"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+
+					<targetPlatform
+						id="de.innot.avreclipse.targetplatform.winavr.lib.debug"
+						superClass="de.innot.avreclipse.targetplatform.avr" />
+					<builder
+						id="de.innot.avreclipse.target.builder.winavr.lib.debug"
+						superClass="de.innot.avreclipse.target.builder.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.assembler.winavr.lib.debug"
+						superClass="de.innot.avreclipse.tool.assembler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.compiler.winavr.lib.debug"
+						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.archiver.winavr.lib.debug"
+						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.objdump.winavr.lib.debug"
+						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+					<tool 
+						id="de.innot.avreclipse.tool.size.winavr.lib.debug"
+						superClass="de.innot.avreclipse.tool.size.winavr" >
+						<option id="de.innot.avreclipse.objdump.option.format.lib.debug"
+							superClass="de.innot.avreclipse.objdump.option.format"
+							value="de.innot.avreclipse.objdump.option.format.berkeley" />
+					</tool>
+						
+				</toolChain>
+			</configuration>
+
+			<configuration id="de.innot.avreclipse.configuration.lib.release" 
+				name="Release"
+				parent="de.innot.avreclipse.config.winavr.base"
+				artifactExtension="a" 
+				cleanCommand="rm -rf"
+				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release">
+				<toolChain id="de.innot.avreclipse.toolchain.winavr.lib.release"
+					superClass="de.innot.avreclipse.toolchain.winavr.base" 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.size.output" > 
+
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.lib.release"
+						defaultValue="true"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+
+					<targetPlatform
+						id="de.innot.avreclipse.targetplatform.winavr.lib.release"
+						superClass="de.innot.avreclipse.targetplatform.avr" />
+					<builder
+						id="de.innot.avreclipse.target.builder.winavr.lib.release"
+						superClass="de.innot.avreclipse.target.builder.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.assembler.winavr.lib.release"
+						superClass="de.innot.avreclipse.tool.assembler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.compiler.winavr.lib.release"
+						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.archiver.winavr.lib.release"
+						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.objdump.winavr.lib.release"
+						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+					<tool 
+						id="de.innot.avreclipse.tool.size.winavr.lib.release"
+						superClass="de.innot.avreclipse.tool.size.winavr" >
+						<option id="de.innot.avreclipse.objdump.option.format.lib.release"
+							superClass="de.innot.avreclipse.objdump.option.format"
+							value="de.innot.avreclipse.objdump.option.format.berkeley" />
+					</tool>
+				</toolChain>
+			</configuration>
+		</projectType>
+	</extension>
+
+	<extension id="de.innot.avreclipse.baseproperties"
+		name="AVR Cross Target Base Build Properties Definition"
+		point="org.eclipse.cdt.managedbuilder.core.buildProperties">
+		
+		<propertyValue
+			property="org.eclipse.cdt.build.core.buildArtefactType"
+			id="de.innot.avreclipse.buildArtefactType.app"
+			name="AVR Cross Target Application" />
+		<propertyValue
+			property="org.eclipse.cdt.build.core.buildArtefactType"
+			id="de.innot.avreclipse.buildArtefactType.staticLib"
+			name="AVR Cross Target Static Library" />
+
+	</extension>
+</plugin>

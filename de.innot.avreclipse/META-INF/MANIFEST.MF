@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AVR Eclipse Plugin 2.0
+Bundle-SymbolicName: de.innot.avreclipse.plugin;singleton:=true
+Bundle-Version: 2.0.0.qualifier
+Bundle-Vendor: Thomas Holland
+Require-Bundle: 
+ org.eclipse.cdt.managedbuilder.core,
+ org.eclipse.cdt.managedbuilder.ui,
+ org.eclipse.cdt.core;bundle-version="4.0.0",
+ org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.cdt.ui
+Export-Package: de.innot.avreclipse;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.devicedescription;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.devicedescription.avrio;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.mbs;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.ui;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.ui.preferences;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.ui.views.avrdevice;x-friends:="de.innot.avreclipse_tests",
+ de.innot.avreclipse.util.win32;x-friends:="de.innot.avreclipse_tests"
+Eclipse-LazyStart: true
+Bundle-Activator: de.innot.avreclipse.AVRPluginActivator
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
