@@ -105,7 +105,8 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 				}
 			}
 			
-			AVROptionsManager.setOption(name, value);
+			// Doesn't do what I wanted to do.
+			// AVROptionsManager.setOption(name, value);
 
 		} catch (BuildException e) {
 			// This indicates an error in the plugin.xml (no / wrong value for
