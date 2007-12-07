@@ -71,14 +71,9 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 	 * Handle Option Change events.
 	 * 
 	 * <p>
-	 * The different kinds of event are all ignored and any change of the this
-	 * option is immediately passed onto all other options with an id that ends
-	 * with <code>valueHandlerExtraArgument</code>
-	 * </p>
-	 * <p>
-	 * Also a environment variable with the name
-	 * <code>valueHandlerExtraArgument</code> and the value of this option is
-	 * created to pass the Target MCU onto any postbuild steps.
+	 * Any change of the this option is immediately passed onto all other
+	 * options of the given Toolchain with an id that contains
+	 * <code>valueHandlerExtraArgument</code>
 	 * </p>
 	 * 
 	 * @see org.eclipse.cdt.managedbuilder.core.IManagedOptionValueHandler#handleValue(org.eclipse.cdt.managedbuilder.core.IBuildObject,
@@ -88,6 +83,11 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 	@Override
 	public boolean handleValue(IBuildObject configuration, IHoldsOptions holder, IOption option,
 	        String extraArgument, int event) {
+
+		if (event == EVENT_LOAD) {
+			// don't need to change the extension
+			return false;
+		}
 
 		String name = extraArgument;
 		String value = null;
@@ -101,12 +101,9 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 				String tmp = option.getStringValue();
 				if (tmp != null) {
 					// get the actual mcu type (the last part of the id)
-					value = tmp.substring(tmp.lastIndexOf('.') + 1);
+					value = tmp.substring(tmp.lastIndexOf('.') + 1).toLowerCase();
 				}
 			}
-			
-			// Doesn't do what I wanted to do.
-			// AVROptionsManager.setOption(name, value);
 
 		} catch (BuildException e) {
 			// This indicates an error in the plugin.xml (no / wrong value for
@@ -122,39 +119,36 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 			toolchain = (IToolChain) ((ITool) holder).getParent();
 		}
 
-		// change the value of all options of all tools that have the last part
-		// of their id the same as the given valueHandlerExtraArgument.
-
-		int i = 0, n = 0;
+		// change the value of all options of all tools that contain the value
+		// of valueHandlerExtraArgument in their id
+		
+//		 System.out.println("OptionHandler called for Event " + event + ", tc = " + toolchain.getId() + " (" + value + ")");
 
 		ITool tctools[] = toolchain.getTools();
 
-		for (; i < tctools.length; i++) {
+		for (int i = 0; i < tctools.length; i++) {
 			IOption toolopts[] = tctools[i].getOptions();
-			for (n = 0; n < toolopts.length; n++) {
-				if (name.equalsIgnoreCase(lastpart(toolopts[n].getId()))) {
+			for (int n = 0; n < toolopts.length; n++) {
+				if (toolopts[n].getId().indexOf(name.toLowerCase()) > -1) {
 					try {
-						toolopts[n].setValue(value);
+//						 System.out.println(" Changed "+toolopts[n].getId() + " to " + value);
+
+						// setOption() takes care of persisting the changed
+						// value in the project settings
+						tctools[i].getParentResourceInfo()
+						        .setOption(tctools[i], toolopts[n], value);
 					} catch (BuildException e) {
-						// TODO Auto-generated catch block
+						// for debugging
 						e.printStackTrace();
 					}
 				}
 			}
 		}
 
-
 		// The return value is currently ignored in the calling class
 		// org.eclipse.cdt.managedbuilder.core.ManagedBuildManager#performValueHandlerEvent()
 		// So we always return false, as it is not clear what a true return
 		// value will do in future CDT versions.
 		return false;
-	}
-
-	private String lastpart(String str) {
-		if (str.indexOf('.') != 0) {
-			return str.substring(str.lastIndexOf('.') + 1);
-		}
-		return str;
 	}
 }
