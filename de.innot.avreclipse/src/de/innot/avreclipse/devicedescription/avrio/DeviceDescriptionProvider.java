@@ -55,6 +55,8 @@ import de.innot.avreclipse.ui.preferences.PreferenceConstants;
  */
 public class DeviceDescriptionProvider implements IDeviceDescriptionProvider {
 
+	final static String DDP_NAME = "<avr/io.h>";
+	
 	private static DeviceDescriptionProvider instance = null;
 
 	private Map<String, String> devices = null;
@@ -67,6 +69,10 @@ public class DeviceDescriptionProvider implements IDeviceDescriptionProvider {
 		if (instance == null)
 			instance = new DeviceDescriptionProvider();
 		return instance;
+	}
+	
+	public String getName() {
+		return DDP_NAME;
 	}
 
 	public List<String> getDeviceList() {
