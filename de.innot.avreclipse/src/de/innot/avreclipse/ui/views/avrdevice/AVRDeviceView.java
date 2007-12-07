@@ -209,7 +209,6 @@ public class AVRDeviceView extends ViewPart {
 				txt.setBackground(parent.getBackground());
 				txt.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
 				txt.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
-				// TODO: Add some action listeners
 				Listener srclistener = new SourceSelectionMouseHandler();
 				txt.addListener(SWT.MouseEnter, srclistener);
 				txt.addListener(SWT.MouseExit, srclistener);
