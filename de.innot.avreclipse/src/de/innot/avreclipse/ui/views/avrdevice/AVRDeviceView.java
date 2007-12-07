@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -37,12 +40,18 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
 import de.innot.avreclipse.devicedescription.ICategory;
@@ -51,18 +60,6 @@ import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 import de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider;
 
 /**
- * This sample class demonstrates how to plug-in a new workbench view. The view
- * shows data obtained from the model. The sample creates a dummy model on the
- * fly, but a real implementation would connect to the model available either in
- * this or another plug-in (e.g. the workspace). The view is connected to the
- * model using a fContent provider.
- * <p>
- * The view uses a label provider to define how model objects should be
- * presented in the view. Each view can present the same model objects using
- * different labels and icons, if needed. Alternatively, a single label provider
- * can be shared between views in order to ensure that objects of the same type
- * are presented in the same way everywhere.
- * <p>
  */
 
 public class AVRDeviceView extends ViewPart {
@@ -78,11 +75,9 @@ public class AVRDeviceView extends ViewPart {
 	private List<CTabItem> fTabs = new ArrayList<CTabItem>(0);
 	private Map<String, List<TreeColumn>> fTreeColumns;
 
-	@SuppressWarnings("unused")
 	private IMemento fMemento;
 
-	private static IDeviceDescriptionProvider dmprovider = DeviceDescriptionProvider
-			.getDefault();
+	private IDeviceDescriptionProvider dmprovider = DeviceDescriptionProvider.getDefault();
 
 	/**
 	 * The constructor.
@@ -103,14 +98,13 @@ public class AVRDeviceView extends ViewPart {
 	public void saveState(IMemento memento) {
 		// Save the current state of the viewer
 		super.saveState(memento);
-		
+
 		// Save the currently selected device
-		IStructuredSelection selection = (IStructuredSelection) fCombo
-				.getSelection();
+		IStructuredSelection selection = (IStructuredSelection) fCombo.getSelection();
 		memento.putString("combovalue", selection.getFirstElement().toString());
-		
+
 		// TODO: Save the Column Layoout for each category
-		
+
 	}
 
 	/**
@@ -126,8 +120,8 @@ public class AVRDeviceView extends ViewPart {
 
 		// Layout the top part, which consists of the MCU Type selection Combo
 		// and a composite of the sources Labels and Texts
-		// The Combo gets 25% of the space, the sources composite the other 75%
-		GridLayout gl = new GridLayout(4, true);
+		// The Combo gets 33% of the space, the sources composite the other 67%
+		GridLayout gl = new GridLayout(3, true);
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
 
@@ -136,8 +130,7 @@ public class AVRDeviceView extends ViewPart {
 		fTop.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
 		fCombo = new ComboViewer(fTop, SWT.READ_ONLY | SWT.DROP_DOWN);
-		fCombo.getControl().setLayoutData(
-				new GridData(SWT.FILL, SWT.NONE, true, false));
+		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
 		fCombo.addSelectionChangedListener(new ComboSelectionChangedListener());
@@ -148,8 +141,7 @@ public class AVRDeviceView extends ViewPart {
 
 		fSourcesComposite = new Composite(fTop, SWT.NONE);
 		fSourcesComposite.setLayout(new RowLayout());
-		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false, 3, 1));
+		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		new Label(fSourcesComposite, SWT.NONE).setText("source:");
 
 		// The bottom part consists of a TabFolder Control which will take all
@@ -215,9 +207,13 @@ public class AVRDeviceView extends ViewPart {
 				txt.setEditable(false);
 				// make it look like a link (grey background, dark blue color
 				txt.setBackground(parent.getBackground());
-				txt.setForeground(parent.getDisplay().getSystemColor(
-						SWT.COLOR_DARK_BLUE));
+				txt.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
+				txt.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 				// TODO: Add some action listeners
+				Listener srclistener = new SourceSelectionMouseHandler();
+				txt.addListener(SWT.MouseEnter, srclistener);
+				txt.addListener(SWT.MouseExit, srclistener);
+				txt.addListener(SWT.MouseUp, srclistener);
 				fSourcesTexts.add(txt);
 
 				// create a ">>" label
@@ -409,8 +405,7 @@ public class AVRDeviceView extends ViewPart {
 
 	@SuppressWarnings("unused")
 	private void showMessage(String message) {
-		MessageDialog.openInformation(fCombo.getControl().getShell(),
-				"Register Explorer", message);
+		MessageDialog.openInformation(fCombo.getControl().getShell(), "Register Explorer", message);
 	}
 
 	// When a different MCU Type is selected do the following:
@@ -418,12 +413,11 @@ public class AVRDeviceView extends ViewPart {
 	// - update the sources text elements
 	// - Update the tabs of the TabFolder (which will update the treeviewers)
 	// - Set the focus to the TreeViewer of the active tab.
-	private class ComboSelectionChangedListener implements
-			ISelectionChangedListener {
+	private class ComboSelectionChangedListener implements ISelectionChangedListener {
 
 		public void selectionChanged(SelectionChangedEvent event) {
-			String devicename = (String) ((StructuredSelection) event
-					.getSelection()).getFirstElement();
+			String devicename = (String) ((StructuredSelection) event.getSelection())
+			        .getFirstElement();
 			IDeviceDescription device = dmprovider.getDevice(devicename);
 			updateSourcelist(fSourcesComposite, device);
 			updateTabs(fTabFolder, device);
@@ -446,5 +440,59 @@ public class AVRDeviceView extends ViewPart {
 			((TreeViewer) ti.getData()).refresh();
 			((TreeViewer) ti.getData()).getControl().setFocus();
 		}
+	}
+
+	/**
+	 * Handle Mouse Events for the source file text widgets.
+	 * 
+	 * Three events are handled:
+	 * <ul>
+	 * <li><code>MouseEnter</code>: Change background color to show the user
+	 * that this widget can be clicked on.</li>
+	 * <li><code>MouseExit</code>: Restore the background color.</li>
+	 * <li><code>MouseUp</code>: Open the sourcefile associated with the
+	 * selected widget in an Editor.</li>
+	 * </ul>
+	 */
+	private class SourceSelectionMouseHandler implements Listener {
+
+		public void handleEvent(Event event) {
+			Text txt = (Text) event.widget;
+			switch (event.type) {
+			case SWT.MouseEnter:
+				// change background color to some lighter color
+				txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+				break;
+			case SWT.MouseExit:
+				// change background color back to normal
+				txt.setBackground(txt.getParent().getBackground());
+				break;
+			case SWT.MouseUp:
+				// Open the selected source file
+				// get the basepath from the DeviceDescriptionProvider,
+				// append the content of the selected text widget, get a
+				// IFileStore for this file and open an Editor for this
+				// file in the active Workbench page.
+				// No error checking as this file should exist
+				IPath srcfile = dmprovider.getBasePath();
+				srcfile = srcfile.append(txt.getText());
+				IFileStore fileStore = EFS.getLocalFileSystem().getStore(srcfile);
+				if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
+					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+					        .getActivePage();
+					try {
+						@SuppressWarnings("unused")
+						IEditorPart editor = IDE.openEditorOnFileStore(page, fileStore);
+						// TODO: if any row in the treeview has been selected,
+						// try
+						// to scroll the Editor to the associated definition.
+					} catch (PartInitException e) {
+						// what can cause this?
+						e.printStackTrace();
+					}
+				}
+				break;
+			} // switch
+		} // handleevent
 	}
 }
