@@ -19,10 +19,50 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 
+/**
+ * An <code>IDeviceDescriptionProvider</code>
+ * 
+ * @author Thomas Holland
+ * 
+ */
 public interface IDeviceDescriptionProvider {
 
+	/**
+	 * Returns the name of the DeviceDescriptionProvider.
+	 * 
+	 * This name is used by the viewer to store the current user-modifiable
+	 * column layout. Each DeviceDescriptionProvider must have a unique name.
+	 * 
+	 * For the time being this is also the name shown in the Viewers Menu. But
+	 * this will be replaced as soon as this Class is externalized into a
+	 * separate Fragment.
+	 * 
+	 * @return <code>String</code> with the name of this Provider
+	 * @deprecated
+	 */
+	public String getName();
+
+	/**
+	 * Returns a <code>List</code> with the names of all Devices known to this
+	 * provider.
+	 * 
+	 * @return <code>List</code> of Strings
+	 */
 	public List<String> getDeviceList();
 
+	/**
+	 * Returns a {@link IDeviceDescription} Object for the Device with the given
+	 * name.
+	 * 
+	 * The name must be one of the names in the list returned by
+	 * {@link #getDeviceList()}.
+	 * 
+	 * @param name
+	 *            The name of the requested device.
+	 * @return {@link IDeviceDescription} Object of <code>null</code> if the
+	 *         name was not known or any error occurred reading / parsing the
+	 *         underlying source file(s)
+	 */
 	public IDeviceDescription getDevice(String name);
 
 	/**
