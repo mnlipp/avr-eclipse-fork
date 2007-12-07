@@ -28,8 +28,10 @@
 
 	<extension id="de.innot.avreclipse.wizardpage" name="AVR Wizard Pages"
 		point="org.eclipse.cdt.managedbuilder.ui.newWizardPages">
-		<wizardPage ID="de.innot.avreclipse.mcuselectpage"
-			pageClass="de.innot.avreclipse.ui.MCUselectPage">
+		<wizardPage
+        ID="de.innot.avreclipse.mcuselectpage"
+        operationClass="de.innot.avreclipse.ui.MCUselectPage"
+        pageClass="de.innot.avreclipse.ui.MCUselectPage">
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.base" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.debug" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.release" />
@@ -101,7 +103,7 @@
 				defaultValue="false"
 				command="-W" />
 				
-			<option id="de.innot.avreclipse.asm.option.avr_target_mcu"
+			<option id="de.innot.avreclipse.asm.option.avrtargetmcu"
 				name="MCU Type"
 				valueType="string"
 				command="-mmcu=" >
@@ -278,7 +280,7 @@
 				valueType="string"
 				defaultValue="-c" />
 				
-			<option id="de.innot.avreclipse.compiler.option.avr_target_mcu"
+			<option id="de.innot.avreclipse.compiler.option.avrtargetmcu"
 				name="MCU Type"
 				valueType="string" 
 				command="-mmcu=" >
@@ -287,7 +289,7 @@
 					<false/>
 				</enablement>
 			</option>
-			<option id="de.innot.avreclipse.compiler.option.avr_target_fcpu" 
+			<option id="de.innot.avreclipse.compiler.option.avrtargetfcpu" 
 				name="MCU Clock Frequency"
 				valueType="string" 
 				command="-DF_CPU=" >
@@ -384,7 +386,7 @@
 				valueType="userObjs"
 				browseType="file" />
 				
-			<option id="de.innot.avreclipse.linker.option.avr_target_mcu" 
+			<option id="de.innot.avreclipse.linker.option.avrtargetmcu" 
 				name="MCU Type"
 				valueType="string" 
 				command="-mmcu=">
@@ -701,7 +703,7 @@
 				</enablement>
 			</option>			
 
-			<option id="de.innot.avreclipse.size.option.avr_target_mcu"
+			<option id="de.innot.avreclipse.size.option.avrtargetmcu"
 				name="MCU Type"
 				valueType="string" 
 				command="--mcu=" >
@@ -794,7 +796,7 @@
 				category="de.innot.avreclipse.toolchain.category.target"
 				valueType="enumerated"
 				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
-				valueHandlerExtraArgument="AVR_TARGET_MCU" 
+				valueHandlerExtraArgument="AVRTARGETMCU" 
 				tip="Select the MCU target type">
 				<enumeratedOptionValue command="-mmcu=at90pwm2"
 					name="AT90PWM2" id="de.innot.avreclipse.mcus.at90pwm2" />
@@ -962,7 +964,7 @@
 				valueType="string" 
 				defaultValue="1000000" 
 				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
-				valueHandlerExtraArgument="AVR_TARGET_FCPU" 
+				valueHandlerExtraArgument="AVRTARGETFCPU" 
 				tip="Clock frequency in Hz" />
 
 			<optionCategory id="de.innot.avreclipse.toolchain.category.addtools"
@@ -1037,7 +1039,6 @@
 				</enablement>
 			</tool>
 
-
 		</toolChain>
 
 <!-- 
@@ -1072,7 +1073,7 @@
 				<toolChain id="de.innot.avreclipse.toolchain.winavr.app.debug"
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
-					
+
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
 						value="false"
 						defaultValue="false"
@@ -1176,7 +1177,9 @@
 						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" />
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.app.release"
-						superClass="de.innot.avreclipse.tool.size.winavr" />
+						superClass="de.innot.avreclipse.tool.size.winavr">
+					</tool>
+						
 				</toolChain>
 			</configuration>
 		</projectType>

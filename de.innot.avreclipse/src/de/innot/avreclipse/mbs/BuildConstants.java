@@ -36,8 +36,8 @@ package de.innot.avreclipse.mbs;
 public interface BuildConstants {
 
 	/** Name of the extraArgument / buildMacro / environment variable. Set to {@value} */
-	public static String TARGET_MCU_NAME = "AVR_TARGET_MCU";
+	public static String TARGET_MCU_NAME = "AVRTARGETMCU";
 
 	/** Name of the extraArgument / buildMacro / Environment Variable. Set to {@value} */
-	public static String TARGET_FCPU_NAME = "AVR_TARGET_FCPU";
+	public static String TARGET_FCPU_NAME = "AVRTARGETFCPU";
 }
