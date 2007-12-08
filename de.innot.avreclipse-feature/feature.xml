@@ -23,12 +23,15 @@
    </url>
 
    <requires>
+      <import plugin="org.eclipse.cdt.core" version="4.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core"/>
       <import plugin="org.eclipse.cdt.managedbuilder.ui"/>
-      <import plugin="org.eclipse.cdt.core" version="4.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.ui"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.cdt.ui"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.core.filesystem"/>
    </requires>
 
    <plugin
