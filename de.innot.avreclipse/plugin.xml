@@ -103,14 +103,11 @@
 				defaultValue="false"
 				command="-W" />
 				
-			<option id="de.innot.avreclipse.asm.option.avrtargetmcu"
+			<option id="de.innot.avreclipse.asm.option.targetmcu"
 				name="MCU Type"
 				valueType="string"
+				defaultValue="${AVRTARGETMCU}"
 				command="-mmcu=" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 			
 			<inputType id="de.innot.avreclipse.tool.assembler.input"
@@ -284,19 +281,11 @@
 				name="MCU Type"
 				valueType="string" 
 				command="-mmcu=" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 			<option id="de.innot.avreclipse.compiler.option.avrtargetfcpu" 
 				name="MCU Clock Frequency"
 				valueType="string" 
 				command="-DF_CPU=" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 				
 				
@@ -390,10 +379,6 @@
 				name="MCU Type"
 				valueType="string" 
 				command="-mmcu=">
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 				
 			<inputType id="de.innot.avreclipse.tool.linker.input" 
@@ -504,13 +489,7 @@
 				valueType="string"
 				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
 				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
-
-			
 			<inputType id="de.innot.avreclipse.tool.objcopy.flash.input"
 				primaryInput="false"
 				multipleOfType="true"
@@ -573,10 +552,6 @@
 				valueType="string"
 				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
 				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 			<inputType id="de.innot.avreclipse.tool.objcopy.eeprom.input"
 				primaryInput="false"
@@ -639,10 +614,6 @@
 				valueType="string"
 				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
 				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 
 			<inputType id="de.innot.avreclipse.tool.objdump.input"
@@ -703,14 +674,12 @@
 				</enablement>
 			</option>			
 
-			<option id="de.innot.avreclipse.size.option.avrtargetmcu"
+			<option id="de.innot.avreclipse.size.option.targetmcu"
 				name="MCU Type"
-				valueType="string" 
+				category="de.innot.avreclipse.tool.size.winavr"
+				valueType="string"
+				defaultValue="${AVRTARGETMCU}"
 				command="--mcu=" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 			
 <!--  	
@@ -722,10 +691,6 @@
 				valueType="string"
 				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
 				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
-				<enablement
-					type="UI_VISIBILITY" >
-					<false/>
-				</enablement>
 			</option>
 
 			<inputType id="de.innot.avreclipse.tool.size.input"
@@ -962,7 +927,7 @@
 				name="MCU Clock Frequency" 
 				category="de.innot.avreclipse.toolchain.category.target"
 				valueType="string"
-				defaultValue="1234567"
+				defaultValue="1000000"
 				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
 				valueHandlerExtraArgument="AVRTARGETFCPU" 
 				tip="Clock frequency in Hz" />
