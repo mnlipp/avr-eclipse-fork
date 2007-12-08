@@ -2,7 +2,7 @@
 <feature
       id="de.innot.avreclipse.source"
       label="AVR Eclipse Plugin Source"
-      version="4.0.0.qualifier"
+      version="0.0.0"
       provider-name="Thomas Holland">
 
    <description>
@@ -26,11 +26,8 @@ of embedded micromprocessors.
          id="de.innot.avreclipse.source"
          version="0.0.0"/>
 
-   <plugin
-         id="de.innot.avreclipse.plugin"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+   <includes
+         id="de.innot.avreclipse"
+         version="0.0.0"/>
 
 </feature>
