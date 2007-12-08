@@ -18,10 +18,13 @@ package de.innot.avreclipse.mbs;
 
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IBuildObject;
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IHoldsOptions;
 import org.eclipse.cdt.managedbuilder.core.IOption;
+import org.eclipse.cdt.managedbuilder.core.IResourceInfo;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedOptionValueHandler;
 
 /**
@@ -64,8 +67,8 @@ import org.eclipse.cdt.managedbuilder.core.ManagedOptionValueHandler;
  * @see de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier
  * 
  */
-public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler implements
-        BuildConstants {
+public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler
+		implements BuildConstants {
 
 	/**
 	 * Handle Option Change events.
@@ -81,8 +84,9 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 	 *      org.eclipse.cdt.managedbuilder.core.IOption, java.lang.String, int)
 	 */
 	@Override
-	public boolean handleValue(IBuildObject configuration, IHoldsOptions holder, IOption option,
-	        String extraArgument, int event) {
+	public boolean handleValue(IBuildObject configuration,
+			IHoldsOptions holder, IOption option, String extraArgument,
+			int event) {
 
 		if (event == EVENT_LOAD) {
 			// don't need to change the extension
@@ -101,7 +105,8 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 				String tmp = option.getStringValue();
 				if (tmp != null) {
 					// get the actual mcu type (the last part of the id)
-					value = tmp.substring(tmp.lastIndexOf('.') + 1).toLowerCase();
+					value = tmp.substring(tmp.lastIndexOf('.') + 1)
+							.toLowerCase();
 				}
 			}
 
@@ -121,8 +126,9 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 
 		// change the value of all options of all tools that contain the value
 		// of valueHandlerExtraArgument in their id
-		
-//		 System.out.println("OptionHandler called for Event " + event + ", tc = " + toolchain.getId() + " (" + value + ")");
+
+//		System.out.println("OptionHandler called for Event " + event
+//				+ ", tc = " + toolchain.getId() + " (" + value + ")");
 
 		ITool tctools[] = toolchain.getTools();
 
@@ -130,16 +136,17 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 			IOption toolopts[] = tctools[i].getOptions();
 			for (int n = 0; n < toolopts.length; n++) {
 				if (toolopts[n].getId().indexOf(name.toLowerCase()) > -1) {
-					try {
-//						 System.out.println(" Changed "+toolopts[n].getId() + " to " + value);
+//					System.out.println(" Changed " + toolopts[n].getId()
+//							+ " to " + value);
 
-						// setOption() takes care of persisting the changed
-						// value in the project settings
-						tctools[i].getParentResourceInfo()
-						        .setOption(tctools[i], toolopts[n], value);
-					} catch (BuildException e) {
-						// for debugging
-						e.printStackTrace();
+					if (configuration instanceof IConfiguration){
+						ManagedBuildManager.setOption((IConfiguration)configuration, tctools[i],
+								toolopts[n], value);
+					} else if (configuration instanceof IResourceInfo) {
+						ManagedBuildManager.setOption((IResourceInfo)configuration, tctools[i],
+								toolopts[n], value);
+					} else {
+						System.out.println("    Unknown configuration: " + configuration.getClass());
 					}
 				}
 			}
@@ -147,8 +154,8 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler impl
 
 		// The return value is currently ignored in the calling class
 		// org.eclipse.cdt.managedbuilder.core.ManagedBuildManager#performValueHandlerEvent()
-		// So we always return false, as it is not clear what a true return
+		// So we always return true, as it is not clear what a false return
 		// value will do in future CDT versions.
-		return false;
+		return true;
 	}
 }

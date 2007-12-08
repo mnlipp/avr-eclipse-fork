@@ -961,8 +961,8 @@
 			<option id="de.innot.avreclipse.toolchain.options.target.fcpu"
 				name="MCU Clock Frequency" 
 				category="de.innot.avreclipse.toolchain.category.target"
-				valueType="string" 
-				defaultValue="1000000" 
+				valueType="string"
+				defaultValue="1234567"
 				valueHandler="de.innot.avreclipse.mbs.TargetHardwareOptionsHandler"
 				valueHandlerExtraArgument="AVRTARGETFCPU" 
 				tip="Clock frequency in Hz" />
@@ -1074,6 +1074,11 @@
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
 
+					<option id="de.innot.avreclipse.toolchain.options.target.mcutype.app.debug"
+						superClass="de.innot.avreclipse.toolchain.options.target.mcutype" />
+					<option id="de.innot.avreclipse.toolchain.options.target.fcpu.app.debug"
+						superClass="de.innot.avreclipse.toolchain.options.target.fcpu" />
+					
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
 						value="false"
 						defaultValue="false"
@@ -1138,6 +1143,11 @@
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
 
+					<option id="de.innot.avreclipse.toolchain.options.target.mcutype.app.release"
+						superClass="de.innot.avreclipse.toolchain.options.target.mcutype" />
+					<option id="de.innot.avreclipse.toolchain.options.target.fcpu.app.release"
+						superClass="de.innot.avreclipse.toolchain.options.target.fcpu" />
+						
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.release"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash" /> 
@@ -1202,6 +1212,11 @@
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.size.output" > 
 
+					<option id="de.innot.avreclipse.toolchain.options.target.mcutype.lib.debug"
+						superClass="de.innot.avreclipse.toolchain.options.target.mcutype" />
+					<option id="de.innot.avreclipse.toolchain.options.target.fcpu.lib.debug"
+						superClass="de.innot.avreclipse.toolchain.options.target.fcpu" />
+						
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.debug"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
@@ -1247,6 +1262,12 @@
 				<toolChain id="de.innot.avreclipse.toolchain.winavr.lib.release"
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.size.output" > 
+
+					<option id="de.innot.avreclipse.toolchain.options.target.mcutype.lib.release"
+						superClass="de.innot.avreclipse.toolchain.options.target.mcutype" />
+					<option id="de.innot.avreclipse.toolchain.options.target.fcpu.lib.release"
+						superClass="de.innot.avreclipse.toolchain.options.target.fcpu" />
+						
 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.release"
 						defaultValue="true"

@@ -19,7 +19,6 @@ package de.innot.avreclipse.ui;
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
-import org.eclipse.cdt.managedbuilder.core.IManagedOptionValueHandler;
 import org.eclipse.cdt.managedbuilder.core.IManagedProject;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -43,7 +42,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.PluginIDs;
-import de.innot.avreclipse.mbs.BuildConstants;
 
 /**
  * New Project Wizard Page to set the default target MCU and its frequency.
@@ -77,29 +75,45 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	private Combo comboMCUtype;
 	private Text textMCUfreq;
 
+	/**
+	 * Constructor for the Wizard Page.
+	 * 
+	 * <p>
+	 * Initialize stuff here, as the operation for this Page might be called
+	 * without ever setting the page visible.
+	 * </p>
+	 * 
+	 */
 	public MCUselectPage() {
 		this.pageID = PAGE_ID;
 
 		// Get the winAVR toolchain and take the MCU list and the default
-		// values from the toolchain options
+		// values from the toolchain options.
+		
+		// The values are stored as Page Properties to access them in the Operation for this page
+		IToolChain tc = ManagedBuildManager
+				.getExtensionToolChain(PluginIDs.PLUGIN_BASE_TOOLCHAIN);
 
-		IToolChain tc = ManagedBuildManager.getExtensionToolChain(PluginIDs.PLUGIN_BASE_TOOLCHAIN);
-		// tc = ManagedBuildManager.getRealToolChain(tc);
-		IOption optionTargetMCU = tc.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
+		// get the target mcu values
+		IOption optionTargetMCU = tc
+				.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
 		fMCUTypeList = optionTargetMCU.getApplicableValues();
 		try {
-			fMCUTypeDefaultName = optionTargetMCU.getEnumName(optionTargetMCU.getDefaultValue()
-			        .toString());
+			fMCUTypeDefaultName = optionTargetMCU.getEnumName(optionTargetMCU
+					.getDefaultValue().toString());
 		} catch (BuildException e) {
 			// something wrong with the plugin.xml
 			e.printStackTrace();
 		}
-		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_TYPE, fMCUTypeDefaultName);
+		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_TYPE,
+				fMCUTypeDefaultName);
 
+		// get the target fcpu values
 		IOption optionTargetFCPU = tc
-		        .getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
+				.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
 		String mcufreq = optionTargetFCPU.getDefaultValue().toString();
-		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ, mcufreq);
+		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ,
+				mcufreq);
 	}
 
 	public String getName() {
@@ -121,13 +135,16 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		comboMCUtype = new Combo(top, SWT.READ_ONLY | SWT.DROP_DOWN);
 		comboMCUtype.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comboMCUtype
-		        .setToolTipText("Target MCU Type. Can be changed later via the project properties");
+				.setToolTipText("Target MCU Type. Can be changed later via the project properties");
 		comboMCUtype.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				String value = comboMCUtype.getText();
-				MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_TYPE, value);
+				MBSCustomPageManager.addPageProperty(PAGE_ID,
+						PROPERTY_MCU_TYPE, value);
 			}
 		});
+		comboMCUtype.setItems(fMCUTypeList);
+		comboMCUtype.select(comboMCUtype.indexOf(fMCUTypeDefaultName));
 
 		// The CPU Frequency Selection Text Widget
 		Label labelMCUfreq = new Label(top, SWT.NONE);
@@ -136,14 +153,18 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		textMCUfreq = new Text(top, SWT.BORDER | SWT.SINGLE);
 		textMCUfreq.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		textMCUfreq
-		        .setToolTipText("Target MCU Clock Frequency. Can be changed later via the project properties");
+				.setToolTipText("Target MCU Clock Frequency. Can be changed later via the project properties");
 		textMCUfreq.addListener(SWT.FocusOut, new Listener() {
 			public void handleEvent(Event e) {
 				// TODO: allow only integer values
 				String value = textMCUfreq.getText();
-				MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ, value);
+				MBSCustomPageManager.addPageProperty(PAGE_ID,
+						PROPERTY_MCU_FREQ, value);
 			}
 		});
+		textMCUfreq.setText((String) MBSCustomPageManager.getPageProperty(
+				PAGE_ID, PROPERTY_MCU_FREQ));
+
 	}
 
 	public void dispose() {
@@ -187,13 +208,6 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	}
 
 	public void setVisible(boolean visible) {
-		if (visible) {
-			comboMCUtype.setItems(fMCUTypeList);
-			comboMCUtype.select(comboMCUtype.indexOf(fMCUTypeDefaultName));
-			textMCUfreq.setText((String) MBSCustomPageManager.getPageProperty(PAGE_ID,
-			        PROPERTY_MCU_FREQ));
-		}
-
 		top.setVisible(visible);
 	}
 
@@ -214,60 +228,50 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 		// At this point the new project has been created and its
 		// configuration(s) with their toolchains have been set up.
-		// To get to the project does not seem to be easy, but there
+		// To get to the configurations does not seem to be easy. There
 		// is probably a more elegant way (maybe via the workbench?)
 		// but I have not found it. For now I use:
 		// MBSCustomPageData -> CDTCommonProjectWizard -> IProject ->
-		// ManagedBuildInfo -> IManagedProject
+		// ManagedBuildInfo -> IManagedProject -> IConfiguration
 
-		MBSCustomPageData pagedata = MBSCustomPageManager.getPageData(this.pageID);
-		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata.getWizardPage().getWizard();
-
-		// This might be dangerous as this method is called from getProject()
-		// (recursive loop!)
-		// However this should be OK, as this run method is only called
-		// after the project has been created.
-		IProject proj = wizz.getProject(true);
+		MBSCustomPageData pagedata = MBSCustomPageManager
+				.getPageData(this.pageID);
+		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata
+				.getWizardPage().getWizard();
+		IProject proj = wizz.getLastProject();
 		IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(proj);
 		IManagedProject mproj = bi.getManagedProject();
 		IConfiguration[] cfgs = mproj.getConfigurations();
 
 		for (int i = 0; i < cfgs.length; i++) {
 			IToolChain tc = (IToolChain) cfgs[i].getToolChain();
-			// tc = ManagedBuildManager.getExtensionToolChain(tc);
-			IOption optionTargetMCU = tc
-			        .getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
-			IOption optionTargetFCPU = tc
-			        .getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
 			try {
-				String mcutype = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
-				        PROPERTY_MCU_TYPE);
+				// Change Target MCU option and set given value as default
+				IOption optionTargetMCU = tc
+						.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
+				String mcutype = (String) MBSCustomPageManager.getPageProperty(
+						PAGE_ID, PROPERTY_MCU_TYPE);
 				String mcutypeid = optionTargetMCU.getEnumeratedId(mcutype);
+				optionTargetMCU = ManagedBuildManager.setOption(cfgs[i], tc,
+						optionTargetMCU, mcutypeid);
 				optionTargetMCU.setDefaultValue(mcutypeid);
-				optionTargetMCU = tc.getParentFolderInfo()
-				        .setOption(tc, optionTargetMCU, mcutypeid);
-				optionTargetMCU.getValueHandler().handleValue(cfgs[i], tc, optionTargetMCU,
-				        BuildConstants.TARGET_MCU_NAME, IManagedOptionValueHandler.EVENT_APPLY);
 
-				String mcufreq = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
-				        PROPERTY_MCU_FREQ);
+				IOption optionTargetFCPU = tc
+						.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
+				String mcufreq = (String) MBSCustomPageManager.getPageProperty(
+						PAGE_ID, PROPERTY_MCU_FREQ);
+				optionTargetMCU = ManagedBuildManager.setOption(cfgs[i], tc,
+						optionTargetFCPU, mcufreq);
 				optionTargetFCPU.setDefaultValue(mcufreq);
-				optionTargetFCPU = tc.getParentFolderInfo()
-				        .setOption(tc, optionTargetFCPU, mcufreq);
-				optionTargetFCPU.getValueHandler().handleValue(cfgs[i], tc, optionTargetFCPU,
-				        BuildConstants.TARGET_FCPU_NAME, IManagedOptionValueHandler.EVENT_APPLY);
 			} catch (BuildException e) {
 				// print stacktrace for debugging
 				e.printStackTrace();
 			}
 
-			// } catch (BuildException e) {
-			// // something wrong in the plugin.xml
-			// e.printStackTrace();
-			// }
 		}
 
-		// TODO Auto-generated method stub
+		// Save the modifications
+		ManagedBuildManager.saveBuildInfo(proj, false);
 
 	}
 }

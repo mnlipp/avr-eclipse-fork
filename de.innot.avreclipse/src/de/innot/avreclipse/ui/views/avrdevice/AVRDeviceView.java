@@ -45,7 +45,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
@@ -77,7 +76,8 @@ public class AVRDeviceView extends ViewPart {
 
 	private IMemento fMemento;
 
-	private IDeviceDescriptionProvider dmprovider = DeviceDescriptionProvider.getDefault();
+	private IDeviceDescriptionProvider dmprovider = DeviceDescriptionProvider
+			.getDefault();
 
 	/**
 	 * The constructor.
@@ -100,7 +100,8 @@ public class AVRDeviceView extends ViewPart {
 		super.saveState(memento);
 
 		// Save the currently selected device
-		IStructuredSelection selection = (IStructuredSelection) fCombo.getSelection();
+		IStructuredSelection selection = (IStructuredSelection) fCombo
+				.getSelection();
 		memento.putString("combovalue", selection.getFirstElement().toString());
 
 		// TODO: Save the Column Layoout for each category
@@ -130,7 +131,8 @@ public class AVRDeviceView extends ViewPart {
 		fTop.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
 		fCombo = new ComboViewer(fTop, SWT.READ_ONLY | SWT.DROP_DOWN);
-		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		fCombo.getControl().setLayoutData(
+				new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
 		fCombo.addSelectionChangedListener(new ComboSelectionChangedListener());
@@ -141,7 +143,8 @@ public class AVRDeviceView extends ViewPart {
 
 		fSourcesComposite = new Composite(fTop, SWT.NONE);
 		fSourcesComposite.setLayout(new RowLayout());
-		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
+				false, 2, 1));
 		new Label(fSourcesComposite, SWT.NONE).setText("source:");
 
 		// The bottom part consists of a TabFolder Control which will take all
@@ -207,8 +210,10 @@ public class AVRDeviceView extends ViewPart {
 				txt.setEditable(false);
 				// make it look like a link (grey background, dark blue color
 				txt.setBackground(parent.getBackground());
-				txt.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
-				txt.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+				txt.setForeground(parent.getDisplay().getSystemColor(
+						SWT.COLOR_DARK_BLUE));
+				txt.setCursor(parent.getDisplay().getSystemCursor(
+						SWT.CURSOR_ARROW));
 				Listener srclistener = new SourceSelectionMouseHandler();
 				txt.addListener(SWT.MouseEnter, srclistener);
 				txt.addListener(SWT.MouseExit, srclistener);
@@ -404,7 +409,8 @@ public class AVRDeviceView extends ViewPart {
 
 	@SuppressWarnings("unused")
 	private void showMessage(String message) {
-		MessageDialog.openInformation(fCombo.getControl().getShell(), "Register Explorer", message);
+		MessageDialog.openInformation(fCombo.getControl().getShell(),
+				"Register Explorer", message);
 	}
 
 	// When a different MCU Type is selected do the following:
@@ -412,11 +418,12 @@ public class AVRDeviceView extends ViewPart {
 	// - update the sources text elements
 	// - Update the tabs of the TabFolder (which will update the treeviewers)
 	// - Set the focus to the TreeViewer of the active tab.
-	private class ComboSelectionChangedListener implements ISelectionChangedListener {
+	private class ComboSelectionChangedListener implements
+			ISelectionChangedListener {
 
 		public void selectionChanged(SelectionChangedEvent event) {
-			String devicename = (String) ((StructuredSelection) event.getSelection())
-			        .getFirstElement();
+			String devicename = (String) ((StructuredSelection) event
+					.getSelection()).getFirstElement();
 			IDeviceDescription device = dmprovider.getDevice(devicename);
 			updateSourcelist(fSourcesComposite, device);
 			updateTabs(fTabFolder, device);
@@ -460,7 +467,8 @@ public class AVRDeviceView extends ViewPart {
 			switch (event.type) {
 			case SWT.MouseEnter:
 				// change background color to some lighter color
-				txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+				txt.setBackground(txt.getDisplay().getSystemColor(
+						SWT.COLOR_LIST_BACKGROUND));
 				break;
 			case SWT.MouseExit:
 				// change background color back to normal
@@ -475,16 +483,17 @@ public class AVRDeviceView extends ViewPart {
 				// No error checking as this file should exist
 				IPath srcfile = dmprovider.getBasePath();
 				srcfile = srcfile.append(txt.getText());
-				IFileStore fileStore = EFS.getLocalFileSystem().getStore(srcfile);
-				if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
-					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					        .getActivePage();
+				IFileStore fileStore = EFS.getLocalFileSystem().getStore(
+						srcfile);
+				if (!fileStore.fetchInfo().isDirectory()
+						&& fileStore.fetchInfo().exists()) {
+					IWorkbenchPage page = PlatformUI.getWorkbench()
+							.getActiveWorkbenchWindow().getActivePage();
 					try {
-						@SuppressWarnings("unused")
-						IEditorPart editor = IDE.openEditorOnFileStore(page, fileStore);
+						IDE.openEditorOnFileStore(page, fileStore);
 						// TODO: if any row in the treeview has been selected,
-						// try
-						// to scroll the Editor to the associated definition.
+						// try to scroll the Editor to the associated
+						// definition.
 					} catch (PartInitException e) {
 						// what can cause this?
 						e.printStackTrace();
