@@ -22,10 +22,15 @@ of embedded micromprocessors.
       <update label="AVR Eclipse Update Site" url="http://innot.de/eclipse/avreclipse"/>
    </url>
 
-
    <includes
          id="de.innot.avreclipse.source"
          version="0.0.0"/>
 
+   <plugin
+         id="de.innot.avreclipse.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>
