@@ -56,6 +56,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 
 		// Path to <avr/io.h> file
 		store.setDefault(PREF_DEVICEVIEW_AVR_IO_H, getAVR_io_h());
+		
+		// Path to the directory containing the avr-gcc executable
+		store.setDefault(PREF_AVRGCCPATH, getAVRgccPath());
+		
+		// Path to the directory containing the make executable
+		store.setDefault(PREF_AVRMAKEPATH, getAVRmakePath());
 	}
 
 	/**
@@ -110,6 +116,66 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		// Default for non-windows = ubuntu default
 		// TODO: test a few more possible locations
 		return "/usr/avr/include/avr/io.h";
+
+	}
+
+	/**
+	 * Get the path to the directory containing avr-gcc.
+	 * 
+	 * <p>
+	 * On windows this file is located thru the windows registry (via the winAVR
+	 * settings). On non-Windows systems currently
+	 * <code>/usr/bin</code> is used as a default (works on
+	 * ubuntu), but some more elaborate code checking multiple locations should
+	 * be implemented.
+	 * </p>
+	 * 
+	 * @return String containing the path in OS form
+	 * 
+	 * @see de.innot.avreclipse.util.win32.WinAVR
+	 */
+	public static String getAVRgccPath() {
+		if (isWindows()) {
+			IPath avrgcc = WinAVR.getWinAVRPath().append("bin");
+			if (avrgcc != null && avrgcc.toFile().isDirectory()) {
+				return avrgcc.toOSString();
+			}
+			// file did not exist: return root
+			return new Path("/").toOSString();
+		}
+		// Default for non-windows = ubuntu default
+		// TODO: be a bit more intelligent here
+		return "/usr/usr";
+
+	}
+
+	/**
+	 * Get the path to the directory containing the make executable.
+	 * 
+	 * <p>
+	 * On windows this file is located thru the windows registry (via the winAVR
+	 * settings). On non-Windows systems currently
+	 * <code>/usr/bin</code> is used as a default (works on
+	 * ubuntu), but some more elaborate code checking multiple locations should
+	 * be implemented.
+	 * </p>
+	 * 
+	 * @return String containing the path in OS form
+	 * 
+	 * @see de.innot.avreclipse.util.win32.WinAVR
+	 */
+	public static String getAVRmakePath() {
+		if (isWindows()) {
+			IPath avrgcc = WinAVR.getWinAVRPath().append("utils/bin");
+			if (avrgcc != null && avrgcc.toFile().isDirectory()) {
+				return avrgcc.toOSString();
+			}
+			// file did not exist: return root
+			return new Path("/").toOSString();
+		}
+		// Default for non-windows = ubuntu default
+		// TODO: be a bit more intelligent here
+		return "/usr/usr";
 
 	}
 
