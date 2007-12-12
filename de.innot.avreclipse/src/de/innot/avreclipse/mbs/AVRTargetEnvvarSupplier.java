@@ -57,7 +57,7 @@ import de.innot.avreclipse.ui.preferences.PreferenceConstants;
  * </ul>
  * 
  * @author Thomas Holland
- * @version 1.0
+ * @version 1.1
  */
 public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariableSupplier,
         BuildConstants {
