@@ -471,8 +471,8 @@
 				name="Output Filename"
 				category="de.innot.avreclipse.objcopy.flash.category.general"
 				valueType="string"
-				value="${BuildArtifactFileBaseName}.flash.hex"
-				defaultValue="${BuildArtifactFileBaseName}.flash.hex"
+				value="${BuildArtifactFileBaseName}.hex"
+				defaultValue="${BuildArtifactFileBaseName}.hex"
 				tip="Name of the flash image." >
 				<enablement
 					type="CMD_USAGE" >
@@ -534,8 +534,8 @@
 				name="Output Filename"
 				category="de.innot.avreclipse.objcopy.eeprom.category.general"
 				valueType="string"
-				value="${BuildArtifactFileBaseName}.eeprom.hex"
-				defaultValue="${BuildArtifactFileBaseName}.eeprom.hex"
+				value="${BuildArtifactFileBaseName}.eep"
+				defaultValue="${BuildArtifactFileBaseName}.eep"
 				tip="Name of the eeprom image." >
 				<enablement
 					type="CMD_USAGE" >
@@ -712,7 +712,7 @@
 ####################################################################################### 
 -->
 		<builder id="de.innot.avreclipse.target.gnu.builder" 
-			name="GNU Make Builder"
+			name="AVR GNU Make Builder"
 			isAbstract="true"
 			command="make"
 			autoBuildTarget="all"
