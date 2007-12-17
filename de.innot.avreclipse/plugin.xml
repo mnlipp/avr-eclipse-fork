@@ -57,7 +57,26 @@
 		</perspectiveExtension>
 	</extension>
 
-
+	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
+		id="AVRGCCManagedMakePerProjectProfile"
+		name="AVR-GCC managed make per project SCD profile" >
+		<scannerInfoCollector
+			class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector"
+			scope="project" />
+		<buildOutputProvider>
+			<open />
+			<scannerInfoConsoleParser
+				class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.ManagedGCCScannerInfoConsoleParser" />
+		</buildOutputProvider>
+		<scannerInfoProvider providerId="specsFile">
+			<run
+				arguments="-mmcu=${AVRTARGETMCU} -E -P -v -dD ${plugin_state_location}/${specs_file}"
+				command="avr-gcc"
+				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider" />
+			<scannerInfoConsoleParser
+				class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser" />
+		</scannerInfoProvider>
+	</extension>
 
 	<extension id="de.innot.avreclipse.builddef"
         point="org.eclipse.cdt.managedbuilder.core.buildDefinitions"
@@ -742,10 +761,12 @@
 #    Default toolchain                                                                # 
 ####################################################################################### 
 -->
-		<toolChain id="de.innot.avreclipse.toolchain.winavr.base"
-			name="WinAVR Toolchain"
-			configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier" 
-			configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier" >
+		<toolChain
+        id="de.innot.avreclipse.toolchain.winavr.base"
+        name="WinAVR Toolchain"
+        configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier"
+        configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier"
+        scannerConfigDiscoveryProfileId="AVRGCCManagedMakePerProjectProfile">
 			
   			<targetPlatform id="de.innot.avreclipse.targetplatform.avr" 
 				name="AVR Cross-Target"
