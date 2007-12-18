@@ -57,27 +57,28 @@
 		</perspectiveExtension>
 	</extension>
 
-	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
-		id="AVRGCCManagedMakePerProjectProfile"
-		name="AVR-GCC managed make per project SCD profile" >
-		<scannerInfoCollector
-			class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector"
-			scope="project" />
-		<buildOutputProvider>
-			<open />
-			<scannerInfoConsoleParser
-				class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.ManagedGCCScannerInfoConsoleParser" />
-		</buildOutputProvider>
-		<scannerInfoProvider providerId="specsFile">
-			<run
-				arguments="-mmcu=${AVRTARGETMCU} -E -P -v -dD ${plugin_state_location}/${specs_file}"
-				command="avr-gcc"
-				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider" />
-			<scannerInfoConsoleParser
-				class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser" />
-		</scannerInfoProvider>
-	</extension>
-
+<!-- 
+  <extension
+         id="AVRGCCManagedMakePerProjectProfileC"
+         name="AVR-GCC managed make per project SCD profile"
+         point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
+      <scannerInfoCollector
+            class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector"
+            scope="project"/>
+      <buildOutputProvider>
+         <open/>
+         <scannerInfoConsoleParser class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.ManagedGCCScannerInfoConsoleParser"/>
+      </buildOutputProvider>
+      <scannerInfoProvider providerId="specsFile">
+         <run
+               arguments="-mmcu=${AVRTARGETMCU} -E -P -v -dD ${plugin_state_location}/specs.c"
+               command="avr-gcc"
+               class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+         <scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
+      </scannerInfoProvider>
+   </extension>
+ -->
+ 
 	<extension id="de.innot.avreclipse.builddef"
         point="org.eclipse.cdt.managedbuilder.core.buildDefinitions"
 		name="AVR Build Definitions test" >
