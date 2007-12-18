@@ -407,6 +407,14 @@
 				sources="obj"
 				multipleOfType="true"
 				buildVariable="OBJS" >
+	            <additionalInput
+	            	paths="$(USER_OBJS)"
+	            	kind="additionalinputdependency">
+	            </additionalInput>
+	            <additionalInput
+	            	paths="$(LIBS)"
+	            	kind="additionalinput">
+	            </additionalInput>
 			</inputType>
 
 			<outputType id="de.innot.avreclipse.tool.linker.output" 
