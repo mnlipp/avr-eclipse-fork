@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Untitled Document</title>
+<link href="layout.css" rel="stylesheet" type="text/css">
+<!--[if IE]>
+<style type="text/css"> 
+/* place css fixes for all versions of IE in this conditional comment */
+.twoColHybLtHdr #sidebar1 { padding-top: 30px; }
+.twoColHybLtHdr #mainContent { zoom: 1; padding-top: 15px; }
+/* the above proprietary zoom property gives IE the hasLayout it may need to avoid several bugs */
+</style>
+<![endif]-->
+<style type="text/css">
+<!--
+.style1 {font-size: small}
+-->
+</style>
+</head>
+
+<body class="twoColHybLtHdr">
+
+<div id="container">
+  <div id="header">
+    <h1>AVR Plugin for Eclipse</h1>
+    <!-- end #header --></div>
+  <div id="sidebar1">
+    <h3>Links</h3>
+    <p><a href="https://sourceforge.net/projects/avr-eclipse/" class="style1">Sourceforge Project Page</a></p>
+  <!-- end #sidebar1 --></div>
+  <div id="mainContent">
+    <h2>How to install the required toolchain</h2>
+    <h3>Windows</h3>
+    <p><a href="http://sourceforge.net/project/showfiles.php?group_id=68108">Download</a> and install <a href="http://winavr.sourceforge.net/">winAVR</a>, which includes the AVR-GCC toolchain together with some other useful tools for programming the AVR processor series</p>
+    <h3>Linux</h3>
+    <p>Most Linux distributions have an AVR-GCC toolchain. It may not, however, be installed by default.
+      For instructions about installing AVR-GCC for Linux, see the instructions for your particular distribution.</p>
+    <h4>Ubuntu</h4>
+    <p>Install the following packages with your favorite package manager:</p>
+    <div style="margin-left:5%">
+      <table border="0">
+        <tr>
+          <td><a href="http://packages.ubuntu.com/gutsy/devel/gcc-avr">gcc-avr</a> </td>
+          <td>Compiler &amp; Assembler</td>
+        </tr>
+        <tr>
+          <td><a href="http://packages.ubuntu.com/gutsy/devel/binutils-avr">binutils-avr</a> </td>
+          <td>Linker and some other useful tools</td>
+        </tr>
+        <tr>
+          <td><a href="http://packages.ubuntu.com/gutsy/devel/gdb-avr">gdb-avr</a></td>
+          <td>Debugger for AVR Targets</td>
+        </tr>
+        <tr>
+          <td><a href="http://packages.ubuntu.com/gutsy/otherosfs/avr-libc">avr-libc</a></td>
+          <td>The standard C library for the AVR series, including the required include files</td>
+        </tr>
+      </table>
+    </div>
+    <h4>Other Distributions</h4>
+    <p>Open. Package names propably the same or similar to the Ubuntu packages.<br>
+    </p>
+    <h3>Other Platforms</h3>
+    <p>As the AVR-GCC toolchain is open source, chances are that it is either available for your platform or can be adapted to it.</p>
+    <p>&nbsp;</p>
+  <!-- end #mainContent --></div>
+	<!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats -->
+	<br class="clearfloat" />
+	<div id="footer">
+    <p>Footer</p>
+  <!-- end #footer --></div>
+<!-- end #container --></div>
+</body>
+</html>

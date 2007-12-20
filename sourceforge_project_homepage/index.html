@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>AVR Eclipse Plugin</title>
+<link href="layout.css" rel="stylesheet" type="text/css">
+<!--[if IE]>
+<style type="text/css"> 
+/* place css fixes for all versions of IE in this conditional comment */
+.twoColHybLtHdr #sidebar1 { padding-top: 30px; }
+.twoColHybLtHdr #mainContent { zoom: 1; padding-top: 15px; }
+/* the above proprietary zoom property gives IE the hasLayout it may need to avoid several bugs */
+</style>
+<![endif]-->
+<style type="text/css">
+<!--
+.style1 {font-size: small}
+.style2 {font-size: smaller}
+-->
+</style>
+<link href="main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body class="twoColHybLtHdr">
+
+<div id="container">
+  <div id="header">
+    <h1>AVR Plugin for Eclipse</h1>
+    <!-- end #header --></div>
+  <div id="sidebar1">
+    <h3>Links</h3>
+    <p><a href="https://sourceforge.net/projects/avr-eclipse/" class="style1">Sourceforge Project Page</a>
+      <!-- end #sidebar1 -->
+    </p>
+  </div>
+  <div id="mainContent">
+    <h2> Overview</h2>
+    <p>This Eclipse Plugin provides some tools and settings for developing C programs for the <a href="http://www.atmel.com/products/AVR/">ATMEL AVR</a> series of embedded processors. </p>
+    <h2>Why?</h2>
+    <p>Why should you use Eclipse as your IDE for developing AVR applications?</p>
+    <p>Eclipse is a very modern IDE with many features. And unlike some other IDEs, due to being Open Source, many features (like this plugin) are available to extend it even further. While its C/C++ support is not as perfect as the Java support, it is still a very nice environment to programm in.</p>
+    <p>This was the reason for writting this plugin. I started off by using the AVR Studio IDE from Atmel, but immediatly felt that features were missing, like Subversion integration or code completion in the source editor.</p>
+    <p>And with this Plugin you don't have to hassle with makefiles any more. The makefiles for building your application are automatically created.</p>
+    <h2>Features</h2>
+    <p>The plugin provides the following main functions on top of the CDT features:</p>
+    <ul>
+      <li>Selection of a target processor</li>
+      <li>Creating the hex dump image files needed for downloading to an AVR processor</li>
+      <li>A viewer showing some information about the selected AVR processor</li>
+    </ul>
+    <h2>Requirements </h2>
+    <p>The AVR Plugin requires Eclipse 3.3 (Europa) and CDT 4.0. If you do not have these required versions go to the eclipse.org <a href="http://www.eclipse.org/downloads/">downloads page</a> to download the required versions. The <strong>Eclipse IDE for C/C++ Developers</strong> download package contains a suitable Eclipse version to get this Plugin to run.</p>
+	<p>The AVR Plugin is based on the AVR-GCC toolchain for AVR cross target development. But like the CDT Plugin for Eclipse itself, this AVR Plugin does not include a toolchain, it has to be installed separatly before this plugin can be used.</p>
+	<p>If you don't have an AVR-GCC toolchain installed see <a href="requirements.html">here</a> on how to acquire it.</p>
+	<h2>Download</h2>
+	<p>There are two ways to download the AVR Eclipse Plugin.</p>
+	<h4>Update Site</h4>
+	<p>Go to the Update Site manager <br>
+      <span class="style2">(Help -&gt; Software Updates -&gt; Find and install... -&gt; &quot;Search for new features to install&quot; -&gt; &quot;New Remote Site&quot;)</span></p>
+	<p>	and add the following site</p>
+	<table width="0%" border="0">
+      <tr>
+        <td nowrap>Name: </td>
+        <td nowrap><pre>AVR Eclipse Plugin</pre></td>
+      </tr>
+      <tr>
+        <td nowrap>URL:</td>
+        <td nowrap><pre>http://avr-eclipse.sourceforge.net/updatesite/</pre></td>
+      </tr>
+    </table>
+	<h4>Direct Download</h4>
+	<p>If you do not want to use the Eclipse update manager, you can download the <a href="https://sourceforge.net/project/showfiles.php?group_id=189165">plugin</a> directly from sourceforge.</p>
+	<p>Unzip the file into your Eclipse folder and restart Eclipse.</p>
+	<p>If the installation was successfull you should see the entries <em>AVR Cross Target Application</em> and <em>AVR Cross Target Static Library</em> in the new C Project wizard.</p>
+	<h2>Contact</h2>
+	<p>Project web site:</p>
+	<div class="indent">
+      <p><a href="https://sourceforge.net/projects/avr-eclipse">https://sourceforge.net/projects/avr-eclipse</a></p>
+    </div>
+	<p>For Feedback, Bug reports and Feature requests please use the links from the sourceforge project page:</p>
+	<div class="indent">
+      <p><a href="https://sourceforge.net/forum/forum.php?forum_id=664382">Feedback</a><br>
+          <a href="https://sourceforge.net/tracker/?atid=928231&group_id=189165&func=browse">Bugs</a><br>
+        <a href="https://sourceforge.net/tracker/?atid=928234&group_id=189165&func=browse">Feature Requests</a></p>
+    </div>
+	<h3>&nbsp;</h3>
+	<!-- end #mainContent --></div>
+	<!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats -->
+	<br class="clearfloat" />
+	<div id="footer">
+    <p class="style1">&copy; 2007 Thomas Holland. Last changed: 07/12/20</p>
+  <!-- end #footer --></div>
+<!-- end #container --></div>
+</body>
+</html>
