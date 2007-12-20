@@ -8,32 +8,43 @@
 </head>
 <body>
 <h2>Before you begin</h2>
-
+<p>The AVR Plugin requires Eclipse 3.3 (Europa) and CDT 4.0. If you do not have these required versions go to the eclipse.org <a href="http://www.eclipse.org/downloads/">downloads page</a> to download the required versions. The <strong>Eclipse IDE for C/C++ Developers</strong> download package contains a suitable Eclipse version to get this Plugin to run.</p>
 <p>The AVR Plugin is based on the AVR-GCC toolchain for AVR cross target development. But like the CDT Plugin for Eclipse itself, this AVR Plugin does not include a toolchain, it has to be installed separatly before this plugin can be used.</p>
-<p>If you don't have AVR-GCC installed see below on how to acquire it.</p>
+<p>If you don't have an AVR-GCC toolchain installed see below on how to acquire it.</p>
 <h3>Windows</h3>
 <p><a href="http://sourceforge.net/projects/winavr/">Download</a> and install <a href="http://winavr.sourceforge.net/">winAVR</a>, which includes the AVR-GCC toolchain together with some other useful tools for programming the AVR processor series</p>
 <h3>Linux</h3>
-<p>Most Linux distributions have a AVR-GCC package. It may not, however, be installed by default.
+<p>Most Linux distributions have an AVR-GCC toolchain. It may not, however, be installed by default.
 For instructions about installing AVR-GCC for Linux, see the instructions for your particular distribution.</p>
 <h4>Ubuntu</h4>
 <p>Install the following packages with your favorite package manager:</p>
-<ul>
-  <li><a href="http://packages.ubuntu.com/gutsy/devel/gcc-avr">gcc-avr</a> Compiler &amp; Assembler</li>
-  <li><a href="http://packages.ubuntu.com/gutsy/devel/binutils-avr">binutils-avr</a> Linker and some other useful tools</li>
-  <li><a href="http://packages.ubuntu.com/gutsy/devel/gdb-avr">gdb-avr</a> Debugger for AVR Targets</li>
-  <li><a href="http://packages.ubuntu.com/gutsy/otherosfs/avr-libc">avr-libc</a> The standard C library for the AVR series, including the required include files</li>
-</ul>
+<div style="margin-left:5%">
+  <table border="0">
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/gcc-avr">gcc-avr</a> </td>
+      <td>Compiler &amp; Assembler</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/binutils-avr">binutils-avr</a> </td>
+      <td>Linker and some other useful tools</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/gdb-avr">gdb-avr</a></td>
+      <td>Debugger for AVR Targets</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/otherosfs/avr-libc">avr-libc</a></td>
+      <td>The standard C library for the AVR series, including the required include files</td>
+    </tr>
+  </table>
+</div>
 <h4>Other Distributions</h4>
-<p>Todo. Package names propably the same or similar to the Ubuntu packages.<br>
+<p>TODO. Package names propably the same or similar to the Ubuntu packages.<br>
 </p>
 <h3>Other Platforms</h3>
 <p>As the AVR-GCC toolchain is open source, chances are that it is either available for your platform or can be adapted to it.</p>
 <p>&nbsp;</p>
-<div class="categoryrelated">Related Reference</div>
-  <a href="../home.html">AVR Plugin Home</a>
-
-<p class="copyright">&copy; 2007 Thomas Holland</p>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
 </body>
 
 </html>

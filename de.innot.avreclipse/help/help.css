@@ -1,7 +1,11 @@
 /* following font face declarations need to be removed for DBCS */
 
 
-body, h1, h2, h3, h4, p, table, td, caption, th, ul, ol, dl, li, dd, dt {font-family: Arial, sans-serif; color: #000000}
+body, h1, h2, h3, h4, p, table, td, caption, th, ul, ol, dl, li, dd, dt {
+	font-family: Arial, sans-serif;
+	color: #000000;
+	margin: 20px;
+}
 pre				{ font-family: Courier, monospace}
 
 /* end font face declarations */
@@ -40,10 +44,11 @@ pre	     {
 	font-size: 9pt
 }
 
-a:link { color: #006699 }
-a:link.unused { color: #999999 }
-a:visited { color: #996699 }
-a:hover  { color: #006699 }
+a { text-decoration:none; }
+a:link {color: #006699;}
+a:link.unused { color: #999999; }
+a:visited { color: #996699; }
+a:hover  { color: #006699; }
 
 ul	     {
 	margin-top: 0px;
@@ -106,23 +111,18 @@ div.linux  {display:none;}
 	letter-spacing: 1px;
 	padding-bottom: 10px;
 	display: block;
+	margin-top: 30px;
 }
 .copyright {
 	font-size: xx-small;
 	font-family: "Courier New", Courier, monospace;
 	color: #0000FF;
 	border-top-width: 1px;
-	border-right-width: 1px;
-	border-bottom-width: 1px;
-	border-left-width: 1px;
 	border-top-style: solid;
-	border-right-style: none;
-	border-bottom-style: none;
-	border-left-style: none;
+	margin-top: 20px;
 	padding: 5px;
 }
 .codeblock {
-	background-color: #FFFFFF;
 	border-top-style: solid;
 	border-right-style: solid;
 	border-bottom-style: solid;
@@ -136,4 +136,7 @@ div.linux  {display:none;}
 }
 .unused {
 	color: #999999;
+}
+.indent {
+	margin-left: 30px;
 }

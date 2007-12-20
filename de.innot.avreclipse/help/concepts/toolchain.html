@@ -22,41 +22,61 @@
         actual build process starts.<br>
         <br>
     </li>
-    <li>Then all source files are compiled</li>
-    <li>and stored as Object files (*.o)<br>
+    <li>Then all source files are compiled and</li>
+    <li>stored as Object files (*.o)<br>
         <br>
     </li>
-    <li>The Linker takes all Object files and linkes them together in one file
-        in ELF format.<br>
+    <li>The <strong>Linker</strong> takes all Object files and linkes them together in one file
+<br>
         <br>
     </li>
-    <li>The ELF  file contains the binary code and data as well as
-        debugging and other internal informations. Most AVR simulators can take
+  <li>The ELF  file contains the binary code and data as well as
+        debugging and other internal information. Most AVR simulators can take
         a file in this format to run and debug the application.<br>
         <br>
     </li>
     <li>Once the ELF file has been created, a user supplied <strong>Postbuild</strong> script/executable
-        is called. See TODO on how to set the prebuild and postbuild options.<br>
+    is called.<br>
         Calling the postbuild script at this point, before the secondary targets
         have been build, is a limitation of the CDT plugin.<br>
         <br>
     </li>
-    <li>With the ELF file as input the Secondary Targets create some optional
-        output files:
-        <ul>
-            <li>*.hex: A hex dump file for downloading to an AVR processor flash
-                memory </li>
-            <li>*.eep: A  hex dump file for downloading to an AVR processor EEPROM</li>
-            <li>*.lss: An  extended listing with the source data intermixed with
-                the generated assembler code</li>
-            <li>Print size: prints the size of the generated application to the
-                console.<br>
-            Due to the internal design of CDT this &quot;outputs&quot; a pseudotarget called
-            &quot;size_dummy&quot;, as without an output CDT would not include the avr-size
-            command in the toolchain. </li>
-        </ul>
-    </li>
-    </ol>
+  <li>With the ELF file as input the <strong>Secondary Targets</strong> create some optional
+<br>
+        <br>
+        <div class="indent">
+          <table border="1">
+            <tr>
+              <td valign="top" nowrap><strong>*.hex</strong></td>
+              <td>A hex dump file for downloading to an AVR processor flash
+              memory </td>
+            </tr>
+            <tr>
+              <td valign="top" nowrap><strong>*.eep</strong></td>
+              <td>A  hex dump file for downloading to an AVR processor EEPROM</td>
+            </tr>
+            <tr>
+              <td valign="top" nowrap><strong>*.lss</strong></td>
+              <td>An  extended listing with the source data intermixed with
+              the generated assembler code</td>
+            </tr>
+            <tr>
+              <td valign="top" nowrap>Print size </td>
+              <td>prints the size of the generated application to the
+              console.<br>
+              Due to the internal design of CDT this &quot;outputs&quot; a pseudotarget called
+      &quot;sizedummy&quot;, as without an output CDT would not include the avr-size
+  command in the toolchain. </td>
+            </tr>
+                  </table>
+        </div>
+      <br>
+  </li>
+</ol>
+<p>All generated files (colored pink in the flowchart above), including the makefile, are stored in a folder with the name of the current configuration (&quot;Debug&quot; or &quot;Release&quot;).</p>
+<p></p>
+<p><a href="concepts.html"><img src="../images/ngback.gif" width="16" height="16"></a> <a href="concepts.html"><strong>Back: Concepts</strong></a></p>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
 </body>
 
 </html>
