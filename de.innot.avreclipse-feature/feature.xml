@@ -19,7 +19,7 @@
    </license>
 
    <url>
-      <update label="AVR Eclipse Update Site" url="http://www.innot.de/eclipse/avreclipse"/>
+      <update label="AVR Eclipse Update Site" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
    </url>
 
    <requires>
@@ -36,8 +36,8 @@
 
    <plugin
          id="de.innot.avreclipse.plugin"
-         download-size="0"
-         install-size="0"
+         download-size="532"
+         install-size="549"
          version="0.0.0"
          unpack="false"/>
 
