@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Getting Started" link_to="toc.xml#gettingstarted"> 
+	<topic label="Creating an AVR project"  href="help/gettingstarted/gs_newproj.html"> 
+		<topic label="Create a sample AVR C File" href="help/gettingstarted/gs_newproj_cfile.html" /> 
+		<topic label="Building an AVR project" href="help/gettingstarted/gs_buildproject.html"></topic>
+		<topic label="Changing the Configuration" href="help/gettingstarted/gs_changeconfig.html"></topic>
+		<topic label="Customizing a Configuration" href="help/gettingstarted/gs_customizeconfig.html"></topic>
+	</topic>
+</toc>
