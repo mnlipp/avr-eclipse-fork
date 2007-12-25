@@ -2,25 +2,29 @@
 <feature
       id="de.innot.avreclipse"
       label="AVR Eclipse Plugin 2.0"
-      version="2.0.0.qualifier"
-      provider-name="Thomas Holland">
+      version="0.0.0"
+      provider-name="%providerName">
 
    <description>
-      Plugin for the development of applications for the AVR Family of
-  embedded micromprocessors.
+      %description
    </description>
 
    <copyright>
-      (c) 2007 Thomas Holland (thomas@innot.de)
+      %copyright
    </copyright>
 
    <license url="http://www.gnu.org/licenses/gpl.txt">
-      GNU General Public License 3.0
+      %licence
    </license>
 
    <url>
-      <update label="AVR Eclipse Update Site" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
+      <update label="%updateSiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
+      <discovery label="%discoverySiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
    </url>
+
+   <includes
+         id="de.innot.avreclipse.source"
+         version="0.0.0"/>
 
    <requires>
       <import plugin="org.eclipse.cdt.core" version="4.0.0" match="greaterOrEqual"/>
@@ -38,6 +42,13 @@
          id="de.innot.avreclipse.plugin"
          download-size="532"
          install-size="549"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="de.innot.avreclipse.doc"
+         download-size="0"
+         install-size="0"
          version="0.0.0"
          unpack="false"/>
 

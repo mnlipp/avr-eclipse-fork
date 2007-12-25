@@ -1,0 +1,41 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Change Log                           *
+*                                                                              *
+* A plugin supporting the development of applications for the AVR series       *
+* of Processors.                                                               *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+
+--------------------------------------------------------------------------------
+
+Version 2.0.0.v20071227 [27 December 2007]
+
+This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
+The major changes to the last released version 20070813 are:
+
+Features:
+ * MCU Type and Clock Frequency set only once per configuration (request 1751707)
+ 
+ * Debug and Release build Configurations
+ 
+ * Application and Static Library build types (static lib not tested yet)
+ 
+ * Builds hex, eep and lss files (user selectable)
+ 
+ * Assembler integrated into toolchain. (request 1755284 / 1787770)
+ 
+ * A new viewer to show some information about AVR processors (based on patch 1701653)
+ 
+ * Basic documentation incl. a small tutorial on how to create a AVR application project
+ 
+ 
+ 
+Fixes:
+ * Works with CDT 4.0 / Eclipse 3.3 (CDT 3.0 / Eclipse 3.2 not supported anymore)
+ 
+ * Optimize for size included in compiler options (bug 1772860)
+ 
+ * Windows: Finds paths to the winAVR executables if they are not on the path.
+ 
+ * LIBS and USER_OBJS included in the linking process.
+ 

@@ -1,0 +1,30 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Release Notes                        *
+*                                                                              *
+* A plugin supporting the development of applications for the                  *
+* AVR series of Processors.                                                    *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+
+Version 2.0.0 release date: 24 December 2007
+
+1. What's New
+
+   The current version is 2.0.0 with build ID v20071227. 
+   
+   This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
+   The full list of changes to the last published version 20070813 can be found in 
+   the changelog.
+   
+2. Information
+
+2.1. System Requirements
+
+   AVR Eclipse requires JDK 1.5 or higher and supports following versions of CDT:
+    * CDT 4.0 (Eclipse 3.3)
+   
+
+2.2 Known issues
+
+	* Print Size tool option --format=avr does not work on older avr-gcc toolchains which
+	  are packaged with some/many Linux distributions.
