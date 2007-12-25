@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.3"?>
+<plugin>
+	<extension point="org.eclipse.help.toc">
+		<toc file="toc.xml" primary="true"></toc>
+		<toc file="help/tocconcepts.xml"></toc>
+		<toc file="help/tocgettingstarted.xml"></toc>
+		<toc file="help/tocreference.xml"></toc>
+		<toc file="help/tocsamples.xml"></toc>
+		<toc file="help/toctasks.xml"></toc>
+	</extension>
+
+</plugin>
+	
