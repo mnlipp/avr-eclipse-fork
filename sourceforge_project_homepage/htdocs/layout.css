@@ -14,9 +14,13 @@ body  {
 	border: 1px solid #000000;
 	text-align: left; /* this overrides the text-align: center on the body element. */
 } 
-.twoColHybLtHdr #header { 
-	background: #DDDDDD; 
+.twoColHybLtHdr #header {
+	background: #DDDDDD;
 	padding: 0 10px;  /* this padding matches the left alignment of the elements in the divs that appear beneath it. If an image is used in the #header instead of text, you may want to remove the padding. */
+	border-top-width: thin;
+	border-bottom-width: thin;
+	border-top-style: none;
+	border-bottom-style: solid;
 } 
 .twoColHybLtHdr #header h1 {
 	margin: 0; /* zeroing the margin of the last element in the #header div will avoid margin collapse - an unexplainable space between divs. If the div has a border around it, this is not necessary as that also avoids the margin collapse */
@@ -29,10 +33,12 @@ body  {
 3. Space between the side of the div and the elements within it can be created by placing a left and right margin on those elements as seen in the ".twoColHybLtHdr #sidebar1 p" rule.
 */
 .twoColHybLtHdr #sidebar1 {
-	float: left; 
+	float: left;
 	width: 12em; /* since this element is floated, a width must be given */
 	background: #EBEBEB; /* the background color will be displayed for the length of the content in the column, but no further */
 	padding: 15px 0; /* top and bottom padding create visual space within this div  */
+	border-right-width: 1px;
+	border-right-style: solid;
 }
 .twoColHybLtHdr #sidebar1 h3, .twoColHybLtHdr #sidebar1 p {
 	margin-left: 10px; /* the left and right margin should be given to every element that will be placed in the side columns */

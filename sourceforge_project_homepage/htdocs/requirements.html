@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Untitled Document</title>
+<title>How to get the Toolchain</title>
 <link href="layout.css" rel="stylesheet" type="text/css">
 <!--[if IE]>
 <style type="text/css"> 
@@ -14,28 +14,44 @@
 <![endif]-->
 <style type="text/css">
 <!--
-.style1 {font-size: small}
+.style1 {
+	font-size: small
+}
+-->
+</style>
+<link href="styles.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+<!--
+.style3 {
+	font-size: xx-small
+}
 -->
 </style>
 </head>
-
 <body class="twoColHybLtHdr">
-
 <div id="container">
   <div id="header">
     <h1>AVR Plugin for Eclipse</h1>
-    <!-- end #header --></div>
+    <!-- end #header -->
+  </div>
   <div id="sidebar1">
     <h3>Links</h3>
-    <p><a href="https://sourceforge.net/projects/avr-eclipse/" class="style1">Sourceforge Project Page</a></p>
-  <!-- end #sidebar1 --></div>
+    <p class="sidebar_link"><a href="index.html">Main Page</a></p>
+    <p class="sidebar_link"><a href="faq.html">FAQ</a></p>
+    <p class="sidebar_link"><a href="changelog.html">Changelog</a></p>
+    <p class="sidebar_link"><a href="https://sourceforge.net/projects/avr-eclipse/">Sourceforge Project Page</a></p>
+    <p class="sidebar_link">&nbsp;</p>
+    <!-- end #sidebar1 -->
+  </div>
   <div id="mainContent">
-    <h2>How to install the required toolchain</h2>
+    <h2>How to get the required toolchain</h2>
     <h3>Windows</h3>
-    <p><a href="http://sourceforge.net/project/showfiles.php?group_id=68108">Download</a> and install <a href="http://winavr.sourceforge.net/">winAVR</a>, which includes the AVR-GCC toolchain together with some other useful tools for programming the AVR processor series</p>
+    <p><a href="http://sourceforge.net/project/showfiles.php?group_id=68108">Download</a> and install <a href="http://winavr.sourceforge.net/">winAVR</a>, which includes the AVR-GCC toolchain together with some other useful tools for programming the AVR processor series.</p>
     <h3>Linux</h3>
     <p>Most Linux distributions have an AVR-GCC toolchain. It may not, however, be installed by default.
       For instructions about installing AVR-GCC for Linux, see the instructions for your particular distribution.</p>
+    <p>However, the AVR-GCC toolchains packaged for the various distributions tend to be very much out of date. If you need the latest toolchain (e.g. if you are targeting one of the newer AVR processors) you propably have to think about compiling the toolchain from the sources.</p>
+    <p>This <a href="http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=42631">post</a> on the <a href="http://www.avrfreaks.net/">AVR Freaks</a> Forum might be helpful for doing this (you need to be logged on to actually download the scripts)</p>
     <h4>Ubuntu</h4>
     <p>Install the following packages with your favorite package manager:</p>
     <div style="margin-left:5%">
@@ -64,12 +80,23 @@
     <h3>Other Platforms</h3>
     <p>As the AVR-GCC toolchain is open source, chances are that it is either available for your platform or can be adapted to it.</p>
     <p>&nbsp;</p>
-  <!-- end #mainContent --></div>
-	<!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats -->
-	<br class="clearfloat" />
-	<div id="footer">
-    <p>Footer</p>
-  <!-- end #footer --></div>
-<!-- end #container --></div>
+    <!-- end #mainContent -->
+  </div>
+  <!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats -->
+  <br class="clearfloat" />
+  <div id="footer" class="sidebar_link">
+    <table width="100%" border="0" cellpadding="5">
+      <tr>
+        <td width="0%" align="left"><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=189165&type=5" alt="SourceForge.net Logo"
+width="210" height="62" border="0"></a></td>
+        <td width="0%" align="left"><a href="http://eclipse.org"><img src="images/rea_eclipse_pos_logo_fc_med.jpg" alt="Eclipse.org Logo" width="117" height="62" border="0"></a></td>
+        <td width="100%" align="right" valign="bottom">&copy; 2007 Thomas Holland<br>
+          <span class="id">$id$</span></td>
+      </tr>
+    </table>
+    <!-- end #footer -->
+  </div>
+  <!-- end #container -->
+</div>
 </body>
 </html>

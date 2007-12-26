@@ -1,0 +1,28 @@
+.indent {
+	margin-left: 30px;
+}
+h2 {
+	background-color: #CCCCCC;
+	font-size: large;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	padding-left: 1em;
+}
+a {
+	text-decoration: none;
+}
+
+.sidebar_link {font-size: small}
+.id {font-size: xx-small}
+.footnote {
+	font-size: x-small;
+}
+p {
+	text-align: justify;
+}
