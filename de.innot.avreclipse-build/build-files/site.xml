@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://avr-eclipse.sourceforge.net/">
+      AVR Eclipse Plugin Release Builds
+   </description>
+   <feature url="features/de.innot.avreclipse_0.0.0.jar" id="de.innot.avreclipse" version="0.0.0">
+      <category name="2.0"/>
+   </feature>
+   <category-def name="2.0" label="AVR Eclipse Plugin 2.0">
+      <description>
+         The AVR Eclipse Plugin (including source)
+      </description>
+   </category-def>
+</site>
