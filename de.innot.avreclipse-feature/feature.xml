@@ -2,8 +2,8 @@
 <feature
       id="de.innot.avreclipse"
       label="AVR Eclipse Plugin 2.0"
-      version="0.0.0"
-      provider-name="%providerName">
+      provider-name="%providerName"
+      version="0.0.0">
 
    <description>
       %description
@@ -39,9 +39,9 @@
    </requires>
 
    <plugin
-         id="de.innot.avreclipse.plugin"
-         download-size="532"
-         install-size="549"
+         id="de.innot.avreclipse"
+         download-size="0"
+         install-size="0"
          version="0.0.0"
          unpack="false"/>
 
@@ -51,5 +51,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="de.innot.avreclipse.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 
 </feature>
