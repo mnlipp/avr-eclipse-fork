@@ -1,9 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: AVR Eclipse Plugin 2.0
-Bundle-SymbolicName: de.innot.avreclipse.plugin;singleton:=true
+Bundle-Name: %pluginName
+Bundle-SymbolicName: de.innot.avreclipse.core;singleton:=true
 Bundle-Version: 0.0.0
-Bundle-Vendor: Thomas Holland
+Bundle-Localization: plugin
+Bundle-Vendor: %providerName
 Require-Bundle: 
  org.eclipse.cdt.core;bundle-version="4.0.0",
  org.eclipse.cdt.managedbuilder.core,
