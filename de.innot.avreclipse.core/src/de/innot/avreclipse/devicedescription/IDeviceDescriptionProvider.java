@@ -40,6 +40,7 @@ public interface IDeviceDescriptionProvider {
 	 * @return <code>String</code> with the name of this Provider
 	 * @deprecated
 	 */
+	@Deprecated
 	public String getName();
 
 	/**

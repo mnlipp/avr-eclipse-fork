@@ -211,6 +211,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		top.setVisible(visible);
 	}
 
+	@Override
 	protected boolean isCustomPageComplete() {
 		// This page only changes default values, so it is always complete
 		return true;
@@ -244,7 +245,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		IConfiguration[] cfgs = mproj.getConfigurations();
 
 		for (int i = 0; i < cfgs.length; i++) {
-			IToolChain tc = (IToolChain) cfgs[i].getToolChain();
+			IToolChain tc = cfgs[i].getToolChain();
 			try {
 				// Change Target MCU option and set given value as default
 				IOption optionTargetMCU = tc

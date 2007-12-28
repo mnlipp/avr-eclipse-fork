@@ -124,6 +124,8 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler
 			toolchain = (IToolChain) ((ITool) holder).getParent();
 		}
 
+		if(toolchain == null) return false;
+		
 		// change the value of all options of all tools that contain the value
 		// of valueHandlerExtraArgument in their id
 
