@@ -5,6 +5,31 @@
 * AVR series of Processors.                                                    *
 * See details at http://avr-eclipse.sourceforge.net                            *
 ********************************************************************************
+$Id$
+
+Version 2.0.1 release date: 29 December 2007
+
+1. What's new
+
+	The bug that made the Size tool unusable for non-winAVR has been fixed.
+	The Assembler tool is now fully working
+	Some more options for the Assembler, Compiler and Size tools
+	Some minor fixes (see changelog.txt)
+	
+2. Information
+
+2.1. System Requirements
+
+   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
+    * CDT 4.0 (Eclipse 3.3)
+   
+   older versions of the JRE or of Eclipse / CDT are not supported
+
+2.2 Known issues
+
+	* none
+	
+--------------------------------------------------------------------------------
 
 Version 2.0.0 release date: 27 December 2007
 
@@ -16,15 +41,3 @@ Version 2.0.0 release date: 27 December 2007
    The full list of changes to the last published version 20070813 can be found in 
    the changelog.
    
-2. Information
-
-2.1. System Requirements
-
-   AVR Eclipse requires JDK 1.5 or higher and supports following versions of CDT:
-    * CDT 4.0 (Eclipse 3.3)
-   
-
-2.2 Known issues
-
-	* Print Size tool option --format=avr does not work on older avr-gcc toolchains which
-	  are packaged with some/many Linux distributions.
