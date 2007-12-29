@@ -158,11 +158,11 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		
 		// Non-windows: test a few common locations
 		File test = new File("/usr/local/bin/avr-gcc");
-		if (test.canExecute()) {
+		if (test.isFile()) {	// .canExecute() is nicer, but only available on JRE 6.0
 			return "/usr/local/bin/";
 		}
 		test = new File("/usr/bin/avr-gcc");
-		if (test.canExecute()) {
+		if (test.isFile()) {
 			return "/usr/bin/";
 		}
 		// Default: root - let the user search for it
@@ -196,11 +196,11 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		}
 		// Non-windows: test a few common locations
 		File test = new File("/usr/local/bin/make");
-		if (test.canExecute()) {
+		if (test.isFile()) {
 			return "/usr/local/bin/";
 		}
 		test = new File("/usr/bin/make");
-		if (test.canExecute()) {
+		if (test.isFile()) {
 			return "/usr/bin/";
 		}
 		
