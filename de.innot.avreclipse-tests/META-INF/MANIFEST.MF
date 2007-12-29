@@ -5,10 +5,10 @@ Bundle-SymbolicName: de.innot.avreclipse_tests
 Bundle-Version: 1.0.0
 Bundle-Vendor: Thomas Holland
 Export-Package: de.innot.avreclipse.devicedescription;uses:="junit.framework",
- de.innot.avreclipse.ui.views;uses:="junit.framework"
-Require-Bundle: de.innot.avreclipse.plugin,
- org.eclipse.pde.junit.runtime,
+ de.innot.avreclipse.ui.preferences,
+ de.innot.avreclipse.ui.views
+Require-Bundle: org.eclipse.pde.junit.runtime,
  org.eclipse.ui,
  org.junit4,
- org.eclipse.jdt.junit4.runtime
-Eclipse-LazyStart: false
+ org.eclipse.jdt.junit4.runtime,
+ de.innot.avreclipse.core
