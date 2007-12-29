@@ -18,6 +18,7 @@ package de.innot.avreclipse.ui.preferences;
 import java.io.File;
 
 import org.eclipse.cdt.utils.ui.controls.ControlFactory;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
@@ -48,6 +49,8 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
 		PreferenceConstants {
 
 	// The GUI FieldEditor Widgets
+	private BooleanFieldEditor fUseDefaultPaths = null;
+	private Group fPathsGroup = null;
 	private AVRiohFileFieldEditor fAVR_io_h_file = null;
 //	private AVRpdfDirectoryFieldEditor fAVRpdfFolder = null;
 
@@ -141,6 +144,7 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
 	 * Creates the field editors.
 	 * 
 	 */
+	@Override
 	public void createFieldEditors() {
 		Composite parent = getFieldEditorParent();
 
