@@ -36,16 +36,10 @@
 	
     <!-- replace at least yourFeature, categoryName and categoryDef --> 
     <target name="-createNightlyBuildSiteXml" if="isNightlyBuild">
-        <echo file="${UpdateSiteStagingLocation}/site.xml">&lt;?xml
-            version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-            &lt;site&gt; &lt;description&gt; Description. &lt;/description&gt; &lt;feature
-            url=&quot;features/yourFeature_${version.full}.jar&quot;
-            id=&quot;yourFeature&quot;
-            version=&quot;${version.full}&quot;&gt; &lt;category
-            name=&quot;categoryName&quot;/&gt; &lt;/feature&gt;
-            &lt;category-def name=&quot;categoryDef&quot;
-            label=&quot;Your Builds&quot;&gt; &lt;/category-def&gt;
-            &lt;/site&gt; </echo>
+		<copy file="${buildHome}/build-files/testsite.xml" 
+			tofile="${UpdateSiteStagingLocation}/site.xml"/>
+		<replace file="${UpdateSiteStagingLocation}/site.xml"
+			token="0.0.0" value="${version.full}" />
     </target>
 	 
 	<target name="-createReleaseBuildSiteXml" unless="isNightlyOrIntegrationBuild">
