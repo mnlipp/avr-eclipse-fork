@@ -36,4 +36,17 @@ public interface PluginIDs {
 	
 	/** ID of the cpu frequency option of the base toolchain. Value: {@value} */
 	public static String PLUGIN_TOOLCHAIN_OPTION_FCPU = "de.innot.avreclipse.toolchain.options.target.fcpu";
+	
+	/** ID of the compiler tool. Value: {@value} */
+	public static String PLUGIN_TOOLCHAIN_TOOL_COMPILER = "de.innot.avreclipse.tool.compiler.winavr";
+
+	/** ID of the size tool. Value: {@value} */
+	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
+
+	/** ID of the size tool format option with avr. Value: {@value} */
+	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMATWITHAVR = "de.innot.avreclipse.size.option.formatwithavr";
+	
+	/** ID of the size tool format option without avr. Value: {@value} */
+	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMAT = "de.innot.avreclipse.size.option.format";
+	
 }

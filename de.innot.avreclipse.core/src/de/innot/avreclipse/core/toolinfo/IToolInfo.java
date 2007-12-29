@@ -6,6 +6,8 @@ package de.innot.avreclipse.core.toolinfo;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IPath;
+
 /**
  * Interface for getting informations about a tool
  * 
@@ -17,16 +19,17 @@ import java.util.Map;
  */
 public interface IToolInfo {
 
+	public final static String TOOLINFOTYPE_COMMAND = "command";
 	public final static String TOOLINFOTYPE_MCUS = "mcus";
 	public final static String TOOLINFOTYPE_PROGRAMMERS = "programmers";
-		
+	public final static String TOOLINFOTYPE_OPTIONS = "options";
 	/** 
-	 * Gets the OS specific Path to the parent folder of the tool
+	 * Gets the Path to the tool
 	 * 
 	 * @return
 	 */
-	public String getToolPath();
-	
+	public IPath getToolPath();
+		
 	/**
 	 * Gets a List of types supported by the {@link #getToolInfo(String)}.
 	 * 

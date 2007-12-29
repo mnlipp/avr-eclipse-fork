@@ -15,27 +15,40 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.cdt.managedbuilder.core.ITool;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
+import org.eclipse.core.runtime.IPath;
 
 import de.innot.avreclipse.PluginIDs;
 
 /**
+ * This class provides some information about the used gcc compiler in the
+ * toolchain.
+ * 
+ * It can return a list of all supported target mcus.
+ * 
  * @author Thomas
+ * @version 1.0
+ * @since 2.1
  * 
  */
-public class GCC implements IToolInfo {
+public class GCC extends BaseToolInfo {
+
+	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
+
+	protected String[] toolinfotypes = {TOOLINFOTYPE_MCUS};
 
 	private static GCC instance = null;
 
-	private String fCommandName = null;
-	
-	private String fCommandFolder = null;
+	private Map<String, String> fMCUmap = null;
 
 	/**
 	 * Get an instance of this Tool.
@@ -47,11 +60,9 @@ public class GCC implements IToolInfo {
 	}
 
 	private GCC() {
-		// First: Get the command name from the toolchain
-		setCommandNameFromToolchain();
-		
-		// Find the tool and get the parent folder
-		setCommandFolder();
+		// Let the superclass get the command name
+		super(TOOL_ID);
+		super.toolinfotypes = this.toolinfotypes;
 	}
 
 	/*
@@ -59,12 +70,17 @@ public class GCC implements IToolInfo {
 	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.IToolInfo#getToolPath()
 	 */
-	public String getToolPath() {
+	public IPath getToolPath() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Map<String, String> getToolInfo(String type) {
+
+		if (TOOLINFOTYPE_MCUS.equals(type)) {
+			return getMCUList();
+		}
+
 		return null;
 	}
 
@@ -74,25 +90,93 @@ public class GCC implements IToolInfo {
 		return types;
 	}
 
-	/**
-	 * Set the compiler command from the extension toolchain.
-	 * 
-	 * User modified commands are ignored.
-	 * 
-	 */
-	private void setCommandNameFromToolchain() {
-		ITool compiler = ManagedBuildManager
-				.getExtensionTool(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER);
-		if (compiler != null) {
-			fCommandName = compiler.getToolCommand();
+	private Map<String, String> getMCUList() {
+
+		if(fMCUmap != null) {
+			return fMCUmap;
 		}
-		// "sensible" default in case the toolchain did not yield a command name
-		fCommandName = "avr-gcc";
-	}
-	
-	private String setCommandFolder(String command) {
 		
-		ProcessFactory.getFactory().exec(cmd, envp, dir)
-		return null;
+		fMCUmap = new HashMap<String, String>();
+
+		Process cmdproc = null;
+		InputStream is = null;
+
+		try {
+			cmdproc = ProcessFactory.getFactory().exec(getCommandName() + " --target-help");
+			is = cmdproc.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+			boolean start = false;
+			String line;
+
+			while ((line = br.readLine()) != null) {
+				if ("Known MCU names:".equals(line)) {
+					start = true;
+					continue;
+				}
+				if (start && !line.startsWith(" ")) {
+					// finished
+					break;
+				}
+				if (start) {
+					String[] names = line.split(" ");
+					for (int i = 0; i < names.length; i++) {
+						String mcuid = names[i];
+						String mcuname = convertmcuname(mcuid);
+						if (mcuname == null) {
+							// some mcuid are generic and should not be included
+							continue;
+						}
+						fMCUmap.put(mcuname, mcuid);
+					}
+				}
+			}
+		} catch (IOException e) {
+		} finally {
+			try {
+				if (is != null) {
+					is.close();
+				}
+			} catch (IOException e) {
+			}
+			try {
+				if (cmdproc != null) {
+					cmdproc.waitFor();
+				}
+			} catch (InterruptedException e) {
+			}
+		}
+
+		return fMCUmap;
+	}
+
+	/**
+	 * Change the lower case mcuid into the official Name.
+	 * 
+	 * @param mcuid
+	 * @return Name of the MCU or null if it should not be included (e.g.
+	 *         generic family names like 'avr2')
+	 */
+	private static String convertmcuname(String mcuid) {
+		// remove invalid entries
+		if ("".equals(mcuid.trim())) {
+			return null;
+		}
+		// AVR Specific
+		if (mcuid.startsWith("atmega")) {
+			return "ATmega" + mcuid.substring(6).toUpperCase();
+		}
+		if (mcuid.startsWith("attiny")) {
+			return "ATtiny" + mcuid.substring(6).toUpperCase();
+		}
+		if (mcuid.startsWith("at")) {
+			return mcuid.toUpperCase();
+		}
+		if (mcuid.startsWith("avr")) {
+			// don't include the generic familiy names
+			return null;
+		}
+
+		return mcuid;
 	}
 }

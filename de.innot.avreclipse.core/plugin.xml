@@ -226,7 +226,7 @@
 			
 			
 			<inputType id="de.innot.avreclipse.tool.assembler.input"
-				sourceContentType="org.eclipse.cdt.core.asmSource" />
+				sources="s,S,asm"/>
 				
 			<outputType id="de.innot.avreclipse.tool.assembler.output"
 				outputs="o" 
@@ -269,6 +269,12 @@
 			<optionCategory id="de.innot.avreclipse.compiler.category.syms"
 				name="Symbols" >
 			</optionCategory>
+			<option id="de.innot.avreclipse.compiler.option.omitfcpu"
+				name="Omit F_CPU" 
+				category="de.innot.avreclipse.compiler.category.syms"
+				valueType="boolean"
+				defaultValue="false" 
+				tip="Select if F_CPU is not needed or defined in the source" />
 			<option id="de.innot.avreclipse.compiler.option.def"
 				name="Define Syms (-D)" 
 				category="de.innot.avreclipse.compiler.category.syms"
@@ -479,6 +485,13 @@
 				name="MCU Clock Frequency"
 				valueType="string" 
 				command="-DF_CPU=" >
+      			<enablement
+            		type="CMD_USAGE">
+         			<checkOption
+               			optionId="de.innot.avreclipse.compiler.option.omitfcpu"
+               			value="false">
+         			</checkOption>
+      			</enablement>
 			</option>
 				
 			<inputType id="de.innot.avreclipse.compiler.winavr.input"
@@ -846,17 +859,30 @@
 
 			<optionCategory id="de.innot.avreclipse.size.category.general"
 				name="General" />
-			<option id="de.innot.avreclipse.objdump.option.format"
-				name="Size Format"
-				category="de.innot.avreclipse.size.category.general"
-				valueType="enumerated" >
-				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.avr"
-					name="AVR Format" 
-					command="--format=avr" />
-				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.berkeley"
+			<option id="de.innot.avreclipse.size.option.format"
+		        category="de.innot.avreclipse.size.category.general"
+		        name="Size Format"
+		        valueType="enumerated"
+		        applicabilityCalculator="de.innot.avreclipse.mbs.SizeFormatApplicabilityCalculator" >
+				<enumeratedOptionValue id="de.innot.avreclipse.size.option.format.berkeley"
 					name="Berkeley Format" 
 					command="--format=berkeley" />
-				<enumeratedOptionValue id="de.innot.avreclipse.objdump.option.format.sysv"
+				<enumeratedOptionValue id="de.innot.avreclipse.size.option.format.sysv"
+					name="SysV Format" 
+					command="--format=sysv" />
+ 			</option>
+			<option id="de.innot.avreclipse.size.option.formatwithavr"
+		        category="de.innot.avreclipse.size.category.general"
+		        name="Size Format"
+		        valueType="enumerated"
+		        applicabilityCalculator="de.innot.avreclipse.mbs.SizeFormatApplicabilityCalculator" >
+				<enumeratedOptionValue id="de.innot.avreclipse.size.option.format.avr"
+					name="AVR Format" 
+					command="--format=avr" />
+				<enumeratedOptionValue id="de.innot.avreclipse.size.option.format.berkeley"
+					name="Berkeley Format" 
+					command="--format=berkeley" />
+				<enumeratedOptionValue id="de.innot.avreclipse.size.option.format.sysv"
 					name="SysV Format" 
 					command="--format=sysv" />
  			</option>
@@ -865,13 +891,16 @@
 				category="de.innot.avreclipse.size.category.general"
 				valueType="boolean"
 				defaultValue="true"
-				command="-t" >
-				<enablement 
-					type="UI_ENABLEMENT|CMD_USAGE" >
-					<checkOption
-						optionId="de.innot.avreclipse.objdump.option.format"
-				  		value="de.innot.avreclipse.objdump.option.format.berkeley" />
-				</enablement>
+				command="-t" 
+				applicabilityCalculator="de.innot.avreclipse.mbs.SizeOptionsApplicabilityCalculator" >
+			</option>			
+			<option id="de.innot.avreclipse.size.option.hex"
+				name="Display as hex"
+				category="de.innot.avreclipse.size.category.general"
+				valueType="boolean"
+				defaultValue="false"
+				command="-x"
+				applicabilityCalculator="de.innot.avreclipse.mbs.SizeOptionsApplicabilityCalculator" >
 			</option>			
 
 			<option id="de.innot.avreclipse.size.option.targetmcu"
@@ -879,7 +908,8 @@
 				category="de.innot.avreclipse.tool.size.winavr"
 				valueType="string"
 				defaultValue="${AVRTARGETMCU}"
-				command="--mcu=" >
+				command="--mcu=" 
+		        applicabilityCalculator="de.innot.avreclipse.mbs.SizeOptionsApplicabilityCalculator" >
 			</option>
 			
 <!--  	
@@ -1415,9 +1445,9 @@
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.lib.debug"
 						superClass="de.innot.avreclipse.tool.size.winavr" >
-						<option id="de.innot.avreclipse.objdump.option.format.lib.debug"
-							superClass="de.innot.avreclipse.objdump.option.format"
-							value="de.innot.avreclipse.objdump.option.format.berkeley" />
+						<option id="de.innot.avreclipse.size.option.format.lib.debug"
+							superClass="de.innot.avreclipse.size.option.format"
+							value="de.innot.avreclipse.size.option.format.berkeley" />
 					</tool>
 						
 				</toolChain>
@@ -1468,9 +1498,9 @@
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.lib.release"
 						superClass="de.innot.avreclipse.tool.size.winavr" >
-						<option id="de.innot.avreclipse.objdump.option.format.lib.release"
-							superClass="de.innot.avreclipse.objdump.option.format"
-							value="de.innot.avreclipse.objdump.option.format.berkeley" />
+						<option id="de.innot.avreclipse.size.option.format.lib.release"
+							superClass="de.innot.avreclipse.size.option.format"
+							value="de.innot.avreclipse.size.option.format.berkeley" />
 					</tool>
 				</toolChain>
 			</configuration>

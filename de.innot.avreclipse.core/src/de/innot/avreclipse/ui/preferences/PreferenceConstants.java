@@ -25,11 +25,18 @@ package de.innot.avreclipse.ui.preferences;
  */
 public interface PreferenceConstants {
 
-	/** id for the path to the avr-gcc executable */
-	public static final String PREF_AVRGCCPATH = "avrgccpath";
+	/** id for the path to the gcc executable */
+	public static final String PREF_AVRGCCPATH = "gccpath";
 	
 	/** id for the path to the make executable */
-	public static final String PREF_AVRMAKEPATH = "avrmakepath";
+	public static final String PREF_AVRMAKEPATH = "makepath";
+	
+	/** id for the path to the avrdude executable */
+	public static final String PREF_AVRDUDEPATH = "avrdudepath";
+	
+	/** id for the path to the avrdude config file */
+	public static final String PREF_AVRDUDECONFIGPATH = "avrdudeconfigpath";
+	
 	
 	/** Stores the current source for the DeviceView */
 	public static final String PREF_DEVICEVIEW_CONTENTSOURCE = "deviceviewcontentsource";
