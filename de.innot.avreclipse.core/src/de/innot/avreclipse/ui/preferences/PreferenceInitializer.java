@@ -15,6 +15,8 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.preferences;
 
+import java.io.File;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -34,6 +36,7 @@ import de.innot.avreclipse.util.win32.WinAVR;
  * extension point. It sets default values for the Plugin preferences.
  * </p> 
  * @author Thomas Holland
+ * @version 1.1
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer implements
 		PreferenceConstants {
@@ -114,10 +117,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 			// file did not exist: return root
 			return new Path("/").toOSString();
 		}
-		// Default for non-windows = ubuntu default
-		// TODO: test a few more possible locations
-		return "/usr/avr/include/avr/io.h";
-
+		// Non-windows: test a few common locations
+		File test = new File("/usr/avr/include/avr/io.h");
+		if (test.isFile()) {
+			return test.getPath();
+		}
+		test = new File("/usr/local/avr/include/avr/io.h");
+		if (test.isFile()) {
+			return test.getPath();
+		}
+		
+		// Default: root - let the user search for it
+		return new Path("/").toOSString();
 	}
 
 	/**
@@ -144,9 +155,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 			// file did not exist: return root
 			return new Path("/").toOSString();
 		}
-		// Default for non-windows = ubuntu default
-		// TODO: be a bit more intelligent here
-		return "/usr/usr";
+		
+		// Non-windows: test a few common locations
+		File test = new File("/usr/local/bin/avr-gcc");
+		if (test.canExecute()) {
+			return "/usr/local/bin/";
+		}
+		test = new File("/usr/bin/avr-gcc");
+		if (test.canExecute()) {
+			return "/usr/bin/";
+		}
+		// Default: root - let the user search for it
+		return new Path("/").toOSString();
 
 	}
 
@@ -174,9 +194,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 			// file did not exist: return root
 			return new Path("/").toOSString();
 		}
-		// Default for non-windows = ubuntu default
-		// TODO: be a bit more intelligent here
-		return "/usr/usr";
+		// Non-windows: test a few common locations
+		File test = new File("/usr/local/bin/make");
+		if (test.canExecute()) {
+			return "/usr/local/bin/";
+		}
+		test = new File("/usr/bin/make");
+		if (test.canExecute()) {
+			return "/usr/bin/";
+		}
+		
+		// Default: root - let the user search for it
+		return new Path("/").toOSString();
 
 	}
 
