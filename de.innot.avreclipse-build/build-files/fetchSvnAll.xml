@@ -21,7 +21,7 @@
     <antcall target="svn.co">
       <param name="target" value="plugins"/>
       <param name="element.id" value="de.innot.avreclipse.core"/>
-      <param name="project.name" value="/de.innot.avreclipse"/>
+      <param name="project.name" value="/de.innot.avreclipse.core"/>
       <param name="url" value="https://avr-eclipse.svn.sourceforge.net/svnroot/avr-eclipse/avr_eclipse_plugin_2.0/trunk"/>
     </antcall>
   </target>
