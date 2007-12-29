@@ -1,9 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Changelog</title>
-<link href="layout.css" rel="stylesheet" type="text/css">
+<link href="layout.css" rel="stylesheet" type="text/css" />
 <!--[if IE]>
 <style type="text/css"> 
 /* place css fixes for all versions of IE in this conditional comment */
@@ -19,7 +19,7 @@
 }
 -->
 </style>
-<link href="styles.css" rel="stylesheet" type="text/css">
+<link href="styles.css" rel="stylesheet" type="text/css" />
 <style type="text/css">
 <!--
 .style3 {
@@ -35,62 +35,22 @@
     <!-- end #header -->
   </div>
   <div id="sidebar1">
-    <h4>&nbsp;&nbsp;Links</h4>
+    <h4>Links</h4>
     <p class="sidebar_link"><a href="index.html">Main Page</a></p>
     <p class="sidebar_link"><a href="faq.html">FAQ</a></p>
     <p class="sidebar_link">--&gt; Release Notes</p>
+    <h4>External Links</h4>
+    <p class="sidebar_link"><a href="https://sourceforge.net/project/screenshots.php?group_id=189165">Screenshots</a></p>
     <p class="sidebar_link"><a href="https://sourceforge.net/projects/avr-eclipse/">Sourceforge Project Page</a></p>
-    <p class="sidebar_link"></p>
+    <p class="sidebar_link">&nbsp;</p>
     <!-- end #sidebar1 -->
   </div>
   <div id="mainContent">
-    <h2><a name="releasenotes"></a>Release Notes</h2>
-    <pre>Version 2.0.0 release date: 27 December 2007</pre>
-    <pre>1. What's New</pre>
-    <pre> The current version is 2.0.0 with build ID v20071227. 
-         
-       This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
-       The full list of changes to the last published version 20070813 can be found in 
-       the <a href="#changelog">changelog</a>.
-   
-       2. Information</pre>
-    <pre>2.1. System Requirements</pre>
-    <pre> AVR Eclipse requires JDK 1.5 or higher and supports following versions of CDT:
-       * CDT 4.0 (Eclipse 3.3)
-     </pre>
-    <pre>2.2 Known issues</pre>
-    <pre> * Print Size tool option --format=avr does not work on older avr-gcc toolchains which
-       are packaged with some/many Linux distributions.</pre>
-    <h2><a name="changelog"></a>Changelog</h2>
-    <pre>Version 2.0.0.v20071227 [27 December 2007]</pre>
-    <pre>This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
-       The major changes to the last released version 20070813 are:</pre>
-    <pre>Features:
-       * MCU Type and Clock Frequency set only once per configuration (request 1751707)
-   
-       * Debug and Release build Configurations
-   
-       * Application and Static Library build types (static lib not tested yet)
-   
-       * Builds hex, eep and lss files (user selectable)
-   
-       * Assembler integrated into toolchain. (request 1755284 / 1787770)
-   
-       * A new viewer to show some information about AVR processors (based on patch 1701653)
-   
-       * Basic documentation incl. a small tutorial on how to create a AVR application project
-   
-   
-   
-       Fixes:
-       * Works with CDT 4.0 / Eclipse 3.3 (CDT 3.0 / Eclipse 3.2 not supported anymore)
-   
-       * Optimize for size included in compiler options (bug 1772860)
-   
-       * Windows: Finds paths to the winAVR executables if they are not on the path.
-   
-       * LIBS and USER_OBJS included in the linking process.
-     </pre>
+    <h2><a name="releasenotes" id="releasenotes"></a>Release Notes</h2>
+    <iframe src="releasenotes.txt" width="100%" height="500" frameborder="1"></iframe>
+    <h2><a name="changelog" id="changelog"></a>Changelog</h2>
+    <iframe src="changelog.txt" width="100%" height="500" frameborder="1"></iframe>
+     
     <!-- end #mainContent -->
   </div>
   <!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats -->
@@ -98,10 +58,10 @@
   <div id="footer" class="sidebar_link">
     <table width="100%" border="0" cellpadding="5">
       <tr>
-        <td width="0%" align="left"><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=189165&type=5" alt="SourceForge.net Logo"
-width="210" height="62" border="0"></a></td>
-        <td width="0%" align="left"><a href="http://eclipse.org"><img src="images/rea_eclipse_pos_logo_fc_med.jpg" alt="Eclipse.org Logo" width="117" height="62" border="0"></a></td>
-        <td width="100%" align="right" valign="bottom">&copy; 2007 Thomas Holland<br>
+        <td align="left"><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=189165&amp;type=5" alt="SourceForge.net Logo"
+width="210" height="62" border="0" /></a></td>
+        <td align="left"><a href="http://eclipse.org"><img src="images/rea_eclipse_pos_logo_fc_med.jpg" alt="Eclipse.org Logo" width="117" height="62" border="0" /></a></td>
+        <td align="right" valign="bottom">&copy; 2007 Thomas Holland<br />
           <span class="id">$Id$</span></td>
       </tr>
     </table>

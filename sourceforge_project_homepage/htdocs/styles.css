@@ -18,7 +18,10 @@ a {
 	text-decoration: none;
 }
 
-.sidebar_link {font-size: small}
+.sidebar_link {
+	font-size: small;
+	text-align: left;
+}
 .id {font-size: xx-small}
 .footnote {
 	font-size: x-small;

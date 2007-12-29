@@ -1,0 +1,57 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Change Log                           *
+*                                                                              *
+* A plugin supporting the development of applications for the AVR series       *
+* of Processors.                                                               *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+$Id: changelog.txt 124 2007-12-29 15:53:19Z innot $
+
+--------------------------------------------------------------------------------
+Version 2.0.1.20071229 [29 December 2007]
+
+The main point of this release is to fix the avr-size bug that made it impossible 
+to use the Size tool on non-winAVR toolchains (Linux / MacOSX). Some other fixes
+minor features are included as well.
+
+Features:
+* Assembler Tool
+   - Added options to use preprocessor and for debug information
+ * Compiler Tool
+   - Added option to omit the F_CPU definition from the commandline
+   - Added options for debug level and debug information format
+   - Added option to select the language standard (Bug 1783023)
+ * Size Tool
+   - Added option to display size in hex
+
+Fixes:
+* Assembler Tool
+   - Changed command from avr-as to avr-gcc to enable the preprocessor for assembler sources
+   - Extended the org.eclipse.cdt.core.asmSource contentType to include (uppercase) .S files
+* Size Tool
+   - fixed the bug that -mcu was always passed on to commandline, regardless of format
+   - Only the size formats applicatable to the platform are shown
+* Other
+   - fixed wrong paths on non-Windows platforms, now looks in /usr/bin and /usr/local/bin.
+     The whole path managment will be rewritten in 2.1
+ 
+--------------------------------------------------------------------------------
+Version 2.0.0.v20071227 [27 December 2007]
+
+This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
+The major changes to the last released version 20070813 are:
+
+Features:
+ * MCU Type and Clock Frequency set only once per configuration (request 1751707)
+ * Debug and Release build Configurations
+ * Application and Static Library build types (static lib not tested yet)
+ * Builds hex, eep and lss files (user selectable)
+ * Assembler integrated into toolchain. (request 1755284 / 1787770)
+ * A new viewer to show some information about AVR processors (based on patch 1701653)
+ * Basic documentation incl. a small tutorial on how to create a AVR application project
+ 
+Fixes:
+ * Works with CDT 4.0 / Eclipse 3.3 (CDT 3.0 / Eclipse 3.2 not supported anymore)
+ * Optimize for size included in compiler options (bug 1772860)
+ * Windows: Finds paths to the winAVR executables if they are not on the path.
+ * LIBS and USER_OBJS included in the linking process.
