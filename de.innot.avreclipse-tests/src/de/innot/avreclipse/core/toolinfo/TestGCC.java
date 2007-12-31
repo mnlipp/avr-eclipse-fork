@@ -35,7 +35,6 @@ public class TestGCC {
 	@Test
 	public void testGetDefault() {
 		assertNotNull(tool);
-		assertTrue("GCC of wrong type", tool instanceof IToolInfo);
 		// this next test will fail if other than avr-tool toolchain is used
 		assertEquals("avr-gcc", tool.getCommandName());
 	}

@@ -35,7 +35,6 @@ public class TestSize {
 	@Test
 	public void testGetDefault() {
 		assertNotNull(tool);
-		assertTrue("Size of wrong type", tool instanceof IToolInfo);
 		// this next test will fail if other than avr-gcc toolchain is used
 		assertEquals("avr-size", tool.getCommandName());
 	}
