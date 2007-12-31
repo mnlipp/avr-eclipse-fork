@@ -30,7 +30,7 @@ Fixes:
    - Extended the org.eclipse.cdt.core.asmSource contentType to include (uppercase) .S files
 * Size Tool
    - fixed the bug that -mcu was always passed on to commandline, regardless of format
-   - Only the size formats applicatable to the platform are shown
+   - Only the size formats applicable to the platform are shown
 * Other
    - fixed wrong paths on non-Windows platforms, now looks in /usr/bin and /usr/local/bin.
      The whole path managment will be rewritten in 2.1
