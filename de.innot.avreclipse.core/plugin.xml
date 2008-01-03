@@ -1261,7 +1261,8 @@
 ####################################################################################### 
 -->
 		<projectType id="de.innot.avreclipse.project.winavr.elf"
-			buildArtefactType="de.innot.avreclipse.buildArtefactType.app" >
+			buildArtefactType="de.innot.avreclipse.buildArtefactType.app"
+			convertToId="de.innot.avreclipse.project.winavr.elf" >
 
 			<configuration id="de.innot.avreclipse.configuration.app.debug"
 				name="Debug"
@@ -1507,9 +1508,9 @@
 		</projectType>
 	</extension>
 
-	<extension id="de.innot.avreclipse.baseproperties"
-		name="AVR Cross Target Base Build Properties Definition"
-		point="org.eclipse.cdt.managedbuilder.core.buildProperties">
+	<extension point="org.eclipse.cdt.managedbuilder.core.buildProperties"
+		id="de.innot.avreclipse.baseproperties"
+		name="AVR Cross Target Base Build Properties Definition">
 		
 		<propertyValue
 			property="org.eclipse.cdt.build.core.buildArtefactType"
@@ -1520,6 +1521,22 @@
 			id="de.innot.avreclipse.buildArtefactType.staticLib"
 			name="AVR Cross Target Static Library" />
 
+	</extension>
+	<extension point="org.eclipse.cdt.managedbuilder.core.projectConverter">
+	    <converter name="Update to AVR Eclipse 2.0.2"
+	    	id="de.innot.avreclipse.converter.update"
+			fromId="de.innot.avreclipse.project.winavr.elf"
+	        toId="de.innot.avreclipse.project.winavr.elf" 
+	        class="de.innot.avreclipse.mbs.converter.ProjectUpdateConverter"
+	        mbsVersion="4.0.0">
+	    </converter>
+	    <converter name="Update to AVR Eclipse 2.0.2"
+	    	id="de.innot.avreclipse.converter.update"
+			fromId="de.innot.avreclipse.project.winavr.staticlib"
+	        toId="de.innot.avreclipse.project.winavr.staticlib" 
+	        class="de.innot.avreclipse.mbs.converter.ProjectUpdateConverter"
+	        mbsVersion="4.0.0">
+	    </converter>
 	</extension>
 
 
