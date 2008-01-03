@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -56,12 +55,20 @@ import org.eclipse.ui.part.ViewPart;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
-import de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider;
+import de.innot.avreclipse.devicedescription.IProviderChangeListener;
+import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider;
 
 /**
+ * This is the main part of the AVR Device Explorer View.
+ * 
+ * @author Thomas Holland
+ * @version 1.1
  */
 
 public class AVRDeviceView extends ViewPart {
+
+	// The parent Composite of this Viewer
+	private Composite fViewParent;
 
 	private Composite fTop;
 	private ComboViewer fCombo;
@@ -76,11 +83,14 @@ public class AVRDeviceView extends ViewPart {
 
 	private IMemento fMemento;
 
-	private IDeviceDescriptionProvider dmprovider = DeviceDescriptionProvider
-			.getDefault();
+	private IDeviceDescriptionProvider dmprovider = null;
 
+	private IProviderChangeListener fProviderChangeListener;
+	
 	/**
 	 * The constructor.
+	 * 
+	 * Nothing done here.
 	 */
 	public AVRDeviceView() {
 	}
@@ -90,6 +100,8 @@ public class AVRDeviceView extends ViewPart {
 	 */
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
+		// Initialize the SuperClass and store the passed memento for use by
+		// the individual methods.
 		super.init(site, memento);
 		fMemento = memento;
 	}
@@ -99,12 +111,7 @@ public class AVRDeviceView extends ViewPart {
 		// Save the current state of the viewer
 		super.saveState(memento);
 
-		// Save the currently selected device
-		IStructuredSelection selection = (IStructuredSelection) fCombo
-				.getSelection();
-		memento.putString("combovalue", selection.getFirstElement().toString());
-
-		// TODO: Save the Column Layoout for each category
+		// TODO: Save the Column Layout for each category
 
 	}
 
@@ -114,7 +121,22 @@ public class AVRDeviceView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 
-		parent.setLayout(new GridLayout());
+		fViewParent = parent;
+		
+		// All listeners that are need to unregistered on dispose()
+		fProviderChangeListener = new ProviderChangeListener();
+
+		// Get the default AVRiohDeviceDescriptionProvider
+		// TODO: once more than one DeviceDescriptionProvider exist,
+		// this has to be changed.
+		dmprovider = AVRiohDeviceDescriptionProvider.getDefault();
+
+		if (dmprovider != null)
+			// setup ourself as a change listener for the
+			// DeviceDescriptionProvider
+			dmprovider.addProviderChangeListener(fProviderChangeListener); // ProviderChangeListener
+
+		fViewParent.setLayout(new GridLayout());
 
 		// TODO: TreeColumn Map is dependent on devicemodelprovider
 		fTreeColumns = new HashMap<String, List<TreeColumn>>();
@@ -126,54 +148,55 @@ public class AVRDeviceView extends ViewPart {
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
 
-		fTop = new Composite(parent, SWT.NONE);
+		fTop = new Composite(fViewParent, SWT.NONE);
 		fTop.setLayout(gl);
 		fTop.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
 		fCombo = new ComboViewer(fTop, SWT.READ_ONLY | SWT.DROP_DOWN);
-		fCombo.getControl().setLayoutData(
-				new GridData(SWT.FILL, SWT.NONE, true, false));
+		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
 		fCombo.addSelectionChangedListener(new ComboSelectionChangedListener());
 
-		// pass the current DeviceDescriptionProvider to the
-		// DeviceListContentProvider
-		fCombo.setInput(dmprovider);
-
 		fSourcesComposite = new Composite(fTop, SWT.NONE);
 		fSourcesComposite.setLayout(new RowLayout());
-		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false, 2, 1));
+		fSourcesComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		new Label(fSourcesComposite, SWT.NONE).setText("source:");
 
 		// The bottom part consists of a TabFolder Control which will take all
-		// space
-		// not used by the top part.
-		fTabFolder = new CTabFolder(parent, SWT.BORDER);
+		// space not used by the top part.
+		fTabFolder = new CTabFolder(fViewParent, SWT.BORDER);
 		fTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		fTabFolder.addSelectionListener(new TabFolderSelectionListener());
 
-		String show = null;
-		if (fMemento != null)
-			show = fMemento.getString("combovalue");
-		if (show == null) {
-			show = (String) fCombo.getElementAt(0);
-		}
-		// This next step will cause a SelectionChangeEvent which in turn will
-		// load the sources, tabs and treeviewers
-		fCombo.setSelection(new StructuredSelection(show), true);
-
+		// This will -in turn- cause all the data sub-widgets to be
+		// initialized and displayed
+		providerChanged();
 	}
 
-	/**
-	 * Passing the focus request to the treeviewer of the selected tab
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
 	@Override
 	public void setFocus() {
-		TreeViewer tv = (TreeViewer) fTabFolder.getSelection().getData();
-		tv.getControl().setFocus();
+			// Passing the focus request to the treeviewer of the selected tab
+		CTabItem item = fTabFolder.getSelection();
+		if (item != null) {
+			TreeViewer tv = (TreeViewer) item.getData();
+			tv.getControl().setFocus();
+		}
 	}
+
+	/* (non-Javadoc)
+     * @see org.eclipse.ui.part.WorkbenchPart#dispose()
+     */
+    @Override
+    public void dispose() {
+    	// remove the listeners from their objects
+    	dmprovider.removeProviderChangeListener(fProviderChangeListener);
+    	super.dispose();
+    }
+
 
 	/**
 	 * Update the controls which make up the sources composite.
@@ -210,10 +233,8 @@ public class AVRDeviceView extends ViewPart {
 				txt.setEditable(false);
 				// make it look like a link (grey background, dark blue color
 				txt.setBackground(parent.getBackground());
-				txt.setForeground(parent.getDisplay().getSystemColor(
-						SWT.COLOR_DARK_BLUE));
-				txt.setCursor(parent.getDisplay().getSystemCursor(
-						SWT.CURSOR_ARROW));
+				txt.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE));
+				txt.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 				Listener srclistener = new SourceSelectionMouseHandler();
 				txt.addListener(SWT.MouseEnter, srclistener);
 				txt.addListener(SWT.MouseExit, srclistener);
@@ -407,27 +428,58 @@ public class AVRDeviceView extends ViewPart {
 		}
 	}
 
-	@SuppressWarnings("unused")
+	/**
+	 * Show an Error message.
+	 * 
+	 * @param message
+	 */
 	private void showMessage(String message) {
-		MessageDialog.openInformation(fCombo.getControl().getShell(),
-				"Register Explorer", message);
+		MessageDialog.openError(fViewParent.getShell(), "AVR Device Explorer Message", message);
 	}
 
+	// called whenever the provider has changed
+	private void providerChanged() {
+
+		// pass the current AVRiohDeviceDescriptionProvider to the
+		// DeviceListContentProvider
+		fCombo.setInput(dmprovider);
+
+		String show = null;
+		if (fMemento != null)
+			show = fMemento.getString("combovalue");
+		if (show == null || "".equals(show)) {
+			show = (String) fCombo.getElementAt(0);
+		}
+		if (show != null) {
+			// This next step will cause a SelectionChangeEvent which in turn
+			// will load the sources, tabs and treeviewers
+			fCombo.setSelection(new StructuredSelection(show), true);
+		}
+		
+	}
+	
 	// When a different MCU Type is selected do the following:
 	// - get the new device from the provider
 	// - update the sources text elements
 	// - Update the tabs of the TabFolder (which will update the treeviewers)
 	// - Set the focus to the TreeViewer of the active tab.
-	private class ComboSelectionChangedListener implements
-			ISelectionChangedListener {
+	private class ComboSelectionChangedListener implements ISelectionChangedListener {
 
 		public void selectionChanged(SelectionChangedEvent event) {
-			String devicename = (String) ((StructuredSelection) event
-					.getSelection()).getFirstElement();
+			String devicename = (String) ((StructuredSelection) event.getSelection())
+			        .getFirstElement();
+			if (fMemento != null) {
+				// persist the selected mcu
+				fMemento.putString("combovalue", devicename);
+			}
 			IDeviceDescription device = dmprovider.getDevice(devicename);
-			updateSourcelist(fSourcesComposite, device);
-			updateTabs(fTabFolder, device);
-			setFocus();
+			if (device == null) {
+				showMessage(dmprovider.getErrorMessage());
+			} else {
+				updateSourcelist(fSourcesComposite, device);
+				updateTabs(fTabFolder, device);
+				setFocus();
+			}
 		}
 	}
 
@@ -467,8 +519,7 @@ public class AVRDeviceView extends ViewPart {
 			switch (event.type) {
 			case SWT.MouseEnter:
 				// change background color to some lighter color
-				txt.setBackground(txt.getDisplay().getSystemColor(
-						SWT.COLOR_LIST_BACKGROUND));
+				txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 				break;
 			case SWT.MouseExit:
 				// change background color back to normal
@@ -476,19 +527,17 @@ public class AVRDeviceView extends ViewPart {
 				break;
 			case SWT.MouseUp:
 				// Open the selected source file
-				// get the basepath from the DeviceDescriptionProvider,
+				// get the basepath from the AVRiohDeviceDescriptionProvider,
 				// append the content of the selected text widget, get a
 				// IFileStore for this file and open an Editor for this
 				// file in the active Workbench page.
 				// No error checking as this file should exist
 				IPath srcfile = dmprovider.getBasePath();
 				srcfile = srcfile.append(txt.getText());
-				IFileStore fileStore = EFS.getLocalFileSystem().getStore(
-						srcfile);
-				if (!fileStore.fetchInfo().isDirectory()
-						&& fileStore.fetchInfo().exists()) {
-					IWorkbenchPage page = PlatformUI.getWorkbench()
-							.getActiveWorkbenchWindow().getActivePage();
+				IFileStore fileStore = EFS.getLocalFileSystem().getStore(srcfile);
+				if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
+					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+					        .getActivePage();
 					try {
 						IDE.openEditorOnFileStore(page, fileStore);
 						// TODO: if any row in the treeview has been selected,
@@ -502,5 +551,18 @@ public class AVRDeviceView extends ViewPart {
 				break;
 			} // switch
 		} // handleevent
+	}
+	
+	private class ProviderChangeListener implements IProviderChangeListener {
+
+		public void providerChange() {
+			// We don't know which Threat this comes from.
+			// Assume its not the SWT Threat and act accordingly
+			fViewParent.getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					providerChanged();
+                }
+			}); // Runnable
+        }
 	}
 }

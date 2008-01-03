@@ -36,8 +36,16 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 		dmprovider = (IDeviceDescriptionProvider)newInput;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
+	 */
 	public Object[] getElements(Object inputElement) {
 		List<String> devices = dmprovider.getDeviceList();
+		if (devices == null) {
+			// if the list is null, an internal Provider Error has occurred.
+			String[] empty = {""};
+			return empty;
+		}
 		return devices.toArray();
 	}
 

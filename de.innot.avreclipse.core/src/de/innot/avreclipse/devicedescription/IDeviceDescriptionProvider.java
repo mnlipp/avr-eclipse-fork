@@ -77,4 +77,34 @@ public interface IDeviceDescriptionProvider {
 	 * @return IPath to the base directory
 	 */
 	public IPath getBasePath();
+
+	/**
+	 * Returns any stored error messages.
+	 * 
+	 * If either {@link #getDeviceList()} {@link #getDevice(String)} returns
+	 * null, this method can be called to retrieve a message describing the
+	 * error.
+	 * 
+	 * @return String The stored error message or null if no error stored.
+	 */
+	public String getErrorMessage();
+
+	/**
+	 * Adds a Provider change listener to this Provider.
+	 * 
+	 * The listener is called whenever the internal data for the provider has
+	 * changed, e.g. when the user changes some preference settings.
+	 * 
+	 * @param pcl
+	 *            The IProviderChangeListener to add
+	 */
+	public void addProviderChangeListener(IProviderChangeListener pcl);
+
+	/**
+	 * Removes a Provider change listener from this provider.
+	 * 
+	 * @param pcl
+	 *            The IProviderChangeListener to remove
+	 */
+	public void removeProviderChangeListener(IProviderChangeListener pcl);
 }

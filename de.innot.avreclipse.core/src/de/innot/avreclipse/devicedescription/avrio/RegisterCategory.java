@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: RegisterCategory.java 18 2007-11-27 20:27:41Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription.avrio;

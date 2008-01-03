@@ -9,34 +9,28 @@
  * 
  * Contributors:
  *     Thomas Holland - initial API and implementation
+ *     Manuel Stahl - original idea to parse the <avr/io.h> file and the patterns
  *     
  * $Id$
  *     
  *******************************************************************************/
-package de.innot.avreclipse.devicedescription.avrio;
+package de.innot.avreclipse.devicedescription;
 
-import de.innot.avreclipse.devicedescription.IEntry;
 
 /**
- * A I/O Port description for the avr/io.h device model.
- * <p>
- * This extends {@link Register}. The only difference is, that port are always
- * in I/O address space.
- * </p>
- * 
  * @author Thomas Holland
  * 
  */
-public class Port extends Register {
+public interface IProviderChangeListener {
 
-	public Port(IEntry parent) {
-		super(parent);
-	}
-
-	@Override
-	public String getAddrType() {
-		// ports are always in io space
-		return "IO";
-	}
+	/**
+	 * Notification that the DeviceDescriptionProvider has changed.
+	 * <p>
+	 * This method gets called when the observed object fires a Provider change
+	 * event.
+	 * </p>
+	 * 
+	 */
+	public void providerChange();
 
 }
