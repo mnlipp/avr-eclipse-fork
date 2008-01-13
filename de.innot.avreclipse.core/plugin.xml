@@ -1542,14 +1542,14 @@
 
 	</extension>
 	<extension point="org.eclipse.cdt.managedbuilder.core.projectConverter">
-	    <converter name="Update to AVR Eclipse 2.0.2"
+	    <converter name="Update to AVR Eclipse 2.1"
 	    	id="de.innot.avreclipse.converter.update"
 			fromId="de.innot.avreclipse.project.winavr.elf"
 	        toId="de.innot.avreclipse.project.winavr.elf" 
 	        class="de.innot.avreclipse.mbs.converter.ProjectUpdateConverter"
 	        mbsVersion="4.0.0">
 	    </converter>
-	    <converter name="Update to AVR Eclipse 2.0.2"
+	    <converter name="Update to AVR Eclipse 2.1"
 	    	id="de.innot.avreclipse.converter.update"
 			fromId="de.innot.avreclipse.project.winavr.staticlib"
 	        toId="de.innot.avreclipse.project.winavr.staticlib" 

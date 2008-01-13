@@ -267,7 +267,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 						optionTargetFCPU, mcufreq);
 				optionTargetFCPU.setDefaultValue(mcufreq);
 			} catch (BuildException e) {
-				// print stacktrace for debugging
+				// TODO: log exception
 				e.printStackTrace();
 			}
 
@@ -280,7 +280,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		try {
 			AVRProjectNature.addAVRNature(proj);
 		} catch (CoreException ce) {
-			// print stacktrace for debugging
+			// TODO: log exception
 			ce.printStackTrace();
 		}
 		

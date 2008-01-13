@@ -23,8 +23,10 @@ import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 
 import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.natures.AVRProjectNature;
 
 /**
  * @author Thomas
@@ -84,6 +86,16 @@ public class ProjectUpdateConverter implements IConvertManagedBuildObject {
 				// Save the (modified) Buildinfo
 				IProject project = (IProject) mproj.getOwner();
 				ManagedBuildManager.saveBuildInfo(project, false);
+			}
+			
+			// 2.1 Upgrade
+			// Add AVR Nature to the project
+			IProject project = (IProject)mproj.getOwner();
+			try {
+				AVRProjectNature.addAVRNature(project);
+			} catch (CoreException ce) {
+				// TODO: print stacktrace for debugging
+				ce.printStackTrace();
 			}
 		}
 		// Feature upgrade - none yet
