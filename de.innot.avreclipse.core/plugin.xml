@@ -539,7 +539,7 @@
 				category="de.innot.avreclipse.linker.category.general" 
 				command="-Wl,-Map," 
 				browseType="file" 
-				defaultValue=".map"
+				defaultValue="${BuildArtifactFileBaseName}.map"
 				valueType="string" />
 			<option id="de.innot.avreclipse.linker.option.nosyms" 
 				name="Omit Symbols (-s)" 
@@ -1261,8 +1261,7 @@
 ####################################################################################### 
 -->
 		<projectType id="de.innot.avreclipse.project.winavr.elf"
-			buildArtefactType="de.innot.avreclipse.buildArtefactType.app"
-			convertToId="de.innot.avreclipse.project.winavr.elf" >
+			buildArtefactType="de.innot.avreclipse.buildArtefactType.app">
 
 			<configuration id="de.innot.avreclipse.configuration.app.debug"
 				name="Debug"
