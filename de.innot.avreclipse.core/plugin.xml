@@ -226,7 +226,10 @@
 			
 			
 			<inputType id="de.innot.avreclipse.tool.assembler.input"
-				sources="s,S,asm"/>
+				sources="s,S,asm"
+				dependencyContentType="org.eclipse.cdt.core.cHeader"
+				dependencyExtensions="h"
+				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2" />
 				
 			<outputType id="de.innot.avreclipse.tool.assembler.output"
 				outputs="o" 
@@ -500,8 +503,9 @@
 				sources="c"
 				dependencyContentType="org.eclipse.cdt.core.cHeader"
 				dependencyExtensions="h"
-				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.internal.DefaultIndexerDependencyCalculator" />
-<!-- 			languageId="org.eclipse.cdt.core.gcc" 
+				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2" />
+<!--			dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.internal.DefaultIndexerDependencyCalculator" />
+	 			languageId="org.eclipse.cdt.core.gcc" 
 				scannerConfigDiscoveryProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC" />
 -->
 
