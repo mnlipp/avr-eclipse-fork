@@ -68,11 +68,13 @@ public class Size extends BaseToolInfo {
 	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.IToolInfo#getToolPath()
 	 */
+	@Override
 	public IPath getToolPath() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	public Map<String, String> getToolInfo(String type) {
 
 		if (TOOLINFOTYPE_OPTIONS.equals(type)) {

@@ -70,11 +70,13 @@ public class GCC extends BaseToolInfo {
 	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.IToolInfo#getToolPath()
 	 */
+	@Override
 	public IPath getToolPath() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	public Map<String, String> getToolInfo(String type) {
 
 		if (TOOLINFOTYPE_MCUS.equals(type)) {
@@ -84,6 +86,7 @@ public class GCC extends BaseToolInfo {
 		return null;
 	}
 
+	@Override
 	public List<String> getToolInfoTypes() {
 		List<String> types = new ArrayList<String>(1);
 		types.add(TOOLINFOTYPE_MCUS);
@@ -173,7 +176,7 @@ public class GCC extends BaseToolInfo {
 			return mcuid.toUpperCase();
 		}
 		if (mcuid.startsWith("avr")) {
-			// don't include the generic familiy names
+			// don't include the generic family names
 			return null;
 		}
 
