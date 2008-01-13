@@ -95,7 +95,7 @@
 -->
 		<tool id="de.innot.avreclipse.tool.assembler.winavr"
 			command="avr-gcc" 
-			name="winAVR Assembler" 
+			name="AVR Assembler" 
 			outputFlag="-c -o"
 			errorParsers="org.eclipse.cdt.core.GASErrorParser">
 			
@@ -239,7 +239,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.compiler.winavr" 
-			name="winAVR Compiler" 
+			name="AVR Compiler" 
 			command="avr-gcc"
 			errorParsers="org.eclipse.cdt.core.GCCErrorParser"
 			outputFlag="-c -o">
@@ -517,7 +517,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.linker.winavr" 
-			name="winAVR Linker"
+			name="AVR Linker"
 			command="avr-gcc"
 			outputFlag="-o"
 			errorParsers="org.eclipse.cdt.core.GLDErrorParser" >
@@ -615,7 +615,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.archiver.winavr" 
-			name="winAVR Archiver" 
+			name="AVR Archiver" 
 			command="avr-ar" 
 			isAbstract="true">
 			<supportedProperties>
@@ -656,7 +656,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.objcopy.flash.winavr" 
-			name="winAVR Create Flash image"
+			name="AVR Create Flash image"
 			isAbstract="true"
 			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT}"
 			command="-avr-objcopy" 
@@ -720,7 +720,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.objcopy.eeprom.winavr" 
-			name="winAVR Create EEPROM image"
+			name="AVR Create EEPROM image"
 			isAbstract="true"
 			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT}"
 			command="-avr-objcopy" 
@@ -783,7 +783,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.objdump.winavr" 
-			name="winAVR Create Extended Listing"
+			name="AVR Create Extended Listing"
 			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} >${OUTPUT}"
 			command="-avr-objdump" >
 
@@ -846,7 +846,7 @@
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.size.winavr" 
-			name="winAVR Print Size"
+			name="Print Size"
 			command="-avr-size" 
 			commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS}" >
 
@@ -974,7 +974,7 @@
 -->
 		<toolChain
         id="de.innot.avreclipse.toolchain.winavr.base"
-        name="WinAVR Toolchain"
+        name="AVR-GCC Toolchain"
         configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier"
         configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier"
         scannerConfigDiscoveryProfileId="AVRGCCManagedMakePerProjectProfile">
