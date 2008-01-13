@@ -2,7 +2,23 @@
 <?eclipse version="3.3"?>
 <plugin>
 
+<!-- 
+####################################################################################### 
+#    AVR Nature                                                                       # 
+####################################################################################### 
+-->
+ 	<extension id="avrnature" name="AVR Nature" point="org.eclipse.core.resources.natures">
+       <runtime>
+           <run class="de.innot.avreclipse.core.natures.AVRProjectNature" />
+       </runtime>
+       <requires-nature id="org.eclipse.cdt.core.cnature"/>
+   </extension>
 
+<!-- 
+####################################################################################### 
+#    Content Types                                                                    # 
+####################################################################################### 
+-->
 	<extension
 		point="org.eclipse.core.runtime.contentTypes">
 		<content-type id="de.innot.avreclipse.contenttype.hexdump"

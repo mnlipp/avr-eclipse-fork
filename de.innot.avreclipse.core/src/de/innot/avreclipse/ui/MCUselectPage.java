@@ -28,6 +28,7 @@ import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageData;
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageManager;
 import org.eclipse.cdt.ui.wizards.CDTCommonProjectWizard;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -42,6 +43,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.natures.AVRProjectNature;
 
 /**
  * New Project Wizard Page to set the default target MCU and its frequency.
@@ -274,5 +276,13 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		// Save the modifications
 		ManagedBuildManager.saveBuildInfo(proj, false);
 
+		// Add the AVR Nature to the project
+		try {
+			AVRProjectNature.addAVRNature(proj);
+		} catch (CoreException ce) {
+			// print stacktrace for debugging
+			ce.printStackTrace();
+		}
+		
 	}
 }
