@@ -20,7 +20,7 @@ import org.osgi.framework.BundleContext;
 public class AVRPluginActivator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "AVR_Eclipse_4.0";
+	public static final String PLUGIN_ID = "de.innot.avreclipse";
 
 	// The shared instance
 	private static AVRPluginActivator plugin;
