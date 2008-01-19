@@ -1010,15 +1010,16 @@
 				osList="all" 
 				binaryParser="org.eclipse.cdt.core.ELF" />
 
+			<!-- ************************************************ -->
+			<!-- * The Toolchain Options for the extended tools * -->
+			<!-- ************************************************ -->
 			<optionCategory id="de.innot.avreclipse.toolchain.category.addtools"
 				name="Additional Tools in Toolchain"
 				owner="de.innot.avreclipse.toolchain.winavr.base" />
 			<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash"
 				name="Generate HEX file for Flash memory"
 				category="de.innot.avreclipse.toolchain.category.addtools"
-				valueType="boolean"
-				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
-				valueHandlerExtraArgument="de.innot.avreclipse.tool.objcopy.flash.winavr" >
+				valueType="boolean" >
 				<enablement 
 					type="ALL">
 					<checkBuildProperty
@@ -1029,9 +1030,7 @@
 			<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom"
 				name="Generate HEX file for EEPROM"
 				category="de.innot.avreclipse.toolchain.category.addtools"
-				valueType="boolean"
-				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
-				valueHandlerExtraArgument="de.innot.avreclipse.tool.objcopy.eeprom.winavr" >
+				valueType="boolean" >
 				<enablement 
 					type="ALL">
 					<checkBuildProperty
@@ -1042,22 +1041,25 @@
 			<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump"
 				name="Generate Extended Listing (Source + generated Assembler)"
 				category="de.innot.avreclipse.toolchain.category.addtools"
-				valueType="boolean"
-				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
-				valueHandlerExtraArgument="de.innot.avreclipse.tool.objdump.winavr" >
+				valueType="boolean" >
 			</option>
 			<option id="de.innot.avreclipse.toolchain.options.toolchain.size"
 				name="Print Size"
 				category="de.innot.avreclipse.toolchain.category.addtools"
 				valueType="boolean"
-				tip="Prints the size of the final target"
-				valueHandler="de.innot.avreclipse.mbs.AddToolsValueHandler" 
-				valueHandlerExtraArgument="de.innot.avreclipse.tool.size.winavr" />
+				tip="Prints the size of the final target" >
+			</option>
  	
  			
+			<!-- ************************************************ -->
+			<!-- * The Builder for the base Toolchain           * -->
+			<!-- ************************************************ -->
 			<builder superClass="de.innot.avreclipse.target.gnu.builder"
 				id="de.innot.avreclipse.target.builder.winavr.base" />
 
+			<!-- ************************************************ -->
+			<!-- * All Tools of the base Toolchain              * -->
+			<!-- ************************************************ -->
 			<tool id="de.innot.avreclipse.tool.assembler.winavr.base"
 				superClass="de.innot.avreclipse.tool.assembler.winavr" />
 
@@ -1121,19 +1123,15 @@
 					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
-						value="false"
 						defaultValue="false"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash" /> 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom.app.debug"
-						value="false"
 						defaultValue="false"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom" /> 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objdump.app.debug"
-						value="true"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.objdump" /> 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"
-						value="true"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
 
@@ -1155,24 +1153,43 @@
 						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.app.debug"
-						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+						superClass="de.innot.avreclipse.tool.objdump.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objdump.app.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool
 						id="de.innot.avreclipse.tool.objcopy.flash.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.objcopy.flash.winavr" >
 						<enablement type="ALL">
-							<false/>
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
+								value="true" />
 						</enablement>
 					</tool>
 					<tool
 						id="de.innot.avreclipse.tool.objcopy.eeprom.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" >
 						<enablement type="ALL">
-							<false/>
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom.app.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
+								value="true" />
 						</enablement>
 					</tool>
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.size.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
+								value="true" />
+						</enablement>
 					</tool>
 				</toolChain>
 			</configuration>
@@ -1216,18 +1233,44 @@
 						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.app.release"
-						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+						superClass="de.innot.avreclipse.tool.objdump.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objdump.app.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool
 						id="de.innot.avreclipse.tool.objcopy.flash.winavr.app.release"
-						superClass="de.innot.avreclipse.tool.objcopy.flash.winavr" />
+						superClass="de.innot.avreclipse.tool.objcopy.flash.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool
 						id="de.innot.avreclipse.tool.objcopy.eeprom.winavr.app.release"
-						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" />
+						superClass="de.innot.avreclipse.tool.objcopy.eeprom.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom.app.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.app.release"
-						superClass="de.innot.avreclipse.tool.size.winavr">
+						superClass="de.innot.avreclipse.tool.size.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.app.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
+								value="true" />
+						</enablement>
 					</tool>
-						
 				</toolChain>
 			</configuration>
 		</projectType>
@@ -1275,13 +1318,27 @@
 						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.lib.debug"
-						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+						superClass="de.innot.avreclipse.tool.objdump.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.lib.debug"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.lib.debug"
 						superClass="de.innot.avreclipse.tool.size.winavr" >
 						<option id="de.innot.avreclipse.size.option.format.lib.debug"
 							superClass="de.innot.avreclipse.size.option.format"
 							value="de.innot.avreclipse.size.option.format.berkeley" />
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.lib.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.lib.debug"
+								value="true" />
+						</enablement>
+
 					</tool>
 						
 				</toolChain>
@@ -1322,13 +1379,27 @@
 						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.lib.release"
-						superClass="de.innot.avreclipse.tool.objdump.winavr" />
+						superClass="de.innot.avreclipse.tool.objdump.winavr" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.objdump.lib.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.lib.release"
+								value="true" />
+						</enablement>
+					</tool>
 					<tool 
 						id="de.innot.avreclipse.tool.size.winavr.lib.release"
 						superClass="de.innot.avreclipse.tool.size.winavr" >
 						<option id="de.innot.avreclipse.size.option.format.lib.release"
 							superClass="de.innot.avreclipse.size.option.format"
 							value="de.innot.avreclipse.size.option.format.berkeley" />
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.lib.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.lib.release"
+								value="true" />
+						</enablement>
+
 					</tool>
 				</toolChain>
 			</configuration>
