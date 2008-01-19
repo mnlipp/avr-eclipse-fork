@@ -115,12 +115,22 @@ public class AVRTargetProperties {
 	}
 
 	/**
+	 * Gets the default Target Hardware properties
+	 * 
+	 * @return
+	 */
+	public static IEclipsePreferences getDefaultPreferences() {
+		IScopeContext scope = new DefaultScope();
+		return scope.getNode(QUALIFIER);
+	}
+	
+	/**
 	 * Initialize the default property values.
 	 * 
 	 * This is called from {@link de.innot.avreclipse.ui.preferences.PreferenceInitializer}
 	 */
 	public static void initializeDefaultPreferences() {
-		IEclipsePreferences prefs = new DefaultScope().getNode(QUALIFIER);
+		IEclipsePreferences prefs = getDefaultPreferences();
 		prefs.putBoolean(KEY_PER_CONFIG, DEFAULT_PER_CONFIG);
 		prefs.put(KEY_MCUTYPE, DEFAULT_MCUTYPE);
 		prefs.putInt(KEY_FCPU, DEFAULT_FCPU);
