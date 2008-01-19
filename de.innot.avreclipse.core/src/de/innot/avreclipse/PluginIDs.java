@@ -40,6 +40,9 @@ public interface PluginIDs {
 	/** ID of the compiler tool. Value: {@value} */
 	public static String PLUGIN_TOOLCHAIN_TOOL_COMPILER = "de.innot.avreclipse.tool.compiler.winavr";
 
+	/** ID of the linker tool. Value: {@value} */
+	public static String PLUGIN_TOOLCHAIN_TOOL_LINKER = "de.innot.avreclipse.tool.linker.winavr";
+
 	/** ID of the size tool. Value: {@value} */
 	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
 
