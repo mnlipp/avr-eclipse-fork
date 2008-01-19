@@ -130,7 +130,7 @@ public class GCC extends BaseToolInfo {
 							// some mcuid are generic and should not be included
 							continue;
 						}
-						fMCUmap.put(mcuname, mcuid);
+						fMCUmap.put(mcuid, mcuname);
 					}
 				}
 			}
