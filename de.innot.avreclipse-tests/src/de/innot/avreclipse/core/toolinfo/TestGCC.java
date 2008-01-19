@@ -69,11 +69,11 @@ public class TestGCC {
 		Map<String, String> mcus = tool.getToolInfo(IToolInfo.TOOLINFOTYPE_MCUS);
 		assertNotNull(mcus);
 		assertTrue(mcus.size()>5); // at least a few micros should be in the list
-		assertTrue(mcus.containsValue("atmega16"));
-		assertTrue(mcus.containsKey("ATmega16"));
-		assertFalse(mcus.containsValue("avr1"));
-		assertFalse(mcus.containsValue(""));
-		assertFalse(mcus.containsValue(null));
+		assertTrue(mcus.containsKey("atmega16"));
+		assertTrue(mcus.containsValue("ATmega16"));
+		assertFalse(mcus.containsKey("avr1"));
+		assertFalse(mcus.containsKey(""));
+		assertFalse(mcus.containsKey(null));
 		for(String mcuid : mcus.keySet()) {
 			System.out.println(mcuid + " = " + mcus.get(mcuid));
 		}

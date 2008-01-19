@@ -13,7 +13,7 @@ import de.innot.avreclipse.devicedescription.IDeviceDescription;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 import de.innot.avreclipse.devicedescription.IEntry;
 import de.innot.avreclipse.devicedescription.avrio.DeviceDescription;
-import de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider;
+import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider;
 
 /**
  * @author Thomas
@@ -26,7 +26,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 	 * {@link de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider#getDefault()}.
 	 */
 	public void testGetDefault() {
-		IDeviceDescriptionProvider ddp = DeviceDescriptionProvider.getDefault();
+		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
 		assertNotNull(ddp);
 	}
 
@@ -35,7 +35,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 	 * {@link de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider#getDeviceList()}.
 	 */
 	public void testGetDevices() {
-		IDeviceDescriptionProvider ddp = DeviceDescriptionProvider.getDefault();
+		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
 		List<String> devices = ddp.getDeviceList();
 		assertNotNull(devices);
 		assertTrue(devices.size() > 0);
@@ -47,7 +47,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 	 */
 	public void testGetDevice() {
 		IDeviceDescription dev = null;
-		IDeviceDescriptionProvider ddp = DeviceDescriptionProvider.getDefault();
+		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
 		dev = ddp.getDevice(null);
 		assertNull(dev); // but no exception
 		dev = ddp.getDevice("foobar");
