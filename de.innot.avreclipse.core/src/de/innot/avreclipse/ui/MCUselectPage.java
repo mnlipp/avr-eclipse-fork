@@ -17,11 +17,9 @@
 package de.innot.avreclipse.ui;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
 
-import org.eclipse.cdt.managedbuilder.core.BuildException;
-import org.eclipse.cdt.managedbuilder.core.IOption;
-import org.eclipse.cdt.managedbuilder.core.IToolChain;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPage;
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageData;
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageManager;
@@ -41,10 +39,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.osgi.service.prefs.Preferences;
 
-import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.natures.AVRProjectNature;
 import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.toolinfo.GCC;
 
 /**
  * New Project Wizard Page to set the default target MCU and its frequency.
@@ -71,8 +70,11 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 	private Composite top;
 
-	private String[] fMCUTypeList;
-	private String fMCUTypeDefaultName;
+	private Map<String, String> fMCUTypes = null;
+	private String[] fMCUTypesList = null;
+
+	private String fDefaultMCU = null;
+	private String fDefaultFCPU = null;
 
 	// GUI Widgets
 	private Combo comboMCUtype;
@@ -82,48 +84,55 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	 * Constructor for the Wizard Page.
 	 * 
 	 * <p>
-	 * Initialize stuff here, as the operation for this Page might be called
-	 * without ever setting the page visible.
+	 * Gets the list of supported MCUs from the compiler and sets the default
+	 * values.
 	 * </p>
 	 * 
 	 */
 	public MCUselectPage() {
+		// If the user does not click on "next", this constructor is
+		// the only thing called before the "run" method.
+		// Therefore we'll set the defaults here. They are set as
+		// page properties, as this seems to be the only way to pass
+		// values to the run() method.
+
 		this.pageID = PAGE_ID;
 
-		// Get the winAVR toolchain and take the MCU list and the default
-		// values from the toolchain options.
+		Preferences defaults = AVRTargetProperties.getDefaultPreferences();
 
-		// The values are stored as Page Properties to access them in the
-		// Operation for this page
-		IToolChain tc = ManagedBuildManager
-				.getExtensionToolChain(PluginIDs.PLUGIN_BASE_TOOLCHAIN);
+		// Get the list of supported MCU Types from the compiler
+		fMCUTypes = GCC.getDefault().getToolInfo(GCC.TOOLINFOTYPE_MCUS);
+		fMCUTypesList = new String[fMCUTypes.size()];
+		fMCUTypesList = fMCUTypes.values().toArray(fMCUTypesList);
+		Arrays.sort(fMCUTypesList);
 
-		// get the target mcu values
-		IOption optionTargetMCU = tc
-				.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
-		fMCUTypeList = optionTargetMCU.getApplicableValues();
-		try {
-			fMCUTypeDefaultName = optionTargetMCU.getEnumName(optionTargetMCU
-					.getDefaultValue().toString());
-		} catch (BuildException e) {
-			// something wrong with the plugin.xml
-			e.printStackTrace();
-		}
+		fDefaultMCU = defaults.get(AVRTargetProperties.KEY_MCUTYPE, null);
+
+		// get the default target fcpu values
+		fDefaultFCPU = defaults.get(AVRTargetProperties.KEY_FCPU, null);
+
+		// Set the default values as page properties
 		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_TYPE,
-				fMCUTypeDefaultName);
+				fDefaultMCU);
 
-		// get the target fcpu values
-		IOption optionTargetFCPU = tc
-				.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
-		String mcufreq = optionTargetFCPU.getDefaultValue().toString();
 		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ,
-				mcufreq);
+				fDefaultFCPU);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.wizard.IWizardPage#getName()
+	 */
 	public String getName() {
 		return new String("AVR Cross Target Hardware Selection Page");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
+	 */
 	public void createControl(Composite parent) {
 		// some general layout work
 		GridData gridData = new GridData(GridData.FILL_BOTH);
@@ -147,8 +156,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 						PROPERTY_MCU_TYPE, value);
 			}
 		});
-		comboMCUtype.setItems(fMCUTypeList);
-		comboMCUtype.select(comboMCUtype.indexOf(fMCUTypeDefaultName));
+		comboMCUtype.setItems(fMCUTypesList);
+		comboMCUtype.select(comboMCUtype.indexOf(fMCUTypes.get(fDefaultMCU)));
 
 		// The CPU Frequency Selection Text Widget
 		Label labelMCUfreq = new Label(top, SWT.NONE);
@@ -160,64 +169,140 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 				.setToolTipText("Target MCU Clock Frequency. Can be changed later via the project properties");
 		textMCUfreq.addListener(SWT.FocusOut, new Listener() {
 			public void handleEvent(Event e) {
-				// TODO: allow only integer values
 				String value = textMCUfreq.getText();
 				MBSCustomPageManager.addPageProperty(PAGE_ID,
 						PROPERTY_MCU_FREQ, value);
 			}
 		});
-		textMCUfreq.setText((String) MBSCustomPageManager.getPageProperty(
-				PAGE_ID, PROPERTY_MCU_FREQ));
+		// filter non-digits from the input
+		textMCUfreq.addListener(SWT.Verify, new Listener() {
+			public void handleEvent(Event event) {
+				String text = event.text;
+				for (int i = 0; i < text.length(); i++) {
+					char ch = text.charAt(i);
+					if (!('0' <= ch && ch <= '9')) {
+						event.doit = false;
+						return;
+					}
+				}
+			}
+		});
+		textMCUfreq.setText(fDefaultFCPU);
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#dispose()
+	 */
 	public void dispose() {
 		top.dispose();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getControl()
+	 */
 	public Control getControl() {
 		return top;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getDescription()
+	 */
 	public String getDescription() {
 		return new String("Define the AVR target properties.");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getErrorMessage()
+	 */
 	public String getErrorMessage() {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getImage()
+	 */
 	public Image getImage() {
 		return wizard.getDefaultPageImage();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getMessage()
+	 */
 	public String getMessage() {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#getTitle()
+	 */
 	public String getTitle() {
 		return new String("AVR Target Hardware Properties");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#performHelp()
+	 */
 	public void performHelp() {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#setDescription(java.lang.String)
+	 */
 	public void setDescription(String description) {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#setImageDescriptor(org.eclipse.jface.resource.ImageDescriptor)
+	 */
 	public void setImageDescriptor(ImageDescriptor image) {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#setTitle(java.lang.String)
+	 */
 	public void setTitle(String title) {
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#setVisible(boolean)
+	 */
 	public void setVisible(boolean visible) {
 		top.setVisible(visible);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPage#isCustomPageComplete()
+	 */
 	@Override
 	protected boolean isCustomPageComplete() {
-		// This page only changes default values, so it is always complete
+		// We only change defaults, so this page is always complete
 		return true;
 	}
 
@@ -225,8 +310,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	 * Operation for the MCUSelectPage.
 	 * 
 	 * This is called when the finish button of the new Project Wizard has been
-	 * pressed. It will get the <code>Configuration(s)</code> of the new
-	 * Project and set the options of their toolchains as selected by the user.
+	 * pressed. It will get the new Project and set the project options as
+	 * selected by the user (or to the default values).
 	 * 
 	 */
 	public void run() {
@@ -234,6 +319,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		// At this point the new project has been created and its
 		// configuration(s) with their toolchains have been set up.
 
+		// Is there a more elegant way to get to the Project?
 		MBSCustomPageData pagedata = MBSCustomPageManager
 				.getPageData(this.pageID);
 		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata
@@ -244,14 +330,22 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 		// Set the Project properties according to the selected values
 
+		// Get the id of the selected MCU and store it
 		String mcutype = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
 				PROPERTY_MCU_TYPE);
 		prefs.setValue(AVRTargetProperties.KEY_MCUTYPE, mcutype);
+		for (String mcuid : fMCUTypes.keySet()) {
+			if (mcutype.equals(fMCUTypes.get(mcuid))) {
+				prefs.setValue(AVRTargetProperties.KEY_MCUTYPE, mcuid);
+				break;
+			}
+		}
 
+		// Set the F_CPU and store it
 		String mcufreq = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
 				PROPERTY_MCU_FREQ);
 		prefs.setValue(AVRTargetProperties.KEY_FCPU, mcufreq);
-		
+
 		try {
 			AVRTargetProperties.savePreferences(prefs);
 		} catch (IOException e) {
