@@ -15,16 +15,19 @@
  *******************************************************************************/
 package de.innot.avreclipse.mbs;
 
-import de.innot.avreclipse.PluginIDs;
-
+import org.eclipse.cdt.core.cdtvariables.CdtVariableException;
 import org.eclipse.cdt.core.cdtvariables.ICdtVariable;
-import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.IOption;
-import org.eclipse.cdt.managedbuilder.core.IToolChain;
+import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacro;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
+import org.eclipse.cdt.managedbuilder.macros.IBuildMacroStatus;
 import org.eclipse.cdt.managedbuilder.macros.IConfigurationBuildMacroSupplier;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.preference.IPreferenceStore;
+
+import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 
 /**
  * BuildMacro Supplier.
@@ -35,49 +38,100 @@ import org.eclipse.cdt.managedbuilder.macros.IConfigurationBuildMacroSupplier;
  * 
  * Currently two build macros are handled by this class.
  * <ul>
- * <li>${AVR_TARGET_MCU} (see {@link BuildConstants#TARGET_MCU_NAME})</li>
- * <li>${AVR_TARGET_FCPU} (see {@link BuildConstants#TARGET_FCPU_NAME})</li>
+ * <li>${AVRTARGETMCU} (see {@link BuildConstants#TARGET_MCU_NAME})</li>
+ * <li>${AVRTARGETFCPU} (see {@link BuildConstants#TARGET_FCPU_NAME})</li>
  * </ul>
- * They have the value of the corresponding options of the current toolchain.
+ * They have the value of the corresponding project properties.
  * 
  * @author Thomas Holland
- * @version 1.0
  */
-public class AVRTargetBuildMacroSupplier implements IConfigurationBuildMacroSupplier, BuildConstants {
+public class AVRTargetBuildMacroSupplier implements
+		IConfigurationBuildMacroSupplier, BuildConstants {
+
+	private IPreferenceStore fProps = null;
 
 	/**
-	 * This is a trivial implementation of the <code>IBuildMacro</code> interface used
-	 * internally by the AVRTargetBuildMacroSupplier. Only simple text macros are needed
-	 * and supported.
+	 * This is a simple implementation of the <code>IBuildMacro</code>
+	 * interface used internally by the AVRTargetBuildMacroSupplier. Only simple
+	 * text macros are needed and supported. The macro takes its value directly
+	 * from the project properties, to always represent the current value.
 	 */
 	private class InternalBuildMacro implements IBuildMacro {
 
+		// name of the macro
 		private String fName;
-		private String fValue;
-
-		public InternalBuildMacro(String name, String value) {
+		
+		/**
+		 * Construct a new InternalBuildMacro with the given name.
+		 * 
+		 * @param name
+		 *            Name of this BuildMacro
+		 */
+		public InternalBuildMacro(String name, IConfiguration config) {
 			fName = name;
-			fValue = value;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.core.cdtvariables.ICdtVariable#getName()
+		 */
 		public String getName() {
 			return fName;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.core.cdtvariables.ICdtVariable#getValueType()
+		 */
 		public int getValueType() {
 			return ICdtVariable.VALUE_TEXT; // we only need simple text macros
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.macros.IBuildMacro#getMacroValueType()
+		 */
 		public int getMacroValueType() {
 			return ICdtVariable.VALUE_TEXT; // we only need simple text macros
 		}
 
-		public String[] getStringListValue() {
-			return null;
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.macros.IBuildMacro#getStringListValue()
+		 */
+		public String[] getStringListValue() throws BuildMacroException {
+			throw new BuildMacroException(new CdtVariableException(
+					IBuildMacroStatus.TYPE_MACRO_NOT_STRINGLIST, fName, null,
+					null));
 		}
 
-		public String getStringValue() {
-			return fValue;
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.macros.IBuildMacro#getStringValue()
+		 */
+		public String getStringValue() throws BuildMacroException {
+			// If any of the supported macro names match return the
+			// associated project property value.
+			if (TARGET_MCU_NAME.equals(fName)) {
+				// Target MCU
+				String targetmcu = fProps
+						.getString(AVRTargetProperties.KEY_MCUTYPE);
+				return targetmcu;
+			} else if (TARGET_FCPU_NAME.equals(fName)) {
+				// Target F_CPU
+				String fcpu = fProps.getString(AVRTargetProperties.KEY_FCPU);
+				return fcpu;
+			}
+
+			// Should not happen because we construct this class only with valid
+			// macro names (95 is just a unique random number)
+			throw new BuildMacroException(new Status(IStatus.ERROR,
+					"de.innot.avreclipse.core", 95, "internal error", null));
 		}
 	}
 
@@ -85,16 +139,13 @@ public class AVRTargetBuildMacroSupplier implements IConfigurationBuildMacroSupp
 	 * Get the Macro with the given name.
 	 * <p>
 	 * If the passed macro name matches any of the macros handled by this class,
-	 * it will return an <code>IBuildMacro</code> object with the current
-	 * value of this build macro.
-	 * </p>
-	 * <p>
-	 * The macro values are taken from the corresponding toolchain options.
+	 * it will return an <code>IBuildMacro</code> object which dynamically
+	 * handles the Macro value
 	 * </p>
 	 * 
 	 * @param macroName
 	 *            Name of the macro the build system wants a
-	 *            <code>IBuidMacro</code> for.
+	 *            <code>IBuildMacro</code> for.
 	 * @param configuration
 	 *            The current configuration. (e.g. "Debug" or "Release")
 	 * @param provider
@@ -105,43 +156,27 @@ public class AVRTargetBuildMacroSupplier implements IConfigurationBuildMacroSupp
 	 *         any of the implemented macro names.
 	 */
 	public IBuildMacro getMacro(String macroName, IConfiguration configuration,
-	        IBuildMacroProvider provider) {
+			IBuildMacroProvider provider) {
 
-		IToolChain tc = configuration.getToolChain();
-
-		if (tc != null) {
-			if (TARGET_MCU_NAME.equals(macroName)) {
-				IOption option = tc.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
-				try {
-					String mcuid = option.getStringValue();
-					if (mcuid != null) {
-						// get the actual mcu type (the last part of the id)
-						String targetmcu = mcuid.substring(mcuid.lastIndexOf('.') + 1);
-						return new InternalBuildMacro(TARGET_MCU_NAME, targetmcu);
-					}
-				} catch (BuildException e) {
-					// indicates an error in the plugin.xml
-					e.printStackTrace();
-				}
-			} else if (TARGET_FCPU_NAME.equals(macroName)) {
-				IOption option = tc.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
-				try {
-					String fcpu = option.getStringValue();
-					if (fcpu != null) {
-						return new InternalBuildMacro(TARGET_FCPU_NAME, fcpu);
-					}
-				} catch (BuildException e) {
-					// indicates an error in the plugin.xml
-					e.printStackTrace();
-				}
-			}
+		if (fProps == null) {
+			// set up property store
+			fProps = AVRTargetProperties.getPropertyStore(configuration);
 		}
+
+		if (TARGET_MCU_NAME.equals(macroName)) {
+			// Target MCU
+			return new InternalBuildMacro(TARGET_MCU_NAME, configuration);
+		} else if (TARGET_FCPU_NAME.equals(macroName)) {
+			// Target F_CPU
+			return new InternalBuildMacro(TARGET_FCPU_NAME, configuration);
+		}
+
+		// Unknown Macro Name
 		return null;
 	}
 
 	/**
 	 * Returns an array of Macros supported by this supplier.
-	 * 
 	 * 
 	 * @param configuration
 	 *            The current configuration.
@@ -152,7 +187,8 @@ public class AVRTargetBuildMacroSupplier implements IConfigurationBuildMacroSupp
 	 * 
 	 * @see #getMacro(String, IConfiguration, IBuildMacroProvider)
 	 */
-	public IBuildMacro[] getMacros(IConfiguration configuration, IBuildMacroProvider provider) {
+	public IBuildMacro[] getMacros(IConfiguration configuration,
+			IBuildMacroProvider provider) {
 		// Get the supported macros from the getMacro() method
 		IBuildMacro[] macros = new InternalBuildMacro[2];
 		macros[0] = getMacro(TARGET_MCU_NAME, configuration, provider);

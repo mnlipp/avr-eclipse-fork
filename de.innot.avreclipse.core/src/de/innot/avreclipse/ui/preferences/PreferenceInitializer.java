@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 import de.innot.avreclipse.util.win32.AVRTools;
 import de.innot.avreclipse.util.win32.WinAVR;
 
@@ -66,6 +67,9 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		
 		// Path to the directory containing the make executable
 		store.setDefault(PREF_AVRMAKEPATH, getAVRmakePath());
+		
+		// Store default values to default preferences
+	 	AVRTargetProperties.initializeDefaultPreferences();
 	}
 
 	/**

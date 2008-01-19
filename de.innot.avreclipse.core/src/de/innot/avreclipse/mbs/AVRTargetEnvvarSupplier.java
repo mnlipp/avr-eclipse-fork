@@ -15,17 +15,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.mbs;
 
-import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.IOption;
-import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable;
 import org.eclipse.cdt.managedbuilder.envvar.IConfigurationEnvironmentVariableSupplier;
 import org.eclipse.cdt.managedbuilder.envvar.IEnvironmentVariableProvider;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.AVRPluginActivator;
-import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 import de.innot.avreclipse.ui.preferences.PreferenceConstants;
 
 /**
@@ -59,10 +56,12 @@ import de.innot.avreclipse.ui.preferences.PreferenceConstants;
  * @author Thomas Holland
  * @version 1.1
  */
-public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariableSupplier,
-        BuildConstants {
+public class AVRTargetEnvvarSupplier implements
+		IConfigurationEnvironmentVariableSupplier, BuildConstants {
 
 	static final String BUILDARTIFACT_NAME = "BUILDARTIFACT";
+
+	private IPreferenceStore fProps = null;
 
 	/**
 	 * This is a trivial implementation of the
@@ -73,36 +72,89 @@ public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariabl
 	private class SimpleBuildEnvVar implements IBuildEnvironmentVariable {
 
 		private final String fName;
-		private final String fValue;
 		private final int fOperation;
+		private final IConfiguration fConfiguration;
 
-		public SimpleBuildEnvVar(String name, String value) {
+		public SimpleBuildEnvVar(String name, IConfiguration config) {
 			fName = name;
-			fValue = value;
+			fConfiguration = config;
 			fOperation = ENVVAR_REPLACE;
 		}
 
-		public SimpleBuildEnvVar(String name, String value, int operation) {
+		public SimpleBuildEnvVar(String name, IConfiguration config,
+				int operation) {
 			fName = name;
-			fValue = value;
+			fConfiguration = config;
 			fOperation = operation;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getDelimiter()
+		 */
 		public String getDelimiter() {
 			// return Delimiter according to the Platform
 			return System.getProperty("path.separator");
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getName()
+		 */
 		public String getName() {
 			return fName;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getOperation()
+		 */
 		public int getOperation() {
 			return fOperation;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getValue()
+		 */
 		public String getValue() {
-			return fValue;
+			if (TARGET_MCU_NAME.equals(fName)) {
+				// Target MCU
+				String targetmcu = fProps
+						.getString(AVRTargetProperties.KEY_MCUTYPE);
+				return targetmcu;
+
+			} else if (TARGET_FCPU_NAME.equals(fName)) {
+				// Target F_CPU
+				String fcpu = fProps.getString(AVRTargetProperties.KEY_FCPU);
+				return fcpu;
+
+			} else if (BUILDARTIFACT_NAME.equals(fName)) {
+				String artifact = fConfiguration.getArtifactName() + "."
+						+ fConfiguration.getArtifactExtension();
+				return artifact;
+
+			} else if ("PATH".equals(fName)) {
+				// Prepend the path to the executables to the PATH variable
+				IPreferenceStore store = AVRPluginActivator.getDefault()
+						.getPreferenceStore();
+				String gccpath = store
+						.getString(PreferenceConstants.PREF_AVRGCCPATH);
+				String makepath = store
+						.getString(PreferenceConstants.PREF_AVRMAKEPATH);
+				if (makepath != null && !("".equals(makepath))) {
+					gccpath += System.getProperty("path.separator");
+					gccpath += makepath;
+				}
+				if (gccpath != null && !("".equals(gccpath))) {
+					return gccpath;
+				}
+			}
+			return null;
 		}
 	}
 
@@ -111,10 +163,7 @@ public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariabl
 	 * <p>
 	 * If the passed variable name matches any of the variables handled by this
 	 * class, it will return an <code>IBuildEnvironmentVariable</code> object
-	 * with the current value of this envvar.
-	 * </p>
-	 * <p>
-	 * The envvar values are taken from the corresponding toolchain options.
+	 * which dynamically handles the value.
 	 * </p>
 	 * 
 	 * @param variableName
@@ -130,59 +179,33 @@ public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariabl
 	 *         <code>variableName</code> did not match any of the implemented
 	 *         variable names.
 	 */
-	public IBuildEnvironmentVariable getVariable(String variableName, IConfiguration configuration,
-	        IEnvironmentVariableProvider provider) {
+	public IBuildEnvironmentVariable getVariable(String variableName,
+			IConfiguration configuration, IEnvironmentVariableProvider provider) {
 
 		if (variableName == null)
 			return null;
 
-		IToolChain tc = configuration.getToolChain();
-
-		if (tc != null) {
-			if (TARGET_MCU_NAME.equals(variableName)) {
-				IOption option = tc.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
-				try {
-					String mcuid = option.getStringValue();
-					if (mcuid != null) {
-						// get the actual mcu type (the last part of the id)
-						String targetmcu = mcuid.substring(mcuid.lastIndexOf('.') + 1)
-						        .toLowerCase();
-						return new SimpleBuildEnvVar(TARGET_MCU_NAME, targetmcu);
-					}
-				} catch (BuildException e) {
-					// indicates an error in the plugin.xml
-					e.printStackTrace();
-				}
-			} else if (TARGET_FCPU_NAME.equals(variableName)) {
-				IOption option = tc.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
-				try {
-					String fcpu = option.getStringValue();
-					if (fcpu != null) {
-						return new SimpleBuildEnvVar(TARGET_FCPU_NAME, fcpu);
-					}
-				} catch (BuildException e) {
-					// indicates an error in the plugin.xml
-					e.printStackTrace();
-				}
-			} else if (BUILDARTIFACT_NAME.equals(variableName)) {
-				String artifact = configuration.getArtifactName() + "."
-				        + configuration.getArtifactExtension();
-				return new SimpleBuildEnvVar(BUILDARTIFACT_NAME, artifact);
-			} else if ("PATH".equals(variableName)) {
-				// Prepend the path to the executables to the PATH variable
-				IPreferenceStore store = AVRPluginActivator.getDefault().getPreferenceStore();
-				String gccpath = store.getString(PreferenceConstants.PREF_AVRGCCPATH);
-				String makepath = store.getString(PreferenceConstants.PREF_AVRMAKEPATH);
-				if (makepath != null && !("".equals(makepath))) {
-					gccpath += System.getProperty("path.separator");
-					gccpath += makepath;
-				}
-				if (gccpath != null && !("".equals(gccpath))) {
-					return new SimpleBuildEnvVar("PATH", gccpath,
-					        IBuildEnvironmentVariable.ENVVAR_PREPEND);
-				}
-			}
+		if (fProps == null) {
+			// set up property store
+			fProps = AVRTargetProperties.getPropertyStore(configuration);
 		}
+
+		if (TARGET_MCU_NAME.equals(variableName)) {
+			// Target MCU
+			return new SimpleBuildEnvVar(TARGET_MCU_NAME, configuration);
+
+		} else if (TARGET_FCPU_NAME.equals(variableName)) {
+			// Target F_CPU
+			return new SimpleBuildEnvVar(TARGET_FCPU_NAME, configuration);
+
+		} else if (BUILDARTIFACT_NAME.equals(variableName)) {
+			return new SimpleBuildEnvVar(BUILDARTIFACT_NAME, configuration);
+
+		} else if ("PATH".equals(variableName)) {
+			return new SimpleBuildEnvVar("PATH", configuration,
+					IBuildEnvironmentVariable.ENVVAR_PREPEND);
+		}
+
 		return null;
 	}
 
@@ -198,8 +221,8 @@ public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariabl
 	 * 
 	 * @see #getVariable(String, IConfiguration, IEnvironmentVariableProvider)
 	 */
-	public IBuildEnvironmentVariable[] getVariables(IConfiguration configuration,
-	        IEnvironmentVariableProvider provider) {
+	public IBuildEnvironmentVariable[] getVariables(
+			IConfiguration configuration, IEnvironmentVariableProvider provider) {
 		// Get the supported envvars from the getVariable() method
 		IBuildEnvironmentVariable[] envvars = new SimpleBuildEnvVar[4];
 		envvars[0] = getVariable(TARGET_MCU_NAME, configuration, provider);

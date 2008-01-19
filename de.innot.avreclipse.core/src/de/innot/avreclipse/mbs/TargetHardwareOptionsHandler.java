@@ -16,15 +16,9 @@
 
 package de.innot.avreclipse.mbs;
 
-import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IBuildObject;
-import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IHoldsOptions;
 import org.eclipse.cdt.managedbuilder.core.IOption;
-import org.eclipse.cdt.managedbuilder.core.IResourceInfo;
-import org.eclipse.cdt.managedbuilder.core.ITool;
-import org.eclipse.cdt.managedbuilder.core.IToolChain;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedOptionValueHandler;
 
 /**
@@ -88,76 +82,78 @@ public class TargetHardwareOptionsHandler extends ManagedOptionValueHandler
 			IHoldsOptions holder, IOption option, String extraArgument,
 			int event) {
 
-		if (event == EVENT_LOAD) {
-			// don't need to change the extension
-			return false;
-		}
-
-		String name = extraArgument;
-		String value = null;
-
-		try {
-			value = option.getStringValue();
-
-			// Special handling for the MCU Type, as value will be just the id
-			// of the selected <enumeratedOptionValue>
-			if (TARGET_MCU_NAME.equals(name)) {
-				String tmp = option.getStringValue();
-				if (tmp != null) {
-					// get the actual mcu type (the last part of the id)
-					value = tmp.substring(tmp.lastIndexOf('.') + 1)
-							.toLowerCase();
-				}
-			}
-
-		} catch (BuildException e) {
-			// This indicates an error in the plugin.xml (no / wrong value for
-			// the option)
-			e.printStackTrace();
-			return false;
-		}
-
-		IToolChain toolchain = null;
-		if (holder instanceof IToolChain) {
-			toolchain = (IToolChain) holder;
-		} else if (holder instanceof ITool) {
-			toolchain = (IToolChain) ((ITool) holder).getParent();
-		}
-
-		if(toolchain == null) return false;
+		return false;
 		
-		// change the value of all options of all tools that contain the value
-		// of valueHandlerExtraArgument in their id
-
-//		System.out.println("OptionHandler called for Event " + event
-//				+ ", tc = " + toolchain.getId() + " (" + value + ")");
-
-		ITool tctools[] = toolchain.getTools();
-
-		for (int i = 0; i < tctools.length; i++) {
-			IOption toolopts[] = tctools[i].getOptions();
-			for (int n = 0; n < toolopts.length; n++) {
-				if (toolopts[n].getId().indexOf(name.toLowerCase()) > -1) {
-//					System.out.println(" Changed " + toolopts[n].getId()
-//							+ " to " + value);
-
-					if (configuration instanceof IConfiguration){
-						ManagedBuildManager.setOption((IConfiguration)configuration, tctools[i],
-								toolopts[n], value);
-					} else if (configuration instanceof IResourceInfo) {
-						ManagedBuildManager.setOption((IResourceInfo)configuration, tctools[i],
-								toolopts[n], value);
-					} else {
-						System.out.println("    Unknown configuration: " + configuration.getClass());
-					}
-				}
-			}
-		}
-
-		// The return value is currently ignored in the calling class
-		// org.eclipse.cdt.managedbuilder.core.ManagedBuildManager#performValueHandlerEvent()
-		// So we always return true, as it is not clear what a false return
-		// value will do in future CDT versions.
-		return true;
+//		if (event == EVENT_LOAD) {
+//			// don't need to change the extension
+//			return false;
+//		}
+//
+//		String name = extraArgument;
+//		String value = null;
+//
+//		try {
+//			value = option.getStringValue();
+//
+//			// Special handling for the MCU Type, as value will be just the id
+//			// of the selected <enumeratedOptionValue>
+//			if (TARGET_MCU_NAME.equals(name)) {
+//				String tmp = option.getStringValue();
+//				if (tmp != null) {
+//					// get the actual mcu type (the last part of the id)
+//					value = tmp.substring(tmp.lastIndexOf('.') + 1)
+//							.toLowerCase();
+//				}
+//			}
+//
+//		} catch (BuildException e) {
+//			// This indicates an error in the plugin.xml (no / wrong value for
+//			// the option)
+//			e.printStackTrace();
+//			return false;
+//		}
+//
+//		IToolChain toolchain = null;
+//		if (holder instanceof IToolChain) {
+//			toolchain = (IToolChain) holder;
+//		} else if (holder instanceof ITool) {
+//			toolchain = (IToolChain) ((ITool) holder).getParent();
+//		}
+//
+//		if(toolchain == null) return false;
+//		
+//		// change the value of all options of all tools that contain the value
+//		// of valueHandlerExtraArgument in their id
+//
+////		System.out.println("OptionHandler called for Event " + event
+////				+ ", tc = " + toolchain.getId() + " (" + value + ")");
+//
+//		ITool tctools[] = toolchain.getTools();
+//
+//		for (int i = 0; i < tctools.length; i++) {
+//			IOption toolopts[] = tctools[i].getOptions();
+//			for (int n = 0; n < toolopts.length; n++) {
+//				if (toolopts[n].getId().indexOf(name.toLowerCase()) > -1) {
+////					System.out.println(" Changed " + toolopts[n].getId()
+////							+ " to " + value);
+//
+//					if (configuration instanceof IConfiguration){
+//						ManagedBuildManager.setOption((IConfiguration)configuration, tctools[i],
+//								toolopts[n], value);
+//					} else if (configuration instanceof IResourceInfo) {
+//						ManagedBuildManager.setOption((IResourceInfo)configuration, tctools[i],
+//								toolopts[n], value);
+//					} else {
+//						System.out.println("    Unknown configuration: " + configuration.getClass());
+//					}
+//				}
+//			}
+//		}
+//
+//		// The return value is currently ignored in the calling class
+//		// org.eclipse.cdt.managedbuilder.core.ManagedBuildManager#performValueHandlerEvent()
+//		// So we always return true, as it is not clear what a false return
+//		// value will do in future CDT versions.
+//		return true;
 	}
 }

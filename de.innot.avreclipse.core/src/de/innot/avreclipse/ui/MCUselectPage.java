@@ -16,10 +16,9 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui;
 
+import java.io.IOException;
+
 import org.eclipse.cdt.managedbuilder.core.BuildException;
-import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
-import org.eclipse.cdt.managedbuilder.core.IManagedProject;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
@@ -29,6 +28,7 @@ import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageManager;
 import org.eclipse.cdt.ui.wizards.CDTCommonProjectWizard;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.natures.AVRProjectNature;
+import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 
 /**
  * New Project Wizard Page to set the default target MCU and its frequency.
@@ -91,8 +92,9 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 		// Get the winAVR toolchain and take the MCU list and the default
 		// values from the toolchain options.
-		
-		// The values are stored as Page Properties to access them in the Operation for this page
+
+		// The values are stored as Page Properties to access them in the
+		// Operation for this page
 		IToolChain tc = ManagedBuildManager
 				.getExtensionToolChain(PluginIDs.PLUGIN_BASE_TOOLCHAIN);
 
@@ -231,58 +233,39 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 		// At this point the new project has been created and its
 		// configuration(s) with their toolchains have been set up.
-		// To get to the configurations does not seem to be easy. There
-		// is probably a more elegant way (maybe via the workbench?)
-		// but I have not found it. For now I use:
-		// MBSCustomPageData -> CDTCommonProjectWizard -> IProject ->
-		// ManagedBuildInfo -> IManagedProject -> IConfiguration
 
 		MBSCustomPageData pagedata = MBSCustomPageManager
 				.getPageData(this.pageID);
 		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata
 				.getWizardPage().getWizard();
-		IProject proj = wizz.getLastProject();
-		IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(proj);
-		IManagedProject mproj = bi.getManagedProject();
-		IConfiguration[] cfgs = mproj.getConfigurations();
+		IProject project = wizz.getLastProject();
 
-		for (int i = 0; i < cfgs.length; i++) {
-			IToolChain tc = cfgs[i].getToolChain();
-			try {
-				// Change Target MCU option and set given value as default
-				IOption optionTargetMCU = tc
-						.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_MCU);
-				String mcutype = (String) MBSCustomPageManager.getPageProperty(
-						PAGE_ID, PROPERTY_MCU_TYPE);
-				String mcutypeid = optionTargetMCU.getEnumeratedId(mcutype);
-				optionTargetMCU = ManagedBuildManager.setOption(cfgs[i], tc,
-						optionTargetMCU, mcutypeid);
-				optionTargetMCU.setDefaultValue(mcutypeid);
+		IPreferenceStore prefs = AVRTargetProperties.getPropertyStore(project);
 
-				IOption optionTargetFCPU = tc
-						.getOptionBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_FCPU);
-				String mcufreq = (String) MBSCustomPageManager.getPageProperty(
-						PAGE_ID, PROPERTY_MCU_FREQ);
-				optionTargetMCU = ManagedBuildManager.setOption(cfgs[i], tc,
-						optionTargetFCPU, mcufreq);
-				optionTargetFCPU.setDefaultValue(mcufreq);
-			} catch (BuildException e) {
-				// TODO: log exception
-				e.printStackTrace();
-			}
+		// Set the Project properties according to the selected values
 
+		String mcutype = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
+				PROPERTY_MCU_TYPE);
+		prefs.setValue(AVRTargetProperties.KEY_MCUTYPE, mcutype);
+
+		String mcufreq = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
+				PROPERTY_MCU_FREQ);
+		prefs.setValue(AVRTargetProperties.KEY_FCPU, mcufreq);
+		
+		try {
+			AVRTargetProperties.savePreferences(prefs);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
-		// Save the modifications
-		ManagedBuildManager.saveBuildInfo(proj, false);
 
 		// Add the AVR Nature to the project
 		try {
-			AVRProjectNature.addAVRNature(proj);
+			AVRProjectNature.addAVRNature(project);
 		} catch (CoreException ce) {
 			// TODO: log exception
 			ce.printStackTrace();
 		}
-		
+
 	}
 }
