@@ -8,6 +8,51 @@
 $Id: changelog.txt 124 2007-12-29 15:53:19Z innot $
 
 --------------------------------------------------------------------------------
+Version 2.1
+
+New:
+* Target Hardware settings are now project settings. They apply to all Configurations
+  (Feature Requests 1861874 / 1751707)
+
+* Project Update Converter. 
+  Selectable via "Convert to..." in the project context menu. Updates the project to
+  all changes for version 2.1
+
+* Added an AVR Project Nature.
+  This is applied to all projects created with the new project wizard, and old projects 
+  updated with the project converter. This restricts AVR GUI Elements to
+  AVR Projects. 
+
+Changed:
+* Additional Tools
+  - Handling of additional Tools now done via <enablement> instead of manipulating 
+    ManagedBuildSystem internals. (=> Order of Add. Tools is now fixed and cannot
+    be changed)
+
+Fixes:
+* All Tools
+  - Changed toolnames from "winAVR ..." to "AVR ..." (Bug 1861870)
+  
+* Assembler Tool
+  - Added Dependency Calculator to the input. Dependencies on .h header files are now handled.
+  - Changed Debug format option to default "stabs" (the only format avr-gas can produce)
+  
+* Compiler Tool
+  - Changed to a working Dependency Calculator. Dependencies are now correctly handled
+    during the build process.
+  - Changed Debug format to default "stabs". "stabs" and "dwarf-2" have new descriptive texts.
+    Thanks to Jörg Wünsch for explaining the debug format options
+  - "UL" appended to the F_CPU value passed to the compiler
+  - Missing Compiler Options are fixed by the project update converter (Bug 1861293)
+    
+* Linker Tool
+  - Changed default map filename to ${BuildArtifactFileBaseName}.map (Bug 1867615)
+
+* AVR Device Explorer
+  - Now displays an error message box on errors reading the <avr/io.h> file (Bug 1860840)
+
+
+--------------------------------------------------------------------------------
 Version 2.0.1.20071229 [29 December 2007]
 
 The main point of this release is to fix the avr-size bug that made it impossible 
