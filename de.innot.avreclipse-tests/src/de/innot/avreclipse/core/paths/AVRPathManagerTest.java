@@ -34,7 +34,7 @@ public class AVRPathManagerTest {
 			assertTrue(current.getDescription().length() > 1);
 			assertTrue(current.getTest().length() > 1);
 		}
-		
+
 	}
 
 	/**
@@ -50,8 +50,10 @@ public class AVRPathManagerTest {
 			IPathProvider provider = new AVRPathProvider(current);
 			assertNotNull(provider.getPath());
 			File file = provider.getPath().toFile();
-			assertTrue(file.canRead());
-			assertTrue(file.isDirectory());
+			if (!current.isOptional()) {
+				assertTrue(current.getName(), file.canRead());
+				assertTrue(current.getName(), file.isDirectory());
+			}
 		}
 	}
 
@@ -131,10 +133,10 @@ public class AVRPathManagerTest {
 	public void testClone() {
 		IPathManager manager = new AVRPathManager(AVRPath.AVRINCLUDE);
 		IPathManager clone = manager.clone();
-		
+
 		assertTrue(manager.getPath().equals(clone.getPath()));
 		assertTrue(manager.getSourceType().equals(clone.getSourceType()));
-		
+
 		clone.setPath("foo/bar", SourceType.Custom);
 		assertFalse(manager.getPath().equals(clone.getPath()));
 		assertFalse(manager.getSourceType().equals(clone.getSourceType()));

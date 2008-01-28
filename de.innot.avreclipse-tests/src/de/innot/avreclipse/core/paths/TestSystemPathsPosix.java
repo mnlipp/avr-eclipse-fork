@@ -14,12 +14,18 @@ public class TestSystemPathsPosix {
 
 	@Test
 	public void testGetDefault() {
-		SystemPathsPosix spp = SystemPathsPosix.getDefault();
-		assertNotNull(spp);
+
+		if (isWindows()) return;
+		
+		IPath path = SystemPathsPosix.getDefault().getSystemPath(AVRPath.AVRGCC);
+		assertFalse(path.isEmpty());
 	}
 
 	@Test
 	public void testGetSystemPath() {
+		
+		if (isWindows()) return;
+		
 		SystemPathsPosix spp = SystemPathsPosix.getDefault();
 		AVRPath[] allpaths = AVRPath.values();
 		for(AVRPath avrpath : allpaths) {
@@ -31,26 +37,6 @@ public class TestSystemPathsPosix {
 		}
 	}
 
-	@Test
-	public void testExecuteCommand() {
-		// This test will only work on Windows
-		if (isWindows()) {
-			IPath winavrutilsbin = SystemPathsWin32.MAKE.getPath();
-			IPath winavr = winavrutilsbin.removeLastSegments(2);
-			String command = winavrutilsbin.append("find").toOSString();
-			
-			// Successful search
-			IPath test = SystemPathsPosix.executeCommand(command
-			        + " " + winavr.toOSString() + " -path \"*/make.exe\"");
-			assertFalse(test.isEmpty());
-			assertTrue(test.toFile().getName().equals("make.exe"));
-			
-			// Failed search
-			test = FindCommandRunner.executeCommand(command
-			        + " " + winavr.toOSString() + " -path \"*/foobar\"");
-			assertTrue(test.isEmpty());
-		}
-	}
 
 	/**
 	 * @return true if running on windows

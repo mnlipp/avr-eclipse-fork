@@ -30,7 +30,7 @@ import de.innot.avreclipse.core.paths.win32.SystemPathsWin32;
  * @author Thomas Holland
  * @since 2.1
  */
-final class SystemPathHelper {
+public final class SystemPathHelper {
 
 	/**
 	 * Get the path to a resource, depending on the operating system.

@@ -53,7 +53,7 @@ public class TestGCC {
 			String windowsname = gccfile.getPath() +".exe";
 			gccfile = new File(windowsname);
 		}
-		assertTrue("Toolpath does not point to an executable file", gccfile.canExecute());
+		assertTrue("Toolpath does not point to an executable file", gccfile.canRead());
 	}
 
 	/**

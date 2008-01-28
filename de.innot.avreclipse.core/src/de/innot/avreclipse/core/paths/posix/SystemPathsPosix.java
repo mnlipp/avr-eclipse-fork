@@ -25,13 +25,7 @@ import java.util.Map;
 
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.core.runtime.jobs.ILock;
-import org.eclipse.core.runtime.jobs.Job;
 
 import de.innot.avreclipse.core.paths.AVRPath;
 
@@ -48,15 +42,17 @@ import de.innot.avreclipse.core.paths.AVRPath;
  * <li><code>/usr/local/</code></li>
  * <li><code>/usr/</code></li>
  * <li><code>/opt/</code></li>
+ * <li><code>/etc/</code></li>
  * <li><code>~/</code></li>
  * <li><code>/home/</code></li>
  * </ul>
  * </li>
  * </ol>
  * <p>
- * As the values are fairly static they are cached to avoid expensive searches. The cache is initialized on the first call to {@link #getDefault()}.
- * The cache can be cleared with the {@link #initCache()} method.
+ * As the values are fairly static they are cached to avoid expensive searches.
+ * The cache can be cleared with the {@link #clearCache()} method.
  * </p>
+ * 
  * @author Thomas Holland
  * @since 2.1
  */
@@ -64,133 +60,84 @@ public class SystemPathsPosix {
 
 	private static SystemPathsPosix fInstance = null;
 
-	private static Map<AVRPath, IPath> fPathCache = null;
-
-	private final static ILock fCacheInitLock = Job.getJobManager().newLock();;
+	private Map<AVRPath, IPath> fPathCache = null;
 
 	private final static IPath fEmptyPath = new Path("");
 
-	private final static String[] fSearchPaths = { "/usr/local/", "/usr/", "/opt/", "~/", "/home/" };
+	private final static String[] fSearchPaths = { "/usr/local/", "/usr/",
+			"/opt/", "/etc/", "~/", "/home/" };
 
 	public static SystemPathsPosix getDefault() {
 		if (fInstance == null) {
 			fInstance = new SystemPathsPosix();
-			fInstance.initCache();
 		}
 		return fInstance;
 	}
 
 	private SystemPathsPosix() {
+		// prevent instantiation
 	}
 
+	public void clearCache() {
+		
+		fPathCache.clear();
+	}
+	
+	
 	public IPath getSystemPath(AVRPath pathcontext) {
 
-		// Test if the cacheing is still in progress and
-		// block until finished
+		// Test if the caching is still in progress
 		if (fPathCache == null) {
-			// caching still in progress
-			// block until it is finished, but max 10 seconds to
-			// avoid deadlocks
-			boolean lock;
-            try {
-	            lock = fCacheInitLock.acquire(10 * 1000);
-            } catch (InterruptedException e) {
-            	return fEmptyPath;
-            }
-			if (lock) {
-				fCacheInitLock.release();
-			} else {
-				// timeout: return an empty path
-				return fEmptyPath;
-			}
-
-		}
-		// Test if file has already been cached
-		IPath cachedpath = fPathCache.get(pathcontext);
-		return cachedpath;
-	}
-
-	public void initCache() {
-		// acquire a lock. The lock will be released when
-		// the cache init job has finished.
-		fCacheInitLock.acquire();
-
-		Job job = new InitCacheJob("Find System Paths");
-		job.schedule();
-	}
-
-	private class InitCacheJob extends Job {
-
-		public InitCacheJob(String name) {
-			super(name);
+			fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
 		}
 
-		@Override
-		protected IStatus run(IProgressMonitor monitor) {
-
-			AVRPath[] allpaths = AVRPath.values();
-
-			Map<AVRPath, IPath> cachemap = new HashMap<AVRPath, IPath>(allpaths.length);
-
-			SubMonitor progress = SubMonitor.convert(monitor, allpaths.length * 2);
-
-			for (AVRPath avrpath : allpaths) {
-				IPath path = fEmptyPath;
-				if(!progress.isCanceled()) {
-					String test = avrpath.getTest();
-					path = which(test, progress.newChild(1));
-					if (!path.isEmpty()) {
-						// found a path. Keep it and skip the find test
-						progress.worked(1);
-					} else {
-						path = find("*/" + test, progress.newChild(1));
-						if (!path.isEmpty()) {
-							// remove the number of segments of the test from the
-							// path. This makes a test like "avr/io.h" work
-							path = path.removeLastSegments(new Path(test).segmentCount());
-						}
-					}
-				}
-				// store the path (even when empty) in the cache
-				cachemap.put(avrpath, path);
-			}
-
-			fPathCache = cachemap;
-			fCacheInitLock.release();
-
-			if (progress.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-			return Status.OK_STATUS;
+		// Test if it is already in the cache
+		IPath path = fPathCache.get(pathcontext);
+		if (path != null) {
+			return path;
 		}
-	}
 
-	private IPath which(String file, SubMonitor progress) {
-
-		progress.beginTask("", 1);
-		IPath path = executeCommand("which " + file);
-		progress.worked(1);
+		// not in cache, then try to find the path
+		path = internalGetPath(pathcontext);
+		fPathCache.put(pathcontext, path);
 		return path;
 	}
 
-	private IPath find(String file, SubMonitor progress) {
+	private IPath internalGetPath(AVRPath pathcontext) {
 
-		progress.beginTask("", fSearchPaths.length);
+		IPath path = fEmptyPath;
+		String test = pathcontext.getTest();
+		path = which(test);
+		if (path.isEmpty()) {
+			path = find("*/" + test);
+		}
+		if (!path.isEmpty()) {
+			// remove the number of segments of the test from
+			// the
+			// path. This makes a test like "avr/io.h" work
+			path = path.removeLastSegments(new Path(test).segmentCount());
+		}
+		return path;
+	}
+
+	private IPath which(String file) {
+
+		IPath path = executeCommand("which " + file);
+		return path;
+	}
+
+	private IPath find(String file) {
 
 		for (String findpath : fSearchPaths) {
-			if (progress.isCanceled()) {
-				return fEmptyPath;
-			}
-			IPath testpath = executeCommand("find.exe " + findpath + " -path \"" + file + "\"");
+			IPath testpath = executeCommand("find " + findpath + " -path "
+					+ file);
 			if (!testpath.isEmpty()) {
-				progress.setWorkRemaining(0);
 				return testpath;
 			}
-			progress.worked(1);
 		}
 
 		// nothing found: return an empty path
-		return new Path("");
+		return fEmptyPath;
 
 	}
 

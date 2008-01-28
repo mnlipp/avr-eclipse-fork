@@ -54,7 +54,7 @@ public class TestSize {
 			gccfile = new File(windowsname);
 		}
 
-		assertTrue("Toolpath does not point to an executable file", gccfile.canExecute());
+		assertTrue("Toolpath does not point to an executable file", gccfile.canRead());
 	}
 
 	/**
