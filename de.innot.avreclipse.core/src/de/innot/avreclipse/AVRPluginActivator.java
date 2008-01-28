@@ -14,9 +14,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import de.innot.avreclipse.core.paths.AVRPath;
-import de.innot.avreclipse.core.paths.SystemPathHelper;
-
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -43,13 +40,6 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-
-		// This will initialize with System paths on posix systems (and is
-		// harmless on Windows)
-		// We have to do this, as otherwise the System paths might be
-		// initialized from the UI threat, which causes problems with
-		// synchronisation
-		SystemPathHelper.getPath(AVRPath.AVRGCC);
 	}
 
 	/*
