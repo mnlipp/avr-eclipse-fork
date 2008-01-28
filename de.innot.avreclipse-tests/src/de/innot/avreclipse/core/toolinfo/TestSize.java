@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Platform;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,6 +48,12 @@ public class TestSize {
 		IPath gccpath = tool.getToolPath();
 		assertNotNull("No ToolPath returned", gccpath);
 		File gccfile = gccpath.toFile();
+		if (isWindows()) {
+			// append .exe
+			String windowsname = gccfile.getPath() +".exe";
+			gccfile = new File(windowsname);
+		}
+
 		assertTrue("Toolpath does not point to an executable file", gccfile.canExecute());
 	}
 
@@ -78,9 +85,13 @@ public class TestSize {
 		}
 		assertFalse(options.containsValue(""));
 		assertFalse(options.containsValue(null));
-		for(String option : options.keySet()) {
-			System.out.println(option + " = " + options.get(option));
-		}
+	}
+
+	/**
+	 * @return true if running on windows
+	 */
+	private static boolean isWindows() {
+		return (Platform.getOS().equals(Platform.OS_WIN32));
 	}
 
 

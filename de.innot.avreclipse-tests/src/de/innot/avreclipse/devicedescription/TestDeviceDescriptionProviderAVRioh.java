@@ -23,7 +23,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider#getDefault()}.
+	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getDefault()}.
 	 */
 	public void testGetDefault() {
 		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
@@ -32,7 +32,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider#getDeviceList()}.
+	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getDeviceList()}.
 	 */
 	public void testGetDevices() {
 		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
@@ -43,7 +43,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.devicedescription.avrio.DeviceDescriptionProvider#getDevice(java.lang.String)}.
+	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getDevice(java.lang.String)}.
 	 */
 	public void testGetDevice() {
 		IDeviceDescription dev = null;
