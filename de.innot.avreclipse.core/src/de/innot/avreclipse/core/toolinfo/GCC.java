@@ -1,6 +1,6 @@
 /*******************************************************************************
  * 
- * Copyright (c) 2007 Thomas Holland (thomas@innot.de) and others
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
  * 
  * This program and the accompanying materials are made
  * available under the terms of the GNU Public License v3
@@ -28,6 +28,9 @@ import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
 
 import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.paths.AVRPath;
+import de.innot.avreclipse.core.paths.AVRPathProvider;
+import de.innot.avreclipse.core.paths.IPathProvider;
 
 /**
  * This class provides some information about the used gcc compiler in the
@@ -35,20 +38,20 @@ import de.innot.avreclipse.PluginIDs;
  * 
  * It can return a list of all supported target mcus.
  * 
- * @author Thomas
- * @version 1.0
+ * @author Thomas Holland
  * @since 2.1
- * 
  */
 public class GCC extends BaseToolInfo {
 
 	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
 
-	protected String[] toolinfotypes = {TOOLINFOTYPE_MCUS};
+	protected String[] toolinfotypes = { TOOLINFOTYPE_MCUS };
 
 	private static GCC instance = null;
 
 	private Map<String, String> fMCUmap = null;
+
+	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRGCC);
 
 	/**
 	 * Get an instance of this Tool.
@@ -72,8 +75,8 @@ public class GCC extends BaseToolInfo {
 	 */
 	@Override
 	public IPath getToolPath() {
-		// TODO Auto-generated method stub
-		return null;
+		IPath path = fPathProvider.getPath();
+		return path.append(getCommandName());
 	}
 
 	@Override
@@ -86,6 +89,11 @@ public class GCC extends BaseToolInfo {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.BaseToolInfo#getToolInfoTypes()
+	 */
 	@Override
 	public List<String> getToolInfoTypes() {
 		List<String> types = new ArrayList<String>(1);
@@ -93,19 +101,25 @@ public class GCC extends BaseToolInfo {
 		return types;
 	}
 
+	/**
+	 * @return Map &lt;internal name, UI name&gt; of all supported MCUs
+	 */
 	private Map<String, String> getMCUList() {
 
-		if(fMCUmap != null) {
+		if (fMCUmap != null) {
 			return fMCUmap;
 		}
-		
+
 		fMCUmap = new HashMap<String, String>();
 
 		Process cmdproc = null;
 		InputStream is = null;
 
 		try {
-			cmdproc = ProcessFactory.getFactory().exec(getCommandName() + " --target-help");
+			// Execute avr-gcc with the "--target-help" option and parse the
+			// output
+			cmdproc = ProcessFactory.getFactory().exec(
+			        getToolPath().toOSString() + " --target-help");
 			is = cmdproc.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
@@ -157,8 +171,8 @@ public class GCC extends BaseToolInfo {
 	 * Change the lower case mcuid into the official Name.
 	 * 
 	 * @param mcuid
-	 * @return Name of the MCU or null if it should not be included (e.g.
-	 *         generic family names like 'avr2')
+	 * @return String with UI name of the MCU or null if it should not be
+	 *         included (e.g. generic family names like 'avr2')
 	 */
 	private static String convertmcuname(String mcuid) {
 		// remove invalid entries

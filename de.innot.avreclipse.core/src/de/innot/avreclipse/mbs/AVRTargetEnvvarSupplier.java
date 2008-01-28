@@ -21,9 +21,10 @@ import org.eclipse.cdt.managedbuilder.envvar.IConfigurationEnvironmentVariableSu
 import org.eclipse.cdt.managedbuilder.envvar.IEnvironmentVariableProvider;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.core.paths.AVRPath;
+import de.innot.avreclipse.core.paths.AVRPathProvider;
+import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRTargetProperties;
-import de.innot.avreclipse.ui.preferences.PreferenceConstants;
 
 /**
  * Envvar Supplier.
@@ -140,12 +141,11 @@ public class AVRTargetEnvvarSupplier implements
 
 			} else if ("PATH".equals(fName)) {
 				// Prepend the path to the executables to the PATH variable
-				IPreferenceStore store = AVRPluginActivator.getDefault()
-						.getPreferenceStore();
-				String gccpath = store
-						.getString(PreferenceConstants.PREF_AVRGCCPATH);
-				String makepath = store
-						.getString(PreferenceConstants.PREF_AVRMAKEPATH);
+				IPathProvider gccpathprovider = new AVRPathProvider(AVRPath.AVRGCC);
+				String gccpath = gccpathprovider.getPath().toOSString();
+				IPathProvider makepathprovider = new AVRPathProvider(AVRPath.MAKE); 
+				String makepath = makepathprovider.getPath().toOSString();
+				
 				if (makepath != null && !("".equals(makepath))) {
 					gccpath += System.getProperty("path.separator");
 					gccpath += makepath;

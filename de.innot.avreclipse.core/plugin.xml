@@ -33,19 +33,66 @@
 	       	file-extensions="s,S,asm"/>
 	</extension> 
 
-
-	<extension point="org.eclipse.ui.preferencePages">
-		<page name="AVR"
-			class="de.innot.avreclipse.ui.preferences.PreferencePage"
-			id="de.innot.avreclipse.preferences.PreferencePage">
-		</page>
-	</extension>
+<!-- 
+####################################################################################### 
+####################################################################################### 
+##                                                                                   ##
+##   User Interface                                                                  ## 
+##                                                                                   ##
+####################################################################################### 
+####################################################################################### 
+-->
+<!--
+####################################################################################### 
+#    Preference Initializer                                                           # 
+####################################################################################### 
+-->
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer
 			class="de.innot.avreclipse.ui.preferences.PreferenceInitializer">
 		</initializer>
 	</extension>
 
+<!--
+####################################################################################### 
+#    Preference Pages                                                                 # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.preferencePages">
+		<page name="AVR"
+			class="de.innot.avreclipse.ui.preferences.PathsPreferencePage"
+			id="de.innot.avreclipse.preferences.PreferencePage">
+		</page>
+	</extension>
+
+<!--
+####################################################################################### 
+#    Property Pages                                                                   # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			class="de.innot.avreclipse.ui.propertypages.AVRHardwarePropertyPage"
+			id="de.innot.avreclipse.propertypage.avrhardware"
+			name="AVR Target Hardware" >
+			<filter
+				name="projectNature"
+				value="de.innot.avreclipse.core.avrnature">
+			</filter>            
+			<enabledWhen>
+				<or>
+					<instanceof value="org.eclipse.core.resources.IProject"/>
+					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+				</or>          
+			</enabledWhen>
+		</page>    
+	</extension>
+
+<!--
+####################################################################################### 
+#    Wizard Pages                                                                     # 
+####################################################################################### 
+-->
 	<extension id="de.innot.avreclipse.wizardpage" name="AVR Wizard Pages"
 		point="org.eclipse.cdt.managedbuilder.ui.newWizardPages">
 		<wizardPage
@@ -58,6 +105,11 @@
 		</wizardPage>
 	</extension>
 
+<!--
+####################################################################################### 
+#    Views                                                                            # 
+####################################################################################### 
+-->
 	<extension point="org.eclipse.ui.views">
 		<category id="de.innot.avreclipse" name="AVR" />
 		<view category="de.innot.avreclipse"
@@ -75,24 +127,6 @@
 				relative="org.eclipse.ui.views.TaskList" 
 				relationship="stack" />
 		</perspectiveExtension>
-	</extension>
-
-	<extension point="org.eclipse.ui.propertyPages">
-		<page
-			class="de.innot.avreclipse.ui.propertypages.AVRHardwarePropertyPage"
-			id="de.innot.avreclipse.propertypage.avrhardware"
-			name="AVR Target Hardware" >
-			<filter
-				name="projectNature"
-				value="de.innot.avreclipse.core.avrnature">
-			</filter>            
-			<enabledWhen>
-				<or>
-					<instanceof value="org.eclipse.core.resources.IProject"/>
-					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
-				</or>          
-			</enabledWhen>
-		</page>    
 	</extension>
 
 <!-- 
@@ -116,6 +150,16 @@
       </scannerInfoProvider>
    </extension>
  -->
+
+<!-- 
+####################################################################################### 
+####################################################################################### 
+##                                                                                   ##
+##   BuildDef                                                                        ##
+##                                                                                   ## 
+####################################################################################### 
+####################################################################################### 
+-->
  
 	<extension id="de.innot.avreclipse.builddef"
         point="org.eclipse.cdt.managedbuilder.core.buildDefinitions"

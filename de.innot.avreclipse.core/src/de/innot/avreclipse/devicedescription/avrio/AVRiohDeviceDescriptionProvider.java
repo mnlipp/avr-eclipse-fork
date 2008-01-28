@@ -35,13 +35,15 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.core.paths.AVRPath;
+import de.innot.avreclipse.core.paths.AVRPathProvider;
+import de.innot.avreclipse.core.paths.IPathProvider;
+import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 import de.innot.avreclipse.devicedescription.IEntry;
 import de.innot.avreclipse.devicedescription.IProviderChangeListener;
-import de.innot.avreclipse.ui.preferences.PreferenceConstants;
 
 /**
  * Provides DeviceDescription Objects based on parsing the <avr/io.h> file.
@@ -80,6 +82,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	private List<IProviderChangeListener> fChangeListeners = new ArrayList<IProviderChangeListener>(
 	        0);
 
+	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRINCLUDE);
+	
 	/**
 	 * Get an instance of this DeviceModelProvider.
 	 */
@@ -97,8 +101,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	 * about any changes to the <avr/io.h> path preference value.
 	 */
 	private AVRiohDeviceDescriptionProvider() {
-		// Add ourself as a listener to Preference change events
-		IPreferenceStore store = AVRPluginActivator.getDefault().getPreferenceStore();
+		// Add ourself as a listener to Path Preference change events
+		IPreferenceStore store = AVRPathsPreferences.getPreferenceStore();
 		store.addPropertyChangeListener(this);
 	}
 
@@ -400,9 +404,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	 * @return String containing the path
 	 */
 	protected String getAVRiohFile() {
-		IPreferenceStore store = AVRPluginActivator.getDefault().getPreferenceStore();
-		String avr_io_h = store.getString(PreferenceConstants.PREF_DEVICEVIEW_AVR_IO_H);
-		return avr_io_h;
+		IPath avriohpath = fPathProvider.getPath().append("avr").append("io.h");
+		return avriohpath.toOSString();
 	}
 
 	/**
@@ -413,22 +416,14 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	 */
 	private String getAVRIncludePath() {
 
-		// get the path to the io.h file and remove the last two segments (
-		// "io.h" and "avr")
-		// to get the path of the include directory.
-		String avr_io_h = getAVRiohFile();
-		if ((avr_io_h != null) && (avr_io_h.length() > 0)) {
-			IPath avr_io_h_path = new Path(avr_io_h);
-			avr_io_h_path = avr_io_h_path.removeLastSegments(2);
-			return avr_io_h_path.toOSString();
-		}
-		return null;
+		IPath includepath = fPathProvider.getPath();
+		return includepath.toOSString();
 
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
 		// check if the path to the <avr/io.h> file has changed
-		if (PreferenceConstants.PREF_DEVICEVIEW_AVR_IO_H.equals(event.getProperty())) {
+		if (event.getProperty().equals(AVRPath.AVRINCLUDE.name())) {
 			// Yes: reset the devicelist and fire an event to all of our
 			// own listeners
 			devices = null;

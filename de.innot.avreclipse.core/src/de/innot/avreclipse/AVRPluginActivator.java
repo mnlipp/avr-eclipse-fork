@@ -20,11 +20,11 @@ import org.osgi.framework.BundleContext;
 public class AVRPluginActivator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "de.innot.avreclipse";
+	public static final String PLUGIN_ID = "de.innot.avreclipse.core";
 
 	// The shared instance
 	private static AVRPluginActivator plugin;
-	
+
 	/**
 	 * The constructor
 	 */
@@ -33,6 +33,7 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
 	@Override
@@ -43,6 +44,7 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	@Override
@@ -53,7 +55,7 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 
 	/**
 	 * Returns the shared instance
-	 *
+	 * 
 	 * @return the shared instance
 	 */
 	public static AVRPluginActivator getDefault() {
@@ -61,10 +63,11 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Returns an image descriptor for the image file at the given
-	 * plug-in relative path
-	 *
-	 * @param path the path
+	 * Returns an image descriptor for the image file at the given plug-in
+	 * relative path
+	 * 
+	 * @param path
+	 *            the path
 	 * @return the image descriptor
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
