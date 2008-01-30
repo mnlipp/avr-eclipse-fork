@@ -21,12 +21,21 @@
 -->
 	<extension
 		point="org.eclipse.core.runtime.contentTypes">
-		<content-type id="de.innot.avreclipse.contenttype.hexdump"
+		<content-type id="de.innot.avreclipse.contenttype.hexdump.flash"
 			base-type="org.eclipse.core.runtime.text"
 			file-extensions="hex"
 			name="HEX Dump for Flash ROM">
 		</content-type>
 	</extension>
+	<extension
+		point="org.eclipse.core.runtime.contentTypes">
+		<content-type id="de.innot.avreclipse.contenttype.hexdump.eeprom"
+			base-type="org.eclipse.core.runtime.text"
+			file-extensions="eep"
+			name="HEX Dump for EEPROM">
+		</content-type>
+	</extension>
+	<!--  this does not work because Eclipse is non-case-sensitive, e.g. .s == .S -->
 	<extension point="org.eclipse.core.runtime.contentTypes"> 
 		<file-association 
 	    	content-type="org.eclipse.cdt.core.asmSource"
@@ -316,14 +325,15 @@
 
 <!-- 
 ####################################################################################### 
-#    winAVR Compiler                                                                  # 
+#    AVR-GCC Compiler                                                                  # 
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.compiler.winavr" 
 			name="AVR Compiler" 
 			command="avr-gcc"
 			errorParsers="org.eclipse.cdt.core.GCCErrorParser"
-			outputFlag="-c -o">
+			outputFlag="-c -o"
+			natureFilter="cnature" >
 			
 			<supportedProperties>
 				<property id="org.eclipse.cdt.build.core.buildType">
@@ -355,7 +365,7 @@
 				category="de.innot.avreclipse.compiler.category.syms"
 				valueType="boolean"
 				defaultValue="false" 
-				tip="Select if F_CPU is not needed or defined in the source" />
+				tip="Select if F_CPU is already defined in the source" />
 			<option id="de.innot.avreclipse.compiler.option.def"
 				name="Define Syms (-D)" 
 				category="de.innot.avreclipse.compiler.category.syms"
@@ -364,7 +374,7 @@
 			<option id="de.innot.avreclipse.compiler.option.undef"
 				name="Undefine Syms (-U)"
 				category="de.innot.avreclipse.compiler.category.syms"
-				valueType="stringList"
+				valueType="undefDefinedSymbols"
 				command="-U" />
 
 			<optionCategory id="de.innot.avreclipse.compiler.category.warnings"
@@ -438,15 +448,11 @@
 			    	  isDefault="true"
 			    	  command="-gstabs"
 			          id="de.innot.avreclipse.compiler.option.debug.level.stabs"
-			          name="stabs (for avr-gdb based debuggers)" />
+			          name="stabs (avr-gdb / Insight)" />
 			    <enumeratedOptionValue
 			          command="-gdwarf-2"
 			          id="de.innot.avreclipse.compiler.option.debug.level.dwarf-2"
-			          name="dwarf-2 (for AVR Studio Debugger)" />
-			    <enumeratedOptionValue
-			          command="-ggdb"
-			          id="de.innot.avreclipse.compiler.option.debug.level.gdb"
-			          name="gdb (for most gdb based debuggers)" />
+			          name="dwarf-2 (AVR Studio 4.11+ Debugger)" />
 			    <enumeratedOptionValue
 			    	  command="-gstabs+"
 			          id="de.innot.avreclipse.compiler.option.debug.level.stabsplus"
@@ -507,19 +513,29 @@
 						value="org.eclipse.cdt.build.core.buildType.debug" />
 				</enablement>
 			</option>
+			<option id="de.innot.avreclipse.compiler.option.optimize.packstruct"
+				name="Pack structs (-fpack-struct)"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				command="-fpack-struct"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.compiler.option.optimize.shortenums"
+				name="Short enums (-fshort-enums)"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				command="-fshort-enums"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.compiler.option.optimize.other"
+				name="Other Optimization Flags"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				valueType="string" />
 
 			
-			<optionCategory id="de.innot.avreclipse.compiler.category.misc"
+			<optionCategory id="de.innot.avreclipse.compiler.category.language"
 				name="Miscellaneous" />
-			<option id="de.innot.avreclipse.compiler.option.verbose"
-				name="Verbose (-v)" 
-				category="de.innot.avreclipse.compiler.category.misc"
-				valueType="boolean" 
-				defaultValue="false"
-				command="-v" />
 			<option id="de.innot.avreclipse.compiler.option.std"
 				name="Language Standard"
-				category="de.innot.avreclipse.compiler.category.misc"
+				category="de.innot.avreclipse.compiler.category.language"
 				valueType="enumerated" >
 				<enumeratedOptionValue command=""
 					id="de.innot.avreclipse.compiler.option.std.default"
@@ -535,6 +551,27 @@
 					id="de.innot.avreclipse.compiler.option.std.gnu99"
 					name="ISO C99 + GNU Extensions (-std=gnu99)" />
 			</option>
+			<option id="de.innot.avreclipse.compiler.option.language.uchar"
+				name="char is unsigned (-funsigned-char)"
+				category="de.innot.avreclipse.compiler.category.language"
+				command="-funsigned-char"
+				valueType="boolean"
+				defaultValue="true"	/>
+			<option id="de.innot.avreclipse.compiler.option.language.ubitfields"
+				name="bitfields are unsigned (-funsigned-bitfields)"
+				category="de.innot.avreclipse.compiler.category.language"
+				command="-funsigned-bitfields"
+				valueType="boolean"
+				defaultValue="true"	/>
+
+			<optionCategory id="de.innot.avreclipse.compiler.category.misc"
+				name="Miscellaneous" />
+			<option id="de.innot.avreclipse.compiler.option.verbose"
+				name="Verbose (-v)" 
+				category="de.innot.avreclipse.compiler.category.misc"
+				valueType="boolean" 
+				defaultValue="false"
+				command="-v" />
 			<option id="de.innot.avreclipse.compiler.option.otherflags"
 				name="Other flags"
 				category="de.innot.avreclipse.compiler.category.misc" 
@@ -581,13 +618,328 @@
 
 <!-- 
 ####################################################################################### 
-#    winAVR Linker                                                                    # 
+#    AVR-G++ C++ Compiler                                                                    # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.cppcompiler"
+			name="AVR C++ Compiler"
+		  	command="avr-g++"
+		  	errorParsers="org.eclipse.cdt.core.GCCErrorParser"
+		  	outputFlag="-c -o"
+		  	natureFilter="ccnature" >
+		  
+	        <supportedProperties>
+	            <property id="org.eclipse.cdt.build.core.buildType">
+		            <value id="org.eclipse.cdt.build.core.buildType.debug"/>
+	    	        <value id="org.eclipse.cdt.build.core.buildType.release"/>
+	            </property>
+	        </supportedProperties>
+	         
+	        <envVarBuildPath 
+	         	pathType="buildpathInclude"
+	         	variableList="CPATH,CPLUS_INCLUDE_PATH" />
+	
+			<optionCategory	id="de.innot.avreclipse.cppcompiler.category.directories" 
+				name="Directories" />
+			<option id="de.innot.avreclipse.cppcompiler.option.incpath"
+				name="Include Paths (-I)" 
+				category="de.innot.avreclipse.cppcompiler.category.directories"
+				valueType="includePath"
+				browseType="directory"
+				command="-I" />
+	
+			<optionCategory id="de.innot.avreclipse.cppcompiler.category.syms"
+				  name="Symbols">
+			</optionCategory>
+			<option id="de.innot.avreclipse.cppcompiler.option.omitfcpu"
+				name="Omit F_CPU" 
+				category="de.innot.avreclipse.cppcompiler.category.syms"
+				valueType="boolean"
+				defaultValue="false" 
+				tip="Select if F_CPU is already defined in the source" />
+			<option id="de.innot.avreclipse.cppcompiler.option.def"
+				name="Define Syms (-D)"
+				category="de.innot.avreclipse.cppcompiler.category.syms"
+				command="-D"
+				valueType="definedSymbols">
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.undef"
+				name="Undefine Syms (-U)"
+				category="de.innot.avreclipse.cppcompiler.category.syms"
+				command="-U"
+				valueType="undefDefinedSymbols">
+			</option>
+	
+			<optionCategory id="de.innot.avreclipse.cppcompiler.category.warnings"
+				name="Warnings" />
+			<option id="de.innot.avreclipse.cppcompiler.option.nowarn"
+				name="No Warnings (-w)"
+				category="de.innot.avreclipse.cppcompiler.category.warnings"
+				valueType="boolean"
+				defaultValue="false"
+				command="-w" />
+			<option id="de.innot.avreclipse.cppcompiler.option.allwarn"
+				name="All Warnings (-Wall)"
+				category="de.innot.avreclipse.cppcompiler.category.warnings"
+				valueType="boolean"
+				defaultValue="true"
+				command="-Wall" />
+			<option id="de.innot.avreclipse.cppcompiler.option.warnerr" 
+				name="Warnings as Errors (-Werror)"
+				category="de.innot.avreclipse.cppcompiler.category.warnings"
+				valueType="boolean"
+				defaultValue="false"
+				command="-Werror" />
+		
+			<optionCategory id="de.innot.avreclipse.cppcompiler.category.debug" 
+				name="Debugging" />
+			<option id="de.innot.avreclipse.cppcompiler.option.debug.level"
+				name="Generate Debugging Info" 
+				category="de.innot.avreclipse.cppcompiler.category.debug"
+				valueType="enumerated" >
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value"
+					value="de.innot.avreclipse.cppcompiler.option.debug.level.none"
+					extensionAdjustment="false" >
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.release" />
+				</enablement>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value"
+					value="de.innot.avreclipse.cppcompiler.option.debug.level.g2"
+					extensionAdjustment="false" >
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.debug" />
+				</enablement>
+			    <enumeratedOptionValue
+			    	  command=""
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.none"
+			          name="No debugging info" />
+			    <enumeratedOptionValue
+			          command="-g1"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.g1"
+			          name="Minimal debugging info (-g1)" />
+			    <enumeratedOptionValue
+			          command="-g2"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.g2"
+			          isDefault="true"
+			          name="Standard debugging info (-g2)" />
+			    <enumeratedOptionValue
+			          command="-g3"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.g3"
+			          name="Extra debugging info (-g3)" />
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.debug.type"
+				name="Debug Info Format" 
+				category="de.innot.avreclipse.cppcompiler.category.debug"
+				valueType="enumerated" >
+			    <enumeratedOptionValue
+			    	  isDefault="true"
+			    	  command="-gstabs"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.stabs"
+			          name="stabs (avr-gdb / Insight)" />
+			    <enumeratedOptionValue
+			          command="-gdwarf-2"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.dwarf-2"
+			          name="dwarf-2 (AVR Studio 4.11+ Debugger)" />
+			    <enumeratedOptionValue
+			    	  command="-gstabs+"
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.stabsplus"
+			          name="stabs+ (stabs + gdb extensions)" />
+			    <enumeratedOptionValue
+			          command=""
+			          id="de.innot.avreclipse.cppcompiler.option.debug.level.default"
+			          name="Operating System Default" />
+				<enablement 
+					type="UI_ENABLEMENT|CMD_USAGE" >
+					<not>
+						<checkOption
+							optionId="de.innot.avreclipse.cppcompiler.option.debug.level"
+					  		value="de.innot.avreclipse.cppcompiler.option.debug.level.none" />
+					</not>
+				</enablement>
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.debug.other"
+				name="Other Debug Flags"
+				category="de.innot.avreclipse.cppcompiler.category.debug"
+				valueType="string">
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.debug.prof"
+				name="Generate prof information (-p)"
+				category="de.innot.avreclipse.cppcompiler.category.debug"
+				command="-p"
+				defaultValue="false"
+				valueType="boolean" />
+			<option id="de.innot.avreclipse.cppcompiler.option.debug.gprof"
+				name="Generate gprof information (-pg)"
+				category="de.innot.avreclipse.cppcompiler.category.debug"
+				command="-pg"
+				defaultValue="false"
+				valueType="boolean" />
+		
+			<optionCategory
+				id="de.innot.avreclipse.cppcompiler.category.optimization"
+				name="Optimization" />
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize"
+				name="Optimization Level"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				valueType="enumerated" >
+				<enumeratedOptionValue command="-O0"
+					name="No Optimizations (-O0)"
+					id="de.innot.avreclipse.cppcompiler.optimize.none" />
+				<enumeratedOptionValue command="-O1"
+					name="Slight Optimizations (-O1)"
+					id="de.innot.avreclipse.cppcompiler.optimize.one" />
+				<enumeratedOptionValue command="-O2"
+					name="Moderate Optimizations (-O2)"
+					id="de.innot.avreclipse.cppcompiler.optimize.two" />
+				<enumeratedOptionValue command="-O3"
+					name="Heavy Optimizations (-O3)"
+					id="de.innot.avreclipse.cppcompiler.optimize.three" />
+				<enumeratedOptionValue command="-Os"
+					id="de.innot.avreclipse.cppcompiler.optimize.size"
+					name="Size Optimizations (-Os)">
+				</enumeratedOptionValue>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value" 
+					value="de.innot.avreclipse.cppcompiler.optimize.size"
+					extensionAdjustment="false">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.release" />
+				</enablement>
+				<enablement 
+					type="CONTAINER_ATTRIBUTE"
+					attribute="value" 
+					value="de.innot.avreclipse.cppcompiler.optimize.none"
+					extensionAdjustment="false">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildType"
+						value="org.eclipse.cdt.build.core.buildType.debug" />
+				</enablement>
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize.packstruct"
+				name="Pack structs (-fpack-struct)"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				command="-fpack-struct"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize.shortenums"
+				name="Short enums (-fshort-enums)"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				command="-fshort-enums"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize.other"
+				name="Other Optimization Flags"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				valueType="string" />
+
+			<optionCategory id="de.innot.avreclipse.cppcompiler.category.language"
+				name="Language"/>
+			<option id="de.innot.avreclipse.cppcompiler.option.std"
+				name="Language Standard"
+				category="de.innot.avreclipse.cppcompiler.category.language"
+				valueType="enumerated" >
+				<enumeratedOptionValue command=""
+					id="de.innot.avreclipse.cppcompiler.option.std.default"
+					name="Compiler Default"
+					isDefault="true" />
+				<enumeratedOptionValue command="-ansi"
+					id="de.innot.avreclipse.cppcompiler.option.std.ansi"
+					name="ISO C++ (-ansi)" />
+				<enumeratedOptionValue command="-std=c++98"
+					id="de.innot.avreclipse.cppcompiler.option.std.cpp98"
+					name="1998 ISO C++ incl. amendments (-std=c++98)" />
+				<enumeratedOptionValue command="-std=gnu++98"
+					id="de.innot.avreclipse.cppcompiler.option.std.gnucpp98"
+					name="1998 ISO C++ plus GNU extensions(-std=gnu++98)" />
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.language.uchar"
+				name="char is unsigned (-funsigned-char)"
+				category="de.innot.avreclipse.cppcompiler.category.language"
+				command="-funsigned-char"
+				valueType="boolean"
+				defaultValue="true"	/>
+			<option id="de.innot.avreclipse.cppcompiler.option.language.ubitfields"
+				name="bitfields are unsigned (-funsigned-bitfields)"
+				category="de.innot.avreclipse.cppcompiler.category.language"
+				command="-funsigned-bitfields"
+				valueType="boolean"
+				defaultValue="true"	/>
+			<option id="de.innot.avreclipse.cppcompiler.option.language.noexceptions"
+				name="Do not use Exceptions (-fno-exceptions)"
+				tip="Exceptions are currently not supported on the avr-gcc toolchain"
+				category="de.innot.avreclipse.cppcompiler.category.language"
+				command="-fno-exceptions"
+				valueType="boolean"
+				defaultValue="true"	/>
+
+			<optionCategory id="de.innot.avreclipse.cppcompiler.category.misc"
+				name="Miscellaneous" />
+			<option id="de.innot.avreclipse.cppcompiler.option.verbose"
+				name="Verbose (-v)" 
+				category="de.innot.avreclipse.cppcompiler.category.misc"
+				valueType="boolean" 
+				defaultValue="false"
+				command="-v" />
+			<option id="de.innot.avreclipse.cppcompiler.option.otherflags"
+				name="Other flags"
+				category="de.innot.avreclipse.cppcompiler.category.misc" 
+				valueType="string"
+				defaultValue="" />
+		
+			<option id="de.innot.avreclipse.cppcompiler.option.targetmcu"
+				name="MCU Type"
+				valueType="string"
+				defaultValue="${AVRTARGETMCU}"
+				command="-mmcu=" >
+			</option>
+			<option id="de.innot.avreclipse.cppcompiler.option.targetfcpu" 
+				name="MCU Clock Frequency"
+				valueType="string" 
+				defaultValue="${AVRTARGETFCPU}"
+				command="-DF_CPU=${value}UL" >
+      			<enablement
+            		type="CMD_USAGE">
+         			<checkOption
+               			optionId="de.innot.avreclipse.cppcompiler.option.omitfcpu"
+               			value="false">
+         			</checkOption>
+      			</enablement>
+			</option>
+		
+			<inputType id="de.innot.avreclipse.cppcompiler.input"
+				sourceContentType="org.eclipse.cdt.core.cxxSource"
+				sources="c,C,cc,cxx,cpp"
+				dependencyContentType="org.eclipse.cdt.core.cxxHeader"
+				dependencyExtensions="h,H,hpp"
+				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2"
+				languageId="org.eclipse.cdt.core.g++" />
+<!--			scannerConfigDiscoveryProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"
+-->
+          
+			<outputType id="de.innot.avreclipse.cppcompiler.output"
+				name="Object Files"
+				outputs="o"
+				buildVariable="OBJS" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    AVR C Linker                                                                    # 
 ####################################################################################### 
 -->
 		<tool id="de.innot.avreclipse.tool.linker.winavr" 
-			name="AVR Linker"
+			name="AVR C Linker"
 			command="avr-gcc"
 			outputFlag="-o"
+			natureFilter="cnature"
 			errorParsers="org.eclipse.cdt.core.GLDErrorParser" >
 			
 			<supportedProperties>
@@ -672,6 +1024,169 @@
 			</inputType>
 
 			<outputType id="de.innot.avreclipse.tool.linker.output" 
+				name="ELF Binary Files"
+				outputs="elf"
+				nameProvider="org.eclipse.cdt.managedbuilder.makegen.gnu.GnuLinkOutputNameProvider"
+				buildVariable="ELFS" />
+		</tool>
+
+<!-- 
+####################################################################################### 
+#    AVR C++ Linker                                                                    # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.cpplinker"
+			name="AVR C++ Linker"
+			command="avr-g++"
+			outputFlag="-o"
+            natureFilter="ccnature"
+            errorParsers="org.eclipse.cdt.core.GLDErrorParser">
+
+            <supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+				</property>
+			</supportedProperties>
+
+			<envVarBuildPath 
+				pathType="buildpathLibrary"
+				variableList="LIBRARY_PATH">
+			</envVarBuildPath>
+         
+			<optionCategory id="de.innot.avreclipse.cpplinker.category.general"
+				name="General" />
+			<option id="de.innot.avreclipse.cpplinker.option.genmap" 
+				name="Map Filename"
+				category="de.innot.avreclipse.cpplinker.category.general" 
+				command="-Wl,-Map,${value},--cref" 
+				browseType="file" 
+				defaultValue="${BuildArtifactFileBaseName}.map"
+				valueType="string" />
+			<option id="de.innot.avreclipse.cpplinker.option.nosyms" 
+				name="Omit Symbols (-s)" 
+				category="de.innot.avreclipse.cpplinker.category.general"
+				valueType="boolean" 
+				defaultValue="false" 
+				command="-s" />
+			<option id="de.innot.avreclipse.cpplinker.option.nostart"
+				name="No startup or default libs (-nostdlib)"
+				category="de.innot.avreclipse.cpplinker.category.general" 
+				command="-nostdlib"
+				valueType="boolean"
+				defaultValue="false" />
+			<option id="de.innot.avreclipse.cpplinker.option.otherlinkargs"
+				name="Other Arguments" 
+				category="de.innot.avreclipse.cpplinker.category.general"
+				valueType="string" />
+
+			<optionCategory id="de.innot.avreclipse.cpplinker.category.libs"
+				name="Libraries" />
+			<option id="de.innot.avreclipse.cpplinker.option.libs"
+				name="Libraries (-l)"
+				category="de.innot.avreclipse.cpplinker.category.libs" 
+				valueType="libs"
+				browseType="none" 
+				command="-l" />
+			<option id="de.innot.avreclipse.cpplinker.option.libpath" 
+				name="Libraries Path (-L)" 
+				category="de.innot.avreclipse.cpplinker.category.libs"
+				valueType="stringList" 
+				browseType="directory"
+				command="-L" />
+
+			<optionCategory id="de.innot.avreclipse.cpplinker.category.objs"
+				name="Objects" />
+			<option id="de.innot.avreclipse.cpplinker.option.otherlink"
+				name="(-Xlinker) Options" 
+				category="de.innot.avreclipse.cpplinker.category.objs"
+				valueType="stringList" 
+				command="-Xlinker" />
+			<option id="de.innot.avreclipse.cpplinker.option.otherobjs"
+				name="Other Objects (*.o)" 
+				category="de.innot.avreclipse.cpplinker.category.objs"
+				valueType="userObjs"
+				browseType="file" />
+<!--  This causes linking errors if floating point is selected.
+      Also the -lm enablement does not work
+			<optionCategory id="de.innot.avreclipse.cpplinker.category.library"
+				name="Library Options" />
+			<option id="de.innot.avreclipse.cpplinker.option.library.printf"
+				name="printf support"
+				category="de.innot.avreclipse.cpplinker.category.library"
+				valueType="enumerated" >
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.printf.none"
+					name="No printf"
+					command=""
+					isDefault="true" />
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.printf.min"
+					name="Minimalistic printf"
+					command="-Wl,-u,vfprintf -lprintf_min" />
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.printf.fp"
+					name="Floating Point printf"
+					command="-Wl,-u,vfprintf -lprintf_flt" />
+			</option>
+			<option id="de.innot.avreclipse.cpplinker.option.library.scanf"
+				name="scanf support"
+				category="de.innot.avreclipse.cpplinker.category.library"
+				valueType="enumerated" >
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.scanf.none"
+					name="No scanf"
+					command=""
+					isDefault="true" />
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.scanf.min"
+					name="Minimalistic scanf"
+					command="-Wl,-u,vfscanf -lscanf_min" />
+				<enumeratedOptionValue id="de.innot.avreclipse.cpplinker.library.scanf.fp"
+					name="Floating Point scanf"
+					command="-Wl,-u,vfscanf -lscanf_flt" />
+			</option>
+			<option id="de.innot.avreclipse.cpplinker.option.library.libm"
+				name="Include Math lib (-lm)"
+				category="de.innot.avreclipse.cpplinker.category.library"
+				command="-lm"
+				valueType="boolean"
+				defaultValue="false" >
+				<enablement type="CONTAINER_ATTRIBUTE"
+					attribute="value"
+					value="true" >
+					<or>
+						<checkOption
+							optionId="de.innot.avreclipse.cpplinker.option.library.printf"
+							value="de.innot.avreclipse.cpplinker.library.printf.fp">
+						</checkOption>
+						<checkOption
+							optionId="de.innot.avreclipse.cpplinker.option.library.scanf"
+							value="de.innot.avreclipse.cpplinker.library.scanf.fp">
+						</checkOption>
+					</or>					
+				</enablement>
+			</option>
+-->				
+				
+			<option id="de.innot.avreclipse.cpplinker.option.targetmcu" 
+				name="MCU Type"
+				valueType="string"
+				defaultValue="${AVRTARGETMCU}"
+				command="-mmcu=" >
+			</option>
+
+			<inputType id="de.innot.avreclipse.tool.cpplinker.input"
+				name="OBJ Files"
+				sourceContentType="org.eclipse.cdt.managedbuilder.core.compiledObjectFile"
+				sources="obj"
+				multipleOfType="true"
+				buildVariable="OBJS" >
+				<additionalInput
+					paths="$(USER_OBJS)"
+					kind="additionalinputdependency">
+				</additionalInput>
+				<additionalInput
+					paths="$(LIBS)"
+					kind="additionalinput">
+				</additionalInput>
+			</inputType>
+
+			<outputType id="de.innot.avreclipse.tool.cpplinker.output"
 				name="ELF Binary Files"
 				outputs="elf"
 				nameProvider="org.eclipse.cdt.managedbuilder.makegen.gnu.GnuLinkOutputNameProvider"
@@ -1109,9 +1624,19 @@
 
 			<tool id="de.innot.avreclipse.tool.compiler.winavr.base"
 				superClass="de.innot.avreclipse.tool.compiler.winavr" />
+			<tool id="de.innot.avreclipse.tool.cppcompiler.base"
+				superClass="de.innot.avreclipse.tool.cppcompiler" />
 
 			<tool id="de.innot.avreclipse.tool.linker.winavr.base"
 				superClass="de.innot.avreclipse.tool.linker.winavr">
+				<enablement type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.app" />
+				</enablement>
+			</tool>
+			<tool id="de.innot.avreclipse.tool.cpplinker.base"
+				superClass="de.innot.avreclipse.tool.cpplinker">
 				<enablement type="ALL">
 					<checkBuildProperty
 						property="org.eclipse.cdt.build.core.buildArtefactType"
@@ -1192,9 +1717,15 @@
 					<tool
 						id="de.innot.avreclipse.tool.compiler.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.cppcompiler.app.debug"
+						superClass="de.innot.avreclipse.tool.cppcompiler.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.linker.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
+					<tool 
+						id="de.innot.avreclipse.tool.cpplinker.app.debug"
+						superClass="de.innot.avreclipse.tool.cpplinker.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.app.debug"
 						superClass="de.innot.avreclipse.tool.objdump.winavr" >
@@ -1273,8 +1804,14 @@
 						id="de.innot.avreclipse.tool.compiler.winavr.app.release"
 						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
 					<tool
+						id="de.innot.avreclipse.tool.cppcompiler.app.release"
+						superClass="de.innot.avreclipse.tool.cppcompiler.base" />
+					<tool
 						id="de.innot.avreclipse.tool.linker.winavr.app.release"
 						superClass="de.innot.avreclipse.tool.linker.winavr.base" />
+					<tool
+						id="de.innot.avreclipse.tool.cpplinker.app.release"
+						superClass="de.innot.avreclipse.tool.cpplinker.base" />
 					<tool 
 						id="de.innot.avreclipse.tool.objdump.winavr.app.release"
 						superClass="de.innot.avreclipse.tool.objdump.winavr" >
@@ -1358,6 +1895,9 @@
 						id="de.innot.avreclipse.tool.compiler.winavr.lib.debug"
 						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
 					<tool
+						id="de.innot.avreclipse.tool.cppcompiler.lib.debug"
+						superClass="de.innot.avreclipse.tool.cppcompiler.base" />
+					<tool
 						id="de.innot.avreclipse.tool.archiver.winavr.lib.debug"
 						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
 					<tool 
@@ -1419,6 +1959,9 @@
 						id="de.innot.avreclipse.tool.compiler.winavr.lib.release"
 						superClass="de.innot.avreclipse.tool.compiler.winavr.base" />
 					<tool
+						id="de.innot.avreclipse.tool.cppcompiler.lib.release"
+						superClass="de.innot.avreclipse.tool.cppcompiler.base" />
+					<tool
 						id="de.innot.avreclipse.tool.archiver.winavr.lib.release"
 						superClass="de.innot.avreclipse.tool.archiver.winavr.base" />
 					<tool 
@@ -1462,8 +2005,9 @@
 			property="org.eclipse.cdt.build.core.buildArtefactType"
 			id="de.innot.avreclipse.buildArtefactType.staticLib"
 			name="AVR Cross Target Static Library" />
-
 	</extension>
+
+
 	<extension point="org.eclipse.cdt.managedbuilder.core.projectConverter">
 	    <converter name="Update to AVR Eclipse 2.1"
 	    	id="de.innot.avreclipse.converter.update"
@@ -1480,6 +2024,5 @@
 	        mbsVersion="4.0.0">
 	    </converter>
 	</extension>
-
 
 </plugin>
