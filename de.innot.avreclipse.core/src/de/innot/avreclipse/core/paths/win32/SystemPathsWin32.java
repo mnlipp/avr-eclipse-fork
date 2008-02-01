@@ -16,11 +16,16 @@
 
 package de.innot.avreclipse.core.paths.win32;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.cdt.utils.WindowsRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.ILock;
+import org.eclipse.core.runtime.jobs.Job;
 
-import de.innot.avreclipse.core.paths.IPathProvider;
+import de.innot.avreclipse.core.paths.AVRPath;
 
 /**
  * Gets the actual system paths to the winAVR and AVR Tools applications.
@@ -33,128 +38,108 @@ import de.innot.avreclipse.core.paths.IPathProvider;
  * @author Thomas Holland
  * @since 2.1
  */
-public enum SystemPathsWin32 implements IPathProvider {
+public class SystemPathsWin32 {
 
-	AVRGCC {
-		public IPath getPath() {
-			if (fAVRGCCPath == null) {
-				IPath basepath = getWinAVRBasePath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fAVRGCCPath = basepath.append("bin");
-			}
-			return fAVRGCCPath;
-		}
-	},
+	private static SystemPathsWin32 fInstance = null;
 
-	MAKE {
-		public IPath getPath() {
-			if (fMakePath == null) {
-				IPath basepath = getWinAVRBasePath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fMakePath = basepath.append("utils").append("bin");
-			}
-			return fMakePath;
-		}
-	},
+	private static ILock lock = Job.getJobManager().newLock();
 
-	AVRINCLUDE {
-		public IPath getPath() {
-			if (fAVRIncludePath == null) {
-				IPath basepath = getWinAVRBasePath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fAVRIncludePath = basepath.append("avr").append("include");
-			}
-			return fAVRIncludePath;
-
-		}
-	},
-
-	AVRDUDE {
-		public IPath getPath() {
-			if (fAVRDUDEPath == null) {
-				IPath basepath = getWinAVRBasePath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fAVRDUDEPath = basepath.append("bin");
-			}
-			return fAVRDUDEPath;
-		}
-	},
-
-	AVRDUDECONFIG {
-		public IPath getPath() {
-			if (fAVRDUDEConfigPath == null) {
-				IPath basepath = getWinAVRBasePath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fAVRDUDEConfigPath = basepath.append("bin");
-			}
-			return fAVRDUDEConfigPath;
-		}
-	},
-
-	PDFPATH {
-		public IPath getPath() {
-			if (fPDFPath == null) {
-				IPath basepath = getAVRToolsPath();
-				if (isEmptyPath(basepath)) {
-					return basepath;
-				}
-				fPDFPath = basepath.append("Partdescriptionfiles");
-			}
-			return fPDFPath;
-		}
-	};
-
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.paths.IPathProvider#getPath()
-	 */
-	public abstract IPath getPath();
-
-	// cached paths
-	private static IPath fAVRGCCPath = null;
-	private static IPath fAVRIncludePath = null;
-	private static IPath fMakePath = null;
-	private static IPath fAVRDUDEPath = null;
-	private static IPath fAVRDUDEConfigPath = null;
-	private static IPath fPDFPath = null;
-
-	private static IPath fWinAVRPath = null;
-	private static IPath fAVRToolsPath = null;
+	private Map<AVRPath, IPath> fPathCache = null;
+	private IPath fWinAVRPath = null;
+	private IPath fAVRToolsPath = null;
 
 	private final static IPath fEmptyPath = new Path("");
 
-	/**
-	 * Clears the cached values.
-	 */
-	public void clear() {
-		fAVRGCCPath = null;
-		fAVRIncludePath = null;
-		fMakePath = null;
-		fAVRDUDEPath = null;
-		fAVRDUDEConfigPath = null;
-		fPDFPath = null;
-
-		fWinAVRPath = null;
-		fAVRToolsPath = null;
-		
+	public static SystemPathsWin32 getDefault() {
+		if (fInstance == null) {
+			fInstance = new SystemPathsWin32();
+		}
+		return fInstance;
 	}
-	
-	
+
+	private SystemPathsWin32() {
+		// prevent instantiation
+	}
+
+	public void clearCache() {
+
+		try {
+			lock.acquire();
+			fPathCache.clear();
+			fWinAVRPath = null;
+			fAVRToolsPath = null;
+		} finally {
+			lock.release();
+		}
+	}
+
+	public IPath getSystemPath(AVRPath avrpath) {
+		IPath path = null;
+
+		// This method may be called from different threads. To prevent
+		// an undefined cache this method locks itself while it
+		// is looking for the path
+
+		try {
+			lock.acquire();
+			if (fPathCache == null) {
+				fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
+			}
+
+			// Test if it is already in the cache
+			path = fPathCache.get(avrpath);
+			if (path != null) {
+				return path;
+			}
+
+			// not in cache, then try to find the path
+			path = internalGetPath(avrpath);
+			fPathCache.put(avrpath, path);
+		} finally {
+			lock.release();
+		}
+		return path;
+	}
+
+	private IPath internalGetPath(AVRPath avrpath) {
+
+		switch (avrpath) {
+		case AVRGCC:
+			return getWinAVRPath("bin");
+		case AVRINCLUDE:
+			return getWinAVRPath("avr/include");
+		case AVRDUDE:
+			return getWinAVRPath("bin");
+		case AVRDUDECONFIG:
+			return getWinAVRPath("bin");
+		case MAKE:
+			return getWinAVRPath("utils/bin");
+		case PDFPATH:
+			IPath basepath = getAVRToolsPath();
+			if (basepath.isEmpty()) {
+				return basepath;
+			}
+			return basepath.append("Partdescriptionfiles");
+		default:
+			// TODO: log something
+			return null;
+		}
+	}
+
+	private IPath getWinAVRPath(String append) {
+		IPath basepath = getWinAVRBasePath();
+		if (basepath.isEmpty()) {
+			return basepath;
+		}
+		return basepath.append(append);
+	}
+
 	/**
 	 * Get the path to the winAVR base directory from the Windows registry.
-     *
+	 * 
 	 * @return IPath with the current path to the winAVR base directory
 	 */
-	private static IPath getWinAVRBasePath() {
+	private IPath getWinAVRBasePath() {
 		if (fWinAVRPath != null) {
 			return fWinAVRPath;
 		}
@@ -173,11 +158,12 @@ public enum SystemPathsWin32 implements IPathProvider {
 	}
 
 	/**
-	 * Get the path to the Atmel AVR Tools base directory from the Windows registry.
-     *
+	 * Get the path to the Atmel AVR Tools base directory from the Windows
+	 * registry.
+	 * 
 	 * @return IPath with the current path to the AVR Tools base directory
 	 */
-	private static IPath getAVRToolsPath() {
+	private IPath getAVRToolsPath() {
 
 		if (fAVRToolsPath != null) {
 			return fAVRToolsPath;
@@ -190,10 +176,6 @@ public enum SystemPathsWin32 implements IPathProvider {
 			fAVRToolsPath = new Path(avrtools);
 		}
 		return fAVRToolsPath;
-	}
-
-	private static boolean isEmptyPath(IPath path) {
-		return fEmptyPath.equals(path);
 	}
 
 }

@@ -26,6 +26,8 @@ import java.util.Map;
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.ILock;
+import org.eclipse.core.runtime.jobs.Job;
 
 import de.innot.avreclipse.core.paths.AVRPath;
 
@@ -59,6 +61,8 @@ import de.innot.avreclipse.core.paths.AVRPath;
 public class SystemPathsPosix {
 
 	private static SystemPathsPosix fInstance = null;
+	
+    private static ILock lock = Job.getJobManager().newLock();
 
 	private Map<AVRPath, IPath> fPathCache = null;
 
@@ -80,27 +84,42 @@ public class SystemPathsPosix {
 
 	public void clearCache() {
 		
-		fPathCache.clear();
+		try {
+			lock.acquire();
+			fPathCache.clear();
+		} finally {
+			lock.release();
+		}
 	}
 	
 	
 	public IPath getSystemPath(AVRPath pathcontext) {
+		IPath path = null;
 
-		// Test if the caching is still in progress
-		if (fPathCache == null) {
-			fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
+		// This method may be called from different threads. To prevent
+		// an undefined cache this method locks itself while it
+		// is looking for the path
+
+		try {
+			lock.acquire();
+			if (fPathCache == null) {
+				fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
+			}
+
+			// Test if it is already in the cache
+			path = fPathCache.get(pathcontext);
+			if (path != null) {
+				return path;
+			}
+
+			// not in cache, then try to find the path
+			path = internalGetPath(pathcontext);
+			fPathCache.put(pathcontext, path);
+		} finally {
+			lock.release();
 		}
-
-		// Test if it is already in the cache
-		IPath path = fPathCache.get(pathcontext);
-		if (path != null) {
-			return path;
-		}
-
-		// not in cache, then try to find the path
-		path = internalGetPath(pathcontext);
-		fPathCache.put(pathcontext, path);
 		return path;
+		
 	}
 
 	private IPath internalGetPath(AVRPath pathcontext) {
@@ -113,8 +132,7 @@ public class SystemPathsPosix {
 		}
 		if (!path.isEmpty()) {
 			// remove the number of segments of the test from
-			// the
-			// path. This makes a test like "avr/io.h" work
+			// the path. This makes a test like "avr/io.h" work
 			path = path.removeLastSegments(new Path(test).segmentCount());
 		}
 		return path;

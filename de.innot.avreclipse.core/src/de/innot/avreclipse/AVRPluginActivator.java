@@ -14,6 +14,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import de.innot.avreclipse.core.paths.SystemPathHelper;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -40,6 +42,12 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		
+		// initialize the System path cache.
+		// Especially on posix platforms it may take a while to find
+		// the paths. SystemPathHelper.initSystemPaths() starts a 
+		// background job to do the actual initialization.
+		SystemPathHelper.initSystemPaths();
 	}
 
 	/*
