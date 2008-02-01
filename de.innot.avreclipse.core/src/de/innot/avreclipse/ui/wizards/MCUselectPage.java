@@ -14,7 +14,7 @@
  * $Id: MCUselectPage.java 9 2007-11-25 21:51:59Z thomas $
  *     
  *******************************************************************************/
-package de.innot.avreclipse.ui;
+package de.innot.avreclipse.ui.wizards;
 
 import java.io.IOException;
 import java.util.Arrays;

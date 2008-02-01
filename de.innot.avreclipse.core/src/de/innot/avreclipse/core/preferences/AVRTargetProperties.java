@@ -127,7 +127,7 @@ public class AVRTargetProperties {
 	/**
 	 * Initialize the default property values.
 	 * 
-	 * This is called from {@link de.innot.avreclipse.ui.preferences.PreferenceInitializer}
+	 * This is called from {@link de.innot.avreclipse.core.preferences.PreferenceInitializer}
 	 */
 	public static void initializeDefaultPreferences() {
 		IEclipsePreferences prefs = getDefaultPreferences();

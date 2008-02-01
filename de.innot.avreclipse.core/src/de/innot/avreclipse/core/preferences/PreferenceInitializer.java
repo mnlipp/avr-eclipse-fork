@@ -13,12 +13,10 @@
  * $Id: PreferenceInitializer.java 9 2007-11-25 21:51:59Z thomas $
  *     
  *******************************************************************************/
-package de.innot.avreclipse.ui.preferences;
+package de.innot.avreclipse.core.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 
-import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 
 /**
  * Class used to initialize default preference values.

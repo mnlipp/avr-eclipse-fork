@@ -58,7 +58,7 @@
 -->
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer
-			class="de.innot.avreclipse.ui.preferences.PreferenceInitializer">
+			class="de.innot.avreclipse.core.preferences.PreferenceInitializer">
 		</initializer>
 	</extension>
 
@@ -106,8 +106,8 @@
 		point="org.eclipse.cdt.managedbuilder.ui.newWizardPages">
 		<wizardPage
         ID="de.innot.avreclipse.mcuselectpage"
-        operationClass="de.innot.avreclipse.ui.MCUselectPage"
-        pageClass="de.innot.avreclipse.ui.MCUselectPage">
+        operationClass="de.innot.avreclipse.ui.wizards.MCUselectPage"
+        pageClass="de.innot.avreclipse.ui.wizards.MCUselectPage">
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.base" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.debug" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.release" />
