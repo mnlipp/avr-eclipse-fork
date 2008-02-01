@@ -86,7 +86,9 @@ public class SystemPathsPosix {
 		
 		try {
 			lock.acquire();
-			fPathCache.clear();
+			if (fPathCache != null) {
+				fPathCache.clear();
+			}
 		} finally {
 			lock.release();
 		}

@@ -65,7 +65,9 @@ public class SystemPathsWin32 {
 
 		try {
 			lock.acquire();
-			fPathCache.clear();
+			if (fPathCache != null) {
+				fPathCache.clear();
+			}
 			fWinAVRPath = null;
 			fAVRToolsPath = null;
 		} finally {
