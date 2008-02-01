@@ -1,14 +1,13 @@
 package de.innot.avreclipse.core.paths;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.junit.Test;
 
-import de.innot.avreclipse.core.paths.posix.FindCommandRunner;
 import de.innot.avreclipse.core.paths.posix.SystemPathsPosix;
-import de.innot.avreclipse.core.paths.win32.SystemPathsWin32;
 
 public class TestSystemPathsPosix {
 
