@@ -60,14 +60,6 @@ import de.innot.avreclipse.devicedescription.IProviderChangeListener;
  * @author Thomas Holland
  * @author Manuel Stahl
  */
-/**
- * @author U043192
- * 
- */
-/**
- * @author U043192
- * 
- */
 public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvider, IPropertyChangeListener {
 
 	final static String DDP_NAME = "<avr/io.h>";
