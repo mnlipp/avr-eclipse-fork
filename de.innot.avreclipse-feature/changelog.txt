@@ -32,13 +32,22 @@ Changed / Improved:
 * Target Hardware settings are now project settings. They apply to all Configurations
   (Feature Requests 1861874 / 1751707)
 
+* Assembler Tool
+  - Added Dependency Calculator to the input. Dependencies on .h header files are now handled.
+  - Changed Debug format option to default "stabs" (the only format avr-gas can produce)
+  
 * Compiler Tool
+  - Changed to a working Dependency Calculator. Dependencies are now correctly handled
+    during the build process.
+  - Changed Debug format to default "stabs". "stabs" and "dwarf-2" have new descriptive texts.
+    Thanks to Jörg Wünsch for explaining the debug format options
+  - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
   - included the same options as mfile (avr-gcc makefile generator)
   	+ Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
     + Added "-funsigned-char" and "-funsigned-bitfields" to the language flags
-  - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
   - -c (compile only) option now build in and not required under "other options".
     This was actually changed for 2.0.1, but I forgot to document it.
+  - "UL" appended to the F_CPU value passed to the compiler (same behaviour as mfile)
 
 * Additional Tools
   - Handling of additional Tools now done via <enablement> instead of manipulating 
@@ -50,16 +59,7 @@ Fixes:
 * All Tools
   - Changed toolnames from "winAVR ..." to "AVR ..." (Bug 1861870)
   
-* Assembler Tool
-  - Added Dependency Calculator to the input. Dependencies on .h header files are now handled.
-  - Changed Debug format option to default "stabs" (the only format avr-gas can produce)
-  
 * Compiler Tool
-  - Changed to a working Dependency Calculator. Dependencies are now correctly handled
-    during the build process.
-  - Changed Debug format to default "stabs". "stabs" and "dwarf-2" have new descriptive texts.
-    Thanks to Jörg Wünsch for explaining the debug format options
-  - "UL" appended to the F_CPU value passed to the compiler
   - Missing Compiler Options are fixed by the project update converter (Bug 1861293)
     
 * Linker Tool
