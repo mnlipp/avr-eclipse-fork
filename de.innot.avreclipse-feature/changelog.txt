@@ -8,28 +8,45 @@
 $Id$
 
 --------------------------------------------------------------------------------
-Version 2.1
+Version 2.1.0
 
 New:
+=============================
+* C++ Support
+  - Added C++ Compiler and C++ Linker to the toolchain. (Feature Request 1861864)
+
+* AVR Paths preference page
+  - New preference page to manage the paths to the avr-gcc toolchain.
+
+* Project Update Converter. 
+  - Selectable via "Convert to..." in the project context menu.
+  - Updates the project to most changes for version 2.1
+
+* Added an AVR Project Nature.
+  - Applied to all projects created with the new project wizard, and old projects 
+    updated with the project converter. 
+  - Restricts AVR GUI Elements to AVR Projects. 
+
+Changed / Improved:
+=============================
 * Target Hardware settings are now project settings. They apply to all Configurations
   (Feature Requests 1861874 / 1751707)
 
-* Project Update Converter. 
-  Selectable via "Convert to..." in the project context menu. Updates the project to
-  all changes for version 2.1
+* Compiler Tool
+  - included the same options as mfile (avr-gcc makefile generator)
+  	+ Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
+    + Added "-funsigned-char" and "-funsigned-bitfields" to the language flags
+  - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
+  - -c (compile only) option now build in and not required under "other options".
+    This was actually changed for 2.0.1, but I forgot to document it.
 
-* Added an AVR Project Nature.
-  This is applied to all projects created with the new project wizard, and old projects 
-  updated with the project converter. This restricts AVR GUI Elements to
-  AVR Projects. 
-
-Changed:
 * Additional Tools
   - Handling of additional Tools now done via <enablement> instead of manipulating 
     ManagedBuildSystem internals. (=> Order of Add. Tools is now fixed and cannot
     be changed)
 
 Fixes:
+=============================
 * All Tools
   - Changed toolnames from "winAVR ..." to "AVR ..." (Bug 1861870)
   
