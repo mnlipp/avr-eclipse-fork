@@ -10,6 +10,9 @@
 
 package de.innot.avreclipse;
 
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -80,5 +83,27 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+	
+	/**
+	 * Log the given status and print it to the err Stream if debugging is enabled.
+	 * @param status
+	 */
+	public void log(IStatus status) {
+		ILog log = getLog();
+		if (status.getSeverity() >= Status.WARNING) {
+			log.log(status);
+		}
+		if (isDebugging()) {
+			System.err.print(PLUGIN_ID+": " + status.getMessage());
+			if (status.getCode() != 0) {
+				System.err.print("("+status.getCode()+")");
+			}
+			System.out.println("");
+			if (status.getException() != null) {
+				status.getException().printStackTrace();
+			}
+		}
+		
 	}
 }

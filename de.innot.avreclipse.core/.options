@@ -1,0 +1,4 @@
+de.innot.avreclipse.core/debug = true
+de.innot.avreclipse.core/debug/ui = true
+de.innot.avreclipse.core/debug/managedbuild = true
+de.innot.avreclipse.core/debug/core = true
