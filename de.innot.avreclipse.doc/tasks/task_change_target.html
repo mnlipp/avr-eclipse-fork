@@ -2,21 +2,16 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Change Target Hardware</title>
-<link href="../help.css" rel="stylesheet" type="text/css">
-</head>
+<title>Change AVR Target Hardware</title>
+<link href="../book.css" rel="stylesheet" type="text/css"></head>
 
 <body>
-<h1>Change Target Hardware</h1>
-<p>For each configuration (&quot;Debug&quot; or &quot;Release&quot;) the toolchain maintains two options for the target processor hardware, the processor type and its clock speed. The processor type is passed as a command line option to all tools requiring the processor type. The clock speed is only passed onto the compiler as a <span class="userinput">#define F_CPU xxxxxxxx</span>. Its up to the application to do anything with this value, e.g. adjust its internal timings.</p>
-<p>Having the options separate for each configuration means that  for the Debug configuration a target processor different from the Release configuration can be selected. This can be used to - for example - debug on a simulator with a processor having an UART connected to virtual terminal, even if the final target processor used for the release does not have an UART. The default settings for both configurations are the ones selected when the project was created.</p>
-<p> <strong>Note</strong>: This may change in future versions of the plugin to have only a single entry valid for all configurations. Your <a href="https://sourceforge.net/projects/avr-eclipse">feedback</a> about this is welcome.</p>
+<h1>Change AVR Target Hardware</h1>
+<p>For each project the toolchain maintains two options for the target processor hardware, the processor type and its clock speed. The processor type is passed as a command line option to all tools requiring the processor type. The clock speed is only passed onto the compiler as a <span class="userinput">#define F_CPU xxxxxxxx</span>UL. Its up to the application to do anything with this value, e.g. adjust its internal timings.</p>
 <p>&nbsp;</p>
 <p>The options can be changed via the project properties. </p>
-<p>To change the target processor select the project properties, expand <strong>C/C++ Build</strong> and select the <strong>Tool Settings</strong> tab. Then select the <strong>Target Hardware</strong> item and change the settings as required.</p>
-<p><img src="../images/task_targethardware_1.png" width="720" height="601" alt=""></p>
-<p><strong>Note</strong>: The list of available processors is hand made, so if a processor is missing which is supported by the compiler, file a <a href="https://sourceforge.net/tracker/?atid=928231&group_id=189165&func=browse">bug report</a> to get the processor included into the list.</p>
-<p><strong>Note</strong>: There is currently no checking done on the <strong>MCU Clock Frequency</strong> field. The value is passed as is to the compiler.</p>
+<p> To change the target processor select the project properties and expand<strong> AVR Target Hardware</strong>.</p>
+<p><img src="images/task_targethardware_1.png" alt="" ></p>
 <p>&nbsp;</p>
 <div class="categoryrelated">Related Tasks</div>
 <a href="task_change_toolchaintools.html">Add / Remove AVR specific Tools from the Toolchain</a>

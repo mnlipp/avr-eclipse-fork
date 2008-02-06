@@ -4,15 +4,15 @@
 <head>
 	<meta http-equiv="Content-Language" content="en-us">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Concepts</title>
-	<link rel="stylesheet" type="text/css" href="../help.css">
+	<title>AVR Device Explorer View &lt;avr/io.h&gt;Data Source</title>
+	<link rel="stylesheet" type="text/css" href="../book.css">
 </head>
 
 <body>
 
 <h1>AVR Device Explorer View  &lt;avr/io.h&gt; Data Source</h1>
 
-<p>The AVR Device Explorer View can use the &lt;avr/io.h&gt; header file and its associated, processor specific header files as a data source. These header files are part of the <a href="http://www.nongnu.org/avr-libc/">AVR libc</a> package. </p>
+<p>The AVR Device Explorer View can use the &lt;avr/io.h&gt; header file and its associated, processor specific header files as a data source. These header files are part of the <a href="http://www.nongnu.org/avr-libc/" target="_blank">AVR libc</a> package. </p>
 <p>The header files are not a perfect, not even a good souce for information, as only some processor specific header files contain descriptive comments. But on the plus side, the information they provide is (almost) exactly the same as the compiler sees.</p>
 <p>The viewer parses the header files to extract as much information as possible. As the viewer needs the source file comments, it does not use the gcc preprocessor. This means that any conditional code in the header files is ignored which might cause some inaccuracies. If in doubt, use the source link to open the source header file and check the source yourself.</p>
 <p>The header files are parsed as follows:</p>
@@ -25,7 +25,7 @@
   </li>
   <li>The required processor specific from step 1 are parsed for the following patterns:<br>
     <br>
-    <table border="1">
+    <table border="1" cellpadding="3" cellspacing="1">
       <tr>
         <td valign="top" nowrap><pre>#include &lt;avr/io?????.h&gt;</pre></td>
         <td valign="top">The file is included in the parsing process</td>

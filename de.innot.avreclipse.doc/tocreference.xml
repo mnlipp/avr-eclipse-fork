@@ -2,5 +2,5 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Reference" link_to="toc.xml#reference"> 
-	<topic label="Nothing here yet"  href="help/reference/ref.html" /> 
+	<topic label="Nothing here yet"  href="reference/ref.html" /> 
 </toc>

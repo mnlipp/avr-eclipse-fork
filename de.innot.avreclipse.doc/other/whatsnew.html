@@ -3,26 +3,78 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Whats new in the AVR Eclipse Plugin</title>
-<link href="../help.css" rel="stylesheet" type="text/css">
+<link href="../book.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
-<h1>Whats new in the AVR Eclipse Plugin</h1>
-<table width="90%" border="0">
-  <tr>
+<h1 class="lineabove">Whats new in the AVR Eclipse Plugin</h1>
+<p>&nbsp;</p>
+<table width="90%" border="0" cellpadding="3" cellspacing="1">
+  <tr valign="top">
     <th scope="col"><div align="left">Version</div></th>
     <th scope="col"><div align="left">Date</div></th>
     <th scope="col"><div align="left">Changes</div></th>
   </tr>
-  <tr>
-    <td>Beta-2</td>
-    <td>open</td>
-    <td>First  public beta release</td>
+  <tr valign="top">
+    <td class="lineabove"><p><strong>2.1.0</strong></p>    </td>
+    <td class="lineabove"><p>2008/02/07</p>
+    </td>
+    <td class="lineabove"><p>New Features:
+    </p>
+      <ul><li>Added C++ Support</li>
+      <li>Added <a href="../tasks/task_path_preferences.html">Path Management</a> to select the paths to the AVR GCC toolchain</li>
+      <li>Added Dependency Calculator to the assembler and compiler tools</li>
+      <li><a href="../tasks/task_update_project.html">Project Update Converter</a> to update projects created with 2.0.x versions of the plugin</li>
+      <li>List of target MCU types determined at runtime from the selected avr-gcc compiler</li>
+      </ul>
+    Changes:<ul>
+      <li><a href="../tasks/task_change_target.html">Target hardware settings</a> now per project instead of per build configuration</li>
+      <li>Changed debug format defaults to &quot;stabs&quot;</li>
+      <li>Added some more options to the compiler tool</li>
+      <li>Added options to select the language standard (ISO C90 / ISO C99 / GNU99 etc.)</li></ul>
+      Bug Fixes:
+      <ul>
+        <li>All known bugs fixed</li>
+      </ul>      </td>
   </tr>
-  <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
+  <tr valign="top" class="lineabove">
+    <td class="lineabove"><p><strong>2.0.1</strong></p>    </td>
+    <td class="lineabove"><p>2007/12/29</p>
+    </td>
+    <td class="lineabove"><p>Some minor bug fixes</p></td>
+  </tr>
+  <tr valign="top" class="lineabove">
+    <td class="lineabove"><p><strong>2.0.0</strong></p>    </td>
+    <td class="lineabove"><p>2007/12/27</p>
+    </td>
+    <td class="lineabove"><p>First release of the rewritten Plugin</p>
+    <p>New Features:</p>
+    <ul>
+      <li>MCU Type and Clock Frequency set only once per configuration<br>
+      </li>
+      <li>Debug and Release build Configurations<br>
+      </li>
+      <li>Application and Static Library build types<br>
+      </li>
+      <li>Builds hex, eep and lss files (user selectable)<br>
+      </li>
+      <li>Assembler integrated into toolchain.<br>
+      </li>
+      <li> A new viewer to show some information about AVR processors<br>
+      </li>
+      <li> Basic documentation incl. a small tutorial on how to create a AVR application project<br>
+      </li>
+    </ul>    <p>Bug Fixes:</p>
+    <ul>
+      <li>  Works with CDT 4.0 / Eclipse 3.3 (CDT 3.0 / Eclipse 3.2 not supported anymore)<br>
+      </li>
+      <li> Optimize for size included in compiler options<br>
+      </li>
+      <li> Windows: Finds paths to the winAVR executables if they are not on the path<br>
+      </li>
+      <li> LIBS and USER_OBJS included in the linking process<br>
+      </li>
+    </ul></td>
   </tr>
 </table>
 <p>&nbsp;</p>

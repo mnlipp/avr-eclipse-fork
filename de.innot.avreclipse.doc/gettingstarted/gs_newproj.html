@@ -5,7 +5,7 @@
 <meta http-equiv="content-language" content="en-us">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Creating your project</title>
-<link href="../help.css" type="text/css" rel="stylesheet">
+<link href="../book.css" type="text/css" rel="stylesheet">
 </head>
 <body>
 <h1>Creating a project</h1>
@@ -14,18 +14,17 @@
 <ol>
   <li>Select <b>File &gt; New &gt; Project</b>.
     <p><br>
-      Now the new Project Wizard opens.</p>
-    <br>
+  </p>
   </li>
-  <li>Select the type of project to create. For this tutorial, expand the <b>C</b> folder and select <b>C Project</b>. <br>
+  <li>In the new Project Wizard select the type of project to create. For this tutorial, expand the <b>C</b> folder and select <b>C Project</b>. <br>
     <p><br>
       The <b>C Project</b> wizard opens:<br>
       <br>
-      <img src="../images/gs_proj_wizard_1.png" alt="New C Project Wizard Page"><br>
+      <img src="images/gs_proj_wizard_1.png" alt="New C Project Wizard Page"><br>
       <br>
       The AVR Plugin provides two new project types:<br>
     </p>
-    <table width="90%" border="1">
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
       <tr>
         <td><strong>AVR Cross Target Application</strong></td>
         <td>Project suitable for applications that can be loaded onto an AVR device.</td>
@@ -35,6 +34,7 @@
         <td>Project suitable for building a static library of commonly used functions, which can be linked into applications</td>
       </tr>
     </table>
+        <br>
         Some other project types such as <strong>Executable</strong> may show up, depending on wich other toolchains have been installed.<br>
     <br>
   </li>
@@ -54,11 +54,11 @@
     <p><br>
       Now the automatic build configurations can be selected. <br>
       <br>
-      <img src="../images/gs_proj_wizard_2.png" width="497" height="419" alt=""><br>
+      <img src="images/gs_proj_wizard_2.png" width="497" height="419" alt=""><br>
       <br>
       A Configuration is a collection of options and settings for building the project. The AVR Plugin has two default configurations:<br>
     </p>
-    <table width="90%" border="1">
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
       <tr>
         <td><strong>Debug</strong></td>
         <td>Settings suitable for debugging the application in a simulator.</td>
@@ -76,10 +76,10 @@
     <br>
     On the next page the target processor and its target clock frequency can be selected.<br>
     <br>
-    <img src="../images/gs_proj_wizard_3.png" width="499" height="231" alt=""><br>
+    <img src="images/gs_proj_wizard_3.png" width="499" height="231" alt=""><br>
     <br>
     Two items specific to the AVR processors can be changed.
-    <table width="90%" border="1">
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
       <tr>
         <td><strong>MCU Type</strong></td>
         <td>Select the target processor for your project out of the list of selected processor types. This setting is used by some tools of the toolchain to generate the correct code for the target processor.</td>
@@ -100,20 +100,24 @@
     <br>
     If a message box prompts you to change perspectives, click <b>Yes</b>.</li>
 </ol>
-<table width="90%" border="0">
+<table width="90%" border="0" cellpadding="3" cellspacing="1">
   <tr>
     <td valign="top">Your new project displays in the C/C++ Projects view, and in
   the Navigator view. Your project is empty because you have not yet created
   files for your project. You can now start writing the code for your first
   program.</td>
-    <td><img src="../images/gs_proj_wizard_4.png" width="278" height="145" alt=""></td>
+    <td><img src="images/gs_proj_wizard_4.png" width="278" height="145" alt=""></td>
   </tr>
 </table>
 <p><b>Tip:</b> You can view and modify the properties of your
    project by right-clicking on the project in the Project Explorer
-view and clicking Properties.</p>
+view and clicking Properties (or press Alt+Enter with the project selected).</p>
 <p><a style="text-decoration: none" href="gs_newproj_cfile.html"><img
 src="../images/ngnext.gif" height="16" width="16" border="0" alt=""></a> <a href="gs_newproj_cfile.html"><b> Next: Creating a sample AVR C File</b></a></p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="../tasks/task_change_target.html">Change AVR Target Hardware</a>
+<p align="left"></p>
+<p>&nbsp;</p>
 <p class="copyright">&copy; 2007 Thomas Holland</p>
 </body>
 </html>

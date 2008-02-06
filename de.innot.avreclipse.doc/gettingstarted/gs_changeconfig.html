@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Language" content="en-us">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Building the AVR Project</title>
-<link rel="stylesheet" type="text/css" href="../help.css">
+<link rel="stylesheet" type="text/css" href="../book.css">
 </head>
 <body>
 <h1>Changing the Configuration</h1>
@@ -15,24 +15,26 @@
   <li>
     <p>Right Click on the AVRtest Project and select the <strong>Release</strong> Build Configuration</p>
     <br>
-    <img src="../images/gs_build_3.png" alt=""><br>
+    <img src="images/gs_build_3.png" alt=""><br>
     <br>
   </li>
   <li>Right click on the <strong>AVRtest</strong> Project in the Project Explorer and select <strong>Build Project</strong>.<br>
     <br>
     The project is now build with the Release configuration. The log of the build process is shown in the Console View and should look something like this:<br>
     <br>
-      <pre class="codeblock">**** Build of configuration Release for project AVRtest ****
+      <pre class="codeblock">
+**** Build of configuration Release for project AVRtest ****
 
 make all 
 Building file: ../main.c
 Invoking: AVR Compiler
-avr-gcc -Wall -Os -c -mmcu=atmega16 -DF_CPU=1000000 -o&quot;main.o&quot; &quot;../main.c&quot;
+avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=atmega16 
+ -DF_CPU=1000000UL -MMD -MP -MF&quot;main.d&quot; -MT&quot;main.d&quot; -c -o&quot;main.o&quot; &quot;../main.c&quot;
 Finished building: ../main.c
  
 Building target: AVRtest.elf
-Invoking: AVR Linker
-avr-gcc -Wl,-Map,.map -mmcu=atmega16 -o&quot;AVRtest.elf&quot;  ./main.o 
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,AVRtest.map -mmcu=atmega16 -o&quot;AVRtest.elf&quot;  ./main.o   
 Finished building target: AVRtest.elf
  
 Invoking: AVR Create Extended Listing
@@ -45,11 +47,9 @@ Finished building: AVRtest.hex
  
 Create eeprom image (ihex format)
 avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex AVRtest.elf  &quot;AVRtest.eep&quot;
-f:\Atmel\WinAVR\bin\avr-objcopy.exe: there are no sections to be copied!
-make: [AVRtest.eep] Error 1 (ignored)
 Finished building: AVRtest.eep
  
-Invoking: AVR Print Size
+Invoking: Print Size
 avr-size --format=avr --mcu=atmega16 AVRtest.elf
 AVR Memory Usage
 ----------------
@@ -62,9 +62,11 @@ Data:          0 bytes (0.0% Full)
 (.data + .bss + .noinit)
 
 
-Finished building: sizedummy</pre>
+Finished building: sizedummy
+ 
+</pre>
     <strong><br>
-    Note</strong>: The format option --format=avr for the <em>AVR Print Size</em> tool is not available on all platforms (winAVR does support it). On these platforms an error message about an unknown format option might be displayed.<br>
+    Note</strong>: The format option --format=avr for the <em>AVR Print Size</em> tool is not available on all platforms.<br>
     <br>
   </li>
   <li>Again, a new folder Release has appeared in your project.<br>
@@ -86,7 +88,7 @@ Finished building: sizedummy</pre>
           </ul>
           <p>But as the our very simple main.c file did not have eeprom data, no .eep file was generated, instead a error message was generated during the make process. See the next step of this tutorial on how to get rid of the error message.</p>
           <p></p></td>
-        <td><img src="../images/gs_build_4.png" width="215" height="226" border="1" alt=""></td>
+        <td><img src="images/gs_build_4.png" border="1" alt=""></td>
       </tr>
     </table>
     <br>

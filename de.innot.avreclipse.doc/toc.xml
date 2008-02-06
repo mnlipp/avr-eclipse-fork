@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?NLS TYPE="org.eclipse.help.toc"?>
 
-<toc label="AVR Plugin" topic="help/home.html" id="avrplugin">
-	<topic label="Before you begin"
-		href="help/concepts/before_you_begin.html">
-	</topic>
-	<topic label="Getting Started"
-		href="help/gettingstarted/gs_tutorials.html">
+<toc label="AVR Plugin" topic="home.html" id="avrplugin">
+	<topic label="Before you begin" href="concepts/before_you_begin.html" />
+
+	<topic label="Getting Started" href="gettingstarted/gs_tutorials.html">
 		<anchor id="gettingstarted" />
 	</topic>
-	<topic label="Concepts" 
-		href="help/concepts/concepts.html" >
+	<topic label="Concepts" href="concepts/concepts.html" >
 		<anchor id="concepts" />
 	</topic>
-	<topic label="Tasks"
-		href="help/tasks/tasks.html" >
+	<topic label="Tasks" href="tasks/tasks.html" >
 		<anchor id="tasks" />
 	</topic>
+
 	<!-- No reference and samples yet   
 		<topic label="Reference">
 		<anchor id="reference"/>
@@ -25,11 +22,8 @@
 		<anchor id="samples"/>
 		</topic>
 	-->
-	<topic label="Licence"
-		href="help/other/licence.html" >
-	</topic>
-	<topic label="Contact"
-		href="help/other/contact.html" >
-	</topic>
+	<topic label="What's new in 2.1" href="other/whatsnew.html" />
+	<topic label="Licence" href="other/licence.html" />
+	<topic label="Contact" href="other/contact.html" />
 
 </toc>
