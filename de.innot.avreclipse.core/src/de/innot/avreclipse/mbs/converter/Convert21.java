@@ -130,9 +130,11 @@ public class Convert21 {
 			}
 
 			// remove old debug option from 2.0.0
-			if (curropt.getName().endsWith("(-g)")) {
-				optionholder.removeOption(curropt);
-				continue;
+			if (curropt.getName() != null) {
+				if(curropt.getName().endsWith("(-g)")) {
+					optionholder.removeOption(curropt);
+					continue;
+				}
 			}
 			
 			// remove any other invalid options
