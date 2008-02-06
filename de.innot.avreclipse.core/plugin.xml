@@ -532,7 +532,7 @@
 
 			
 			<optionCategory id="de.innot.avreclipse.compiler.category.language"
-				name="Miscellaneous" />
+				name="Language Standard" />
 			<option id="de.innot.avreclipse.compiler.option.std"
 				name="Language Standard"
 				category="de.innot.avreclipse.compiler.category.language"
@@ -841,7 +841,7 @@
 				valueType="string" />
 
 			<optionCategory id="de.innot.avreclipse.cppcompiler.category.language"
-				name="Language"/>
+				name="Language Standard" />
 			<option id="de.innot.avreclipse.cppcompiler.option.std"
 				name="Language Standard"
 				category="de.innot.avreclipse.cppcompiler.category.language"
