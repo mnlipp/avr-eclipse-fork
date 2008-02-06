@@ -215,6 +215,7 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
+	@Override
 	public IPathManager clone() {
 		AVRPathManager clone = new AVRPathManager(fAvrPath);
 		clone.fPrefs = fPrefs;
