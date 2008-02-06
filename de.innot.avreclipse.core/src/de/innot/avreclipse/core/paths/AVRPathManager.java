@@ -30,8 +30,6 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 
 	private String fPrefsValue = null;
 
-	private static IPath fEmptyPath = new Path("");
-	
 	/**
 	 * Creates a PathProvider for the instance Preference Store and AVRPath.
 	 * 
@@ -173,7 +171,7 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 		// Test if the file is optional. If optional,
 		// then an empty Path is also valid
 		if (fAvrPath.isOptional()) {
-			if (fEmptyPath.equals(path)) {
+			if (path.isEmpty()) {
 				return true;
 			}
 		}

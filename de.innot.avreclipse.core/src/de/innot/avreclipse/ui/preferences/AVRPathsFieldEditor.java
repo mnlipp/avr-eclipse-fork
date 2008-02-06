@@ -342,7 +342,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 
 		// add warn / error icons if path is empty / invalid
 		boolean valid = path.isValid();
-		boolean empty = "".equals(path.getPath().toString());
+		boolean empty = (path.getPath().isEmpty());
 
 		if (valid && !empty) {
 			// valid path
