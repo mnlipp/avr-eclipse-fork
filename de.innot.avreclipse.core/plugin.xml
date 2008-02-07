@@ -138,27 +138,51 @@
 		</perspectiveExtension>
 	</extension>
 
-<!-- 
-  <extension
-         id="AVRGCCManagedMakePerProjectProfileC"
-         name="AVR-GCC managed make per project SCD profile"
-         point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
-      <scannerInfoCollector
-            class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector"
+<!--
+####################################################################################### 
+#    ScannerConfigurationDiscoveryProfiles                                            # 
+####################################################################################### 
+-->
+	<!-- C Projects -->
+	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
+		id="AVRGCCManagedMakePerProjectProfileC"
+		name="AVR-GCC managed project profile (C)">
+		<scannerInfoCollector
+            class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
             scope="project"/>
-      <buildOutputProvider>
-         <open/>
-         <scannerInfoConsoleParser class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.ManagedGCCScannerInfoConsoleParser"/>
-      </buildOutputProvider>
-      <scannerInfoProvider providerId="specsFile">
-         <run
-               arguments="-mmcu=${AVRTARGETMCU} -E -P -v -dD ${plugin_state_location}/specs.c"
-               command="avr-gcc"
-               class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
-         <scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
-      </scannerInfoProvider>
-   </extension>
- -->
+		<buildOutputProvider>
+			<open/>
+			<scannerInfoConsoleParser class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"/>
+		</buildOutputProvider>
+		<scannerInfoProvider providerId="specsFile">
+			<run
+				arguments="-E -P -v -dD ${plugin_state_location}/specs.c"
+				command="avr-gcc"
+				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+			<scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
+		</scannerInfoProvider>
+	</extension>
+
+	<!-- C++ Projects -->
+	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
+		id="AVRGCCManagedMakePerProjectProfileCPP"
+		name="AVR-GCC managed project profile (C++)">
+		<scannerInfoCollector
+            class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
+            scope="project"/>
+		<buildOutputProvider>
+			<open/>
+			<scannerInfoConsoleParser class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"/>
+		</buildOutputProvider>
+		<scannerInfoProvider providerId="specsFile">
+			<run
+				arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp"
+				command="avr-g++"
+				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+			<scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
+		</scannerInfoProvider>
+	</extension>
+ 
 
 <!-- 
 ####################################################################################### 
@@ -604,11 +628,9 @@
 				sources="c"
 				dependencyContentType="org.eclipse.cdt.core.cHeader"
 				dependencyExtensions="h"
-				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2" />
-<!--			dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.internal.DefaultIndexerDependencyCalculator" />
+				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2"
 	 			languageId="org.eclipse.cdt.core.gcc" 
-				scannerConfigDiscoveryProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC" />
--->
+				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC" />
 
 			<outputType id="de.innot.avreclipse.compiler.winavr.output"
 				name="Object Files"
@@ -920,9 +942,8 @@
 				dependencyContentType="org.eclipse.cdt.core.cxxHeader"
 				dependencyExtensions="h,H,hpp"
 				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2"
-				languageId="org.eclipse.cdt.core.g++" />
-<!--			scannerConfigDiscoveryProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"
--->
+				languageId="org.eclipse.cdt.core.g++"
+				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileCPP" />
           
 			<outputType id="de.innot.avreclipse.cppcompiler.output"
 				name="Object Files"
@@ -1561,7 +1582,7 @@
 	        name="AVR-GCC Toolchain"
 	        configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier"
 	        configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier"
-	        scannerConfigDiscoveryProfileId="AVRGCCManagedMakePerProjectProfile">
+	        scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC">
 			
   			<targetPlatform id="de.innot.avreclipse.targetplatform.avr" 
 				name="AVR Cross-Target"

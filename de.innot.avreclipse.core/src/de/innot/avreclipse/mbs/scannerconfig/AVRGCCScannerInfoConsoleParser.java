@@ -1,209 +1,66 @@
-/**
- * 
- */
+
 package de.innot.avreclipse.mbs.scannerconfig;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.cdt.core.IMarkerGenerator;
+import org.eclipse.cdt.build.core.scannerconfig.CfgInfoContext;
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.make.core.scannerconfig.IScannerInfoCollector;
-import org.eclipse.cdt.make.core.scannerconfig.ScannerInfoTypes;
-import org.eclipse.cdt.make.internal.core.MakeMessages;
-import org.eclipse.cdt.make.internal.core.scannerconfig.gnu.AbstractGCCBOPConsoleParser;
-import org.eclipse.cdt.make.internal.core.scannerconfig.gnu.AbstractGCCBOPConsoleParserUtility;
-import org.eclipse.cdt.make.internal.core.scannerconfig.gnu.ScannerInfoConsoleParserUtility;
-import org.eclipse.cdt.make.internal.core.scannerconfig.util.TraceUtil;
-import org.eclipse.core.resources.IFile;
+import org.eclipse.cdt.make.core.scannerconfig.InfoContext;
+import org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCScannerInfoConsoleParser;
+import org.eclipse.cdt.make.internal.core.scannerconfig2.PerProjectSICollector;
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
-/**
- * @author U043192
+/** 
+ * Parse make output for usable info.
  * 
+ * "Based" on ManagedGCCScannerInfoConsoleParser, which unfortunately is
+ * not exposed from the org.eclipse.cdt.managedbuilder.core plugin.
  */
-public class AVRGCCScannerInfoConsoleParser extends AbstractGCCBOPConsoleParser {
+public class AVRGCCScannerInfoConsoleParser extends GCCScannerInfoConsoleParser {
+	Boolean fManagedBuildOnState;
 
-	private ScannerInfoConsoleParserUtility fUtil = null;
+	public boolean processLine(String line) {
+		if (isManagedBuildOn())
+			return false;
+		return super.processLine(line);
+	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.make.core.scannerconfig.IScannerInfoConsoleParser#startup(org.eclipse.core.resources.IProject,
-	 *      org.eclipse.core.runtime.IPath,
-	 *      org.eclipse.cdt.make.core.scannerconfig.IScannerInfoCollector,
-	 *      org.eclipse.cdt.core.IMarkerGenerator)
-	 */
-	public void startup(IProject project, IPath workingDirectory, IScannerInfoCollector collector,
-	        IMarkerGenerator markerGenerator) {
-		fUtil = (project != null && workingDirectory != null && markerGenerator != null) ? new ScannerInfoConsoleParserUtility(
-		        project, workingDirectory, markerGenerator)
-		        : null;
+	public void shutdown() {
+		if (!isManagedBuildOn()) {
+			super.shutdown();
+		}
+		fManagedBuildOnState = null;
+	}
+
+	public void startup(IProject project, IScannerInfoCollector collector) {
+		if (isManagedBuildOn())
+			return;
 		super.startup(project, collector);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.make.internal.core.scannerconfig.gnu.AbstractGCCBOPConsoleParser#getUtility()
-	 */
-	@Override
-	protected AbstractGCCBOPConsoleParserUtility getUtility() {
-		return fUtil;
+	protected boolean isManagedBuildOn() {
+		if (fManagedBuildOnState == null)
+			fManagedBuildOnState = Boolean.valueOf(doCalcManagedBuildOnState());
+		return fManagedBuildOnState.booleanValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.make.internal.core.scannerconfig.gnu.AbstractGCCBOPConsoleParser#processCommand(java.lang.String[])
-	 */
-	@Override
-	protected boolean processCommand(String[] tokens) {
-		int compilerInvocationIdx = findCompilerInvocation(tokens);
-		if (compilerInvocationIdx < 0) {
+	protected boolean doCalcManagedBuildOnState() {
+		IScannerInfoCollector cr = getCollector();
+		InfoContext c;
+		if (cr instanceof PerProjectSICollector) {
+			c = ((PerProjectSICollector) cr).getContext();
+		} else {
 			return false;
 		}
 
-		if (compilerInvocationIdx + 1 >= tokens.length) {
-			return false;
+		IProject project = c.getProject();
+		ICProjectDescription des = CoreModel.getDefault().getProjectDescription(project, false);
+		CfgInfoContext cc = CfgInfoContext.fromInfoContext(des, c);
+		if (cc != null) {
+			IConfiguration cfg = cc.getConfiguration();
+			return cfg.isManagedBuildOn();
 		}
-
-		// Recognized gcc or g++ compiler invocation
-		List<String> includes = new ArrayList<String>();
-		List<String> symbols = new ArrayList<String>();
-		List<String> targetSpecificOptions = new ArrayList<String>();
-
-		String fileName = null;
-		for (int j = compilerInvocationIdx + 1; j < tokens.length; j++) {
-			String token = tokens[j];
-			if (token.equals(DASHIDASH)) {
-			} else if (token.startsWith(DASHI)) {
-				String candidate = null;
-				if (token.length() > 2) {
-					candidate = token.substring(2).trim();
-				} else if (j + 1 < tokens.length) {
-					candidate = tokens[j + 1];
-					if (candidate.startsWith("-")) { //$NON-NLS-1$
-						candidate = null;
-					} else {
-						j++;
-					}
-				}
-				if (candidate != null && candidate.length() > 0) {
-					if (fUtil != null) {
-						candidate = fUtil.normalizePath(candidate);
-					}
-					if (!includes.contains(candidate)) {
-						includes.add(candidate);
-					}
-				}
-			} else if (token.startsWith(DASHD)) {
-				String candidate = null;
-				if (token.length() > 2) {
-					candidate = token.substring(2).trim();
-				} else if (j + 1 < tokens.length) {
-					candidate = tokens[j + 1];
-					if (candidate.startsWith("-")) { //$NON-NLS-1$
-						candidate = null;
-					} else {
-						j++;
-					}
-				}
-				if (candidate != null && candidate.length() > 0) {
-					if (!symbols.contains(candidate)) {
-						symbols.add(candidate);
-					}
-				}
-			} else if (token.startsWith("-m") || //$NON-NLS-1$
-			        token.equals("-ansi") || //$NON-NLS-1$
-			        token.equals("-nostdinc") || //$NON-NLS-1$
-			        token.equals("-posix") || //$NON-NLS-1$
-			        token.equals("-pthread") || //$NON-NLS-1$
-			        token.startsWith("-O") || //$NON-NLS-1$
-			        token.equals("-fno-inline") || //$NON-NLS-1$
-			        token.startsWith("-finline") || //$NON-NLS-1$
-			        token.equals("-fno-exceptions") || //$NON-NLS-1$
-			        token.equals("-fexceptions") || //$NON-NLS-1$
-			        token.equals("-fshort-wchar") || //$NON-NLS-1$
-			        token.equals("-fshort-double") || //$NON-NLS-1$
-			        token.equals("-fno-signed-char") || //$NON-NLS-1$
-			        token.equals("-fsigned-char") || //$NON-NLS-1$
-			        token.startsWith("-fabi-version=")) { //$NON-NLS-1$
-				if (!targetSpecificOptions.contains(token))
-					targetSpecificOptions.add(token);
-			} else if (fileName == null) {
-				String possibleFileName = token.toLowerCase();
-				if (possibleFileName.endsWith(".c") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".cpp") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".cc") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".cxx") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".C") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".CPP") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".CC") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".CXX") || //$NON-NLS-1$
-				        possibleFileName.endsWith(".c++")) { //$NON-NLS-1$
-					fileName = token;
-				}
-			}
-		}
-
-		if (fileName != null && fileName.startsWith("/cygdrive/")) { //$NON-NLS-1$
-			fileName = AbstractGCCBOPConsoleParserUtility.convertCygpath(new Path(fileName))
-			        .toOSString();
-		}
-		if (fileName == null) {
-			return false; // return when no file was given (analogous to
-			// GCCPerFileBOPConsoleParser)
-		}
-
-		IProject project = getProject();
-		IFile file = null;
-		List<String> translatedIncludes = includes;
-		if (includes.size() > 0) {
-			if (fileName != null) {
-				if (fUtil != null) {
-					file = fUtil.findFile(fileName);
-					if (file != null) {
-						project = file.getProject();
-						translatedIncludes = fUtil.translateRelativePaths(file, fileName, includes);
-					}
-				}
-			} else {
-				StringBuffer line = new StringBuffer();
-				for (int j = 0; j < tokens.length; j++) {
-					line.append(tokens[j]);
-					line.append(' ');
-				}
-				final String error = MakeMessages
-				        .getString("ConsoleParser.Filename_Missing_Error_Message"); //$NON-NLS-1$ 
-				TraceUtil.outputError(error, line.toString());
-				if (fUtil != null) {
-					fUtil.generateMarker(getProject(), -1, error + line.toString(),
-					        IMarkerGenerator.SEVERITY_WARNING, null);
-				}
-			}
-			if (file == null && fUtil != null) { // real world case
-				// remove include paths since there was no chance to translate
-				// them
-				translatedIncludes.clear();
-			}
-		}
-		// Contribute discovered includes and symbols to the
-		// ScannerInfoCollector
-		if (translatedIncludes.size() > 0 || symbols.size() > 0) {
-			Map<ScannerInfoTypes, List<String>> scannerInfo = new HashMap<ScannerInfoTypes, List<String>>();
-			scannerInfo.put(ScannerInfoTypes.INCLUDE_PATHS, translatedIncludes);
-			scannerInfo.put(ScannerInfoTypes.SYMBOL_DEFINITIONS, symbols);
-			scannerInfo.put(ScannerInfoTypes.TARGET_SPECIFIC_OPTION, targetSpecificOptions);
-			getCollector().contributeToScannerConfig(project, scannerInfo);
-
-			TraceUtil.outputTrace("Discovered scanner info for file \'" + fileName + '\'', //$NON-NLS-1$
-			        "Include paths", includes, translatedIncludes, "Defined symbols", symbols); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		return true;
+		return false;
 	}
-
 }
