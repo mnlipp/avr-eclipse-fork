@@ -7,11 +7,11 @@
 ********************************************************************************
 $Id$
 
---------------------------------------------------------------------------------
+================================================================================
 Version 2.1.0 [08 February 2008]
 
 New:
-=============================
+-----------------------------
 * C++ Support
   - Added C++ Compiler and C++ Linker to the toolchain. 
     (Feature Request 1861864)
@@ -23,6 +23,10 @@ New:
   - Selectable via "Convert to..." in the project context menu.
   - Updates the project to most changes for version 2.1
 
+* List of supported MCU types determined at runtime.
+  - The plugin executes "avr-gcc --target-help" to get a list of all AVR target 
+    processors the selected avr-gcc toolchain support.
+
 * Added an AVR Project Nature.
   - Applied to all projects created with the new project wizard, and old projects 
     updated with the project converter. 
@@ -33,14 +37,14 @@ New:
     (Feature Request 1861866)
 
 Changed / Improved:
-=============================
-* Target Hardware settings are now project settings. They apply to all Configurations
+-----------------------------
+* Target Hardware settings are now project settings. They apply to all Build Configurations
   (Feature Requests 1861874 / 1751707)
 
 * Assembler Tool
   - Added Dependency Calculator to the input. Dependencies on .h header files are now handled.
   - Changed Debug format option to default "stabs" (the only format avr-gas can produce)
-  
+
 * Compiler Tool
   - Changed to a working Dependency Calculator. Dependencies are now correctly handled
     during the build process.
@@ -63,22 +67,24 @@ Changed / Improved:
   - Updated and slightly increased
 
 Fixes:
-=============================
+-----------------------------
 * All Tools
   - Changed toolnames from "winAVR ..." to "AVR ..." (Bug 1861870)
-  
+
 * Compiler Tool
   - Missing Compiler Options are fixed by the project update converter (Bug 1861293)
-    
+
 * Linker Tool
   - Changed default map filename to ${BuildArtifactFileBaseName}.map (Bug 1867615)
+
+* Size Tool
+  - Determine at runtime if "--format=avr" option is available and only use it if it is supported.
 
 * AVR Device Explorer
   - Now displays an error message box on errors reading the <avr/io.h> file (Bug 1860840)
 
-
---------------------------------------------------------------------------------
-Version 2.0.1.20071229 [29 December 2007]
+================================================================================
+Version 2.0.1 [29 December 2007]
 
 The main point of this release is to fix the avr-size bug that made it impossible 
 to use the Size tool on non-winAVR toolchains (Linux / MacOSX). Some other fixes
@@ -105,8 +111,8 @@ Fixes:
    - fixed wrong paths on non-Windows platforms, now looks in /usr/bin and /usr/local/bin.
      The whole path managment will be rewritten in 2.1
  
---------------------------------------------------------------------------------
-Version 2.0.0.v20071227 [27 December 2007]
+================================================================================
+Version 2.0.0 [27 December 2007]
 
 This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
 The major changes to the last released version 20070813 are:
