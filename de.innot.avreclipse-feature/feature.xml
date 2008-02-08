@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.innot.avreclipse"
-      label="AVR Eclipse Plugin 2.0"
-      provider-name="%providerName"
-      version="0.0.0">
+      label="AVR Eclipse Plugin"
+      version="0.0.0"
+      provider-name="%providerName">
 
    <description>
       %description
@@ -58,6 +58,5 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
 
 </feature>
