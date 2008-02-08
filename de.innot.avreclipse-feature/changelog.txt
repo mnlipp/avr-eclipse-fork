@@ -8,12 +8,13 @@
 $Id$
 
 --------------------------------------------------------------------------------
-Version 2.1.0
+Version 2.1.0 [08 February 2008]
 
 New:
 =============================
 * C++ Support
-  - Added C++ Compiler and C++ Linker to the toolchain. (Feature Request 1861864)
+  - Added C++ Compiler and C++ Linker to the toolchain. 
+    (Feature Request 1861864)
 
 * AVR Paths preference page
   - New preference page to manage the paths to the avr-gcc toolchain.
@@ -26,6 +27,10 @@ New:
   - Applied to all projects created with the new project wizard, and old projects 
     updated with the project converter. 
   - Restricts AVR GUI Elements to AVR Projects. 
+  
+* Added ScannerConfigurationDiscoveryProfile(s)
+  - avr-gcc build-in include paths and symbols are now correctly discovered
+    (Feature Request 1861866)
 
 Changed / Improved:
 =============================
@@ -43,7 +48,7 @@ Changed / Improved:
     Thanks to Jörg Wünsch for explaining the debug format options
   - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
   - included the same options as mfile (avr-gcc makefile generator)
-  	+ Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
+    + Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
     + Added "-funsigned-char" and "-funsigned-bitfields" to the language flags
   - -c (compile only) option now build in and not required under "other options".
     This was actually changed for 2.0.1, but I forgot to document it.
@@ -53,6 +58,9 @@ Changed / Improved:
   - Handling of additional Tools now done via <enablement> instead of manipulating 
     ManagedBuildSystem internals. (=> Order of Add. Tools is now fixed and cannot
     be changed)
+
+* Documentation
+  - Updated and slightly increased
 
 Fixes:
 =============================
