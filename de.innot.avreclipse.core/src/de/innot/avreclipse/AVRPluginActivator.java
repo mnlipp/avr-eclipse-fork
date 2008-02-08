@@ -6,7 +6,7 @@
  *
  ****************************************************************************/
 
-/* $Id: AVRPluginActivator.java 9 2007-11-25 21:51:59Z thomas $ */
+/* $Id$ */
 
 package de.innot.avreclipse;
 

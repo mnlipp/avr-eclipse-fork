@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: IEntry.java 11 2007-11-26 03:14:58Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 

@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRDeviceView.java 21 2007-11-28 00:52:07Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;

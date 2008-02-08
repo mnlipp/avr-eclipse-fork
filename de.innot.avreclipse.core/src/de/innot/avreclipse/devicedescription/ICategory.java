@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: ICategory.java 14 2007-11-27 12:02:05Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription;

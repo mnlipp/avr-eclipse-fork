@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: EntryLabelProvider.java 9 2007-11-25 21:51:59Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;

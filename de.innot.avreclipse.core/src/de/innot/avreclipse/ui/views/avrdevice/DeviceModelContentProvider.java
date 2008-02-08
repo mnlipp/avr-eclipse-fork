@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: DeviceModelContentProvider.java 11 2007-11-26 03:14:58Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;

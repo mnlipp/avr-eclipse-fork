@@ -11,7 +11,7 @@
  *     Thomas Holland - initial API and implementation
  *     Manuel Stahl - original idea to parse the <avr/io.h> file and the patterns
  *     
- * $Id: AVRiohDeviceDescriptionProvider.java 14 2007-11-27 12:02:05Z thomas $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription.avrio;
