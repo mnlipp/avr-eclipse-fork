@@ -7,37 +7,72 @@
 ********************************************************************************
 $Id$
 
-Version 2.0.1 release date: 29 December 2007
+================================================================================
+Version 2.1.0 release date: 10 February 2008
+
+This is an intermediate release with both bug fixes and new features.
+
+This release is not compatible with the 2.0 versions. To update projects created
+with a 2.0.x version, a project converter is available.
+To execute the converter right click on your project and select the "Convert To..."
+item.
+
+Avrdude - one of the most requested features - is still not supported, but there
+is already some framework code in place for the integration of avrdude in the next
+release.
 
 1. What's new
 
-	The bug that made the Size tool unusable for non-winAVR has been fixed.
-	The Assembler tool is now fully working
-	Some more options for the Assembler, Compiler and Size tools
-	Some minor fixes (see changelog.txt)
+	* C/C++ Support
+	  Just create a new "C++ Project" and select one of the "AVR Cross Target" items.
+
+	* Preference Page to manage the paths to the avr-gcc toolchain
+	  Use this if you have problems with the correct paths. The plugin still tries to
+	  determine the paths to the avr-gcc toolchain and some other files itself, but 
+	  the discovered paths can now be manually adjusted.
+
+	* The MCU type setting is now a project property setting
+	  Right click on an AVR Project and select the AVR Target Hardware item to set the 
+	  MCU Type and Frequency.
+	  Note: per configuration selection of the MCU / F_CPU will come back in one of the 
+	  next versions, but implemented differently than in the 2.0 version.
+
+	* A dedicated "Discovery Profile".
+	  On the project properties go to C/C++ Build --> Discovery Options and select
+	  "AVRGCCManagedMakePerProjectProfileC" or "AVRGCCManagedMakePerProjectProfileCPP".
+	  Then Eclipse will automatically determine the path to the system header filer (e.g. <avr/io.h>)
+	  This is very useful as now an F3 on any #include <....> will open the file. Also the source 
+	  editor will color #ifdef (__AVR_yourMCUtype__) sections correctly (see known issues below).
+
+	* Additional Options for the Compiler.
+	  A few options have been added that are also the default on mfile generated makefiles.
+
+	* Dependencies for the Compiler (and Assembler) work now, so any changes to a header file
+	  will cause all dependent source files to be rebuild.
+
+	* List of supported MCUs determined at runtime.
+	  Now the plugin is always in sync with your avr-gcc / winAVR version.
+
+	* Numerous improvements "under the hood" and some bugfixes. See the changelog for details.
 	
 2. Information
 
 2.1. System Requirements
 
    AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
-    * CDT 4.0 (Eclipse 3.3)
+    * CDT 4.0.x (Eclipse 3.3)
    
    older versions of the JRE or of Eclipse / CDT are not supported
+   
+   It has been tested with
+   	- Windows XP + winAVR 20071221 / 20070525
+   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
+   	
+   	It should run on all platforms meeting the system requirements.
 
 2.2 Known issues
 
-	* none
-	
---------------------------------------------------------------------------------
+	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
+	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
+	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
 
-Version 2.0.0 release date: 27 December 2007
-
-1. What's New
-
-   The current version is 2.0.0 with build ID v20071227. 
-   
-   This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
-   The full list of changes to the last published version 20070813 can be found in 
-   the changelog.
-   
