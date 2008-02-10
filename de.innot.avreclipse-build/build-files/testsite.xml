@@ -4,11 +4,11 @@
       AVR Eclipse Plugin Development Builds
    </description>
    <feature url="features/de.innot.avreclipse_0.0.0.jar" id="de.innot.avreclipse" version="0.0.0">
-      <category name="2.0"/>
+      <category name="Beta"/>
    </feature>
-   <category-def name="2.0" label="AVR Eclipse Plugin 2.0">
+   <category-def name="Beta" label="AVR Eclipse Plugin - Test Build">
       <description>
-         The AVR Eclipse Plugin (Development Builds)
+         The AVR Eclipse Plugin (Test Builds / Beta Versions)
       </description>
    </category-def>
 </site>

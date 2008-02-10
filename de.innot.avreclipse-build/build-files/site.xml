@@ -4,9 +4,9 @@
       AVR Eclipse Plugin Release Builds
    </description>
    <feature url="features/de.innot.avreclipse_0.0.0.jar" id="de.innot.avreclipse" version="0.0.0">
-      <category name="2.0"/>
+      <category name="Release"/>
    </feature>
-   <category-def name="2.0" label="AVR Eclipse Plugin 2.0">
+   <category-def name="Release" label="AVR Eclipse Plugin">
       <description>
          The AVR Eclipse Plugin (including source)
       </description>
