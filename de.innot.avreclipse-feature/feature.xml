@@ -2,8 +2,8 @@
 <feature
       id="de.innot.avreclipse"
       label="AVR Eclipse Plugin"
-      version="0.0.0"
-      provider-name="%providerName">
+      provider-name="%providerName"
+      version="0.0.0">
 
    <description>
       %description
