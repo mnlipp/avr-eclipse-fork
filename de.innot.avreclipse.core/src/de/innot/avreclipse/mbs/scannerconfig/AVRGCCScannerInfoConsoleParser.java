@@ -20,12 +20,14 @@ import org.eclipse.core.resources.IProject;
 public class AVRGCCScannerInfoConsoleParser extends GCCScannerInfoConsoleParser {
 	Boolean fManagedBuildOnState;
 
+	@Override
 	public boolean processLine(String line) {
 		if (isManagedBuildOn())
 			return false;
 		return super.processLine(line);
 	}
 
+	@Override
 	public void shutdown() {
 		if (!isManagedBuildOn()) {
 			super.shutdown();
@@ -33,6 +35,7 @@ public class AVRGCCScannerInfoConsoleParser extends GCCScannerInfoConsoleParser 
 		fManagedBuildOnState = null;
 	}
 
+	@Override
 	public void startup(IProject project, IScannerInfoCollector collector) {
 		if (isManagedBuildOn())
 			return;

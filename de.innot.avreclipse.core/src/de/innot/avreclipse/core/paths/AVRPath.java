@@ -19,9 +19,9 @@ package de.innot.avreclipse.core.paths;
 public enum AVRPath {
 	AVRGCC(true, "AVR-GCC", "Directory containing 'avr-gcc' and the other tools of the AVR-GCC toolchain", "avr-gcc"),
 	MAKE(true, "GNU make", "Directory containing 'make' executable", "make"), 
+	AVRINCLUDE(true, "AVR Header Files", "Directory containing 'avr/io.h' include file", "avr/io.h"), 
 	AVRDUDE(false, "AVRDude", "Directory containing 'avrdude' executable", "avrdude"), 
 	AVRDUDECONFIG(false, "AVRDude.conf", "Directory containing 'avrdude.conf' configuration file", "avrdude.conf"), 
-	AVRINCLUDE(true, "AVR Header Files", "Directory containing 'avr/io.h' include file", "avr/io.h"), 
 	PDFPATH(false, "Atmel Part Description Files", "(currently unused) Directory containing the Atmel Part Description Files", "atmega16.xml");
 
 	private boolean fRequired;
