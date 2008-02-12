@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -46,6 +47,7 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 			String[] empty = {""};
 			return empty;
 		}
+		Collections.sort(devices);
 		return devices.toArray();
 	}
 
