@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -114,8 +116,21 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 	@Override
 	protected Control createContents(Composite parent) {
 
+		// Get the referenced project
+		IProject project = null;
+		IAdaptable element = getElement();
+		if (element instanceof IProject) {
+			project = (IProject) element;
+		} else if (element instanceof ICProject) {
+			project = ((ICProject)element).getProject();
+		} else {
+			// Unknown resource type
+			// TODO: Log Error
+			return null;
+		}
+		
 		// init the property store
-		fPrefs = AVRTargetProperties.getPropertyStore((IProject) getElement());
+		fPrefs = AVRTargetProperties.getPropertyStore(project);
 
 		// Get the list of supported MCU Types
 		fMCUTypes = GCC.getDefault().getToolInfo(GCC.TOOLINFOTYPE_MCUS);
