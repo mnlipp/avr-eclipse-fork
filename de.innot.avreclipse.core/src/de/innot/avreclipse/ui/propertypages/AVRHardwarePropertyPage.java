@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
@@ -59,14 +58,14 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		fPerConfigSelector.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 			}
 		});
-		
+
 	}
 
 	private void addMCUSection(Composite parent) {
@@ -91,8 +90,7 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		fFCPUtext.setLayoutData(gd);
 		fFCPUtext.setTextLimit(8); // max. 99 MHz
 		// TODO: Add a ModifyListener to warn on illegal values
-		fFCPUtext
-				.setText(fPrefs.getString(AVRTargetProperties.KEY_FCPU));
+		fFCPUtext.setText(fPrefs.getString(AVRTargetProperties.KEY_FCPU));
 		fFCPUtext.setToolTipText("Target Hardware Clock Frequency in Hz");
 	}
 
@@ -117,18 +115,13 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 	protected Control createContents(Composite parent) {
 
 		// Get the referenced project
-		IProject project = null;
 		IAdaptable element = getElement();
-		if (element instanceof IProject) {
-			project = (IProject) element;
-		} else if (element instanceof ICProject) {
-			project = ((ICProject)element).getProject();
-		} else {
-			// Unknown resource type
-			// TODO: Log Error
+		IProject project = (IProject) element.getAdapter(IProject.class);
+		if (project == null) {
+			// resource is not an IProject
 			return null;
 		}
-		
+
 		// init the property store
 		fPrefs = AVRTargetProperties.getPropertyStore(project);
 
@@ -169,9 +162,8 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 	protected void performDefaults() {
 		// Restore the default values
 		fMCUcombo.select(fMCUcombo.indexOf(fMCUTypes.get(fPrefs
-				.getDefaultString(AVRTargetProperties.KEY_MCUTYPE))));
-		fFCPUtext.setText(fPrefs
-				.getDefaultString(AVRTargetProperties.KEY_FCPU));
+		        .getDefaultString(AVRTargetProperties.KEY_MCUTYPE))));
+		fFCPUtext.setText(fPrefs.getDefaultString(AVRTargetProperties.KEY_FCPU));
 	}
 
 	@Override
@@ -186,10 +178,8 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		}
 
 		// store the FCPU value
-		fPrefs
-				.setValue(AVRTargetProperties.KEY_FCPU, fFCPUtext
-						.getText());
-		
+		fPrefs.setValue(AVRTargetProperties.KEY_FCPU, fFCPUtext.getText());
+
 		try {
 			AVRTargetProperties.savePreferences(fPrefs);
 		} catch (IOException e) {
@@ -198,8 +188,7 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		}
 
 		// mark the project as dirty for a rebuild
-		IManagedBuildInfo mbi = ManagedBuildManager
-				.getBuildInfo((IResource) getElement());
+		IManagedBuildInfo mbi = ManagedBuildManager.getBuildInfo((IResource) getElement());
 		mbi.setDirty(true);
 		mbi.setRebuildState(true);
 		return true;
