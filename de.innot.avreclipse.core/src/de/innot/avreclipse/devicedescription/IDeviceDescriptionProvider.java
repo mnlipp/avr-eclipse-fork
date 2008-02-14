@@ -44,7 +44,7 @@ public interface IDeviceDescriptionProvider {
 	public String getName();
 
 	/**
-	 * Returns a <code>List</code> with the names of all Devices known to this
+	 * Returns a <code>List</code> with the MCU IDs of all Devices known to this
 	 * provider.
 	 * 
 	 * @return <code>List</code> of Strings
@@ -59,7 +59,7 @@ public interface IDeviceDescriptionProvider {
 	 * {@link #getDeviceList()}.
 	 * 
 	 * @param name
-	 *            The name of the requested device.
+	 *            The id of the requested device.
 	 * @return {@link IDeviceDescription} Object of <code>null</code> if the
 	 *         name was not known or any error occurred reading / parsing the
 	 *         underlying source file(s)

@@ -20,12 +20,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -45,13 +59,18 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
+import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
@@ -86,7 +105,8 @@ public class AVRDeviceView extends ViewPart {
 	private IDeviceDescriptionProvider dmprovider = null;
 
 	private IProviderChangeListener fProviderChangeListener;
-	
+	private ISelectionListener fWorkbenchSelectionListener;
+
 	/**
 	 * The constructor.
 	 * 
@@ -122,9 +142,10 @@ public class AVRDeviceView extends ViewPart {
 	public void createPartControl(Composite parent) {
 
 		fViewParent = parent;
-		
+
 		// All listeners that are need to unregistered on dispose()
 		fProviderChangeListener = new ProviderChangeListener();
+		fWorkbenchSelectionListener = new WorkbenchSelectionListener();
 
 		// Get the default AVRiohDeviceDescriptionProvider
 		// TODO: once more than one DeviceDescriptionProvider exist,
@@ -156,7 +177,6 @@ public class AVRDeviceView extends ViewPart {
 		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
-		fCombo.addSelectionChangedListener(new ComboSelectionChangedListener());
 
 		fSourcesComposite = new Composite(fTop, SWT.NONE);
 		fSourcesComposite.setLayout(new RowLayout());
@@ -167,19 +187,28 @@ public class AVRDeviceView extends ViewPart {
 		// space not used by the top part.
 		fTabFolder = new CTabFolder(fViewParent, SWT.BORDER);
 		fTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		fCombo.addSelectionChangedListener(new ComboSelectionChangedListener());
 		fTabFolder.addSelectionListener(new TabFolderSelectionListener());
 
 		// This will -in turn- cause all the data sub-widgets to be
 		// initialized and displayed
 		providerChanged();
+
+		// Activate the Workbench selection listener
+		getSite().getWorkbenchWindow().getSelectionService().addPostSelectionListener(
+		        fWorkbenchSelectionListener);
+
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
 	@Override
 	public void setFocus() {
-			// Passing the focus request to the treeviewer of the selected tab
+		// Passing the focus request to the treeviewer of the selected tab
 		CTabItem item = fTabFolder.getSelection();
 		if (item != null) {
 			TreeViewer tv = (TreeViewer) item.getData();
@@ -187,16 +216,19 @@ public class AVRDeviceView extends ViewPart {
 		}
 	}
 
-	/* (non-Javadoc)
-     * @see org.eclipse.ui.part.WorkbenchPart#dispose()
-     */
-    @Override
-    public void dispose() {
-    	// remove the listeners from their objects
-    	dmprovider.removeProviderChangeListener(fProviderChangeListener);
-    	super.dispose();
-    }
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		// remove the listeners from their objects
+		dmprovider.removeProviderChangeListener(fProviderChangeListener);
+		getSite().getWorkbenchWindow().getSelectionService().removePostSelectionListener(
+		        fWorkbenchSelectionListener);
+		super.dispose();
+	}
 
 	/**
 	 * Update the controls which make up the sources composite.
@@ -455,9 +487,9 @@ public class AVRDeviceView extends ViewPart {
 			// will load the sources, tabs and treeviewers
 			fCombo.setSelection(new StructuredSelection(show), true);
 		}
-		
+
 	}
-	
+
 	// When a different MCU Type is selected do the following:
 	// - get the new device from the provider
 	// - update the sources text elements
@@ -468,6 +500,7 @@ public class AVRDeviceView extends ViewPart {
 		public void selectionChanged(SelectionChangedEvent event) {
 			String devicename = (String) ((StructuredSelection) event.getSelection())
 			        .getFirstElement();
+			devicename = AVRMCUidConverter.name2id(devicename);
 			if (fMemento != null) {
 				// persist the selected mcu
 				fMemento.putString("combovalue", devicename);
@@ -478,7 +511,7 @@ public class AVRDeviceView extends ViewPart {
 			} else {
 				updateSourcelist(fSourcesComposite, device);
 				updateTabs(fTabFolder, device);
-				setFocus();
+				// setFocus();
 			}
 		}
 	}
@@ -552,7 +585,15 @@ public class AVRDeviceView extends ViewPart {
 			} // switch
 		} // handleevent
 	}
-	
+
+	/**
+	 * Handle Provider Change Events.
+	 * <p>
+	 * This is called from the current DeviceDescriptionProvider whenever its
+	 * internal data has changed. For example, when the user changes the path to
+	 * the source data.
+	 * </p>
+	 */
 	private class ProviderChangeListener implements IProviderChangeListener {
 
 		public void providerChange() {
@@ -561,8 +602,133 @@ public class AVRDeviceView extends ViewPart {
 			fViewParent.getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					providerChanged();
-                }
+				}
 			}); // Runnable
-        }
+		}
+	}
+
+	/**
+	 * Handle Selection Change Events.
+	 * <p>
+	 * This is called by the workbench selection services to inform this viewer,
+	 * that something has been selected on the workbench. If something with an
+	 * AVR MCU type has been selected (Project), then the viewer will show the
+	 * description of the associated mcu.
+	 * </p>
+	 */
+	private class WorkbenchSelectionListener implements ISelectionListener {
+
+		public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
+			// we ignore our own selections
+			if (part == AVRDeviceView.this) {
+				return;
+			}
+
+			// To minimize the GUI impact run the rest of this method in a Job
+			Job selectionjob = new Job("AVR Device Explorer") {
+
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+
+					String newid = null;
+					try {
+
+						monitor.beginTask("Selection Change", 3);
+						List<String> devicelist = dmprovider.getDeviceList();
+						monitor.worked(1);
+
+						// see if the selection is something that has an avr mcu
+						// id
+						if (selection instanceof IStructuredSelection) {
+							// First: Projects
+							IStructuredSelection ss = (IStructuredSelection) selection;
+							newid = getMCUId(ss);
+						} else if (selection instanceof ITextSelection) {
+							// Second: Selected Text
+							String text = ((ITextSelection) selection).getText();
+							// Test if the text is an MCU name/id
+							if (devicelist.contains(AVRMCUidConverter.name2id(text))) {
+								// yes: use it
+								newid = AVRMCUidConverter.name2id(text);
+							}
+						}
+						monitor.worked(1);
+						if (newid != null) {
+							// Test if it is a valid mcu id. Only set valid mcu
+							// ids
+							// as otherwise an error message would be displayed
+							if (!devicelist.contains(AVRMCUidConverter.name2id(newid))) {
+								return Status.OK_STATUS;
+							}
+
+							IDeviceDescription device = dmprovider.getDevice(newid);
+							if (device == null) {
+								// do nothing
+								return Status.OK_STATUS;
+							}
+							// The next call will cause a SelectionChange Event
+							// which handles the rest of the change
+							final IStructuredSelection newselection = new StructuredSelection(
+							        AVRMCUidConverter.id2name(newid));
+							fViewParent.getDisplay().asyncExec(new Runnable() {
+								public void run() {
+									fCombo.setSelection(newselection, true);
+								}
+							}); // Runnable
+						}
+						monitor.worked(1);
+					} finally {
+						monitor.done();
+					}
+					return Status.OK_STATUS;
+				}
+			};
+			selectionjob.setSystem(true);
+			selectionjob.setPriority(Job.SHORT);
+			selectionjob.schedule();
+		}
+
+		/**
+		 * Get the mcu id from the given structured selection.
+		 * <p>
+		 * If the first element of the selection is an AVR project, the mcu type
+		 * is taken from the properties of the active build configuration.
+		 * </p>
+		 * <p>
+		 * If the selection did not contain a valid mcu type <code>null</code>
+		 * is returned
+		 * 
+		 * @param selection
+		 *            <code>IStructuredSelection</code> from the Eclipse
+		 *            Selection Services
+		 * @return String with the mcu id or
+		 *         <code>null</null> if no mcu id was found.
+		 */
+		private String getMCUId(IStructuredSelection selection) {
+
+			Object item = selection.getFirstElement();
+			if ((item != null) && (item instanceof IProject)) {
+				IProject project = (IProject) item;
+				try {
+					IProjectNature nature = project.getNature(PluginIDs.NATURE_ID);
+					if (nature != null) {
+						// This is an AVR Project
+						// Get the selected build configuration then get the
+						// PreferenceStore for it and read the MCU type.
+						IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(project);
+						IConfiguration cfg = bi.getDefaultConfiguration();
+						
+						IPreferenceStore propstore = AVRTargetProperties.getPropertyStore(cfg);
+						return propstore.getString(AVRTargetProperties.KEY_MCUTYPE);
+
+					}
+				} catch (CoreException e) {
+					return null;
+				}
+			}
+
+			// Selection does not contain a mcuid
+			return null;
+		}
 	}
 }

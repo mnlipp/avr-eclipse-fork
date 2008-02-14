@@ -21,6 +21,7 @@ import java.util.List;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 
 public class DeviceListContentProvider implements IStructuredContentProvider {
@@ -48,7 +49,14 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 			return empty;
 		}
 		Collections.sort(devices);
-		return devices.toArray();
+		// Convert the IDs to names
+		String[] nameslist = new String[devices.size()];
+		int i= 0;
+		for (String deviceid : devices) {
+			nameslist[i] = AVRMCUidConverter.id2name(deviceid);
+			i++;
+		}
+		return nameslist;
 	}
 
 	/*

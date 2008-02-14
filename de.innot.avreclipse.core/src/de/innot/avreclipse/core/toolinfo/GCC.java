@@ -31,6 +31,7 @@ import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
  * This class provides some information about the used gcc compiler in the
@@ -139,7 +140,7 @@ public class GCC extends BaseToolInfo {
 					String[] names = line.split(" ");
 					for (int i = 0; i < names.length; i++) {
 						String mcuid = names[i];
-						String mcuname = convertmcuname(mcuid);
+						String mcuname = AVRMCUidConverter.id2name(mcuid);
 						if (mcuname == null) {
 							// some mcuid are generic and should not be included
 							continue;
@@ -167,33 +168,4 @@ public class GCC extends BaseToolInfo {
 		return fMCUmap;
 	}
 
-	/**
-	 * Change the lower case mcuid into the official Name.
-	 * 
-	 * @param mcuid
-	 * @return String with UI name of the MCU or null if it should not be
-	 *         included (e.g. generic family names like 'avr2')
-	 */
-	private static String convertmcuname(String mcuid) {
-		// remove invalid entries
-		if ("".equals(mcuid.trim())) {
-			return null;
-		}
-		// AVR Specific
-		if (mcuid.startsWith("atmega")) {
-			return "ATmega" + mcuid.substring(6).toUpperCase();
-		}
-		if (mcuid.startsWith("attiny")) {
-			return "ATtiny" + mcuid.substring(6).toUpperCase();
-		}
-		if (mcuid.startsWith("at")) {
-			return mcuid.toUpperCase();
-		}
-		if (mcuid.startsWith("avr")) {
-			// don't include the generic family names
-			return null;
-		}
-
-		return mcuid;
-	}
 }

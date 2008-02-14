@@ -38,6 +38,7 @@ import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;
 import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
@@ -124,6 +125,9 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 
 	}
 
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getDevice(java.lang.String)
+	 */
 	public IDeviceDescription getDevice(String name) {
 		if (name == null)
 			return null;
@@ -214,8 +218,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 				}
 				m = incPat.matcher(line);
 				if (m.matches() && curDev != null) {
-
-					devices.put(curDev, m.group(1));
+					devices.put(AVRMCUidConverter.name2id(curDev), m.group(1));
 				}
 			}
 		} catch (IOException ioe) {

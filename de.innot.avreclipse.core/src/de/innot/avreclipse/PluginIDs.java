@@ -20,7 +20,7 @@ package de.innot.avreclipse;
  * They are defined here in one central place to aid refactoring of the plugin.xml
  * 
  * @author Thomas Holland
- * @since 1.0
+ * @since 2.0
  *
  */
 public interface PluginIDs {
@@ -29,27 +29,29 @@ public interface PluginIDs {
 	 * ID of the base toolchain, all other toolchains are derived from this.
 	 * Value: {@value}
 	 */
-	public static String PLUGIN_BASE_TOOLCHAIN = "de.innot.avreclipse.toolchain.winavr.base";
+	public final static String PLUGIN_BASE_TOOLCHAIN = "de.innot.avreclipse.toolchain.winavr.base";
 	
 	/** ID of the mcu type option of the base toolchain. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_OPTION_MCU = "de.innot.avreclipse.toolchain.options.target.mcutype";
+	public final static String PLUGIN_TOOLCHAIN_OPTION_MCU = "de.innot.avreclipse.toolchain.options.target.mcutype";
 	
 	/** ID of the cpu frequency option of the base toolchain. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_OPTION_FCPU = "de.innot.avreclipse.toolchain.options.target.fcpu";
+	public final static String PLUGIN_TOOLCHAIN_OPTION_FCPU = "de.innot.avreclipse.toolchain.options.target.fcpu";
 	
 	/** ID of the compiler tool. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_TOOL_COMPILER = "de.innot.avreclipse.tool.compiler.winavr";
+	public final static String PLUGIN_TOOLCHAIN_TOOL_COMPILER = "de.innot.avreclipse.tool.compiler.winavr";
 
 	/** ID of the linker tool. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_TOOL_LINKER = "de.innot.avreclipse.tool.linker.winavr";
+	public final static String PLUGIN_TOOLCHAIN_TOOL_LINKER = "de.innot.avreclipse.tool.linker.winavr";
 
 	/** ID of the size tool. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
+	public final static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
 
 	/** ID of the size tool format option with avr. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMATWITHAVR = "de.innot.avreclipse.size.option.formatwithavr";
+	public final static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMATWITHAVR = "de.innot.avreclipse.size.option.formatwithavr";
 	
 	/** ID of the size tool format option without avr. Value: {@value} */
-	public static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMAT = "de.innot.avreclipse.size.option.format";
+	public final static String PLUGIN_TOOLCHAIN_TOOL_SIZE_FORMAT = "de.innot.avreclipse.size.option.format";
 	
+	/** ID of the AVR Nature. Value: {@value} */
+	public final static String NATURE_ID = "de.innot.avreclipse.core.avrnature";
 }
