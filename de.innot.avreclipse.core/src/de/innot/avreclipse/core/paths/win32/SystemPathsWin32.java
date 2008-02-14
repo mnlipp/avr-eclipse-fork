@@ -146,11 +146,23 @@ public class SystemPathsWin32 {
 			return fWinAVRPath;
 		}
 		fWinAVRPath = fEmptyPath;
-		String winavrkeyname = WindowsRegistry.getRegistry().getLocalMachineValueName(
-		        "SOFTWARE\\WinAVR", 0);
-		if (winavrkeyname != null) {
+		// get the last installed version of winAVR.
+		// There may be multiple versions of winAVR installed.
+		// This assumes, that the version keys in the Registry
+		// are in the order the versions have been installed.
+		int i = 0;
+		String winavrkey = null, nextkey = null;
+		do {
+			nextkey = WindowsRegistry.getRegistry().getLocalMachineValueName("SOFTWARE\\WinAVR", i);
+			if (nextkey != null) {
+				winavrkey = nextkey;
+				i++;
+			}
+		} while (nextkey != null);
+
+		if (winavrkey != null) {
 			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue("SOFTWARE\\WinAVR",
-			        winavrkeyname);
+			        winavrkey);
 			if (winavr != null) {
 				fWinAVRPath = new Path(winavr);
 			}
