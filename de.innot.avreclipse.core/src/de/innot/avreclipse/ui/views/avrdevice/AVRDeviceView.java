@@ -177,6 +177,9 @@ public class AVRDeviceView extends ViewPart {
 		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
+		
+		// register the combo as a Selection Provider
+		getSite().setSelectionProvider(fCombo);
 
 		fSourcesComposite = new Composite(fTop, SWT.NONE);
 		fSourcesComposite.setLayout(new RowLayout());
@@ -505,7 +508,7 @@ public class AVRDeviceView extends ViewPart {
 				// persist the selected mcu
 				fMemento.putString("combovalue", devicename);
 			}
-			IDeviceDescription device = dmprovider.getDevice(devicename);
+			IDeviceDescription device = (IDeviceDescription) dmprovider.getMCUInfo(devicename);
 			if (device == null) {
 				showMessage(dmprovider.getErrorMessage());
 			} else {
@@ -634,7 +637,7 @@ public class AVRDeviceView extends ViewPart {
 					try {
 
 						monitor.beginTask("Selection Change", 3);
-						List<String> devicelist = dmprovider.getDeviceList();
+						List<String> devicelist = dmprovider.getMCUList();
 						monitor.worked(1);
 
 						// see if the selection is something that has an avr mcu
@@ -661,7 +664,7 @@ public class AVRDeviceView extends ViewPart {
 								return Status.OK_STATUS;
 							}
 
-							IDeviceDescription device = dmprovider.getDevice(newid);
+							IDeviceDescription device = (IDeviceDescription) dmprovider.getMCUInfo(newid);
 							if (device == null) {
 								// do nothing
 								return Status.OK_STATUS;
@@ -707,7 +710,10 @@ public class AVRDeviceView extends ViewPart {
 		private String getMCUId(IStructuredSelection selection) {
 
 			Object item = selection.getFirstElement();
-			if ((item != null) && (item instanceof IProject)) {
+			if (item == null) {
+				return null;
+			}
+			if (item instanceof IProject) {
 				IProject project = (IProject) item;
 				try {
 					IProjectNature nature = project.getNature(PluginIDs.NATURE_ID);
@@ -717,7 +723,7 @@ public class AVRDeviceView extends ViewPart {
 						// PreferenceStore for it and read the MCU type.
 						IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(project);
 						IConfiguration cfg = bi.getDefaultConfiguration();
-						
+
 						IPreferenceStore propstore = AVRTargetProperties.getPropertyStore(cfg);
 						return propstore.getString(AVRTargetProperties.KEY_MCUTYPE);
 
@@ -725,10 +731,16 @@ public class AVRDeviceView extends ViewPart {
 				} catch (CoreException e) {
 					return null;
 				}
+			} else if (item instanceof String) {
+				String mcuname = (String)item;
+				String mcuid = AVRMCUidConverter.name2id(mcuname);
+				return mcuid;
 			}
+			
 
 			// Selection does not contain a mcuid
 			return null;
 		}
+
 	}
 }
