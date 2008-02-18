@@ -23,11 +23,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
 
 import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.IMCUProvider;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
@@ -42,15 +44,19 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @author Thomas Holland
  * @since 2.1
  */
-public class GCC extends BaseToolInfo {
+public class GCC extends BaseToolInfo implements IMCUProvider {
 
 	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
 
+	private static final String INFODESCRIPTION = "AVR-GCC";
+	
 	protected String[] toolinfotypes = { TOOLINFOTYPE_MCUS };
 
 	private static GCC instance = null;
 
 	private Map<String, String> fMCUmap = null;
+	
+	private IPath fCurrentPath = null;
 
 	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRGCC);
 
@@ -84,7 +90,7 @@ public class GCC extends BaseToolInfo {
 	public Map<String, String> getToolInfo(String type) {
 
 		if (TOOLINFOTYPE_MCUS.equals(type)) {
-			return getMCUList();
+			return loadMCUList();
 		}
 
 		return null;
@@ -102,12 +108,51 @@ public class GCC extends BaseToolInfo {
 		return types;
 	}
 
-	/**
-	 * @return Map &lt;internal name, UI name&gt; of all supported MCUs
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
-	private Map<String, String> getMCUList() {
+	public Object getMCUInfo(String mcuid) {
+		Map<String, String> internalmap = loadMCUList();
+		return internalmap.get(mcuid);
+    }
 
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfoDescription()
+	 */
+	public String getMCUInfoDescription() {
+	    return INFODESCRIPTION;
+    }
+
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
+	 */
+	public List<String> getMCUList() {
+		Map<String, String> internalmap = loadMCUList();
+		Set<String> idlist = internalmap.keySet();
+		return new ArrayList<String>(idlist);
+    }
+
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
+	 */
+	public boolean hasMCU(String mcuid) {
+		Map<String, String> internalmap = loadMCUList();
+		return internalmap.containsKey(mcuid);
+    }
+
+	/**
+	 * @return Map &lt;mcu id, UI name&gt; of all supported MCUs
+	 */
+	private Map<String, String> loadMCUList() {
+
+		if (!getToolPath().equals(fCurrentPath)) {
+			// toolpath has changed, reload the list
+			fMCUmap = null;
+			fCurrentPath = getToolPath();
+		}
+		
 		if (fMCUmap != null) {
+			// return stored map
 			return fMCUmap;
 		}
 
