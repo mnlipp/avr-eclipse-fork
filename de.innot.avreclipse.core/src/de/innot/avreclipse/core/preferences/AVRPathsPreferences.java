@@ -16,6 +16,8 @@
 package de.innot.avreclipse.core.preferences;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -49,15 +51,24 @@ public class AVRPathsPreferences {
 	private static final String CLASSNAME = "avrpaths";
 	private static final String QUALIFIER = AVRPluginActivator.PLUGIN_ID + "/" + CLASSNAME;
 
+	private static IPreferenceStore fInstanceStore = null;
+	private static Map<IProject, IPreferenceStore> fProjectStoreMap = new HashMap<IProject, IPreferenceStore>();
+	
 	/**
-	 * Gets the instance AVR Target Hardware properties.
+	 * Gets the instance Path preferences.
 	 * 
 	 * @return IPreferenceStore with the properties
 	 */
 	public static IPreferenceStore getPreferenceStore() {
+		// The instance Path PreferenceStore is cached 
+		if (fInstanceStore != null) {
+			return fInstanceStore;
+		}
 
 		IScopeContext scope = new InstanceScope();
 		IPreferenceStore store = new ScopedPreferenceStore(scope, QUALIFIER);
+
+		fInstanceStore = store;
 		return store;
 	}
 
@@ -72,13 +83,19 @@ public class AVRPathsPreferences {
 	 * @return IPreferenceStore with the properties
 	 */
 	public static IPreferenceStore getPreferenceStore(IProject project) {
-
 		Assert.isNotNull(project);
+
+		IPreferenceStore cachedstore = fProjectStoreMap.get(project);
+		if (cachedstore != null) {
+			return cachedstore;
+		}
 		IScopeContext projectscope = new ProjectScope(project);
 		ScopedPreferenceStore store = new ScopedPreferenceStore(projectscope, QUALIFIER);
 
 		store.setSearchContexts(new IScopeContext[] { projectscope, new InstanceScope() });
 
+		fProjectStoreMap.put(project, store);
+		
 		return store;
 	}
 
