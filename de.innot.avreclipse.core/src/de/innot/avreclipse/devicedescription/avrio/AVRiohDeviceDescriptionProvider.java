@@ -66,7 +66,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 
 	private static AVRiohDeviceDescriptionProvider instance = null;
 
-	private Map<String, String> devices = null;
+	private Map<String, String> fMCUNamesMap = null;
 	private Map<String, DeviceDescription> fCache = null;
 
 	private String fInternalErrorMsg = null;
@@ -98,41 +98,46 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		store.addPropertyChangeListener(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getName()
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfoDescription()
 	 */
-	public String getName() {
-		return DDP_NAME;
-	}
+	public String getMCUInfoDescription() {
+	    return DDP_NAME;
+    }
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getDeviceList()
 	 */
-	public List<String> getDeviceList() {
-		if (devices == null) {
+	public List<String> getMCUList() {
+		if (fMCUNamesMap == null) {
 			try {
 				loadDevices();
 			} catch (IOException ioe) {
 				return null;
 			}
 		}
-		List<String> devs = new ArrayList<String>(devices.keySet());
+		List<String> devs = new ArrayList<String>(fMCUNamesMap.keySet());
 		return devs;
 
+	}
+	
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
+	 */
+	public boolean hasMCU(String mcuid) {
+		return getMCUList().contains(mcuid);
 	}
 
 	/* (non-Javadoc)
 	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getDevice(java.lang.String)
 	 */
-	public IDeviceDescription getDevice(String name) {
+	public IDeviceDescription getMCUInfo(String name) {
 		if (name == null)
 			return null;
 
-		if (devices == null) {
+		if (fMCUNamesMap == null) {
 			try {
 				loadDevices();
 			} catch (IOException ioe) {
@@ -143,7 +148,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 
 		// check if the name actually exists (and has a headerfile to load its
 		// properties from)
-		String headerfile = devices.get(name);
+		String headerfile = fMCUNamesMap.get(name);
 		if (headerfile == null)
 			return null;
 
@@ -187,7 +192,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	}
 
 	/**
-	 * Initialize the list of devices by opening the <avr/io.h> file and parsing
+	 * Initialize the list of fMCUNamesMap by opening the <avr/io.h> file and parsing
 	 * it for all defined MCUs.
 	 * 
 	 * throws IOException if there was an error opening or reading the file.
@@ -202,7 +207,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			throw fnfe;
 		}
 
-		devices = new HashMap<String, String>();
+		fMCUNamesMap = new HashMap<String, String>();
 		String curDev = null;
 
 		String line;
@@ -218,7 +223,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 				}
 				m = incPat.matcher(line);
 				if (m.matches() && curDev != null) {
-					devices.put(AVRMCUidConverter.name2id(curDev), m.group(1));
+					fMCUNamesMap.put(AVRMCUidConverter.name2id(curDev), m.group(1));
 				}
 			}
 		} catch (IOException ioe) {
@@ -419,7 +424,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		if (event.getProperty().equals(AVRPath.AVRINCLUDE.name())) {
 			// Yes: reset the devicelist and fire an event to all of our
 			// own listeners
-			devices = null;
+			fMCUNamesMap = null;
 			fireProviderChangeEvent();
 		}
 	}
@@ -443,4 +448,5 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			fChangeListeners.remove(pcl);
 		}
 	}
+
 }

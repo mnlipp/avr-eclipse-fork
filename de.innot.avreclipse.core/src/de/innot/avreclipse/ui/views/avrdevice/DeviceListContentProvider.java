@@ -42,7 +42,7 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object inputElement) {
-		List<String> devices = dmprovider.getDeviceList();
+		List<String> devices = dmprovider.getMCUList();
 		if (devices == null) {
 			// if the list is null, an internal Provider Error has occurred.
 			String[] empty = {""};
