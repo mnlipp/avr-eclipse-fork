@@ -20,8 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -69,9 +68,6 @@ public class Signatures implements IMCUProvider {
 	// paths to the default and instance properties files
 	private final static IPath DEFAULTPROPSFILE = new Path("properties/signature.properties");
 	private final static IPath INSTANCEPROPSFILE = new Path("signatures.properties");
-
-	// Human readable Description for the Supported MCUs View
-	private final static String DESCRIPTION = "Signature";
 
 	// properties are stored as key=mcuid, value=signature
 	private Properties fProps = new Properties();
@@ -213,17 +209,8 @@ public class Signatures implements IMCUProvider {
 	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
-	public Object getMCUInfo(String mcuid) {
+	public String getMCUInfo(String mcuid) {
 		return fProps.getProperty(mcuid);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfoDescription()
-	 */
-	public String getMCUInfoDescription() {
-		return DESCRIPTION;
 	}
 
 	/*
@@ -231,12 +218,11 @@ public class Signatures implements IMCUProvider {
 	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
-	public List<String> getMCUList() {
+	public Set<String> getMCUList() {
 		// Return all keys of the underlying properties (the mcuids)
 		// as a List
 		Set<String> keyset = fProps.stringPropertyNames();
-		List<String> keylist = new ArrayList<String>(keyset);
-		return keylist;
+		return new HashSet<String>(keyset);
 	}
 
 	/*

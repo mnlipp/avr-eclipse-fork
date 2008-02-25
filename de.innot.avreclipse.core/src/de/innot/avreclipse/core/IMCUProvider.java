@@ -15,7 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.core;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Methods for accessing MCU id values for a tool that has a list of supported MCUs.
@@ -31,11 +31,11 @@ import java.util.List;
 public interface IMCUProvider {
 
 	/**
-	 * Returns a <code>List</code> of all MCU id values the implementor supports.
+	 * Returns a <code>Set</code> of all MCU id values the implementor supports.
 	 * 
-	 * @return List of Strings with the supported MCU id values
+	 * @return <code>Set&lt;String&gt;</code> with the supported MCU id values
 	 */
-	public List<String> getMCUList();
+	public Set<String> getMCUList();
 
 	/**
 	 * Test if the implementor supports the given MCU id.
@@ -49,32 +49,13 @@ public interface IMCUProvider {
 
 	/**
 	 * Returns any information the implementor associates with the given MCU id.
-	 * <p>
-	 * The type of the returned Object is implementation specific. Currently the following return Types are supported by the viewer:
-	 * <ul>
-	 * <li><code>Boolean</code>: An checkmark is shown if <code>true</code>
-	 * <li><code>String</code>: The string value is shown.</li>
-	 * <li><code>URL</code>: A link is shown and the content of the URL is shown when clicked.</li>
-	 * </ul>
-	 * An error "X" is shown when <code>null</code> is returned.
-	 * </p>
 	 * 
 	 * @param mcuid
 	 *            String with a MCU id
-	 * @return <code>Object</code> with some information about the MCU or
+	 * @return <code>String</code> with some information about the MCU or
 	 *         <code>null</code> if no information is available or the MCU id
 	 *         is unknown.
 	 */
-	public Object getMCUInfo(String mcuid);
-
-	/**
-	 * Get a descriptive String for the implementor.
-	 * <p>
-	 * This is used as the column header in the Supported MCU View.
-	 * </p>
-	 * 
-	 * @return String with a human readable description.
-	 */
-	public String getMCUInfoDescription();
+	public String getMCUInfo(String mcuid);
 
 }

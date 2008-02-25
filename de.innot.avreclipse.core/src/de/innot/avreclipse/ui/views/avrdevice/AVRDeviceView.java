@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
@@ -508,7 +509,7 @@ public class AVRDeviceView extends ViewPart {
 				// persist the selected mcu
 				fMemento.putString("combovalue", devicename);
 			}
-			IDeviceDescription device = (IDeviceDescription) dmprovider.getMCUInfo(devicename);
+			IDeviceDescription device = dmprovider.getDeviceDescription(devicename);
 			if (device == null) {
 				showMessage(dmprovider.getErrorMessage());
 			} else {
@@ -637,7 +638,7 @@ public class AVRDeviceView extends ViewPart {
 					try {
 
 						monitor.beginTask("Selection Change", 3);
-						List<String> devicelist = dmprovider.getMCUList();
+						Set<String> devicelist = dmprovider.getMCUList();
 						monitor.worked(1);
 
 						// see if the selection is something that has an avr mcu
@@ -664,7 +665,7 @@ public class AVRDeviceView extends ViewPart {
 								return Status.OK_STATUS;
 							}
 
-							IDeviceDescription device = (IDeviceDescription) dmprovider.getMCUInfo(newid);
+							IDeviceDescription device = dmprovider.getDeviceDescription(newid);
 							if (device == null) {
 								// do nothing
 								return Status.OK_STATUS;

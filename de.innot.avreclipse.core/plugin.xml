@@ -127,6 +127,15 @@
 			id="de.innot.avreclipse.views.AVRDeviceView" 
 			name="AVR Device Explorer" />
 	</extension>
+
+	<extension point="org.eclipse.ui.views">
+		<category id="de.innot.avreclipse" name="AVR" />
+		<view category="de.innot.avreclipse"
+			class="de.innot.avreclipse.ui.views.supportedmcu.SupportedMCUs" 
+			icon="icons/sample.gif"
+			id="de.innot.avreclipse.views.supportedmcus" 
+			name="AVR Supported MCUs" />
+	</extension>
 	
 	<extension point="org.eclipse.ui.perspectiveExtensions">
 		<perspectiveExtension
@@ -2045,5 +2054,6 @@
 	        mbsVersion="4.0.0">
 	    </converter>
 	</extension>
+
 
 </plugin>

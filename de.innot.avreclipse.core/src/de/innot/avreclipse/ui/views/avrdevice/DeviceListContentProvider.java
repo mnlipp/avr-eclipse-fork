@@ -15,8 +15,10 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -42,12 +44,15 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object inputElement) {
-		List<String> devices = dmprovider.getMCUList();
-		if (devices == null) {
+		Set<String> devicesset = dmprovider.getMCUList();
+		if (devicesset == null) {
 			// if the list is null, an internal Provider Error has occurred.
 			String[] empty = {""};
 			return empty;
 		}
+		
+		// Convert to an List so that it can be sorted
+		List<String>devices = new ArrayList<String>(devicesset);
 		Collections.sort(devices);
 		// Convert the IDs to names
 		String[] nameslist = new String[devices.size()];

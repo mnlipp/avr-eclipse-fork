@@ -23,8 +23,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,9 +62,8 @@ import de.innot.avreclipse.devicedescription.IProviderChangeListener;
  * @author Thomas Holland
  * @author Manuel Stahl
  */
-public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvider, IPropertyChangeListener {
-
-	final static String DDP_NAME = "<avr/io.h>";
+public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvider,
+        IPropertyChangeListener {
 
 	private static AVRiohDeviceDescriptionProvider instance = null;
 
@@ -75,7 +76,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	        0);
 
 	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRINCLUDE);
-	
+
 	/**
 	 * Get an instance of this DeviceModelProvider.
 	 */
@@ -98,19 +99,12 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		store.addPropertyChangeListener(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfoDescription()
-	 */
-	public String getMCUInfoDescription() {
-	    return DDP_NAME;
-    }
-
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getDeviceList()
 	 */
-	public List<String> getMCUList() {
+	public Set<String> getMCUList() {
 		if (fMCUNamesMap == null) {
 			try {
 				loadDevices();
@@ -118,22 +112,48 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 				return null;
 			}
 		}
-		List<String> devs = new ArrayList<String>(fMCUNamesMap.keySet());
+		Set<String> devs = new HashSet<String>(fMCUNamesMap.keySet());
 		return devs;
 
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
 		return getMCUList().contains(mcuid);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider#getDevice(java.lang.String)
 	 */
-	public IDeviceDescription getMCUInfo(String name) {
+	public String getMCUInfo(String name) {
+		IDeviceDescription dd = getDeviceDescription(name);
+		if (dd == null) {
+			return null;
+		}
+		List<String> headerfiles = dd.getSourcesList();
+		if (headerfiles.size() > 0) {
+			// TODO: maybe append the sub-header files
+			return headerfiles.get(0);
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the IDeviceDescription for the given MCU id
+	 * 
+	 * @param name
+	 *            String with a MCU id
+	 * @return <code>IDeviceDescription</code> or <code>null</code> if the
+	 *         give MCU id is not known or an error has occured reading the
+	 *         files.
+	 */
+	public IDeviceDescription getDeviceDescription(String name) {
 		if (name == null)
 			return null;
 
@@ -192,8 +212,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	}
 
 	/**
-	 * Initialize the list of fMCUNamesMap by opening the <avr/io.h> file and parsing
-	 * it for all defined MCUs.
+	 * Initialize the list of fMCUNamesMap by opening the <avr/io.h> file and
+	 * parsing it for all defined MCUs.
 	 * 
 	 * throws IOException if there was an error opening or reading the file.
 	 */
@@ -239,7 +259,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		device.addHeaderFile(headerfile);
 
 		BufferedReader in;
-		
+
 		File hfile = new File(getAVRIncludePath() + "/" + headerfile);
 
 		try {
@@ -247,7 +267,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			// if it can't be opened
 			in = new BufferedReader(new FileReader(hfile));
 		} catch (FileNotFoundException fnfe) {
-			fInternalErrorMsg = "Cannot open source header file \"" + hfile.getAbsolutePath() + "\".";
+			fInternalErrorMsg = "Cannot open source header file \"" + hfile.getAbsolutePath()
+			        + "\".";
 			throw fnfe;
 		}
 
@@ -389,7 +410,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 				}
 			}
 		} catch (IOException ioe) {
-			fInternalErrorMsg = "Cannot read source header file \"" + hfile.getAbsolutePath() + "\".";
+			fInternalErrorMsg = "Cannot read source header file \"" + hfile.getAbsolutePath()
+			        + "\".";
 			throw ioe;
 		}
 		fInternalErrorMsg = null;

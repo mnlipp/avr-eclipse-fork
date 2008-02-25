@@ -28,6 +28,21 @@ import de.innot.avreclipse.core.IMCUProvider;
 public interface IDeviceDescriptionProvider extends IMCUProvider {
 
 	/**
+	 * Returns a {@link IDeviceDescription} Object for the Device with the given
+	 * name.
+	 * 
+	 * The name must be one of the names in the list returned by
+	 * {@link #getDeviceList()}.
+	 * 
+	 * @param name
+	 *            The name of the requested device.
+	 * @return {@link IDeviceDescription} Object of <code>null</code> if the
+	 *         name was not known or any error occurred reading / parsing the
+	 *         underlying source file(s)
+	 */
+	public IDeviceDescription getDeviceDescription(String name);
+
+	/**
 	 * Get the Path of the directory where the device description comes from.
 	 * 
 	 * This method should be used together with

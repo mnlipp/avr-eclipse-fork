@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +49,6 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
 
-	private static final String INFODESCRIPTION = "AVR-GCC";
-	
 	protected String[] toolinfotypes = { TOOLINFOTYPE_MCUS };
 
 	private static GCC instance = null;
@@ -111,25 +110,18 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	/* (non-Javadoc)
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
-	public Object getMCUInfo(String mcuid) {
+	public String getMCUInfo(String mcuid) {
 		Map<String, String> internalmap = loadMCUList();
 		return internalmap.get(mcuid);
     }
 
 	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfoDescription()
-	 */
-	public String getMCUInfoDescription() {
-	    return INFODESCRIPTION;
-    }
-
-	/* (non-Javadoc)
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
-	public List<String> getMCUList() {
+	public Set<String> getMCUList() {
 		Map<String, String> internalmap = loadMCUList();
 		Set<String> idlist = internalmap.keySet();
-		return new ArrayList<String>(idlist);
+		return new HashSet<String>(idlist);
     }
 
 	/* (non-Javadoc)

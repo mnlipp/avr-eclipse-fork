@@ -15,57 +15,53 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo;
 
-import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
+
 import de.innot.avreclipse.core.IMCUProvider;
-import de.innot.avreclipse.core.util.AVRMCUidConverter;
+import de.innot.avreclipse.core.preferences.DatasheetPreferences;
 
 /**
- * This class handles the conversion of known MCU ids to MCU Names.
+ * This class handles the Datasheets.
+ * <p>
+ * This class has two main functions:
+ * <ol>
+ * <li>It maps the {@link DatasheetPreferences} to the {@link IMCUProvider}
+ * Interface.</li>
+ * <li>It manages the access to the actual Datasheet files.</li>
+ * </ol>
+ * Datasheets can be accessed with the
+ * {@link #getFile(String, IProgressMonitor)} method. This method will
+ * download the file from the URL stored in the preferences, and store it in a
+ * cache for later access.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  * 
  */
-public class MCUNames implements IMCUProvider {
+public class Datasheets implements IMCUProvider {
 
-	private static MCUNames fInstance = null;
+	private static Datasheets fInstance = null;
+
+	private IPreferenceStore fPreferenceStore = null;
 
 	/**
-	 * Get the default instance of the Signatures class
+	 * Get the default instance of the Datasheets class
 	 */
-	public static MCUNames getDefault() {
+	public static Datasheets getDefault() {
 		if (fInstance == null)
-			fInstance = new MCUNames();
+			fInstance = new Datasheets();
 		return fInstance;
 	}
 
 	// private constructor to prevent instantiation
-	private MCUNames() {
-	}
+	private Datasheets() {
 
-	/**
-	 * Get the Name for the given MCU id.
-	 * 
-	 * @param mcuid
-	 *            String with a MCU id
-	 * @return String with the MCU Name.
-	 */
-	public String getName(String mcuid) {
-		return AVRMCUidConverter.id2name(mcuid);
-	}
-
-	/**
-	 * Get the MCU id for the given Name.
-	 * 
-	 * @param mcuname
-	 *            String with an MCU name
-	 * @return String with the corresponding MCU id or <code>null</code> if
-	 *         the given id is invalid.
-	 */
-	public String getID(String mcuname) {
-		return AVRMCUidConverter.name2id(mcuname);
+		// Get the preference store for the datasheets
+		fPreferenceStore = DatasheetPreferences.getPreferenceStore();
 	}
 
 	//
@@ -78,7 +74,7 @@ public class MCUNames implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
 	public String getMCUInfo(String mcuid) {
-		return getName(mcuid);
+		return fPreferenceStore.getString(mcuid);
 	}
 
 	/*
@@ -87,7 +83,8 @@ public class MCUNames implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
 	public Set<String> getMCUList() {
-		return new HashSet<String>(0);
+		Set<String> allmcus = DatasheetPreferences.getAllMCUs();
+		return allmcus;
 	}
 
 	/*
@@ -96,10 +93,8 @@ public class MCUNames implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
-		if (getName(mcuid)!= null) {
-			return true;
-		}
-		return false;
+		String value = fPreferenceStore.getString(mcuid);
+		return "".equals(value) ? false : true;
 	}
 
 }

@@ -40,6 +40,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		// Store default values to default preferences
 	 	AVRTargetProperties.initializeDefaultPreferences();
 	 	AVRPathsPreferences.initializeDefaultPreferences();
+	 	DatasheetPreferences.initializeDefaultPreferences();
 	 	
 	 	// TODO: get the 2.0.x preferences and update to 2.1
 	 	
