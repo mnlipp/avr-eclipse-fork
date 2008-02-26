@@ -131,7 +131,7 @@
 	<extension point="org.eclipse.ui.views">
 		<category id="de.innot.avreclipse" name="AVR" />
 		<view category="de.innot.avreclipse"
-			class="de.innot.avreclipse.ui.views.supportedmcu.SupportedMCUs" 
+			class="de.innot.avreclipse.ui.views.supportedmcu.MCUListView" 
 			icon="icons/sample.gif"
 			id="de.innot.avreclipse.views.supportedmcus" 
 			name="AVR Supported MCUs" />

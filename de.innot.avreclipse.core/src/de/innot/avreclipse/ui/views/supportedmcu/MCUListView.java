@@ -15,7 +15,9 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.supportedmcu;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
@@ -23,21 +25,16 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
-import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -59,7 +56,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @since 2.2
  */
 
-public class SupportedMCUs extends ViewPart {
+public class MCUListView extends ViewPart {
 
 	// The parent Composite of this Viewer
 	private Composite fViewParent;
@@ -67,12 +64,14 @@ public class SupportedMCUs extends ViewPart {
 	private TableViewer fTable;
 	private SupportedContentProvider fProvider;
 
+	private List<MCUListColumn> fColumns = new ArrayList<MCUListColumn>();
+
 	@SuppressWarnings("unused")
 	private IMemento fMemento;
 
 	private ISelectionListener fWorkbenchSelectionListener;
 
-	private SupportedModel fModel = null;
+	private SupportedContentProvider fContentProvider = null;
 
 	public enum LabelStyle {
 		SHOW_STRING, SHOW_YESNO, SHOW_URL;
@@ -83,7 +82,7 @@ public class SupportedMCUs extends ViewPart {
 	 * 
 	 * Nothing done here.
 	 */
-	public SupportedMCUs() {
+	public MCUListView() {
 	}
 
 	/*
@@ -94,7 +93,7 @@ public class SupportedMCUs extends ViewPart {
 		// Initialize the SuperClass and store the passed memento for use by
 		// the individual methods.
 		super.init(site, memento);
-		fMemento = memento;
+		// fMemento = memento;
 	}
 
 	@Override
@@ -114,8 +113,6 @@ public class SupportedMCUs extends ViewPart {
 
 		fViewParent = parent;
 
-		fModel = new SupportedModel();
-
 		// All listeners that are need to unregistered on dispose()
 		fWorkbenchSelectionListener = new WorkbenchSelectionListener();
 
@@ -130,32 +127,16 @@ public class SupportedMCUs extends ViewPart {
 		fTable.getTable().setHeaderVisible(true);
 		fTable.getTable().setLinesVisible(true);
 
-		MCUProviderEnum[] providerlist = MCUProviderEnum.values();
-		for (MCUProviderEnum provider : providerlist) {
-			TableViewerColumn column = new TableViewerColumn(fTable, SWT.NONE);
-			column.getColumn().setText(provider.getName());
-			switch (provider.getLabelStyle()) {
-			case SHOW_STRING:
-				column.setLabelProvider(new StringColumnLabelProvider(provider));
-				tcl.setColumnData(column.getColumn(), new ColumnWeightData(20, 60));
-				break;
-			case SHOW_YESNO:
-				column.setLabelProvider(new BooleanColumnLabelProvider(provider));
-				column.getColumn().setAlignment(SWT.CENTER);
-				tcl.setColumnData(column.getColumn(), new ColumnWeightData(5, 60));
-				break;
-			case SHOW_URL:
-				column.setLabelProvider(new URLColumnLabelProvider(provider));
-				column.setEditingSupport(new URLEditingSupport(fTable, provider));
-				tcl.setColumnData(column.getColumn(), new ColumnWeightData(20, 60));
-				break;
-			}
+		MCUListColumn[] providerlist = MCUListColumn.values();
+		for (MCUListColumn provider : providerlist) {
+			provider.addColumn(fTable, tcl);
+			fColumns.add(provider);
 		}
 
 		OwnerDrawLabelProvider.setUpOwnerDraw(fTable);
 		ColumnViewerToolTipSupport.enableFor(fTable, ToolTip.NO_RECREATE);
-		
-		fTable.setInput(fModel);
+
+		fTable.setInput(fContentProvider);
 
 		// Add the Table as a Workbench Selection provider
 		getSite().setSelectionProvider(fTable);
@@ -163,6 +144,11 @@ public class SupportedMCUs extends ViewPart {
 		// Activate the Workbench selection listener
 		getSite().getWorkbenchWindow().getSelectionService().addPostSelectionListener(
 		        fWorkbenchSelectionListener);
+
+		for (MCUListColumn mlc : fColumns) {
+			mlc.updateColumn();
+		}
+
 	}
 
 	/*
@@ -189,22 +175,6 @@ public class SupportedMCUs extends ViewPart {
 	}
 
 	/**
-	 * Handle Model Change Events.
-	 * <p>
-	 * This is called from the current DeviceDescriptionProvider whenever its
-	 * internal data has changed. For example, when the user changes the path to
-	 * the source data.
-	 * </p>
-	 */
-	/*
-	 * private class ModelChangeListener implements IModelChangeListener {
-	 * 
-	 * public void modelChange() { // We don't know which Threat this comes
-	 * from. // Assume its not the SWT Threat and act accordingly
-	 * fViewParent.getDisplay().asyncExec(new Runnable() { public void run() {
-	 * modelChanged(); } }); // Runnable } }
-	 */
-	/**
 	 * Handle Selection Change Events.
 	 * <p>
 	 * This is called by the workbench selection services to inform this viewer,
@@ -215,68 +185,51 @@ public class SupportedMCUs extends ViewPart {
 	 */
 	private class WorkbenchSelectionListener implements ISelectionListener {
 
+		/* (non-Javadoc)
+		 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+		 */
 		public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
 			// we ignore our own selections
-			if (part == SupportedMCUs.this) {
+			if (part == MCUListView.this) {
 				return;
 			}
 
-			// To minimize the GUI impact run the rest of this method in a Job
-			Job selectionjob = new Job("AVR Supported MCU List") {
+			String newid = null;
+			Set<String> mculist = fContentProvider.getMasterMCUList();
 
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
+			// see if the selection is something that has an AVR MCU id
+			if (selection instanceof IStructuredSelection) {
+				// First: Projects
+				IStructuredSelection ss = (IStructuredSelection) selection;
+				newid = getMCUId(ss);
+			} else if (selection instanceof ITextSelection) {
+				// Second: Selected Text
+				String text = ((ITextSelection) selection).getText();
+				// Test if the text is an MCU name/id
+				if (mculist.contains(AVRMCUidConverter.name2id(text))) {
+					// yes: use it
+					newid = AVRMCUidConverter.name2id(text);
+				}
+			}
+			if (newid != null) {
+				// Test if it is a valid mcu id. Only set valid mcu
+				// id values
+				// as otherwise an error message would be displayed
+				if (!mculist.contains(AVRMCUidConverter.name2id(newid))) {
+					return;
+				}
 
-					String newid = null;
-					try {
-
-						monitor.beginTask("Selection Change", 3);
-						List<String> mculist = fModel.getMCUList();
-						monitor.worked(1);
-
-						// see if the selection is something that has an avr mcu
-						// id
-						if (selection instanceof IStructuredSelection) {
-							// First: Projects
-							IStructuredSelection ss = (IStructuredSelection) selection;
-							newid = getMCUId(ss);
-						} else if (selection instanceof ITextSelection) {
-							// Second: Selected Text
-							String text = ((ITextSelection) selection).getText();
-							// Test if the text is an MCU name/id
-							if (mculist.contains(AVRMCUidConverter.name2id(text))) {
-								// yes: use it
-								newid = AVRMCUidConverter.name2id(text);
-							}
-						}
-						monitor.worked(1);
-						if (newid != null) {
-							// Test if it is a valid mcu id. Only set valid mcu
-							// ids
-							// as otherwise an error message would be displayed
-							if (!mculist.contains(AVRMCUidConverter.name2id(newid))) {
-								return Status.OK_STATUS;
-							}
-
+				final IStructuredSelection newselection = new StructuredSelection(newid);
+				if ((fViewParent != null) && (!fViewParent.isDisposed())) {
+					fViewParent.getDisplay().asyncExec(new Runnable() {
+						public void run() {
 							// The next call will cause a SelectionChange Event
 							// which handles the rest of the change
-							final IStructuredSelection newselection = new StructuredSelection(newid);
-							fViewParent.getDisplay().asyncExec(new Runnable() {
-								public void run() {
-									fTable.setSelection(newselection, true);
-								}
-							}); // Runnable
+							fTable.setSelection(newselection, true);
 						}
-						monitor.worked(1);
-					} finally {
-						monitor.done();
-					}
-					return Status.OK_STATUS;
+					}); // Runnable
 				}
-			};
-			selectionjob.setSystem(true);
-			selectionjob.setPriority(Job.SHORT);
-			selectionjob.schedule();
+			}
 		}
 
 		/**
@@ -301,8 +254,18 @@ public class SupportedMCUs extends ViewPart {
 			if (item == null) {
 				return null;
 			}
+			IProject project = null;
+
+			// See if the given is an IProject (directly or via IAdaptable
 			if (item instanceof IProject) {
-				IProject project = (IProject) item;
+				project = (IProject) item;
+			} else if (item instanceof IAdaptable) {
+				IAdaptable adaptable = (IAdaptable)item;
+				project = (IProject)adaptable.getAdapter(IProject.class);
+			}
+			
+			if (project != null) {
+				// Ok, the item is a IProject
 				try {
 					IProjectNature nature = project.getNature(PluginIDs.NATURE_ID);
 					if (nature != null) {
@@ -320,6 +283,7 @@ public class SupportedMCUs extends ViewPart {
 					return null;
 				}
 			} else if (item instanceof String) {
+				// The item was not an IProject, but a String
 				String mcuname = (String) item;
 				String mcuid = AVRMCUidConverter.name2id(mcuname);
 				return mcuid;

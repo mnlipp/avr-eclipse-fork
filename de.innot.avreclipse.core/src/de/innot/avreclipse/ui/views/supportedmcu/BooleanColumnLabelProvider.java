@@ -22,58 +22,90 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 
 import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.core.IMCUProvider;
 
 /**
- * @author Thomas Holland
+ * A special LabelProvider that draws a checkmark or a cross, depending on
+ * whether a MCU is supported or not.
+ * <p>
+ * Extends {@link OwnerDrawLabelProvider} to draw the symbol centered in the
+ * cell.
+ * </p>
  * 
+ * @author Thomas Holland
+ * @since 2.2.
  */
 public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 
-	private MCUProviderEnum fProvider = null;
+	/**
+	 * The provider of the yes/no information. The
+	 * {@link IMCUProvider#hasMCU(String)} method of the provider is called to
+	 * determine what image to draw
+	 */
+	private IMCUProvider fProvider = null;
 
-	private Image fYesImage = null;
-	private Image fNoImage = null;
+	/** The image for a supported MCU */
+	private Image fYesImage;
 
-	public BooleanColumnLabelProvider(MCUProviderEnum provider) {
+	/** The image for an unsupported MCU */
+	private Image fNoImage;
+
+	/**
+	 * Initialize this ColumnLabelProvider with an IMCUProvider
+	 * 
+	 * @param provider
+	 *            <code>IMCUProvider</code> that will be used for this column
+	 */
+	public BooleanColumnLabelProvider(IMCUProvider provider) {
 		fProvider = provider;
 
-		// Create the Images if they have not been created yet by another
-		// instantiation
-		if (fYesImage == null) {
-			fYesImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/yes.png")
-			        .createImage();
-		}
-		if (fNoImage == null) {
-			fNoImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/no.png").createImage();
-		}
+		// Load the images
+		fYesImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/yes.png").createImage();
+		fNoImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/no.png").createImage();
 	}
 
+	/**
+	 * Disposes the allocated images and calls the superclass to dispose an
+	 * other resources.
+	 * 
+	 * @see OwnerDrawLabelProvider#dispose();
+	 */
 	public void dispose() {
-		if (fYesImage != null) {
-			fYesImage.dispose();
-		}
-		if (fNoImage != null) {
-			fNoImage.dispose();
-		}
+		fYesImage.dispose();
+		fNoImage.dispose();
+		super.dispose();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.viewers.OwnerDrawLabelProvider#measure(org.eclipse.swt.widgets.Event,
+	 *      java.lang.Object)
+	 */
 	@Override
-    protected void measure(Event event, Object element) {
-		// Set the bounds of the icon(s)
-		event.width = fYesImage.getBounds().width;
-		event.height = fYesImage.getBounds().height;
-    }
+	protected void measure(Event event, Object element) {
+		// Set the bounds of the images
+		Rectangle yesbounds = fYesImage.getBounds();
+		Rectangle nobounds = fNoImage.getBounds();
+		event.width = Math.max(yesbounds.width, nobounds.width);
+		event.height = Math.max(yesbounds.height, nobounds.height);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.viewers.OwnerDrawLabelProvider#paint(org.eclipse.swt.widgets.Event,
+	 *      java.lang.Object)
+	 */
 	@Override
-    protected void paint(Event event, Object element) {
-		
+	protected void paint(Event event, Object element) {
+
 		String mcuid = (String) element;
-		
 		Image img = fProvider.hasMCU(mcuid) ? fYesImage : fNoImage;
 
 		if (img != null) {
-			Rectangle bounds = ((TableItem) event.item)
-					.getBounds(event.index);
+			// draw the image centered into the cell
+			Rectangle bounds = ((TableItem) event.item).getBounds(event.index);
 			Rectangle imgBounds = img.getBounds();
 			bounds.width /= 2;
 			bounds.width -= imgBounds.width / 2;
@@ -84,7 +116,21 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 			int y = bounds.height > 0 ? bounds.y + bounds.height : bounds.y;
 
 			event.gc.drawImage(img, x, y);
-		}	    
-    }
+		}
+	}
 
+	/**
+	 * Handle the erase event.
+	 * <p>
+	 * This method does nothing and is only here to prevent the superclass from
+	 * messing up
+	 * </p>
+	 */
+	@Override
+	protected void erase(Event event, Object element) {
+		// Just let SWT handle this just right
+		// (unlike the implementation in the superclass, which
+		// does not account for the focus)
+		return;
+	}
 }

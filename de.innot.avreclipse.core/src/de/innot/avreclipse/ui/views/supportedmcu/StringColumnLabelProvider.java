@@ -17,17 +17,27 @@ package de.innot.avreclipse.ui.views.supportedmcu;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 
+import de.innot.avreclipse.core.IMCUProvider;
+
 /**
- * @author U043192
+ * A very simple ColumnLabelProvider that shows the MCU info from the
+ * IMCUProvider for the given element (which is a String with a MCU id value).
  * 
+ * @author Thomas Holland
+ * @since 2.2
  */
 public class StringColumnLabelProvider extends ColumnLabelProvider {
 
-	private MCUProviderEnum fProvider = null;
+	/** The IMCUProvider associated with this ColumnLabelProvider */
+	private IMCUProvider fProvider = null;
 
-	public StringColumnLabelProvider(MCUProviderEnum provider) {
+	/**
+	 * Creates a new ColumnLabelProvider for the given IMCUProvider.
+	 * 
+	 * @param provider <code>IMCUProvider<code> source
+	 */
+	public StringColumnLabelProvider(IMCUProvider provider) {
 		fProvider = provider;
-
 	}
 
 	/*
@@ -38,9 +48,9 @@ public class StringColumnLabelProvider extends ColumnLabelProvider {
 	@Override
 	public String getText(Object element) {
 
+		// get the info for the given mcu id and return it
 		String mcuid = (String) element;
 		String info = fProvider.getMCUInfo(mcuid);
-
 		return info != null ? info : "n/a";
 	}
 }
