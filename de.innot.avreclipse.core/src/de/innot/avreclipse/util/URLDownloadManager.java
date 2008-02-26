@@ -148,6 +148,20 @@ public class URLDownloadManager {
 	}
 
 	/**
+	 * Checks if the given URL has already been downloaded and is in the cache.
+	 * 
+	 * @param url The <code>URL</code> to check
+	 * @return <code>true</code> if the URL is already in the cache, <code>false</code> otherwise.
+	 */
+	public static boolean inCache(URL url) {
+		File targetfile = getCacheFileFromURL(url);
+		if (targetfile.canRead()) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Download the given URL.
 	 * <p>
 	 * If the file is already in the cache, it is taken from there.
@@ -204,7 +218,7 @@ public class URLDownloadManager {
 		File tempfile = null;
 		InputStream sourcestream = null;
 		OutputStream targetstream = null;
-		
+
 		// This is set to true once the method finishes successfully
 		// if not true at the finally part, all downloaded files are
 		// deleted to not leave any stale files behind.
@@ -345,7 +359,7 @@ public class URLDownloadManager {
 
 			// cleanup if we come here from an exception
 			if (!finished) {
-				
+
 				// close any open streams
 				try {
 					if (sourcestream != null) {
@@ -355,7 +369,8 @@ public class URLDownloadManager {
 						targetstream.close();
 					}
 				} catch (IOException ioe) {
-					// ignore, can't do anything about it and an Exception is already underway
+					// ignore, can't do anything about it and an Exception is
+					// already underway
 				}
 
 				// delete any (partially) downloaded files
@@ -367,7 +382,7 @@ public class URLDownloadManager {
 				}
 				if ((targetfile != null) && (targetfile.exists())) {
 					if (!targetfile.delete()) {
-						//ignore
+						// ignore
 					}
 				}
 			}
