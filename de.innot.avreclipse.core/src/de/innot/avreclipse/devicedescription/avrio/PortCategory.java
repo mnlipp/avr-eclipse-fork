@@ -15,6 +15,8 @@
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription.avrio;
 
+import java.util.Arrays;
+
 import de.innot.avreclipse.devicedescription.ICategory;
 
 /**
@@ -64,12 +66,11 @@ public class PortCategory extends BaseEntry implements ICategory {
 	}
 
 	public String[] getColumnLabels() {
-		return fLabels;
+		return Arrays.copyOf(fLabels, fLabels.length);
 	}
 
 	public int[] getColumnDefaultWidths() {
-		return fDefaultWidths;
+		return Arrays.copyOf(fDefaultWidths, fDefaultWidths.length);
 	}
-
 
 }

@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
@@ -69,7 +70,10 @@ public interface IDeviceDescription {
 	 * Compare two IDeviceDescription Objects. Used for sorting the list of
 	 * devices.
 	 */
-	public static class DeviceComperator implements Comparator<IDeviceDescription> {
+	public static class DeviceComperator implements Comparator<IDeviceDescription>, Serializable {
+
+		private static final long serialVersionUID = -3408289142416567290L;
+
 		public int compare(IDeviceDescription o1, IDeviceDescription o2) {
 			return o1.getName().compareTo(o2.getName());
 		}

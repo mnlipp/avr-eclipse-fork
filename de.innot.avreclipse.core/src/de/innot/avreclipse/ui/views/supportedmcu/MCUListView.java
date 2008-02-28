@@ -62,16 +62,14 @@ public class MCUListView extends ViewPart {
 	private Composite fViewParent;
 
 	private TableViewer fTable;
-	private SupportedContentProvider fProvider;
 
 	private List<MCUListColumn> fColumns = new ArrayList<MCUListColumn>();
 
-	@SuppressWarnings("unused")
-	private IMemento fMemento;
+	// private IMemento fMemento;
 
 	private ISelectionListener fWorkbenchSelectionListener;
 
-	private SupportedContentProvider fContentProvider = null;
+	private SupportedContentProvider fContentProvider;
 
 	public enum LabelStyle {
 		SHOW_STRING, SHOW_YESNO, SHOW_URL;
@@ -93,7 +91,7 @@ public class MCUListView extends ViewPart {
 		// Initialize the SuperClass and store the passed memento for use by
 		// the individual methods.
 		super.init(site, memento);
-		// fMemento = memento;
+//		fMemento = memento;
 	}
 
 	@Override
@@ -119,10 +117,10 @@ public class MCUListView extends ViewPart {
 		TableColumnLayout tcl = new TableColumnLayout();
 		fViewParent.setLayout(tcl);
 
-		fProvider = new SupportedContentProvider();
+		fContentProvider = new SupportedContentProvider();
 
 		fTable = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION);
-		fTable.setContentProvider(fProvider);
+		fTable.setContentProvider(fContentProvider);
 		fTable.setUseHashlookup(true);
 		fTable.getTable().setHeaderVisible(true);
 		fTable.getTable().setLinesVisible(true);

@@ -167,11 +167,14 @@ public class SystemPathsPosix {
 
 		Process cmdproc = null;
 		InputStream is = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
 
 		try {
 			cmdproc = ProcessFactory.getFactory().exec(command);
 			is = cmdproc.getInputStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			isr = new InputStreamReader(is);
+			br = new BufferedReader(isr);
 
 			String line;
 
@@ -188,10 +191,11 @@ public class SystemPathsPosix {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (is != null) {
-					is.close();
-				}
+				if (br != null) br.close();
+				if (isr != null) isr.close();
+				if (is != null) is.close();
 			} catch (IOException e) {
+				// can't do anything about it
 			}
 			try {
 				if (cmdproc != null) {

@@ -251,6 +251,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			throw ioe;
 		}
 		fInternalErrorMsg = null;
+		in.close();
 	}
 
 	private void readDeviceHeader(DeviceDescription device, String headerfile) throws IOException {
@@ -414,6 +415,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			        + "\".";
 			throw ioe;
 		}
+		in.close();
 		fInternalErrorMsg = null;
 
 	}

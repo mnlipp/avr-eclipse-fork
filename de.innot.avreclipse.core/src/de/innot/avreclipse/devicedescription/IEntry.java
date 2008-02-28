@@ -16,6 +16,7 @@
 
 package de.innot.avreclipse.devicedescription;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
@@ -153,7 +154,10 @@ public interface IEntry {
 	 * sorting a list of entries.
 	 * 
 	 */
-	public static class EntryColumnComperator implements Comparator<IEntry> {
+	public static class EntryColumnComperator implements Comparator<IEntry>, Serializable {
+
+		private static final long serialVersionUID = 7886833825709323939L;
+
 		private int fIndex = 0;
 
 		/**

@@ -523,14 +523,13 @@ public class AVRDeviceView extends ViewPart {
 	// When a different tab is selected do the following:
 	// - refresh the associated TreeViewer
 	// - set the focus to this tabs TreeViewer
-	private class TabFolderSelectionListener implements SelectionListener {
+	private static class TabFolderSelectionListener implements SelectionListener {
 
 		public void widgetDefaultSelected(SelectionEvent e) {
 			// not called for a CTabFolder
 		}
 
 		public void widgetSelected(SelectionEvent e) {
-			System.out.println(e);
 			CTabItem ti = (CTabItem) e.item;
 			((TreeViewer) ti.getData()).refresh();
 			((TreeViewer) ti.getData()).getControl().setFocus();

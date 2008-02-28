@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription.avrio;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,11 +71,11 @@ public class IVecsCategory extends BaseEntry implements ICategory {
 	}
 
 	public String[] getColumnLabels() {
-		return fLabels;
+		return Arrays.copyOf(fLabels, fLabels.length);
 	}
 
 	public int[] getColumnDefaultWidths() {
-		return fDefaultWidths;
+		return Arrays.copyOf(fDefaultWidths, fDefaultWidths.length);
 	}
 
 	@Override

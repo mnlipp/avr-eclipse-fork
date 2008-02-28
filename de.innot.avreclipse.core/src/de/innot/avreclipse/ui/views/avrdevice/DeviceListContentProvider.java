@@ -28,7 +28,7 @@ import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 
 public class DeviceListContentProvider implements IStructuredContentProvider {
 
-	private static IDeviceDescriptionProvider dmprovider = null;
+	private IDeviceDescriptionProvider fDMprovider = null;
 
 	/*
 	 * (non-Javadoc)
@@ -37,14 +37,14 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 *      java.lang.Object, java.lang.Object)
 	 */
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		dmprovider = (IDeviceDescriptionProvider)newInput;
+		fDMprovider = (IDeviceDescriptionProvider)newInput;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object inputElement) {
-		Set<String> devicesset = dmprovider.getMCUList();
+		Set<String> devicesset = fDMprovider.getMCUList();
 		if (devicesset == null) {
 			// if the list is null, an internal Provider Error has occurred.
 			String[] empty = {""};

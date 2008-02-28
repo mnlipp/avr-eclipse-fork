@@ -75,12 +75,15 @@ public class AddToolsValueHandler extends ManagedOptionValueHandler {
 			IHoldsOptions holder, IOption option, String extraArgument,
 			int event) {
 
-		Boolean value = new Boolean(true);
+		Boolean value = null;
 		try {
 			value = option.getBooleanValue();
 		} catch (BuildException e1) {
 			// something wrong with the plugin.xml
 			e1.printStackTrace();
+			return false;
+		}
+		if (value == null) {
 			return false;
 		}
 

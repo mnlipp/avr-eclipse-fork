@@ -3,6 +3,7 @@
  */
 package de.innot.avreclipse.mbs.converter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Vector;
 
@@ -36,7 +37,7 @@ public class Convert21 {
 		IManagedProject mproj = (IManagedProject) buildObj;
 
 		// get the project property store
-		fProps = AVRTargetProperties.getPropertyStore((IProject)mproj.getOwner());
+		fProps = AVRTargetProperties.getPropertyStore((IProject) mproj.getOwner());
 
 		// go through all configurations of the selected Project and
 		// check the options needing an update
@@ -85,36 +86,41 @@ public class Convert21 {
 		Vector optionlist = new Vector(0);
 		Class<?> c = optionholder.getClass().getSuperclass();
 		try {
-			Method getoptionlist = c.getDeclaredMethod("getOptionList", (Class<?>[])null);
+			Method getoptionlist = c.getDeclaredMethod("getOptionList", (Class<?>[]) null);
 			getoptionlist.setAccessible(true);
-			Object returnvalue = getoptionlist.invoke(optionholder, (Object[])null);
+			Object returnvalue = getoptionlist.invoke(optionholder, (Object[]) null);
 			if (returnvalue instanceof Vector) {
 				optionlist = (Vector) returnvalue;
 			}
-		} catch (Exception e) {
+		} catch (SecurityException e) {
 			return;
-		}
-		
+        } catch (NoSuchMethodException e) {
+			return;
+        } catch (IllegalArgumentException e) {
+			return;
+        } catch (IllegalAccessException e) {
+			return;
+        } catch (InvocationTargetException e) {
+			return;
+        }
+
 		Object[] allopts = optionlist.toArray();
 		// Step thru all options and remove the deprecated ones
 		for (int k = 0; k < allopts.length; k++) {
 			IOption curropt = (IOption) allopts[k];
 
 			// remove 2.0.x toolchain options
-			if (curropt.getId().startsWith(
-					"de.innot.avreclipse.toolchain.options.target.mcutype")) {
+			if (curropt.getId().startsWith("de.innot.avreclipse.toolchain.options.target.mcutype")) {
 				// get the selected target mcu and set the project property
 				// accordingly
 				String selectedmcuid = (String) curropt.getValue();
-				String mcutype = selectedmcuid.substring(selectedmcuid
-						.lastIndexOf(".") + 1);
+				String mcutype = selectedmcuid.substring(selectedmcuid.lastIndexOf(".") + 1);
 				fProps.setValue(AVRTargetProperties.KEY_MCUTYPE, mcutype);
 				optionholder.removeOption(curropt);
 				continue;
 			}
 
-			if (curropt.getId().startsWith(
-					"de.innot.avreclipse.toolchain.options.target.fcpu")) {
+			if (curropt.getId().startsWith("de.innot.avreclipse.toolchain.options.target.fcpu")) {
 				// get the selected fcpu and set the project property
 				// accordingly
 				String selectedfcpu = (String) curropt.getValue();
@@ -131,12 +137,12 @@ public class Convert21 {
 
 			// remove old debug option from 2.0.0
 			if (curropt.getName() != null) {
-				if(curropt.getName().endsWith("(-g)")) {
+				if (curropt.getName().endsWith("(-g)")) {
 					optionholder.removeOption(curropt);
 					continue;
 				}
 			}
-			
+
 			// remove any other invalid options
 			if (!curropt.isValid()) {
 				optionholder.removeOption(curropt);

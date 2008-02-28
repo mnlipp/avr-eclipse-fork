@@ -53,11 +53,9 @@ public enum MCUListColumn {
 	 * </p>
 	 */
 	NAMES("MCU Name", MCUNames.getDefault()) {
-		private IMCUProvider fLinkprovider = Datasheets.getDefault();
-
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
 			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(fMCUProvider,
-			        fLinkprovider);
+					Datasheets.getDefault());
 			fLabelProvider = labelprovider;
 			column.setLabelProvider(fLabelProvider);
 			return new ColumnWeightData(20, 60);
@@ -240,7 +238,7 @@ public enum MCUListColumn {
 	 * A ColumnLabelProvider that always returns empty Strings as Labels. Used
 	 * by the {@ MCUListColumn#FILLER} column.
 	 */
-	private class NullColumnLabelProvider extends ColumnLabelProvider {
+	private static class NullColumnLabelProvider extends ColumnLabelProvider {
 
 		@Override
 		public String getText(Object element) {
