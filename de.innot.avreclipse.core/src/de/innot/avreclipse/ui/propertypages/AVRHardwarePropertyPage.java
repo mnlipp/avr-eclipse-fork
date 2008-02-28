@@ -2,7 +2,7 @@ package de.innot.avreclipse.ui.propertypages;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
@@ -26,6 +26,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 
 import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 import de.innot.avreclipse.core.toolinfo.GCC;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 public class AVRHardwarePropertyPage extends PropertyPage {
 
@@ -37,8 +38,8 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 	private Button fPerConfigSelector = null;
 	private Combo fMCUcombo = null;
 	private Text fFCPUtext = null;
-	private Map<String, String> fMCUTypes = null;
-	private String[] fMCUTypesList = null;
+	private Set<String> fMCUids = null;
+	private String[] fMCUNames = null;
 
 	private IPreferenceStore fPrefs = null;
 
@@ -76,9 +77,10 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		comboLabel.setText(LABEL_MCUTYPE);
 
 		fMCUcombo = new Combo(fMCUSection, SWT.READ_ONLY | SWT.DROP_DOWN);
-		fMCUcombo.setItems(fMCUTypesList);
-		String currMCU = fPrefs.getString(AVRTargetProperties.KEY_MCUTYPE);
-		fMCUcombo.select(fMCUcombo.indexOf(fMCUTypes.get(currMCU)));
+		fMCUcombo.setItems(fMCUNames);
+		String mcuid = fPrefs.getString(AVRTargetProperties.KEY_MCUTYPE);
+		String mcuname = AVRMCUidConverter.id2name(mcuid);
+		fMCUcombo.select(fMCUcombo.indexOf(mcuname));
 
 		// FCPU Field
 		Label fcpuLabel = new Label(fMCUSection, SWT.NONE);
@@ -125,11 +127,15 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 		// init the property store
 		fPrefs = AVRTargetProperties.getPropertyStore(project);
 
-		// Get the list of supported MCU Types
-		fMCUTypes = GCC.getDefault().getToolInfo(GCC.TOOLINFOTYPE_MCUS);
-		fMCUTypesList = new String[fMCUTypes.size()];
-		fMCUTypesList = fMCUTypes.values().toArray(fMCUTypesList);
-		Arrays.sort(fMCUTypesList);
+		// Get the list of supported MCU id's from the compiler
+		// The list is then converted into an array of MCU names
+		fMCUids = GCC.getDefault().getMCUList();
+		String[] allmcuids = fMCUids.toArray(new String[fMCUids.size()]);
+		fMCUNames = new String[fMCUids.size()];
+		for(int i=0; i< allmcuids.length; i++) {
+			fMCUNames[i] = AVRMCUidConverter.id2name(allmcuids[i]);
+		}
+		Arrays.sort(fMCUNames);
 
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -161,21 +167,20 @@ public class AVRHardwarePropertyPage extends PropertyPage {
 	@Override
 	protected void performDefaults() {
 		// Restore the default values
-		fMCUcombo.select(fMCUcombo.indexOf(fMCUTypes.get(fPrefs
-		        .getDefaultString(AVRTargetProperties.KEY_MCUTYPE))));
-		fFCPUtext.setText(fPrefs.getDefaultString(AVRTargetProperties.KEY_FCPU));
+		String defaultmcuid = fPrefs.getDefaultString(AVRTargetProperties.KEY_MCUTYPE);
+		String defaultmcuname = AVRMCUidConverter.id2name(defaultmcuid);
+		fMCUcombo.select(fMCUcombo.indexOf(defaultmcuname));
+
+		String defaultfcpu = fPrefs.getDefaultString(AVRTargetProperties.KEY_FCPU);
+		fFCPUtext.setText(defaultfcpu);
 	}
 
 	@Override
 	public boolean performOk() {
 		// Get the id of the selected MCU and store it
-		String selectedmcu = fMCUTypesList[fMCUcombo.getSelectionIndex()];
-		for (String mcuid : fMCUTypes.keySet()) {
-			if (selectedmcu.equals(fMCUTypes.get(mcuid))) {
-				fPrefs.setValue(AVRTargetProperties.KEY_MCUTYPE, mcuid);
-				break;
-			}
-		}
+		String mcuname = fMCUNames[fMCUcombo.getSelectionIndex()];
+		String mcuid = AVRMCUidConverter.name2id(mcuname);
+		fPrefs.setValue(AVRTargetProperties.KEY_MCUTYPE, mcuid);
 
 		// store the FCPU value
 		fPrefs.setValue(AVRTargetProperties.KEY_FCPU, fFCPUtext.getText());

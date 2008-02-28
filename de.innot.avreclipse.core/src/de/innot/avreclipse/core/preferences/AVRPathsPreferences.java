@@ -31,7 +31,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import de.innot.avreclipse.AVRPluginActivator;
 import de.innot.avreclipse.core.paths.AVRPath;
-import de.innot.avreclipse.core.paths.IPathManager;
+import de.innot.avreclipse.core.paths.AVRPathManager;
 
 /**
  * This class handles access to the path properties.
@@ -137,7 +137,7 @@ public class AVRPathsPreferences {
 		// TODO: change this to bundle once bundles are supported
 		AVRPath[] allpaths = AVRPath.values();
 		for (AVRPath avrpath : allpaths) {
-			prefs.put(avrpath.name(), IPathManager.SourceType.System.name());
+			prefs.put(avrpath.name(), AVRPathManager.SourceType.System.name());
 		}
 	}
 	

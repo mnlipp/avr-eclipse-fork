@@ -58,12 +58,12 @@ public class AVRPathProvider implements IPathProvider {
 
 		String pathvalue = fPrefs.getString(fAvrPath.name());
 
-		if (pathvalue.equals(IPathManager.SourceType.System.name())) {
+		if (pathvalue.equals(AVRPathManager.SourceType.System.name())) {
 			// System path
 			return SystemPathHelper.getPath(fAvrPath);
 		}
 
-		if (pathvalue.startsWith(IPathManager.SourceType.Bundled.name())) {
+		if (pathvalue.startsWith(AVRPathManager.SourceType.Bundled.name())) {
 			// Bundle path
 			String bundleid = pathvalue.substring(pathvalue.indexOf(':') + 1);
 			return BundlePathHelper.getPath(fAvrPath, bundleid);

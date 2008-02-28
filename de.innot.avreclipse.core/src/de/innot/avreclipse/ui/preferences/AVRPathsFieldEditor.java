@@ -36,7 +36,6 @@ import org.eclipse.ui.PlatformUI;
 
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathManager;
-import de.innot.avreclipse.core.paths.IPathManager;
 
 /**
  * A custom field editor to edit all plugin paths.
@@ -81,12 +80,12 @@ public class AVRPathsFieldEditor extends FieldEditor {
 			// Get the selected item, get the associated path and
 			// open a PathSettingDialog to modify the path.
 			TableItem selected = fTable.getSelection()[0];
-			IPathManager path = (IPathManager) selected.getData();
+			AVRPathManager path = (AVRPathManager) selected.getData();
 			PathSettingDialog dialog = new PathSettingDialog(fTable.getShell(), path);
 			if (dialog.open() == Window.OK) {
 				// OK Button selected:
 				// get the modified Path, keep it and update this Editor
-				IPathManager newpath = dialog.getResult();
+				AVRPathManager newpath = dialog.getResult();
 				selected.setData(newpath);
 				updateTableItem(selected);
 				refreshValidState();
@@ -203,7 +202,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		for (AVRPath current : allpaths) {
 			// Create a IPathManager for each path and store it
 			// within a new TableItem
-			IPathManager item = new AVRPathManager(current);
+			AVRPathManager item = new AVRPathManager(current);
 
 			TableItem ti = new TableItem(fTable, 0);
 			ti.setData(item);
@@ -225,7 +224,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 
 		for (TableItem tableitem : allitems) {
 			// get the IPathManager for the item and set it to the default value
-			IPathManager path = (IPathManager) tableitem.getData();
+			AVRPathManager path = (AVRPathManager) tableitem.getData();
 			path.setToDefault();
 			updateTableItem(tableitem);
 		}
@@ -245,7 +244,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		for (TableItem tableitem : allitems) {
 			// Get the IPathManager of the item and store its value to the
 			// persistent storage
-			IPathManager path = (IPathManager) tableitem.getData();
+			AVRPathManager path = (AVRPathManager) tableitem.getData();
 			path.store();
 		}
 	}
@@ -308,7 +307,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		String invalidPath = null;
 
 		for (TableItem ti : allitems) {
-			IPathManager pathitem = (IPathManager) ti.getData();
+			AVRPathManager pathitem = (AVRPathManager) ti.getData();
 			if (!pathitem.isValid()) {
 				newValid = false;
 				invalidPath = pathitem.getName();
@@ -338,7 +337,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 	 */
 	private void updateTableItem(TableItem item) {
 
-		IPathManager path = (IPathManager) item.getData();
+		AVRPathManager path = (AVRPathManager) item.getData();
 
 		// add warn / error icons if path is empty / invalid
 		boolean valid = path.isValid();

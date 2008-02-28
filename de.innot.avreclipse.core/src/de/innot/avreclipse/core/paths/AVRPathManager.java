@@ -23,7 +23,12 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 
-public class AVRPathManager implements IPathProvider, IPathManager {
+public class AVRPathManager implements IPathProvider {
+
+	public enum SourceType {
+		Bundled, System, Custom
+	}
+
 
 	private IPreferenceStore fPrefs;
 	private AVRPath fAvrPath;
@@ -45,19 +50,44 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 	public AVRPathManager(IPreferenceStore store, AVRPath avrpath) {
 		fPrefs = store;
 		fAvrPath = avrpath;
-
 	}
 
+	/**
+	 * Creates a copy of the given AVRPathManager.
+	 * 
+	 * @param pathmanager
+	 */
+	public AVRPathManager(AVRPathManager pathmanager) {
+		this(pathmanager.fPrefs, pathmanager.fAvrPath);
+		fPrefsValue = pathmanager.fPrefsValue;
+	}
+	
+	/**
+	 * Gets the UI name of the underlying AVRPath.
+	 * 
+	 * @return String with the name
+	 */
 	public String getName() {
 		return fAvrPath.toString();
 	}
 	
+	/**
+	 * Gets a description from the underlying AVRPath.
+	 * 
+	 * @return String with the description of the path
+	 */
 	public String getDescription() {
 		return fAvrPath.getDescription();
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.paths.IPathProvider#getPath()
+	/**
+	 * Gets the current path.
+	 * 
+	 * This is different from IPathProvider.getPath() because the returned path
+	 * is cached internally and can be modified with the setPath() method.
+	 * 
+	 * 
+	 * @return <code>IPath</code>
 	 */
 	public IPath getPath() {
 		// get the path from the preferences store and returns its value,
@@ -67,12 +97,12 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 			fPrefsValue = fPrefs.getString(fAvrPath.name());
 		}
 
-		if (fPrefsValue.equals(IPathManager.SourceType.System.name())) {
+		if (fPrefsValue.equals(AVRPathManager.SourceType.System.name())) {
 			// System path
 			return getSystemPath();
 		}
 
-		if (fPrefsValue.startsWith(IPathManager.SourceType.Bundled.name())) {
+		if (fPrefsValue.startsWith(AVRPathManager.SourceType.Bundled.name())) {
 			// Bundle path
 			String bundleid = fPrefsValue.substring(fPrefsValue.indexOf(':') + 1);
 			return getBundlePath(bundleid);
@@ -82,10 +112,10 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 		return path;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets the default path.
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#getPath(de.innot.avreclipse.core.paths.IPathManager.SourceType)
+	 * @return <code>IPath</code> to the default source directory
 	 */
 	public IPath getDefaultPath() {
 		// Don't want to duplicate the parsing done in getPath() so
@@ -99,28 +129,33 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 		return defaultpath;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets the system path.
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#getSystemPath()
+	 * This is the path as determined by system path / windows registry.
+	 * 
+	 * @return <code>IPath</code> to the system dependent source directory
 	 */
 	public IPath getSystemPath() {
 		return SystemPathHelper.getPath(fAvrPath);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets the path from the Eclipse bundle with the given id.
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#getBundlePath(java.lang.String)
+	 * @param bundleid
+	 *            ID of the source bundle
+	 * @return <code>IPath</code> to the source directory within the bundle.
 	 */
 	public IPath getBundlePath(String bundleid) {
 		return BundlePathHelper.getPath(fAvrPath, bundleid);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Sets the path in the preference store.
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#setPath(org.eclipse.core.runtime.IPath)
+	 * @param newpath
+	 * @param context
 	 */
 	public void setPath(String newpath, SourceType source) {
 		String newvalue = null;
@@ -137,34 +172,56 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 		fPrefsValue = newvalue;
 	}
 
+	/**
+	 * Sets the path back to the default value.
+	 */
 	public void setToDefault() {
 		fPrefsValue = fPrefs.getDefaultString(fAvrPath.name());
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets the source of this path.
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#getSourceType()
+	 * This can be one of the {@link SourceType} values
+	 * <ul>
+	 * <li><code>Bundled</code> if the path points to a bundled avr-gcc
+	 * toolchain.</li>
+	 * <li><code>System</code> if the system default path is used.</li>
+	 * <li><code>Custom</code> if the path is selected by the user.</li>
+	 * </ul>
+	 * 
+	 * @return
 	 */
-	public IPathManager.SourceType getSourceType() {
+	public AVRPathManager.SourceType getSourceType() {
 		if (fPrefsValue == null) {
 			// get the path source from the preferences store
 			fPrefsValue = fPrefs.getString(fAvrPath.name());
 		}
-		if (fPrefsValue.equals(IPathManager.SourceType.System.name())) {
-			return IPathManager.SourceType.System;
+		if (fPrefsValue.equals(AVRPathManager.SourceType.System.name())) {
+			return AVRPathManager.SourceType.System;
 		}
-		if (fPrefsValue.startsWith(IPathManager.SourceType.Bundled.name())) {
-			return IPathManager.SourceType.Bundled;
+		if (fPrefsValue.startsWith(AVRPathManager.SourceType.Bundled.name())) {
+			return AVRPathManager.SourceType.Bundled;
 		}
 		// else: a custom path
-		return IPathManager.SourceType.Custom;
+		return AVRPathManager.SourceType.Custom;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Checks if the current path is valid.
+	 * <p>
+	 * Some paths are required, some are optional.
+	 * </p>
+	 * <p>
+	 * For required paths this method returns <code>true</code> if a
+	 * internally defined testfile exists in the given path.
+	 * </p>
+	 * <p>
+	 * For optional paths this method also returns true if - and only if - the
+	 * path is empty ("").
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.paths.IPathManager#isValid()
+	 * @return <code>true</code> if the path points to a valid source folder.
 	 */
 	public boolean isValid() {
 		IPath path = getPath();
@@ -194,31 +251,26 @@ public class AVRPathManager implements IPathProvider, IPathManager {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.paths.IPathManager#setPreferenceStore(org.eclipse.jface.preference.IPreferenceStore)
+	/**
+	 * Sets the PreferenceStore the PathManager should work on.
+	 * 
+	 * By default the PathManager will work on the Instance Preference store.
+	 * 
+	 * @param store
 	 */
 	public void setPreferenceStore(IPreferenceStore store) {
 		fPrefs = store;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.paths.IPathManager#store()
+	/**
+	 * Stores the path in the PreferenceStore.
+	 * 
+	 * Until <code>store()</code> is called, all modifications to the path are
+	 * only internal to this IPathManager and not visible outside.
 	 */
 	public void store() {
 		if (fPrefsValue != null) {
 			fPrefs.setValue(fAvrPath.name(), fPrefsValue);
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
-	 */
-	@Override
-	public IPathManager clone() {
-		AVRPathManager clone = new AVRPathManager(fAvrPath);
-		clone.fPrefs = fPrefs;
-		clone.fPrefsValue = fPrefsValue;
-		
-		return clone;
 	}
 }

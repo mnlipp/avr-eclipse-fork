@@ -35,8 +35,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.PageBook;
 
 import de.innot.avreclipse.AVRPluginActivator;
-import de.innot.avreclipse.core.paths.IPathManager;
-import de.innot.avreclipse.core.paths.IPathManager.SourceType;
+import de.innot.avreclipse.core.paths.AVRPathManager;
+import de.innot.avreclipse.core.paths.AVRPathManager.SourceType;
 
 /**
  * Custom dialog to modify a plugin path.
@@ -58,7 +58,7 @@ public class PathSettingDialog extends StatusDialog {
 	private Composite fCustomPage = null;
 
 	// Internal path storage
-	private IPathManager fPathManager = null;
+	private AVRPathManager fPathManager = null;
 
 	/**
 	 * Constructor for a new PathSettingDialog.
@@ -71,11 +71,11 @@ public class PathSettingDialog extends StatusDialog {
 	 * @param pathmanager
 	 *            IPathManager with the path to edit
 	 */
-	public PathSettingDialog(Shell parent, IPathManager pathmanager) {
+	public PathSettingDialog(Shell parent, AVRPathManager pathmanager) {
 		super(parent);
 
 		// make a copy of the given IPathManager
-		fPathManager = pathmanager.clone();
+		fPathManager = new AVRPathManager(pathmanager);
 
 		setTitle("Change Path for " + pathmanager.getName());
 
@@ -93,9 +93,9 @@ public class PathSettingDialog extends StatusDialog {
 		Composite composite = (Composite) super.createDialogArea(parent);
 
 		// The list of supported Source types
-		String[] types = { IPathManager.SourceType.System.toString(),
-		        IPathManager.SourceType.Bundled.toString(),
-		        IPathManager.SourceType.Custom.toString() };
+		String[] types = { AVRPathManager.SourceType.System.toString(),
+		        AVRPathManager.SourceType.Bundled.toString(),
+		        AVRPathManager.SourceType.Custom.toString() };
 
 		// TODO: try to determine the size dynamically
 		getShell().setMinimumSize(400, 220);
@@ -271,7 +271,7 @@ public class PathSettingDialog extends StatusDialog {
 	 * 
 	 * @return The IPathManager with the modified path.
 	 */
-	public IPathManager getResult() {
+	public AVRPathManager getResult() {
 		return fPathManager;
 	}
 
