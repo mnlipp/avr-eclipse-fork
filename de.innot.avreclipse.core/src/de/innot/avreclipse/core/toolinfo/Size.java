@@ -44,8 +44,6 @@ public class Size extends BaseToolInfo {
 
 	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_SIZE;
 
-	protected String[] toolinfotypes = { TOOLINFOTYPE_OPTIONS };
-
 	private Map<String, String> fOptionsMap = null;
 
 	private static Size instance = null;
@@ -64,7 +62,6 @@ public class Size extends BaseToolInfo {
 	private Size() {
 		// Let the superclass get the command name
 		super(TOOL_ID);
-		super.toolinfotypes = this.toolinfotypes;
 	}
 
 	/*
@@ -76,20 +73,6 @@ public class Size extends BaseToolInfo {
 	public IPath getToolPath() {
 		IPath path = fPathProvider.getPath();
 		return path.append(getCommandName());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.BaseToolInfo#getToolInfo(java.lang.String)
-	 */
-	@Override
-	public Map<String, String> getToolInfo(String type) {
-
-		if (TOOLINFOTYPE_OPTIONS.equals(type)) {
-			return getSizeOptions();
-		}
-		return null;
 	}
 
 	/**
@@ -113,16 +96,20 @@ public class Size extends BaseToolInfo {
 
 		Process cmdproc = null;
 		InputStream es = null;
+		InputStreamReader esr = null;
+		BufferedReader br = null;
+
 
 		try {
 			// Execute the size command with the help option and parse its
 			// output
 			cmdproc = ProcessFactory.getFactory().exec(getToolPath().toOSString() + " -h");
 			es = cmdproc.getErrorStream();
-			BufferedReader bre = new BufferedReader(new InputStreamReader(es));
+			esr = new InputStreamReader(es);
+			br = new BufferedReader(esr);
 			String line;
 
-			while ((line = bre.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				if (line.contains("--format=")) {
 					// this is the line we are looking for
 					// extract the format options
@@ -145,9 +132,9 @@ public class Size extends BaseToolInfo {
 		} catch (IOException e) {
 		} finally {
 			try {
-				if (es != null) {
-					es.close();
-				}
+				if (br != null) br.close();
+				if (esr!= null) esr.close();
+				if (es != null) es.close();
 			} catch (IOException e) {
 			}
 			try {

@@ -19,10 +19,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,8 +47,6 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
 
-	protected String[] toolinfotypes = { TOOLINFOTYPE_MCUS };
-
 	private static GCC instance = null;
 
 	private Map<String, String> fMCUmap = null;
@@ -71,7 +67,6 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	private GCC() {
 		// Let the superclass get the command name
 		super(TOOL_ID);
-		super.toolinfotypes = this.toolinfotypes;
 	}
 
 	/*
@@ -83,28 +78,6 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	public IPath getToolPath() {
 		IPath path = fPathProvider.getPath();
 		return path.append(getCommandName());
-	}
-
-	@Override
-	public Map<String, String> getToolInfo(String type) {
-
-		if (TOOLINFOTYPE_MCUS.equals(type)) {
-			return loadMCUList();
-		}
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.BaseToolInfo#getToolInfoTypes()
-	 */
-	@Override
-	public List<String> getToolInfoTypes() {
-		List<String> types = new ArrayList<String>(1);
-		types.add(TOOLINFOTYPE_MCUS);
-		return types;
 	}
 
 	/* (non-Javadoc)
@@ -152,6 +125,8 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		Process cmdproc = null;
 		InputStream is = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
 
 		try {
 			// Execute avr-gcc with the "--target-help" option and parse the
@@ -159,7 +134,8 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 			cmdproc = ProcessFactory.getFactory().exec(
 			        getToolPath().toOSString() + " --target-help");
 			is = cmdproc.getInputStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			isr = new InputStreamReader(is);
+			br = new BufferedReader(isr);
 
 			boolean start = false;
 			String line;
@@ -189,9 +165,9 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 		} catch (IOException e) {
 		} finally {
 			try {
-				if (is != null) {
-					is.close();
-				}
+				if (br != null) br.close();
+				if (isr!= null) isr.close();
+				if (is != null) is.close();
 			} catch (IOException e) {
 			}
 			try {

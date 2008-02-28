@@ -214,7 +214,7 @@ public class PartDescriptionFilesReader {
 	 * 
 	 * This is somewhat reminiscent of the Map.Entry class.
 	 */
-	protected class Entry {
+	protected static class Entry {
 		private String fKey;
 		private String fValue;
 
