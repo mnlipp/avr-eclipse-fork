@@ -15,16 +15,17 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
+import de.innot.avreclipse.AVRPluginActivator;
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
@@ -86,7 +87,7 @@ public class Size extends BaseToolInfo {
 	/**
 	 * @return Map &lt;UI-name, option-name&gt; with all supported size options.
 	 */
-	private Map<String, String> getSizeOptions() {
+	public Map<String, String> getSizeOptions() {
 
 		if (fOptionsMap != null) {
 			return fOptionsMap;
@@ -94,54 +95,44 @@ public class Size extends BaseToolInfo {
 
 		fOptionsMap = new HashMap<String, String>();
 
-		Process cmdproc = null;
-		InputStream es = null;
-		InputStreamReader esr = null;
-		BufferedReader br = null;
+		// Execute avr-gcc with the "--target-help" option and parse the
+		// output
+		String command = getToolPath().toOSString();
+		List<String> argument = new ArrayList<String>(1);
+		argument.add("-h");
+		ExternalCommandLauncher size = new ExternalCommandLauncher(command, argument);
 
-
+		// At least in winAVR avr-size -h will print to the error stream!
+		size.redirectErrorStream(true);
 		try {
-			// Execute the size command with the help option and parse its
-			// output
-			cmdproc = ProcessFactory.getFactory().exec(getToolPath().toOSString() + " -h");
-			es = cmdproc.getErrorStream();
-			esr = new InputStreamReader(es);
-			br = new BufferedReader(esr);
-			String line;
+	        size.launch();
+        } catch (IOException e) {
+        	// Something didn't work while running the external command
+        	IStatus status = new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID, "Could not start "+command, e);
+        	AVRPluginActivator.getDefault().log(status);
+        	return fOptionsMap;
+        }
+		
+		List<String> stdout = size.getStdOut();
 
-			while ((line = br.readLine()) != null) {
-				if (line.contains("--format=")) {
-					// this is the line we are looking for
-					// extract the format options
-					int start = line.indexOf('{');
-					int end = line.lastIndexOf('}');
-					String options = line.substring(start + 1, end);
-					// next line does not work and i am no regex expert
-					// to know how to split at a "|"
-					// String[] allopts = options.split("|");
-					int splitter = 0;
-					while ((splitter = options.indexOf('|')) != -1) {
-						String opt = options.substring(0, splitter);
-						fOptionsMap.put(convertOption(opt), opt);
-						options = options.substring(splitter + 1);
-					}
-					fOptionsMap.put(convertOption(options), options);
-					break;
+		for (String line : stdout) {
+			if (line.contains("--format=")) {
+				// this is the line we are looking for
+				// extract the format options
+				int start = line.indexOf('{');
+				int end = line.lastIndexOf('}');
+				String options = line.substring(start + 1, end);
+				// next line does not work and i am no regex expert
+				// to know how to split at a "|"
+				// String[] allopts = options.split("|");
+				int splitter = 0;
+				while ((splitter = options.indexOf('|')) != -1) {
+					String opt = options.substring(0, splitter);
+					fOptionsMap.put(convertOption(opt), opt);
+					options = options.substring(splitter + 1);
 				}
-			}
-		} catch (IOException e) {
-		} finally {
-			try {
-				if (br != null) br.close();
-				if (esr!= null) esr.close();
-				if (es != null) es.close();
-			} catch (IOException e) {
-			}
-			try {
-				if (cmdproc != null) {
-					cmdproc.waitFor();
-				}
-			} catch (InterruptedException e) {
+				fOptionsMap.put(convertOption(options), options);
+				break;
 			}
 		}
 

@@ -15,18 +15,19 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
+import de.innot.avreclipse.AVRPluginActivator;
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.IMCUProvider;
 import de.innot.avreclipse.core.paths.AVRPath;
@@ -50,7 +51,7 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	private static GCC instance = null;
 
 	private Map<String, String> fMCUmap = null;
-	
+
 	private IPath fCurrentPath = null;
 
 	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRGCC);
@@ -80,30 +81,36 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 		return path.append(getCommandName());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
 	public String getMCUInfo(String mcuid) {
 		Map<String, String> internalmap = loadMCUList();
 		return internalmap.get(mcuid);
-    }
+	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
 	public Set<String> getMCUList() {
 		Map<String, String> internalmap = loadMCUList();
 		Set<String> idlist = internalmap.keySet();
 		return new HashSet<String>(idlist);
-    }
+	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
 		Map<String, String> internalmap = loadMCUList();
 		return internalmap.containsKey(mcuid);
-    }
+	}
 
 	/**
 	 * @return Map &lt;mcu id, UI name&gt; of all supported MCUs
@@ -115,7 +122,7 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 			fMCUmap = null;
 			fCurrentPath = getToolPath();
 		}
-		
+
 		if (fMCUmap != null) {
 			// return stored map
 			return fMCUmap;
@@ -123,62 +130,49 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		fMCUmap = new HashMap<String, String>();
 
-		Process cmdproc = null;
-		InputStream is = null;
-		InputStreamReader isr = null;
-		BufferedReader br = null;
-
+		// Execute avr-gcc with the "--target-help" option and parse the
+		// output
+		String command = getToolPath().toOSString();
+		List<String> argument = new ArrayList<String>(1);
+		argument.add("--target-help");
+		
+		ExternalCommandLauncher gcc = new ExternalCommandLauncher(command, argument);
 		try {
-			// Execute avr-gcc with the "--target-help" option and parse the
-			// output
-			cmdproc = ProcessFactory.getFactory().exec(
-			        getToolPath().toOSString() + " --target-help");
-			is = cmdproc.getInputStream();
-			isr = new InputStreamReader(is);
-			br = new BufferedReader(isr);
+	        gcc.launch();
+        } catch (IOException e) {
+        	// Something didn't work while running the external command
+        	IStatus status = new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID, "Could not start "+command, e);
+        	AVRPluginActivator.getDefault().log(status);
+        	return fMCUmap;
+        }
 
-			boolean start = false;
-			String line;
-
-			while ((line = br.readLine()) != null) {
-				if ("Known MCU names:".equals(line)) {
-					start = true;
-					continue;
-				}
-				if (start && !line.startsWith(" ")) {
-					// finished
-					break;
-				}
-				if (start) {
-					String[] names = line.split(" ");
-					for (int i = 0; i < names.length; i++) {
-						String mcuid = names[i];
-						String mcuname = AVRMCUidConverter.id2name(mcuid);
-						if (mcuname == null) {
-							// some mcuid are generic and should not be included
-							continue;
-						}
-						fMCUmap.put(mcuid, mcuname);
+        List<String> stdout = gcc.getStdOut();
+		
+		boolean start = false;
+		
+		for (String line : stdout) {
+			if ("Known MCU names:".equals(line)) {
+				start = true;
+			} else if (start && !line.startsWith(" ")) {
+				// finished
+				start = false;
+			} else if (start) {
+				String[] names = line.split(" ");
+				for (int i = 0; i < names.length; i++) {
+					String mcuid = names[i];
+					String mcuname = AVRMCUidConverter.id2name(mcuid);
+					if (mcuname == null) {
+						// some mcuid are generic and should not be
+						// included
+						continue;
 					}
+					fMCUmap.put(mcuid, mcuname);
 				}
-			}
-		} catch (IOException e) {
-		} finally {
-			try {
-				if (br != null) br.close();
-				if (isr!= null) isr.close();
-				if (is != null) is.close();
-			} catch (IOException e) {
-			}
-			try {
-				if (cmdproc != null) {
-					cmdproc.waitFor();
-				}
-			} catch (InterruptedException e) {
-			}
+			} else {
+				// a line outside of the "Known MCU names:" section
+			}			
 		}
 
 		return fMCUmap;
 	}
-
 }
