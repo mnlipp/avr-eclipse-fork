@@ -11,7 +11,7 @@ import java.io.File;
 
 import org.junit.Test;
 
-import de.innot.avreclipse.core.paths.IPathManager.SourceType;
+import de.innot.avreclipse.core.paths.AVRPathManager.SourceType;
 
 /**
  * @author U043192
@@ -63,7 +63,7 @@ public class AVRPathManagerTest {
 	@Test
 	public void testAVRPathManager() {
 
-		IPathManager manager = new AVRPathManager(AVRPath.AVRGCC);
+		AVRPathManager manager = new AVRPathManager(AVRPath.AVRGCC);
 		assertTrue(manager.getName() + " invalid", manager.isValid());
 
 		// Test Default and System Paths
@@ -79,7 +79,7 @@ public class AVRPathManagerTest {
 	@Test
 	public void testIsValid() {
 		// Test a required Path
-		IPathManager manager = new AVRPathManager(AVRPath.AVRGCC);
+		AVRPathManager manager = new AVRPathManager(AVRPath.AVRGCC);
 		assertTrue(manager.isValid());
 		// empty paths not allowed
 		manager.setPath("", SourceType.Custom);
@@ -99,13 +99,13 @@ public class AVRPathManagerTest {
 	 */
 	@Test
 	public void testSetPath() {
-		IPathManager manager = new AVRPathManager(AVRPath.MAKE);
+		AVRPathManager manager = new AVRPathManager(AVRPath.MAKE);
 
-		manager.setPath("foo/bar", IPathManager.SourceType.Custom);
+		manager.setPath("foo/bar", SourceType.Custom);
 		assertFalse(manager.isValid());
 		assertTrue("foo/bar".equals(manager.getPath().toString()));
 
-		manager.setPath(null, IPathManager.SourceType.System);
+		manager.setPath(null, SourceType.System);
 		assertTrue(manager.isValid());
 
 		manager.setToDefault();
@@ -114,7 +114,7 @@ public class AVRPathManagerTest {
 
 		// Test value propagation
 		IPathProvider provider = new AVRPathProvider(AVRPath.MAKE);
-		manager.setPath("bar-baz", IPathManager.SourceType.Custom);
+		manager.setPath("bar-baz", SourceType.Custom);
 		assertFalse("bar-baz".equals(provider.getPath().toString()));
 		manager.store();
 		assertTrue("bar-baz".equals(provider.getPath().toString()));
@@ -131,8 +131,8 @@ public class AVRPathManagerTest {
 	 */
 	@Test
 	public void testClone() {
-		IPathManager manager = new AVRPathManager(AVRPath.AVRINCLUDE);
-		IPathManager clone = manager.clone();
+		AVRPathManager manager = new AVRPathManager(AVRPath.AVRINCLUDE);
+		AVRPathManager clone = new AVRPathManager(manager);
 
 		assertTrue(manager.getPath().equals(clone.getPath()));
 		assertTrue(manager.getSourceType().equals(clone.getSourceType()));

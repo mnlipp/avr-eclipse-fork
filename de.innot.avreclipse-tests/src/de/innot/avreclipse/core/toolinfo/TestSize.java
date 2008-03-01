@@ -3,10 +3,12 @@
  */
 package de.innot.avreclipse.core.toolinfo;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
@@ -58,22 +60,11 @@ public class TestSize {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.GCC#getToolInfoTypes()}.
-	 */
-	@Test
-	public void testGetToolInfoTypes() {
-		List<String> types = tool.getToolInfoTypes();
-		assertNotNull(types);
-		assertTrue(types.size()>0);
-		assertTrue(types.contains(IToolInfo.TOOLINFOTYPE_OPTIONS));
-	}
-
-	/**
 	 * Test method for {@link de.innot.avreclipse.core.toolinfo.GCC#getToolInfo(java.lang.String)}.
 	 */
 	@Test
 	public void testGetToolInfo() {
-		Map<String, String> options = tool.getToolInfo(IToolInfo.TOOLINFOTYPE_OPTIONS);
+		Map<String, String> options = tool.getSizeOptions();
 		assertNotNull(options);
 		assertTrue(options.size()>1); // at least two formats should be in the list
 		assertTrue(options.containsValue("sysv"));

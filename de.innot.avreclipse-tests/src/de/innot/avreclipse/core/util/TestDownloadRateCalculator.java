@@ -4,53 +4,60 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import de.innot.avreclipse.util.DownloadAverageCalculator;
+import de.innot.avreclipse.util.DownloadRateCalculator;
 
-public class TestDownloadAverageCalculator {
+public class TestDownloadRateCalculator {
 
 	@Test
 	public synchronized void testGetCurrentRate() throws InterruptedException {
 
-		// to improve accuracy first check the overhead from the Thread.sleep() method
+		// This test simulates a download by sleeping for certain periods.
+		// During these sleep periods other Threads may execute for much longer
+		// periods, messing up the delicate timing and causing the test to fail.
+
+		
+		DownloadRateCalculator dac = new DownloadRateCalculator(10);
+		assertNotNull(dac);
+
+		// to improve accuracy first check the overhead from the Thread.sleep()
+		// method
 		long starttime = System.currentTimeMillis();
 		Thread.sleep(100);
 		long endtime = System.currentTimeMillis();
-		int overhead = (int)(endtime - starttime -100);
+		int overhead = (int) (endtime - starttime - 100);
 
-		DownloadAverageCalculator dac = new DownloadAverageCalculator(10);
-		assertNotNull(dac);
-		
+		dac.start();
 		// First test with a approx rate of 1 byte per ms (= 1000 per second)
-		Thread.sleep(100- overhead);
-		int rate = dac.getCurrentRate(100);
+		Thread.sleep(1000 - overhead);
+		long rate = dac.getCurrentRate(1000);
 		assertTrue("1. Downloadrate (" + rate + ") not within expected limits (900<rate<1100)",
 		        (rate > 900) && (rate < 1100));
 
-		Thread.sleep(200-overhead);
+		Thread.sleep(200 - overhead);
 		rate = dac.getCurrentRate(200);
 		assertTrue("2. Downloadrate (" + rate + ") not within expected limits (900<rate<1100)",
 		        (rate > 900) && (rate < 1100));
 
-		Thread.sleep(300-overhead);
-		rate = dac.getCurrentRate(300);
+		Thread.sleep(100 - overhead);
+		rate = dac.getCurrentRate(100);
 		assertTrue("3. Downloadrate (" + rate + ") not within expected limits (900<rate<1100)",
 		        (rate > 900) && (rate < 1100));
 
 		// now fill up the ringbuffer
-		int lastrate = rate;
+		long lastrate = rate;
 		for (int i = 0; i < 20; i++) {
 			Thread.sleep(100 - overhead);
-			int currentrate = dac.getCurrentRate(100);
+			long currentrate = dac.getCurrentRate(100);
 			float difference = difference(currentrate, lastrate);
 			assertTrue("Intermediate Downloadrate(" + i + ":" + currentrate
-			        + ") not within 5% of previous rate (" + rate + ")", difference < 5);
+			        + ") not within 10% of previous rate (" + rate + ")", difference < 10);
 			lastrate = currentrate;
 		}
 
 		// Test for null value, new rate should be smaller than previous rate
 		rate = dac.getCurrentRate(0);
 		Thread.sleep(10);
-		int newrate = dac.getCurrentRate(0);
+		long newrate = dac.getCurrentRate(0);
 		assertTrue("Downloadrate not decreasing for empty reads", newrate < rate);
 	}
 
@@ -62,9 +69,9 @@ public class TestDownloadAverageCalculator {
 
 	}
 
-	private int difference(int previous, int current) {
-		int percent = current *100 / previous;
-		int difference = Math.abs(percent - 100);
+	private long difference(long previous, long current) {
+		long percent = current * 100 / previous;
+		long difference = Math.abs(percent - 100);
 		return difference;
 	}
 }

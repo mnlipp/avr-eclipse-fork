@@ -6,6 +6,7 @@ package de.innot.avreclipse.devicedescription;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import junit.framework.TestCase;
 import de.innot.avreclipse.devicedescription.ICategory;
@@ -32,30 +33,30 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getDeviceList()}.
+	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getMCUList()}.
 	 */
 	public void testGetDevices() {
 		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
-		List<String> devices = ddp.getDeviceList();
+		Set<String> devices = ddp.getMCUList();
 		assertNotNull(devices);
 		assertTrue(devices.size() > 0);
 	}
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getDevice(java.lang.String)}.
+	 * {@link de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider#getMCUInfo(java.lang.String)}.
 	 */
 	public void testGetDevice() {
 		IDeviceDescription dev = null;
 		IDeviceDescriptionProvider ddp = AVRiohDeviceDescriptionProvider.getDefault();
-		dev = ddp.getDevice(null);
+		dev = (IDeviceDescription) ddp.getDeviceDescription(null);
 		assertNull(dev); // but no exception
-		dev = ddp.getDevice("foobar");
+		dev = (IDeviceDescription) ddp.getDeviceDescription("foobar");
 		assertNull(dev); // but no exception
 
 		// AT90CAN64 because it includes another file which has lots of correct
 		// comments
-		dev = ddp.getDevice("AT90CAN64");
+		dev = (IDeviceDescription) ddp.getDeviceDescription("at90can64");
 		assertNotNull(dev);
 		// See if the three categories are there
 		List<ICategory> catlist = dev.getCategories();
@@ -79,7 +80,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 			assertEquals("8", e.getColumnData(4)); // Bits
 		}
 
-		dev = ddp.getDevice("ATmega16");
+		dev = (IDeviceDescription) ddp.getDeviceDescription("atmega16");
 		assertNotNull(dev);
 		catlist = dev.getCategories();
 		assertTrue(catlist.size() == 3);
@@ -97,7 +98,7 @@ public class TestDeviceDescriptionProviderAVRioh extends TestCase {
 		// At the ATmega1280 currently the port elements PINA, DDRA, PORTA, PINB
 		// are missing and I dont know why. Here a test as a reminder to fix this.
 		// fixed!
-		dev = ddp.getDevice("ATmega1280");
+		dev = (IDeviceDescription) ddp.getDeviceDescription("atmega1280");
 		catlist = dev.getCategories();
 		cat = catlist.get(1); // Ports
 		assertNotNull(entrylist = cat.getChildren());
