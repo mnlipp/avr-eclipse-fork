@@ -35,7 +35,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * Class to download files.
@@ -463,7 +463,7 @@ public class URLDownloadManager {
 	 * cache folder does not exist, it is created.
 	 */
 	private static IPath getCacheLocation() {
-		IPath cachelocation = AVRPluginActivator.getDefault().getStateLocation().append(CACHEPATH);
+		IPath cachelocation = AVRPlugin.getDefault().getStateLocation().append(CACHEPATH);
 		File cachelocationfile = cachelocation.toFile();
 		if (!cachelocationfile.exists()) {
 			if (!cachelocationfile.mkdirs()) {

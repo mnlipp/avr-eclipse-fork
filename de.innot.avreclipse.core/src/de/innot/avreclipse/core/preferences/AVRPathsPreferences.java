@@ -29,7 +29,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathManager;
 
@@ -49,7 +49,7 @@ public class AVRPathsPreferences {
 	private static final boolean DEFAULT_PER_PROJECT = false;
 
 	private static final String CLASSNAME = "avrpaths";
-	private static final String QUALIFIER = AVRPluginActivator.PLUGIN_ID + "/" + CLASSNAME;
+	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
 
 	private static IPreferenceStore fInstanceStore = null;
 	private static Map<IProject, IPreferenceStore> fProjectStoreMap = new HashMap<IProject, IPreferenceStore>();

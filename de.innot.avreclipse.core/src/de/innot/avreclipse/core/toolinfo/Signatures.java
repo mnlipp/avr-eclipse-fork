@@ -31,7 +31,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.osgi.framework.Bundle;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
 
 /**
@@ -92,7 +92,7 @@ public class Signatures implements IMCUProvider {
 		// Load the list of signatures from the signature.properties file
 		// as the default values.
 		Properties mcuDefaultProps = new Properties();
-		Bundle avrplugin = AVRPluginActivator.getDefault().getBundle();
+		Bundle avrplugin = AVRPlugin.getDefault().getBundle();
 		InputStream is = null;
 		try {
 			is = FileLocator.openStream(avrplugin, DEFAULTPROPSFILE, false);
@@ -101,8 +101,8 @@ public class Signatures implements IMCUProvider {
 		} catch (IOException e) {
 			// this should not happen because the signatures.properties is
 			// part of the plugin and always there.
-			AVRPluginActivator.getDefault().log(
-			        new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+			AVRPlugin.getDefault().log(
+			        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 			                "Can't find signatures.properties", e));
 			return;
 		}
@@ -116,8 +116,8 @@ public class Signatures implements IMCUProvider {
 				fProps.load(is);
 				is.close();
 			} catch (IOException e) {
-				AVRPluginActivator.getDefault().log(
-				        new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+				AVRPlugin.getDefault().log(
+				        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 				                "Can't read instance signatures.properties", e));
 				// continue anyway without the instance signatures
 			}
@@ -240,7 +240,7 @@ public class Signatures implements IMCUProvider {
 	 * @return File pointing to the instance signature properties file
 	 */
 	private File getInstanceSignatureProperties() {
-		IPath propslocation = AVRPluginActivator.getDefault().getStateLocation().append(
+		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(
 		        INSTANCEPROPSFILE);
 		return propslocation.toFile();
 

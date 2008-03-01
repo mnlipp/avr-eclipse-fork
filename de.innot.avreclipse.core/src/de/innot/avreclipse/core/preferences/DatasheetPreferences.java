@@ -39,7 +39,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * This class handles access to the datasheet preferences.
@@ -55,7 +55,7 @@ public class DatasheetPreferences {
 	private final static IPath DEFAULTPROPSFILE = new Path("properties/datasheet.properties");
 
 	private static final String CLASSNAME = "datasheets";
-	private static final String QUALIFIER = AVRPluginActivator.PLUGIN_ID + "/" + CLASSNAME;
+	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
 
 	private static IPreferenceStore fInstanceStore = null;
 
@@ -104,8 +104,8 @@ public class DatasheetPreferences {
 			allmcus.addAll(Arrays.asList(instancenode.keys()));
 			return allmcus;
 		} catch (BackingStoreException e) {
-			AVRPluginActivator.getDefault().log(
-			        new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+			AVRPlugin.getDefault().log(
+			        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 			                "Can't access Datasheet preferences", e));
 			return null;
 		}
@@ -151,7 +151,7 @@ public class DatasheetPreferences {
 		// Load the list of signatures from the datasheet.properties file
 		// as the default values.
 		Properties mcuDefaultProps = new Properties();
-		Bundle avrplugin = AVRPluginActivator.getDefault().getBundle();
+		Bundle avrplugin = AVRPlugin.getDefault().getBundle();
 		InputStream is = null;
 		try {
 			is = FileLocator.openStream(avrplugin, DEFAULTPROPSFILE, false);
@@ -160,8 +160,8 @@ public class DatasheetPreferences {
 		} catch (IOException e) {
 			// this should not happen because the datasheet.properties is
 			// part of the plugin and always there.
-			AVRPluginActivator.getDefault().log(
-			        new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+			AVRPlugin.getDefault().log(
+			        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 			                "Can't find datasheet.properties", e));
 			return;
 		}

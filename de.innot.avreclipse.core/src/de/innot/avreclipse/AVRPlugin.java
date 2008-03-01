@@ -1,6 +1,6 @@
 /****************************************************************************
  * 
- * AVRPluginActivator.java
+ * AVRPlugin.java
  * 
  * This file is part of AVR Eclipse Plugin.
  *
@@ -26,19 +26,19 @@ import de.innot.avreclipse.core.paths.SystemPathHelper;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class AVRPluginActivator extends AbstractUIPlugin {
+public class AVRPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "de.innot.avreclipse.core";
 	public static final String DEFAULT_CONSOLE = "AVR Eclipse Plugin Log";
 
 	// The shared instance
-	private static AVRPluginActivator plugin;
+	private static AVRPlugin plugin;
 
 	/**
 	 * The constructor
 	 */
-	public AVRPluginActivator() {
+	public AVRPlugin() {
 	}
 
 	/*
@@ -74,7 +74,7 @@ public class AVRPluginActivator extends AbstractUIPlugin {
 	 * 
 	 * @return the shared instance
 	 */
-	public static AVRPluginActivator getDefault() {
+	public static AVRPlugin getDefault() {
 		return plugin;
 	}
 

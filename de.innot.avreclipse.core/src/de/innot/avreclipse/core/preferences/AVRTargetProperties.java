@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * This class handles access to the target hardware properties.
@@ -57,7 +57,7 @@ public class AVRTargetProperties {
 	private static final boolean DEFAULT_USE_EXT_RAM = false;
 
 	private static final String CLASSNAME = "avrtarget";
-	private static final String QUALIFIER = AVRPluginActivator.PLUGIN_ID + "/" + CLASSNAME;
+	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
 
 	/**
 	 * Gets the project AVR Target Hardware properties.

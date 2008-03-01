@@ -21,7 +21,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
 
 /**
@@ -60,8 +60,8 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 		fProvider = provider;
 
 		// Load the images
-		fYesImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/yes.png").createImage();
-		fNoImage = AVRPluginActivator.getImageDescriptor("icons/viewer16/no.png").createImage();
+		fYesImage = AVRPlugin.getImageDescriptor("icons/viewer16/yes.png").createImage();
+		fNoImage = AVRPlugin.getImageDescriptor("icons/viewer16/no.png").createImage();
 	}
 
 	/**

@@ -56,7 +56,7 @@ import org.eclipse.ui.forms.events.IHyperlinkListener;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.ide.IDE;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
 import de.innot.avreclipse.core.toolinfo.Datasheets;
 import de.innot.avreclipse.core.toolinfo.MCUNames;
@@ -522,7 +522,7 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 					// ...open the file in an editor.
 					monitor.subTask("Opening Editor for " + file.getName());
 					if (display == null || display.isDisposed()) {
-						return new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+						return new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 						        "Cannot open Editor: no Display found", null);
 					}
 					openFileInEditor(file);
@@ -539,19 +539,19 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 							String message = "The requested file could not be downloaded\nFile:  "
 							        + url.getPath() + "\nHost:  " + url.getHost();
 							String reason = exc.getMessage();
-							MultiStatus status = new MultiStatus(AVRPluginActivator.PLUGIN_ID, 0,
+							MultiStatus status = new MultiStatus(AVRPlugin.PLUGIN_ID, 0,
 							        reason, null);
 							Throwable cause = exc.getCause();
 							// in case there are multiple root causes
 							// (unlikely, but who knows?)
 							while (cause != null) {
-								status.add(new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+								status.add(new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 								        cause.getClass().getSimpleName(), cause));
 								cause = cause.getCause();
 							}
 
 							ErrorDialog.openError(shell, title, message, status, Status.ERROR);
-							AVRPluginActivator.getDefault().log(status);
+							AVRPlugin.getDefault().log(status);
 						}
 					}); // fDisplay.asyncExec
 				} finally {
@@ -594,13 +594,13 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 					try {
 						IDE.openEditorOnFileStore(page, fileStore);
 					} catch (PartInitException e) {
-						IStatus status = new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+						IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 						        "Could not open " + file.toString(), e);
 						Shell shell = display.getActiveShell();
 						String title = "Can't open File";
 						String message = "The File " + file.toString() + " could not be opened";
 						ErrorDialog.openError(shell, title, message, status);
-						AVRPluginActivator.getDefault().log(status);
+						AVRPlugin.getDefault().log(status);
 					}
 				}
 			}

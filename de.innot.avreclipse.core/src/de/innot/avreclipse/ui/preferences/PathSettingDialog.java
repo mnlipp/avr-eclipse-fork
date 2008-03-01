@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.PageBook;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.paths.AVRPathManager;
 import de.innot.avreclipse.core.paths.AVRPathManager.SourceType;
 
@@ -299,7 +299,7 @@ public class PathSettingDialog extends StatusDialog {
 			// Bundle source
 			fPageBook.showPage(fBundlePage);
 			// TODO: Bundle: load bundle id
-			updateStatus(new Status(IStatus.ERROR, AVRPluginActivator.PLUGIN_ID,
+			updateStatus(new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
 			        "Bundled toolchains not yet supported"));
 			return;
 
@@ -332,12 +332,12 @@ public class PathSettingDialog extends StatusDialog {
 
 		if (empty && valid) {
 			// warning only
-			status = new Status(IStatus.WARNING, AVRPluginActivator.PLUGIN_ID,
+			status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
 			        "Optional path is empty");
 		}
 		if (!valid) {
 			// error
-			status = new Status(IStatus.ERROR, AVRPluginActivator.PLUGIN_ID, "Path is invalid");
+			status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID, "Path is invalid");
 		}
 
 		super.updateStatus(status);

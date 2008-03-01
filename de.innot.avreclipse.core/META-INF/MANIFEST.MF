@@ -76,5 +76,5 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.swt.widgets",
  de.innot.avreclipse.util
 Eclipse-LazyStart: true
-Bundle-Activator: de.innot.avreclipse.AVRPluginActivator
+Bundle-Activator: de.innot.avreclipse.AVRPlugin
 Bundle-RequiredExecutionEnvironment: J2SE-1.5

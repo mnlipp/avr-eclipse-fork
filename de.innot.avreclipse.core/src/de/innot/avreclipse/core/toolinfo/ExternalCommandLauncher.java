@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 
 /**
@@ -117,9 +117,9 @@ public class ExternalCommandLauncher {
 				}
 			} catch (IOException e) {
 				// This is unlikely to happen, but log it nevertheless
-				IStatus status = new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 				        "I/O Error reading output", e);
-				AVRPluginActivator.getDefault().log(status);
+				AVRPlugin.getDefault().log(status);
 			} finally {
 				try {
 					fReader.close();

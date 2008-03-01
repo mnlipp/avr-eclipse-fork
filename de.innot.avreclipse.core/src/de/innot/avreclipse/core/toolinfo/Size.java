@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
@@ -108,8 +108,8 @@ public class Size extends BaseToolInfo {
 	        size.launch();
         } catch (IOException e) {
         	// Something didn't work while running the external command
-        	IStatus status = new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID, "Could not start "+command, e);
-        	AVRPluginActivator.getDefault().log(status);
+        	IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "+command, e);
+        	AVRPlugin.getDefault().log(status);
         	return fOptionsMap;
         }
 		

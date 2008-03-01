@@ -31,7 +31,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
@@ -103,8 +103,8 @@ public class PartDescriptionFilesReader {
 		try {
 			Signatures.getDefault().storeSignatures();
 		} catch (IOException e) {
-			AVRPluginActivator.getDefault().log(
-			        new Status(Status.ERROR, AVRPluginActivator.PLUGIN_ID,
+			AVRPlugin.getDefault().log(
+			        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 			                "Can't write signatures.properties file", e));
 		}
 		
