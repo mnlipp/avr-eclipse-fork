@@ -145,12 +145,17 @@ public class ExternalCommandLauncher {
 	 *            <code>null</code> if no arguments
 	 */
 	public ExternalCommandLauncher(String command, List<String> arguments) {
+		Assert.isNotNull(command);
 		fRunLock = this;
-		if (arguments == null) {
-			arguments = new ArrayList<String>(1);
+		// make a new list suitable for ProcessBuilder, where
+		// the command is the first entry and all other
+		// arguments follow
+		List<String> commandlist = new ArrayList<String>();
+		commandlist.add(command);
+		if (arguments != null) {
+			commandlist.addAll(arguments);
 		}
-		arguments.add(0, command);
-		fProcessBuilder = new ProcessBuilder(arguments);
+		fProcessBuilder = new ProcessBuilder(commandlist);
 	}
 
 	/**

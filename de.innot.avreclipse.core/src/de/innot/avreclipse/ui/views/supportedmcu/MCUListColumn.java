@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 
 import de.innot.avreclipse.core.IMCUProvider;
+import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.Datasheets;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.toolinfo.MCUNames;
@@ -81,6 +82,16 @@ public enum MCUListColumn {
 	 * as Yes/No images.
 	 */
 	AVRINCLUDE("<avr/io.h>", AVRiohDeviceDescriptionProvider.getDefault()) {
+		protected ColumnWeightData initColumn(TableViewerColumn column) {
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column.getColumn().setAlignment(SWT.CENTER);
+			return new ColumnWeightData(5, 60);
+		}
+	},
+	/**
+	 * Column with all MCUs supported by avr-gcc, shown as Yes/No images.
+	 */
+	AVRDUDE("AVRDude", AVRDude.getDefault()) {
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
 			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
