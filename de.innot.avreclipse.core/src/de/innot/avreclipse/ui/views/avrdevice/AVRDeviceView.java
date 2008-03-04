@@ -29,6 +29,7 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -178,7 +179,7 @@ public class AVRDeviceView extends ViewPart {
 		fCombo.getControl().setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fCombo.setContentProvider(new DeviceListContentProvider());
 		fCombo.setLabelProvider(new ComboLabelProvider());
-		
+
 		// register the combo as a Selection Provider
 		getSite().setSelectionProvider(fCombo);
 
@@ -669,15 +670,20 @@ public class AVRDeviceView extends ViewPart {
 								// do nothing
 								return Status.OK_STATUS;
 							}
-							// The next call will cause a SelectionChange Event
-							// which handles the rest of the change
+							// Next cause a SelectionChange Event in the UI
+							// Thread, which handles the rest of the change.
+							// (Only if the control still exists)
 							final IStructuredSelection newselection = new StructuredSelection(
 							        AVRMCUidConverter.id2name(newid));
-							fViewParent.getDisplay().asyncExec(new Runnable() {
-								public void run() {
-									fCombo.setSelection(newselection, true);
-								}
-							}); // Runnable
+							if ((fViewParent != null) && (!fViewParent.isDisposed())) {
+								fViewParent.getDisplay().asyncExec(new Runnable() {
+									public void run() {
+										if (fCombo != null && !fCombo.getControl().isDisposed()) {
+											fCombo.setSelection(newselection, true);
+										}
+									}
+								}); // Runnable
+							}
 						}
 						monitor.worked(1);
 					} finally {
@@ -713,8 +719,18 @@ public class AVRDeviceView extends ViewPart {
 			if (item == null) {
 				return null;
 			}
+
+			IProject project = null;
+
+			// See if the given is an IProject (directly or via IAdaptable
 			if (item instanceof IProject) {
-				IProject project = (IProject) item;
+				project = (IProject) item;
+			} else if (item instanceof IAdaptable) {
+				IAdaptable adaptable = (IAdaptable) item;
+				project = (IProject) adaptable.getAdapter(IProject.class);
+			}
+
+			if (project != null) {
 				try {
 					IProjectNature nature = project.getNature(PluginIDs.NATURE_ID);
 					if (nature != null) {
@@ -732,11 +748,10 @@ public class AVRDeviceView extends ViewPart {
 					return null;
 				}
 			} else if (item instanceof String) {
-				String mcuname = (String)item;
+				String mcuname = (String) item;
 				String mcuid = AVRMCUidConverter.name2id(mcuname);
 				return mcuid;
 			}
-			
 
 			// Selection does not contain a mcuid
 			return null;

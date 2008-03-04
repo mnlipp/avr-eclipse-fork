@@ -26,6 +26,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
@@ -91,7 +95,7 @@ public class MCUListView extends ViewPart {
 		// Initialize the SuperClass and store the passed memento for use by
 		// the individual methods.
 		super.init(site, memento);
-//		fMemento = memento;
+		// fMemento = memento;
 	}
 
 	@Override
@@ -183,8 +187,11 @@ public class MCUListView extends ViewPart {
 	 */
 	private class WorkbenchSelectionListener implements ISelectionListener {
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
+		 *      org.eclipse.jface.viewers.ISelection)
 		 */
 		public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
 			// we ignore our own selections
@@ -192,42 +199,67 @@ public class MCUListView extends ViewPart {
 				return;
 			}
 
-			String newid = null;
-			Set<String> mculist = fContentProvider.getMasterMCUList();
+			// To minimize the GUI impact run the rest of this method in a Job
+			Job selectionjob = new Job("AVR MCU List") {
 
-			// see if the selection is something that has an AVR MCU id
-			if (selection instanceof IStructuredSelection) {
-				// First: Projects
-				IStructuredSelection ss = (IStructuredSelection) selection;
-				newid = getMCUId(ss);
-			} else if (selection instanceof ITextSelection) {
-				// Second: Selected Text
-				String text = ((ITextSelection) selection).getText();
-				// Test if the text is an MCU name/id
-				if (mculist.contains(AVRMCUidConverter.name2id(text))) {
-					// yes: use it
-					newid = AVRMCUidConverter.name2id(text);
-				}
-			}
-			if (newid != null) {
-				// Test if it is a valid mcu id. Only set valid mcu
-				// id values
-				// as otherwise an error message would be displayed
-				if (!mculist.contains(AVRMCUidConverter.name2id(newid))) {
-					return;
-				}
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					String newid = null;
+					try {
 
-				final IStructuredSelection newselection = new StructuredSelection(newid);
-				if ((fViewParent != null) && (!fViewParent.isDisposed())) {
-					fViewParent.getDisplay().asyncExec(new Runnable() {
-						public void run() {
-							// The next call will cause a SelectionChange Event
-							// which handles the rest of the change
-							fTable.setSelection(newselection, true);
+						monitor.beginTask("Selection Change", 3);
+						Set<String> mculist = fContentProvider.getMasterMCUList();
+						monitor.worked(1);
+
+						// see if the selection is something that has an avr mcu
+						// id
+						if (selection instanceof IStructuredSelection) {
+							// First: Projects
+							IStructuredSelection ss = (IStructuredSelection) selection;
+							newid = getMCUId(ss);
+						} else if (selection instanceof ITextSelection) {
+							// Second: Selected Text
+							String text = ((ITextSelection) selection).getText();
+							// Test if the text is an MCU name/id
+							if (mculist.contains(AVRMCUidConverter.name2id(text))) {
+								// yes: use it
+								newid = AVRMCUidConverter.name2id(text);
+							}
 						}
-					}); // Runnable
+						monitor.worked(1);
+
+						if (newid != null) {
+							// Test if it is a valid mcu id. Only set valid mcu
+							// id values as otherwise an error message would be
+							// displayed
+							if (!mculist.contains(AVRMCUidConverter.name2id(newid))) {
+								return Status.OK_STATUS;
+							}
+
+							// Next cause a SelectionChange Event in the UI
+							// Thread, which handles the rest of the change.
+							// (Only if the control still exists)
+							final IStructuredSelection newselection = new StructuredSelection(newid);
+							if ((fViewParent != null) && (!fViewParent.isDisposed())) {
+								fViewParent.getDisplay().asyncExec(new Runnable() {
+									public void run() {
+										if ((fTable != null) && (!fTable.getControl().isDisposed())) {
+											fTable.setSelection(newselection, true);
+										}
+									}
+								}); // Runnable
+							}
+						}
+						monitor.worked(1);
+					} finally {
+						monitor.done();
+					}
+					return Status.OK_STATUS;
 				}
-			}
+			};
+			selectionjob.setSystem(true);
+			selectionjob.setPriority(Job.SHORT);
+			selectionjob.schedule();
 		}
 
 		/**
@@ -258,10 +290,10 @@ public class MCUListView extends ViewPart {
 			if (item instanceof IProject) {
 				project = (IProject) item;
 			} else if (item instanceof IAdaptable) {
-				IAdaptable adaptable = (IAdaptable)item;
-				project = (IProject)adaptable.getAdapter(IProject.class);
+				IAdaptable adaptable = (IAdaptable) item;
+				project = (IProject) adaptable.getAdapter(IProject.class);
 			}
-			
+
 			if (project != null) {
 				// Ok, the item is a IProject
 				try {
