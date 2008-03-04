@@ -72,6 +72,11 @@
 			class="de.innot.avreclipse.ui.preferences.PathsPreferencePage"
 			id="de.innot.avreclipse.preferences.PreferencePage">
 		</page>
+		<page name="AVRDude"
+			category="de.innot.avreclipse.preferences.PreferencePage"
+			class="de.innot.avreclipse.ui.preferences.AVRDudePreferencePage"
+			id="de.innot.avreclipse.preferences.AVRDudePreferencePage">
+		</page>
 	</extension>
 
 <!--

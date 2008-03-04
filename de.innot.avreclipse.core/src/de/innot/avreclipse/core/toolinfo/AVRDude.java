@@ -125,6 +125,11 @@ public class AVRDude implements IMCUProvider {
 		return new HashSet<String>(idset);
 	}
 
+	public ConfigEntry getProgrammerInfo(String programmerid) {
+		Map<String, ConfigEntry> internalmap = loadProgrammersList();
+		return internalmap.get(programmerid);
+	}
+
 	/**
 	 * @return Map&lt;mcu id, avrdude id&gt; of all supported MCUs
 	 */
@@ -284,7 +289,7 @@ public class AVRDude implements IMCUProvider {
 		return stdout;
 	}
 
-	private static class ConfigEntry {
+	public static class ConfigEntry {
 		public String avrdudeid;
 		public String description;
 		public IPath configfile;
