@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -38,8 +40,9 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 /**
  * This class provides some information about the used gcc compiler in the
  * toolchain.
- * 
+ * <p>
  * It can return a list of all supported target mcus.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.1
@@ -132,24 +135,22 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		// Execute avr-gcc with the "--target-help" option and parse the
 		// output
-		String command = getToolPath().toOSString();
-		List<String> argument = new ArrayList<String>(1);
-		argument.add("--target-help");
-		
-		ExternalCommandLauncher gcc = new ExternalCommandLauncher(command, argument);
-		try {
-	        gcc.launch();
-        } catch (IOException e) {
-        	// Something didn't work while running the external command
-        	IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "+command, e);
-        	AVRPlugin.getDefault().log(status);
-        	return fMCUmap;
-        }
+		List<String> stdout = runCommand("--target-help");
+		if (stdout == null) {
+			// Return empty map on failures
+			return fMCUmap;
+		}
 
-        List<String> stdout = gcc.getStdOut();
-		
 		boolean start = false;
-		
+
+		// The parsing is done by reading the output line by line until a line
+		// with "Known MCU names:" is found. Then the parsing starts and all
+		// following lines are split into the mcu ids until a line is reached
+		// that does not start with a space (the mcu id lines start always with
+		// a space).
+		//
+		// Maybe this could be done with a Pattern matcher, but I don't know how
+		// to do multiline pattern matching and this is probably faster anyway
 		for (String line : stdout) {
 			if ("Known MCU names:".equals(line)) {
 				start = true;
@@ -158,8 +159,7 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 				start = false;
 			} else if (start) {
 				String[] names = line.split(" ");
-				for (int i = 0; i < names.length; i++) {
-					String mcuid = names[i];
+				for (String mcuid : names) {
 					String mcuname = AVRMCUidConverter.id2name(mcuid);
 					if (mcuname == null) {
 						// some mcuid are generic and should not be
@@ -170,9 +170,84 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 				}
 			} else {
 				// a line outside of the "Known MCU names:" section
-			}			
+			}
 		}
 
 		return fMCUmap;
+	}
+
+	/**
+	 * Get the command name and the current version of GCC.
+	 * <p>
+	 * The name comes from the buildDefinition. The version is gathered by
+	 * executing with the "-v" option and parsing the output.
+	 * </p>
+	 * 
+	 * @return <code>String</code> with the command name and version
+	 */
+	public String getNameAndVersion() {
+
+		// Execute avr-gcc with the "-v" option and parse the
+		// output
+		List<String> stdout = runCommand("-v");
+		if (stdout == null) {
+			// Return default name on failures
+			return getCommandName() + " n/a";
+		}
+
+		// look for a line matching "gcc version TheVersionNumber"
+		Pattern mcuPat = Pattern.compile("gcc version\\s*(.*)");
+		Matcher m;
+		for (String line : stdout) {
+			m = mcuPat.matcher(line);
+			if (!m.matches()) {
+				continue;
+			}
+			return getCommandName() + " " + m.group(1);
+		}
+
+		// could not read the version from the output, probably the regex has a
+		// mistake. Return a reasonable default.
+		return  getCommandName()+ "?.?";
+	}
+
+	/**
+	 * Runs the GCC with the given arguments.
+	 * <p>
+	 * The Output of stdout and stderr are merged and returned in a
+	 * <code>List&lt;String&gt;</code>.
+	 * </p>
+	 * <p>
+	 * If the command fails to execute an entry is written to the log and
+	 * <code>null</code> is returned
+	 * 
+	 * @param arguments
+	 *            Zero or more arguments for gcc
+	 * @return A list of all output lines, or <code>null</code> if the command
+	 *         could not be launched.
+	 */
+	private List<String> runCommand(String... arguments) {
+
+		String command = getToolPath().toOSString();
+		List<String> arglist = new ArrayList<String>(1);
+		for (String arg : arguments) {
+			arglist.add(arg);
+		}
+
+		ExternalCommandLauncher gcc = new ExternalCommandLauncher(command, arglist);
+		gcc.redirectErrorStream(true);
+		try {
+			gcc.launch();
+		} catch (IOException e) {
+			// Something didn't work while running the external command
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
+			        + command, e);
+			AVRPlugin.getDefault().log(status);
+			return null;
+		}
+
+		List<String> stdout = gcc.getStdOut();
+
+		return stdout;
 	}
 }

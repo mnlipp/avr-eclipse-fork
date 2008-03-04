@@ -52,7 +52,7 @@ public class AVRDude implements IMCUProvider {
 
 	private Map<String, ConfigEntry> fMCUList;
 	private Map<String, ConfigEntry> fProgrammerList;
-	
+
 	private Map<String, String> fMCUIdMap = null;
 
 	private IPath fCurrentPath = null;
@@ -73,6 +73,9 @@ public class AVRDude implements IMCUProvider {
 	private AVRDude() {
 	}
 
+	/**
+	 * @return
+	 */
 	public String getCommandName() {
 		return fCommandName;
 	}
@@ -121,6 +124,7 @@ public class AVRDude implements IMCUProvider {
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
 	}
+
 	/**
 	 * @return Map&lt;mcu id, avrdude id&gt; of all supported MCUs
 	 */
@@ -140,17 +144,18 @@ public class AVRDude implements IMCUProvider {
 
 		fMCUList = new HashMap<String, ConfigEntry>();
 		// Execute avrdude with the "-p?" to get a list of all supported mcus.
-		List<String> arguments = new ArrayList<String>(1);
-		arguments.add("-p?");
+		readAVRDudeConfigOutput(fMCUList, "-p?");
 
-		readAVRDudeConfigOutput(arguments, fMCUList);
+		// The returned list has avrdude mcu id values, which are not the same
+		// as the ones used in this Plugin. Instead the returned name is
+		// converted into an Pluin mcu id value.
 		fMCUIdMap = new HashMap<String, String>(fMCUList.size());
 		Collection<ConfigEntry> allentries = fMCUList.values();
 		for (ConfigEntry entry : allentries) {
 			String mcuid = AVRMCUidConverter.name2id(entry.description);
 			fMCUIdMap.put(mcuid, entry.avrdudeid);
 		}
-		
+
 		return fMCUIdMap;
 	}
 
@@ -171,38 +176,21 @@ public class AVRDude implements IMCUProvider {
 		}
 		fProgrammerList = new HashMap<String, ConfigEntry>();
 		// Execute avrdude with the "-p?" to get a list of all supported mcus.
-		List<String> arguments = new ArrayList<String>(1);
-		arguments.add("-pm16");
-		arguments.add("-c?");
-
-		readAVRDudeConfigOutput(arguments, fProgrammerList);
+		readAVRDudeConfigOutput(fProgrammerList, "-pm16", "-c?");
 		return fProgrammerList;
 	}
 
-	
-	private void readAVRDudeConfigOutput(List<String> arguments, Map<String, ConfigEntry> resultmap) {
-		String command = getToolPath().toOSString();
+	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap, String... arguments) {
 
-		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arguments);
-		avrdude.redirectErrorStream(true);
-		try {
-			avrdude.launch();
-		} catch (IOException e) {
-			// Something didn't work while running the external command
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-			        + command, e);
-			AVRPlugin.getDefault().log(status);
+		List<String> stdout = runCommand(arguments);
+		if (stdout == null) {
 			return;
 		}
 
-		List<String> stdout = avrdude.getStdOut();
-
 		// Avrdude output for configuration items looks like:
-		// " avrdudeid = description [pathtoavrdude.conf:line]"
+		// " id = description [pathtoavrdude.conf:line]"
 		// The following pattern splits this into the four groups:
-		// avrdudeid / description / path / line
-		// Note: The avrdude aid is not the same as the mcuid used in this
-		// Plugin. Instead the retrieved name is converted to an Plugin mcuid.
+		// id / description / path / line
 		Pattern mcuPat = Pattern.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
 		Matcher m;
 
@@ -220,7 +208,82 @@ public class AVRDude implements IMCUProvider {
 			resultmap.put(entry.avrdudeid, entry);
 		}
 	}
-	
+
+	/**
+	 * Get the command name and the current version of avrdude.
+	 * <p>
+	 * The name is defined in {@link #fCommandName}. The version is gathered by
+	 * executing with the "-v" option and parsing the output.
+	 * </p>
+	 * 
+	 * @return <code>String</code> with the command name and version
+	 */
+	public String getNameAndVersion() {
+
+		// Execute avrdude with the "-v" option and parse the
+		// output
+		List<String> stdout = runCommand("-v");
+		if (stdout == null) {
+			// Return default name on failures
+			return getCommandName() + " n/a";
+		}
+
+		// look for a line matching "*Version TheVersionNumber *"
+		Pattern mcuPat = Pattern.compile(".*Version\\s+([\\d\\.]+).*");
+		Matcher m;
+		for (String line : stdout) {
+			m = mcuPat.matcher(line);
+			if (!m.matches()) {
+				continue;
+			}
+			return getCommandName() + " " + m.group(1);
+		}
+
+		// could not read the version from the output, probably the regex has a
+		// mistake. Return a reasonable default.
+		return getCommandName() + " ?.?";
+	}
+
+	/**
+	 * Runs avrdude with the given arguments.
+	 * <p>
+	 * The Output of stdout and stderr are merged and returned in a
+	 * <code>List&lt;String&gt;</code>.
+	 * </p>
+	 * <p>
+	 * If the command fails to execute an entry is written to the log and
+	 * <code>null</code> is returned
+	 * 
+	 * @param arguments
+	 *            Zero or more arguments for avrdude
+	 * @return A list of all output lines, or <code>null</code> if the command
+	 *         could not be launched.
+	 */
+	private List<String> runCommand(String... arguments) {
+
+		String command = getToolPath().toOSString();
+		List<String> arglist = new ArrayList<String>(1);
+		for (String arg : arguments) {
+			arglist.add(arg);
+		}
+
+		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
+		avrdude.redirectErrorStream(true);
+		try {
+			avrdude.launch();
+		} catch (IOException e) {
+			// Something didn't work while running the external command
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
+			        + command, e);
+			AVRPlugin.getDefault().log(status);
+			return null;
+		}
+
+		List<String> stdout = avrdude.getStdOut();
+
+		return stdout;
+	}
+
 	private static class ConfigEntry {
 		public String avrdudeid;
 		public String description;
