@@ -19,7 +19,7 @@ import org.eclipse.core.runtime.Path;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.innot.avreclipse.AVRPluginActivator;
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * @author U043192
@@ -107,7 +107,7 @@ public class TestSignatures {
 		fSigs.storeSignatures();
 		
 		Properties signatureprops = new Properties();
-		IPath propslocation = AVRPluginActivator.getDefault().getStateLocation().append(
+		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(
 		        INSTANCEPROPSFILE);
 		File propsfile = propslocation.toFile();
 		assertTrue("Signature Properties not created", propsfile.exists());
