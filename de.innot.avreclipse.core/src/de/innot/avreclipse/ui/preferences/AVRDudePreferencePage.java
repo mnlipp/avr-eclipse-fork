@@ -1,6 +1,6 @@
 /*******************************************************************************
  * 
- * Copyright (c) 2007 Thomas Holland (thomas@innot.de) and others
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
  * 
  * This program and the accompanying materials are made
  * available under the terms of the GNU Public License v3
@@ -18,7 +18,6 @@ package de.innot.avreclipse.ui.preferences;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -30,7 +29,6 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 
 /**
  * AVRDude Preference page of the AVR Eclipse plugin.
- * 
  * <p>
  * This page contains an option to select an avrdude configuration file and
  * manages the list of known Programmer configurations.
@@ -43,10 +41,9 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
  */
 
 public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
-		IWorkbenchPreferencePage {
+        IWorkbenchPreferencePage {
 
-	private IPreferenceStore fPreferenceStore = null;
-
+	// The GUI controls
 	private FileFieldEditor fFileEditor;
 	private ProgConfigListFieldEditor fConfigEditor;
 
@@ -54,8 +51,7 @@ public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
 		super(GRID);
 
 		// Get the instance scope avrdude preference store
-		fPreferenceStore = AVRDudePreferences.getPreferenceStore();
-		setPreferenceStore(fPreferenceStore);
+		setPreferenceStore(AVRDudePreferences.getPreferenceStore());
 		setDescription("AVRDude Global Settings");
 	}
 
@@ -70,22 +66,20 @@ public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
 
 		// Add the Configuration file settings
 		MyBooleanFieldEditor usecustomconfig = new MyBooleanFieldEditor(
-				AVRDudePreferences.KEY_USECUSTOMCONFIG,
-				"Use custom configuration file for AVRDude", parent);
+		        AVRDudePreferences.KEY_USECUSTOMCONFIG,
+		        "Use custom configuration file for AVRDude", parent);
 		addField(usecustomconfig);
 
-		fFileEditor = new FileFieldEditor(AVRDudePreferences.KEY_CONFIGFILE,
-				"AVRDude config file", parent);
+		fFileEditor = new FileFieldEditor(AVRDudePreferences.KEY_CONFIGFILE, "AVRDude config file",
+		        parent);
 		addField(fFileEditor);
 
+		// Add a separator bar
 		Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-		GridData data = new GridData(GridData.FILL_HORIZONTAL);
-		data.horizontalSpan = 3;
-		separator.setLayoutData(data);
+		separator.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
 
-		fConfigEditor = new ProgConfigListFieldEditor(
-				"Programmer configurations",
-				parent);
+		// Add the Programmer Configuration Mangager Field Editor
+		fConfigEditor = new ProgConfigListFieldEditor("Programmer configurations", parent);
 		addField(fConfigEditor);
 
 	}
@@ -108,37 +102,62 @@ public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
 		// access to its Checkbox control (to add a listener) nor does the
 		// addSelectionListener method work (the single listener is overwritten
 		// by the FieldEditorPreferencePage)
-		
-		// So we override the some methods to always be informed about any state changes.
+
+		// So we override the some methods to always be informed about any state
+		// changes.
 
 		private Composite fParent;
 
 		/*
-		 * @see org.eclipse.jface.preference.BooleanFieldEditor(String name, String label, Composite parent)
+		 * @see org.eclipse.jface.preference.BooleanFieldEditor(String name,
+		 *      String label, Composite parent)
 		 */
 		public MyBooleanFieldEditor(String name, String label, Composite parent) {
 			super(name, label, parent);
 			fParent = parent;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.jface.preference.BooleanFieldEditor#valueChanged(boolean,
+		 *      boolean)
+		 */
 		@Override
 		protected void valueChanged(boolean oldValue, boolean newValue) {
 			super.valueChanged(oldValue, newValue);
 			enableConfigFileEditor(newValue);
 		}
-		
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.jface.preference.BooleanFieldEditor#doLoad()
+		 */
 		@Override
 		protected void doLoad() {
 			super.doLoad();
 			enableConfigFileEditor(getBooleanValue());
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.jface.preference.BooleanFieldEditor#doLoadDefault()
+		 */
 		@Override
 		protected void doLoadDefault() {
 			super.doLoadDefault();
 			enableConfigFileEditor(getBooleanValue());
 		}
 
+		/**
+		 * Enable / Disable the Config file field editor.
+		 * 
+		 * @param newValue
+		 *            <code>true</code> to enable the fileeditor, disable
+		 *            otherwise.
+		 */
 		private void enableConfigFileEditor(boolean newValue) {
 			if (fFileEditor != null) {
 				if (newValue) {

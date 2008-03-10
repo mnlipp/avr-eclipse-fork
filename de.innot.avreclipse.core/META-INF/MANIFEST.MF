@@ -21,9 +21,11 @@ Require-Bundle:
 Export-Package: de.innot.avreclipse;
   uses:="org.eclipse.core.runtime,
    org.eclipse.jface.resource,
+   org.eclipse.ui.console,
    org.eclipse.ui.plugin,
    org.osgi.framework",
  de.innot.avreclipse.core,
+ de.innot.avreclipse.core.avrdude;uses:="org.eclipse.core.runtime.preferences",
  de.innot.avreclipse.core.natures;uses:="org.eclipse.core.resources",
  de.innot.avreclipse.core.paths;uses:="org.eclipse.jface.preference,org.eclipse.core.runtime",
  de.innot.avreclipse.core.paths.posix;uses:="org.eclipse.core.runtime,de.innot.avreclipse.core.paths",
@@ -51,6 +53,7 @@ Export-Package: de.innot.avreclipse;
    de.innot.avreclipse.core.paths,
    org.eclipse.ui,
    org.eclipse.swt.graphics,
+   de.innot.avreclipse.core.avrdude,
    org.eclipse.swt.widgets,
    org.eclipse.jface.dialogs",
  de.innot.avreclipse.ui.propertypages;uses:="org.eclipse.ui.dialogs,org.eclipse.swt.widgets",
@@ -62,9 +65,8 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.ui.part,
    org.eclipse.swt.widgets",
  de.innot.avreclipse.ui.views.supportedmcu;
-  uses:="org.eclipse.core.runtime,
+  uses:="org.eclipse.jface.layout,
    org.eclipse.ui,
-   org.eclipse.swt.graphics,
    org.eclipse.jface.viewers,
    org.eclipse.ui.part,
    org.eclipse.swt.widgets,
@@ -74,7 +76,7 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.cdt.managedbuilder.ui.wizards,
    org.eclipse.swt.graphics,
    org.eclipse.swt.widgets",
- de.innot.avreclipse.util
+ de.innot.avreclipse.util;uses:="org.eclipse.core.runtime"
 Eclipse-LazyStart: true
 Bundle-Activator: de.innot.avreclipse.AVRPlugin
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
