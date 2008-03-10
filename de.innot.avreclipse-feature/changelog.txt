@@ -8,6 +8,28 @@
 $Id$
 
 ================================================================================
+Version 2.2.0
+
+Changed / Improved:
+-----------------------------
+* AVR Device Explorer
+  The Device Explorer is now a Selection Listener and Provider.
+  When selecting a AVR project or a text which starts with a valid MCU name,
+  the associated MCU information is shown in the Device Explorer 
+  (Does not work from the "C/C++ Projects" View)
+
+Fixes:
+-----------------------------
+* AVR Target Hardware Property page
+  Fixed error when project properties were called from the 
+  "C/C++ Projects" view (Bug 1892250)
+  
+* Windows: Now the last installed version of winAVR is used when multiple winAVR
+  versions are installed
+  
+ * MCU Target selection did not work for library projects
+
+================================================================================
 Version 2.1.0 [10 February 2008]
 
 New:
