@@ -331,8 +331,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	 */
 	private void createButtons(Composite box) {
 		fAddButton = createPushButton(box, "Add...");
-		fRemoveButton = createPushButton(box, "Remove");
 		fEditButton = createPushButton(box, "Edit...");
+		fRemoveButton = createPushButton(box, "Remove");
 	}
 
 	/**
