@@ -116,6 +116,8 @@
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.base" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.debug" />
 			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.app.release" />
+			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.lib.debug" />
+			<toolchain toolchainID="de.innot.avreclipse.toolchain.winavr.lib.release" />
 		</wizardPage>
 	</extension>
 
