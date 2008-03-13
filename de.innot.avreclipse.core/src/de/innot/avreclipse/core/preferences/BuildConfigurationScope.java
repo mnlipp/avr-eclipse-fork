@@ -73,7 +73,7 @@ public class BuildConfigurationScope implements IScopeContext {
 			throw new IllegalArgumentException();
 		return (IEclipsePreferences) Platform.getPreferencesService()
 				.getRootNode().node(getName()).node(fProject.getName()).node(
-						qualifier).node(fConfig.getName());
+						qualifier).node(fConfig.getId());
 	}
 
 }

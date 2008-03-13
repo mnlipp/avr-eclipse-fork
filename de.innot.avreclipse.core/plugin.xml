@@ -99,7 +99,49 @@
 					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
 				</or>          
 			</enabledWhen>
-		</page>    
+		</page>
+		<page
+            class="de.innot.avreclipse.ui.propertypages.PageMain"
+            id="de.innot.avreclipse.propertypage.avrmain"
+            name="AVR" >
+			<filter
+				name="projectNature"
+				value="de.innot.avreclipse.core.avrnature">
+			</filter>            
+			<enabledWhen>
+				<or>
+					<instanceof value="org.eclipse.core.resources.IProject"/>
+					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+				</or>          
+			</enabledWhen>
+        </page>    
+		<page
+            class="de.innot.avreclipse.ui.propertypages.PageTargetHardware"
+            id="de.innot.avreclipse.propertypage.avrtargethardware"
+            name="Target Hardware"
+            category="de.innot.avreclipse.propertypage.avrmain" >
+			<filter
+				name="projectNature"
+				value="de.innot.avreclipse.core.avrnature">
+			</filter>            
+			<enabledWhen>
+				<or>
+					<instanceof value="org.eclipse.core.resources.IProject"/>
+					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+				</or>          
+			</enabledWhen>
+        </page>    
+		
+	</extension>
+	
+	<extension
+		point="org.eclipse.cdt.ui.cPropertyTab">
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TargetHardwareTab"
+			icon=""
+			name="Target Hardware"
+			weight="001"
+			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
 	</extension>
 
 <!--
