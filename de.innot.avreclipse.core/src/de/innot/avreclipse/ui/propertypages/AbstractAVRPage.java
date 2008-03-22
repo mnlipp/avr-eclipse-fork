@@ -3,23 +3,16 @@
  */
 package de.innot.avreclipse.ui.propertypages;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
-import org.eclipse.cdt.core.settings.model.ICResourceDescription;
-import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.ui.newui.AbstractPage;
-import org.eclipse.cdt.ui.newui.CDTPropertyManager;
 import org.eclipse.cdt.ui.newui.ICPropertyTab;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.ui.dialogs.PropertyPage;
 
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
-import de.innot.avreclipse.core.preferences.TargetConfiguration;
+import de.innot.avreclipse.core.preferences.ProjectProperties;
 
 /**
  * @author Thomas Holland
@@ -29,67 +22,25 @@ public abstract class AbstractAVRPage extends AbstractPage {
 
 	private Group fConfigGroup;
 
-	private static Boolean fPerConfigFlag = null;
-
-	private/* static */Map<String, TargetConfiguration> fTargetCfgs;
+	private static ProjectProperties fPropertiesManager = null;
 	
-	public AbstractAVRPage() {
-		if (fPerConfigFlag == null) {
-			boolean perconfigflag = getPreferenceStore().getBoolean(AVRTargetProperties.KEY_PER_CONFIG);
-			fPerConfigFlag = Boolean.valueOf(perconfigflag);
-		}
-
-		if (fTargetCfgs == null) {
-			fTargetCfgs = new HashMap<String, TargetConfiguration>();
-		}
-	}
-
 	@Override
 	protected void contentForCDT(Composite composite) {
 
 		super.contentForCDT(composite);
+		
+		// Get the Project Properties (if they have not yet been loaded by another page)
+		if ( fPropertiesManager == null) {
+			fPropertiesManager = ProjectPropertyManager.getProjectProperties(this, getProject());
+		}
 
 		fConfigGroup = findFirstGroup(composite);
 		
 		// set the visibility to the current Setting
-		setConfigSetting(isConfigSetting());
+		setPerConfig(fPropertiesManager.isPerConfig());
 		
 	}
 
-	public TargetConfiguration getTargetConfiguration(ICResourceDescription resdesc) {
-		if (fTargetCfgs == null) {
-			fTargetCfgs = new HashMap<String, TargetConfiguration>();
-		}
-		if (resdesc == null) {
-			String projectname = getProject().getName();
-			if (fTargetCfgs.containsKey(projectname)) {
-				return fTargetCfgs.get(projectname);
-			}
-			TargetConfiguration newcfg = new TargetConfiguration(getProject());
-			fTargetCfgs.put(projectname, newcfg);
-			return newcfg;
-		} else {
-			if (fTargetCfgs.containsKey(resdesc.getId())) {
-				return fTargetCfgs.get(resdesc.getId());
-			}
-			ICConfigurationDescription cfgDes = resdesc.getConfiguration();
-			IConfiguration conf = ManagedBuildManager.getConfigurationForDescription(cfgDes);
-			TargetConfiguration newcfg = new TargetConfiguration(conf);
-			fTargetCfgs.put(conf.getId(), newcfg);
-			return newcfg;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractPage#performApply()
-	 */
-	@Override
-	public void performApply() {
-		doSave();
-		super.performApply();
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -98,6 +49,7 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	 */
 	@Override
 	public boolean performCancel() {
+		ProjectPropertyManager.performCancel(this);
 		return super.performCancel();
 	}
 
@@ -108,7 +60,6 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	 */
 	@Override
 	public void performDefaults() {
-		fTargetCfgs.clear();
 		super.performDefaults();
 	}
 
@@ -119,39 +70,19 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	 */
 	@Override
 	public boolean performOk() {
-		doSave();
+		ProjectPropertyManager.performOK(this);
 		return super.performOk();
 	}
-
-	private void doSave() {
-		getPreferenceStore().setValue(AVRTargetProperties.KEY_PER_CONFIG, fPerConfigFlag);
-		try {
-			AVRTargetProperties.savePreferences(getPreferenceStore());
-			ICConfigurationDescription[] cfgdescs = getCfgsEditable();
-
-			// Save all edited TargetConfigurations
-			for (ICConfigurationDescription desc : cfgdescs) {
-				String cfgid = desc.getConfiguration().getId();
-				if (fTargetCfgs.containsKey(cfgid)) {
-					TargetConfiguration tc = fTargetCfgs.get(cfgid);
-					tc.save();
-				}
-			}
-			// Save project TargetSettings
-
-			TargetConfiguration projectcfg = fTargetCfgs.get(getProject().getName());
-			if (projectcfg != null) {
-				projectcfg.save();
-			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	
+	protected ProjectProperties getProjectPropertiesManager() {
+		return fPropertiesManager;
 	}
-
-	protected void setConfigSetting(boolean flag) {
-		fPerConfigFlag = flag;
+	protected boolean isPerConfig() {
+		return fPropertiesManager.isPerConfig();
+	}
+	
+	protected void setPerConfig(boolean flag) {
+		fPropertiesManager.setPerConfig(flag);
 		if (fConfigGroup != null) {
 			setEnabled(fConfigGroup, flag);
 		}
@@ -165,25 +96,16 @@ public abstract class AbstractAVRPage extends AbstractPage {
 
 
 		// inform all other AVRAbstractPages about this change
-		int pagecount = CDTPropertyManager.getPagesCount();
-		for (int i = 0; i < pagecount; i++) {
-			Object page = CDTPropertyManager.getPage(i);
+		List<PropertyPage> allpages = ProjectPropertyManager.getPages();
+		for (PropertyPage page : allpages) {
 			if ((page != null) && (page instanceof AbstractAVRPage)) {
 				AbstractAVRPage ap = (AbstractAVRPage) page;
 				// don't call ourself
 				if (this == ap)
 					continue;
-				ap.setConfigSetting(flag);
+				ap.setPerConfig(flag);
 			}
 		}
-	}
-
-	public boolean isConfigSetting() {
-		return fPerConfigFlag;
-	}
-	
-	public int convertCharToPixel(int chars) {
-		return convertWidthInCharsToPixels(chars);
 	}
 
 	private Group findFirstGroup(Composite parent) {
@@ -213,4 +135,5 @@ public abstract class AbstractAVRPage extends AbstractPage {
 			child.setEnabled(value);
 		}
 	}
+	
 }

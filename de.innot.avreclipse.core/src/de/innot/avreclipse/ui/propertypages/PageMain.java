@@ -34,7 +34,7 @@ public class PageMain extends AbstractAVRPage {
 			}
 		});
 
-		fPerConfigButton.setSelection(super.isConfigSetting());
+		fPerConfigButton.setSelection(super.isPerConfig());
 		perConfigSettingsAction();
 
 	}
@@ -53,7 +53,7 @@ public class PageMain extends AbstractAVRPage {
 
 	private void perConfigSettingsAction() {
 		boolean newvalue = fPerConfigButton.getSelection();
-		super.setConfigSetting(newvalue);
+		super.setPerConfig(newvalue);
 	}
 
 
