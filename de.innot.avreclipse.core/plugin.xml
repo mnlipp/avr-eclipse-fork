@@ -86,21 +86,6 @@
 -->
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
-			class="de.innot.avreclipse.ui.propertypages.AVRHardwarePropertyPage"
-			id="de.innot.avreclipse.propertypage.avrhardware"
-			name="AVR Target Hardware" >
-			<filter
-				name="projectNature"
-				value="de.innot.avreclipse.core.avrnature">
-			</filter>            
-			<enabledWhen>
-				<or>
-					<instanceof value="org.eclipse.core.resources.IProject"/>
-					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
-				</or>          
-			</enabledWhen>
-		</page>
-		<page
             class="de.innot.avreclipse.ui.propertypages.PageMain"
             id="de.innot.avreclipse.propertypage.avrmain"
             name="AVR" >
