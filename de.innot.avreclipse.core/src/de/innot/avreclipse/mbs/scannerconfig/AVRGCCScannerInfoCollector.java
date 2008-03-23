@@ -24,9 +24,9 @@ import org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider;
 import org.eclipse.cdt.make.internal.core.scannerconfig2.PerProjectSICollector;
 import org.eclipse.cdt.managedbuilder.scannerconfig.IManagedScannerInfoCollector;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jface.preference.IPreferenceStore;
 
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
  * Gather built in compiler settings.
@@ -72,12 +72,13 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 		List<String> rv = new ArrayList<String>(1);
 
 		IProject project = (IProject) resource;
-		IPreferenceStore store = AVRTargetProperties.getPropertyStore(project);
-		String targetmcu = store.getString(AVRTargetProperties.KEY_MCUTYPE);
+		ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
+		AVRProjectProperties props = projprops.getActiveProperties();
+		String targetmcu = props.getMCUId();
 		if ((targetmcu != null) && (!targetmcu.isEmpty())) {
 			rv.add("-mmcu=" + targetmcu);
 		}
-		String fcpu = store.getString(AVRTargetProperties.KEY_FCPU);
+		String fcpu = props.getFCPU();
 		if ((fcpu != null) && (!fcpu.isEmpty())) {
 			rv.add("-DF_CPU=" + fcpu + "UL");
 		}

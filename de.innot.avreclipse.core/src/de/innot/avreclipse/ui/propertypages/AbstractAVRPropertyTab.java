@@ -3,44 +3,22 @@
  */
 package de.innot.avreclipse.ui.propertypages;
 
-import java.io.IOException;
-
-import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICResourceDescription;
-import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.ui.properties.AbstractCBuildPropertyTab;
-import org.eclipse.cdt.ui.newui.ICPropertyProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
  * @author U043192
  * 
  */
 public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
-
-	private AbstractAVRPage fPage;
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite,
-	 *      org.eclipse.cdt.ui.newui.ICPropertyProvider)
-	 */
-	@Override
-	public void createControls(Composite parent, ICPropertyProvider provider) {
-		if (provider instanceof AbstractAVRPage) {
-			fPage = (AbstractAVRPage) provider;
-		} else {
-			return;
-		}
-		super.createControls(parent, provider);
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -51,31 +29,35 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	@Override
 	protected void performApply(ICResourceDescription src, ICResourceDescription dst) {
 
-		AVRProjectProperties sourceprops;
+		// Apply should only save the values of this Tab.
+		// To do this, we get a new Property Element, which is filled with the
+		// values from the store.
+		// Then this new Element is passed on to the extending class, which
+		// modifies only its own values.
+		// Finally the Element is saved again to the property storage.
 
-		if (fPage.isPerConfig()) {
-			// We are on a per config setting
-			sourceprops = new AVRProjectProperties(fPage.getProject());
-		} else {
-			// We have a per Project Setting
-			ICConfigurationDescription cfgDes = src.getConfiguration();
-			IConfiguration conf = ManagedBuildManager.getConfigurationForDescription(cfgDes);
-			sourceprops = new AVRProjectProperties(conf);
-		}
+		AVRProjectProperties freshprops;
 
-		AVRProjectProperties destinationprops = new AVRProjectProperties(sourceprops);
-		performApply(sourceprops, destinationprops);
+		freshprops = AVRPropertyPageManager.getConfigPropertiesNoCache(src);
+
+		performApply(freshprops);
 
 		try {
-			fPage.getProjectPropertiesManager().save(destinationprops);
-		} catch (IOException e) {
+			freshprops.save();
+		} catch (BackingStoreException e) {
 			// TODO Open a error dialog that the value could not be saved
 			e.printStackTrace();
 		}
 
 	}
 
-	protected abstract void performApply(AVRProjectProperties src, AVRProjectProperties dst);
+	/**
+	 * Action for an Apply event.
+	 * <p>
+	 * 
+	 * @param dst
+	 */
+	protected abstract void performApply(AVRProjectProperties dst);
 
 	/*
 	 * (non-Javadoc)
@@ -84,15 +66,16 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 */
 	@Override
 	protected void performDefaults() {
-		AVRProjectProperties tc = new AVRProjectProperties();
+		AVRProjectProperties tc = ProjectPropertyManager.getDefaultProperties();
 		performDefaults(tc);
 	}
-	
+
 	protected abstract void performDefaults(AVRProjectProperties defaults);
 
 	@Override
-	protected void updateButtons() {};
-	
+	protected void updateButtons() {
+	};
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -101,8 +84,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	@Override
 	protected void updateData(ICResourceDescription resdesc) {
 
-		AVRProjectProperties props = ProjectPropertyManager.getConfigProperties(resdesc);
-		
+		AVRProjectProperties props = AVRPropertyPageManager.getConfigProperties(resdesc);
+
 		updateData(props);
 
 	}
@@ -114,6 +97,5 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1);
 		separator.setLayoutData(gridData);
 	}
-
 
 }

@@ -16,7 +16,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.wizards;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageManager;
 import org.eclipse.cdt.ui.wizards.CDTCommonProjectWizard;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -39,10 +37,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.osgi.service.prefs.Preferences;
+import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.natures.AVRProjectNature;
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
@@ -80,6 +79,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	// GUI Widgets
 	private Combo comboMCUtype;
 	private Text textMCUfreq;
+	
+	private AVRProjectProperties fProperties;
 
 	/**
 	 * Constructor for the Wizard Page.
@@ -98,8 +99,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		// values to the run() method.
 
 		this.pageID = PAGE_ID;
-
-		Preferences defaults = AVRTargetProperties.getDefaultPreferences();
+		
+		fProperties = ProjectPropertyManager.getDefaultProperties();
 
 		// Get the list of supported MCU id's from the compiler
 		// The list is then converted into an array of MCU names
@@ -112,8 +113,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		Arrays.sort(fMCUNames);
 
 		// get the defaults
-		fDefaultMCUName = defaults.get(AVRTargetProperties.KEY_MCUTYPE, null);
-		fDefaultFCPU = defaults.get(AVRTargetProperties.KEY_FCPU, null);
+		fDefaultMCUName = fProperties.getMCUId();
+		fDefaultFCPU = fProperties.getFCPU();
 
 		// Set the default values as page properties
 		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_NAME,
@@ -329,24 +330,26 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 				.getWizardPage().getWizard();
 		IProject project = wizz.getLastProject();
 
-		IPreferenceStore prefs = AVRTargetProperties.getPropertyStore(project);
-
+		ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
+		AVRProjectProperties props = projprops.getProjectProperties();
+		
 		// Set the Project properties according to the selected values
 
 		// Get the id of the selected MCU and store it
 		String mcuname = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
 				PROPERTY_MCU_NAME);
-		prefs.setValue(AVRTargetProperties.KEY_MCUTYPE, AVRMCUidConverter.name2id(mcuname));
+		String mcuid = AVRMCUidConverter.name2id(mcuname);
+		props.setMCUId(mcuid);
 
 		// Set the F_CPU and store it
-		String mcufreq = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
+		String fcpu = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
 				PROPERTY_MCU_FREQ);
-		prefs.setValue(AVRTargetProperties.KEY_FCPU, mcufreq);
+		props.setFCPU(fcpu);
 
 		try {
-			AVRTargetProperties.savePreferences(prefs);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			projprops.save();
+		} catch (BackingStoreException e) {
+			// TODO Pop up error dialog
 			e.printStackTrace();
 		}
 

@@ -21,9 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
@@ -36,7 +33,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelection;
@@ -71,7 +67,8 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
 import de.innot.avreclipse.PluginIDs;
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;
@@ -735,14 +732,11 @@ public class AVRDeviceView extends ViewPart {
 					IProjectNature nature = project.getNature(PluginIDs.NATURE_ID);
 					if (nature != null) {
 						// This is an AVR Project
-						// Get the selected build configuration then get the
-						// PreferenceStore for it and read the MCU type.
-						IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(project);
-						IConfiguration cfg = bi.getDefaultConfiguration();
-
-						IPreferenceStore propstore = AVRTargetProperties.getPropertyStore(cfg);
-						return propstore.getString(AVRTargetProperties.KEY_MCUTYPE);
-
+						// Get the AVR properties for the active build
+						// configuration and fetch the mcu id from it.
+						ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
+						AVRProjectProperties props = projprops.getActiveProperties();
+						return props.getMCUId();
 					}
 				} catch (CoreException e) {
 					return null;

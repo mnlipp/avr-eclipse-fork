@@ -16,16 +16,16 @@
 package de.innot.avreclipse.ui.propertypages;
 
 /**
- * The Target Hardware property page.
+ * The AVRDude property page.
  * <p>
- * This page uses only one single tab
+ * This page uses multiple tabs
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  * 
  */
-public class PageTargetHardware extends AbstractAVRPage {
+public class PageAVRDude extends AbstractAVRPage {
 
 	/*
 	 * (non-Javadoc)
@@ -34,7 +34,7 @@ public class PageTargetHardware extends AbstractAVRPage {
 	 */
 	@Override
 	protected boolean isSingle() {
-		return true;
+		return false;
 	}
 
 }

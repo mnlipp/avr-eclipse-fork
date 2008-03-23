@@ -23,11 +23,12 @@ import org.eclipse.cdt.managedbuilder.macros.IBuildMacro;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroStatus;
 import org.eclipse.cdt.managedbuilder.macros.IConfigurationBuildMacroSupplier;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.preference.IPreferenceStore;
 
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
  * BuildMacro Supplier.
@@ -48,7 +49,7 @@ import de.innot.avreclipse.core.preferences.AVRTargetProperties;
 public class AVRTargetBuildMacroSupplier implements
 		IConfigurationBuildMacroSupplier, BuildConstants {
 
-	private IPreferenceStore fProps = null;
+	private ProjectPropertyManager fProjProps = null;
 
 	/**
 	 * This is a simple implementation of the <code>IBuildMacro</code>
@@ -60,6 +61,9 @@ public class AVRTargetBuildMacroSupplier implements
 
 		// name of the macro
 		private String fName;
+
+		private final AVRProjectProperties fProps;
+
 		
 		/**
 		 * Construct a new InternalBuildMacro with the given name.
@@ -69,6 +73,7 @@ public class AVRTargetBuildMacroSupplier implements
 		 */
 		public InternalBuildMacro(String name, IConfiguration config) {
 			fName = name;
+			fProps = fProjProps.getConfigurationProperties(config);
 		}
 
 		/*
@@ -119,12 +124,11 @@ public class AVRTargetBuildMacroSupplier implements
 			// associated project property value.
 			if (TARGET_MCU_NAME.equals(fName)) {
 				// Target MCU
-				String targetmcu = fProps
-						.getString(AVRTargetProperties.KEY_MCUTYPE);
+				String targetmcu = fProps.getMCUId();
 				return targetmcu;
 			} else if (TARGET_FCPU_NAME.equals(fName)) {
 				// Target F_CPU
-				String fcpu = fProps.getString(AVRTargetProperties.KEY_FCPU);
+				String fcpu = fProps.getFCPU();
 				return fcpu;
 			}
 
@@ -158,9 +162,8 @@ public class AVRTargetBuildMacroSupplier implements
 	public IBuildMacro getMacro(String macroName, IConfiguration configuration,
 			IBuildMacroProvider provider) {
 
-		if (fProps == null) {
-			// set up property store
-			fProps = AVRTargetProperties.getPropertyStore(configuration);
+		if (fProjProps == null) {
+			fProjProps = ProjectPropertyManager.getPropertyManager((IProject)configuration.getOwner());
 		}
 
 		if (TARGET_MCU_NAME.equals(macroName)) {

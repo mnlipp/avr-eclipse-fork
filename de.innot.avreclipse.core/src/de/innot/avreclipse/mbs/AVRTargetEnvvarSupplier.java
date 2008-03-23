@@ -19,12 +19,13 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable;
 import org.eclipse.cdt.managedbuilder.envvar.IConfigurationEnvironmentVariableSupplier;
 import org.eclipse.cdt.managedbuilder.envvar.IEnvironmentVariableProvider;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.core.resources.IProject;
 
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
  * Envvar Supplier.
@@ -62,7 +63,7 @@ public class AVRTargetEnvvarSupplier implements
 
 	static final String BUILDARTIFACT_NAME = "BUILDARTIFACT";
 
-	private IPreferenceStore fProps = null;
+	private ProjectPropertyManager fProjProps = null;
 
 	/**
 	 * This is a trivial implementation of the
@@ -75,11 +76,10 @@ public class AVRTargetEnvvarSupplier implements
 		private final String fName;
 		private final int fOperation;
 		private final IConfiguration fConfiguration;
+		private final AVRProjectProperties fProps;
 
 		public SimpleBuildEnvVar(String name, IConfiguration config) {
-			fName = name;
-			fConfiguration = config;
-			fOperation = ENVVAR_REPLACE;
+			this(name, config, ENVVAR_REPLACE);
 		}
 
 		public SimpleBuildEnvVar(String name, IConfiguration config,
@@ -87,6 +87,7 @@ public class AVRTargetEnvvarSupplier implements
 			fName = name;
 			fConfiguration = config;
 			fOperation = operation;
+			fProps = fProjProps.getConfigurationProperties(config);
 		}
 
 		/*
@@ -125,13 +126,12 @@ public class AVRTargetEnvvarSupplier implements
 		public String getValue() {
 			if (TARGET_MCU_NAME.equals(fName)) {
 				// Target MCU
-				String targetmcu = fProps
-						.getString(AVRTargetProperties.KEY_MCUTYPE);
+				String targetmcu = fProps.getMCUId();
 				return targetmcu;
 
 			} else if (TARGET_FCPU_NAME.equals(fName)) {
 				// Target F_CPU
-				String fcpu = fProps.getString(AVRTargetProperties.KEY_FCPU);
+				String fcpu = fProps.getFCPU();
 				return fcpu;
 
 			} else if (BUILDARTIFACT_NAME.equals(fName)) {
@@ -185,9 +185,8 @@ public class AVRTargetEnvvarSupplier implements
 		if (variableName == null)
 			return null;
 
-		if (fProps == null) {
-			// set up property store
-			fProps = AVRTargetProperties.getPropertyStore(configuration);
+		if (fProjProps == null) {
+			fProjProps = ProjectPropertyManager.getPropertyManager((IProject)configuration.getOwner());
 		}
 
 		if (TARGET_MCU_NAME.equals(variableName)) {

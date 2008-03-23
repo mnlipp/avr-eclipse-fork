@@ -17,10 +17,11 @@ import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.natures.AVRProjectNature;
-import de.innot.avreclipse.core.preferences.AVRTargetProperties;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
  * @author Thomas
@@ -30,14 +31,15 @@ public class Convert21 {
 
 	private final static String OLD_AVRTARGET_ID = "avrtarget";
 
-	private static IPreferenceStore fProps = null;
+	private static ProjectPropertyManager fProjProps = null;
 
 	public static IBuildObject convert(IBuildObject buildObj, String fromId) {
 
 		IManagedProject mproj = (IManagedProject) buildObj;
 
 		// get the project property store
-		fProps = AVRTargetProperties.getPropertyStore((IProject) mproj.getOwner());
+		
+		fProjProps = ProjectPropertyManager.getPropertyManager((IProject) mproj.getOwner());
 
 		// go through all configurations of the selected Project and
 		// check the options needing an update
@@ -48,12 +50,12 @@ public class Convert21 {
 
 				// remove deprecated toolchain options
 				IToolChain tc = currcfg.getToolChain();
-				checkOptions(tc);
+				checkOptions(tc, currcfg);
 
 				// Check all tools for deprecated options
 				ITool[] tools = currcfg.getTools();
 				for (int n = 0; n < tools.length; n++) {
-					checkOptions(tools[n]);
+					checkOptions(tools[n], currcfg);
 				}
 
 			} // for configurations
@@ -61,6 +63,14 @@ public class Convert21 {
 			// Save the (modified) Buildinfo
 			IProject project = (IProject) mproj.getOwner();
 			ManagedBuildManager.saveBuildInfo(project, true);
+
+			// Save the new project properties
+			try {
+	            fProjProps.save();
+            } catch (BackingStoreException e) {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+            }
 		}
 
 		// Add AVR Nature to the project
@@ -78,8 +88,12 @@ public class Convert21 {
 	 * @param tools
 	 */
 	@SuppressWarnings("unchecked")
-	private static void checkOptions(IHoldsOptions optionholder) {
+	private static void checkOptions(IHoldsOptions optionholder, IConfiguration buildcfg) {
 
+		// Get the Project Properties for the given Configuration
+		AVRProjectProperties props = fProjProps.getConfigurationProperties(buildcfg, true, false);
+		boolean changeperconfig = false;
+		
 		// we need to use reflections to call the private method
 		// "getOptionsList" because getOptions filters all invalid
 		// options, which are just the ones we need for removal
@@ -115,7 +129,8 @@ public class Convert21 {
 				// accordingly
 				String selectedmcuid = (String) curropt.getValue();
 				String mcutype = selectedmcuid.substring(selectedmcuid.lastIndexOf(".") + 1);
-				fProps.setValue(AVRTargetProperties.KEY_MCUTYPE, mcutype);
+				props.setMCUId(mcutype);
+				changeperconfig = true;
 				optionholder.removeOption(curropt);
 				continue;
 			}
@@ -123,8 +138,9 @@ public class Convert21 {
 			if (curropt.getId().startsWith("de.innot.avreclipse.toolchain.options.target.fcpu")) {
 				// get the selected fcpu and set the project property
 				// accordingly
-				String selectedfcpu = (String) curropt.getValue();
-				fProps.setValue(AVRTargetProperties.KEY_FCPU, selectedfcpu);
+				String fcpu = (String) curropt.getValue();
+				props.setFCPU(fcpu);
+				changeperconfig = true;
 				optionholder.removeOption(curropt);
 				continue;
 			}
@@ -150,6 +166,10 @@ public class Convert21 {
 			}
 
 		} // for options
+		
+		if (changeperconfig) {
+			fProjProps.setPerConfig(true);
+		}
 	}
 
 }

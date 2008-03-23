@@ -3,12 +3,15 @@
  */
 package de.innot.avreclipse.ui.propertypages;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.FontMetrics;
@@ -19,6 +22,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.toolinfo.GCC;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
  * @author U043192
@@ -61,6 +66,14 @@ public class TargetHardwareTab extends AbstractAVRPropertyTab {
 
 		fMCUcombo = new Combo(parent, SWT.READ_ONLY | SWT.DROP_DOWN);
 		fMCUcombo.setLayoutData(gd);
+		fMCUcombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	String mcuname = fMCUcombo.getItem(fMCUcombo.getSelectionIndex());
+            	String mcuid = AVRMCUidConverter.name2id(mcuname);
+            	fTargetCfg.setMCUId(mcuid);
+            }
+		});
 
 		// FCPU Field
 		Label fcpuLabel = new Label(parent, SWT.NONE);
@@ -84,41 +97,61 @@ public class TargetHardwareTab extends AbstractAVRPropertyTab {
 				if (!text.matches("[0-9]*")) {
 					event.doit = false;
 				}
-            }
+			}
 		});
 		fFCPUcombo.setVisibleItemCount(FCPU_VALUES.length);
 		fFCPUcombo.setItems(FCPU_VALUES);
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRConfigurationProperties, de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRConfigurationProperties,
+	 *      de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
 	 */
 	@Override
-	protected void performApply(AVRProjectProperties src, AVRProjectProperties dst) {
-		dst.setMCUId(src.getMCUId());
-		dst.setFCPU(src.getFCPU());
+	protected void performApply(AVRProjectProperties dst) {
+		dst.setMCUId(fTargetCfg.getMCUId());
+		dst.setFCPU(fTargetCfg.getFCPU());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-    protected void performDefaults(AVRProjectProperties defaults) {
+	protected void performDefaults(AVRProjectProperties defaults) {
 		fTargetCfg.setMCUId(defaults.getMCUId());
 		fTargetCfg.setFCPU(defaults.getFCPU());
 		updateData(fTargetCfg);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
 	 */
 	@Override
 	protected void updateData(AVRProjectProperties cfg) {
 
 		fTargetCfg = cfg;
-		
+
+		// Get the list of supported MCU id's from the compiler
+		// The list is then converted into an array of MCU names
+		fMCUids = GCC.getDefault().getMCUList();
+		String[] allmcuids = fMCUids.toArray(new String[fMCUids.size()]);
+		fMCUNames = new String[fMCUids.size()];
+		for (int i = 0; i < allmcuids.length; i++) {
+			fMCUNames[i] = AVRMCUidConverter.id2name(allmcuids[i]);
+		}
+		Arrays.sort(fMCUNames);
+
+		fMCUcombo.removeAll();
+		fMCUcombo.setItems(fMCUNames);
+		fMCUcombo.select(fMCUcombo.indexOf(AVRMCUidConverter.id2name(cfg.getMCUId())));
+
 		fFCPUcombo.setText(cfg.getFCPU());
 
 	}
-
 }
