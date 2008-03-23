@@ -38,7 +38,6 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		// Store default values to default preferences
-	 	AVRTargetProperties.initializeDefaultPreferences();
 	 	AVRPathsPreferences.initializeDefaultPreferences();
 	 	DatasheetPreferences.initializeDefaultPreferences();
 	 	AVRDudePreferences.initializeDefaultPreferences();

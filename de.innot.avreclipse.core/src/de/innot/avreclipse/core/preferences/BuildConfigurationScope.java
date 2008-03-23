@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 
 /**
  * @author Thomas Holland
@@ -38,8 +40,7 @@ public class BuildConfigurationScope implements IScopeContext {
 		if (configuration == null)
 			throw new IllegalArgumentException();
 		fConfig = configuration;
-		fProject = (IProject) configuration.getManagedProject()
-		.getOwner();
+		fProject = (IProject) configuration.getManagedProject().getOwner();
 	}
 
 	/*
@@ -71,9 +72,19 @@ public class BuildConfigurationScope implements IScopeContext {
 	public IEclipsePreferences getNode(String qualifier) {
 		if (qualifier == null)
 			throw new IllegalArgumentException();
-		return (IEclipsePreferences) Platform.getPreferencesService()
-				.getRootNode().node(getName()).node(fProject.getName()).node(
-						qualifier).node(fConfig.getId());
+		return (IEclipsePreferences) Platform.getPreferencesService().getRootNode().node(getName())
+		        .node(fProject.getName()).node(qualifier).node(fConfig.getId());
+	}
+
+	public boolean configExists(String qualifier, IConfiguration buildcfg) {
+		Preferences projectnode = Platform.getPreferencesService().getRootNode().node(getName())
+		        .node(fProject.getName()).node(qualifier);
+		try {
+			return projectnode.nodeExists(buildcfg.getId());
+		} catch (BackingStoreException e) {
+			// In case of an exception assume that the node did not exist
+			return false;
+		}
 	}
 
 }
