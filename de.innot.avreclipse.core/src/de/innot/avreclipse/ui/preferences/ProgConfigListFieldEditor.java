@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.preferences.AVRDudePreferences;
+import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 
 /**
  * A special Field Editor to edit the list of AVRDude programmer configurations.
@@ -81,6 +81,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	 * {@link #doStore()} method
 	 */
 	private List<ProgrammerConfig> fRemovedConfigs;
+	
+	private ProgrammerConfigManager fCfgManager = ProgrammerConfigManager.getDefault();
 
 	/**
 	 * Creates a AVRDude Programmers Configuration List field editor.
@@ -146,10 +148,10 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	@Override
 	protected void doLoad() {
 		if (fTableControl != null) {
-			Set<String> allconfigs = AVRDudePreferences.getAllConfigs();
-			for (String configname : allconfigs) {
-				if (!configname.isEmpty()) {
-					ProgrammerConfig config = new ProgrammerConfig(configname);
+			Set<String> allconfigids = fCfgManager.getAllConfigIDs();
+			for (String configid : allconfigids) {
+				if (!configid.isEmpty()) {
+					ProgrammerConfig config = fCfgManager.getConfig(configid);
 					TableItem item = new TableItem(fTableControl, SWT.NONE);
 					item.setText(new String[] { config.getName(), config.getDescription() });
 					item.setData(config);
@@ -190,7 +192,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		for (TableItem item : allitems) {
 			ProgrammerConfig config = (ProgrammerConfig) item.getData();
 			try {
-				config.save();
+				fCfgManager.saveConfig(config);
 			} catch (BackingStoreException e) {
 				// TODO Pop up message that some configs could not be saved
 				e.printStackTrace();
@@ -200,12 +202,13 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		// now delete the Configs marked as removed
 		for (ProgrammerConfig config : fRemovedConfigs) {
 			try {
-				config.delete();
+				fCfgManager.deleteConfig(config);
 			} catch (BackingStoreException e) {
 				// TODO Pop up message that some configs could not be deleted
 				e.printStackTrace();
 			}
 		}
+		fRemovedConfigs.clear();
 	}
 
 	/*
@@ -438,19 +441,14 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		if (createnew) { // new config
 			// Create a new configuration with a default name
 			// (with a trailing running number if required),
-			// a sample Description text and stk500v2 as programmer
-			// (because I happen to have one)
-			// All other options remain at the default (empty)
 			String basename = "New Configuration";
 			String defaultname = basename;
 			int i = 1;
 			while (allconfigs.contains(defaultname)) {
 				defaultname = basename + " (" + i++ + ")";
 			}
-			config = new ProgrammerConfig(defaultname);
-			config
-			        .setDescription("Default AVRDude Programmer Configuration. Change for your setup");
-			config.setProgrammer("stk500v2");
+			config = fCfgManager.createNewConfig();
+			config.setName(defaultname);
 		} else { // edit existing config
 			// Get the ProgrammerConfig from the selected TableItem
 			ti = fTableControl.getItem(fTableControl.getSelectionIndex());

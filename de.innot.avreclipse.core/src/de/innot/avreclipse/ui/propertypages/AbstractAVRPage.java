@@ -66,7 +66,7 @@ public abstract class AbstractAVRPage extends AbstractPage {
 		// current setting of the "per config" flag.
 		fConfigGroup = findFirstGroup(composite);
 		loadPropertiesManager();
-		setPerConfig(fPropertiesManager.isPerConfig());
+		internalSetPerConfig(fPropertiesManager.isPerConfig());
 
 	}
 

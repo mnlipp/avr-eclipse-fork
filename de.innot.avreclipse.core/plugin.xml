@@ -116,6 +116,22 @@
 				</or>          
 			</enabledWhen>
         </page>    
+		<page
+            class="de.innot.avreclipse.ui.propertypages.PageAVRDude"
+            id="de.innot.avreclipse.propertypage.avrdude"
+            name="AVRDude"
+            category="de.innot.avreclipse.propertypage.avrmain" >
+			<filter
+				name="projectNature"
+				value="de.innot.avreclipse.core.avrnature">
+			</filter>            
+			<enabledWhen>
+				<or>
+					<instanceof value="org.eclipse.core.resources.IProject"/>
+					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+				</or>          
+			</enabledWhen>
+        </page>    
 		
 	</extension>
 	
@@ -127,6 +143,12 @@
 			name="Target Hardware"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeMain"
+			icon=""
+			name="Main"
+			weight="001"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 
 <!--

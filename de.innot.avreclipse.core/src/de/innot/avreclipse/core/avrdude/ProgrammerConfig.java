@@ -19,11 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
-
-import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 
 /**
  * Container class for all Programmer specific options of AVRDude.
@@ -38,14 +35,9 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
  */
 public class ProgrammerConfig {
 
-	/**
-	 * The root preferences for all configurations. Needed to add / remove
-	 * configurations.
-	 */
-	private IEclipsePreferences fConfigPrefs;
-
-	/** The preference node for this configuration */
-	private Preferences fCurrentPrefs;
+	/** The unique identifier for this configuration */
+	private String fId;
+	public final static String KEY_ID = "id";
 
 	/** The unique name of this configuration */
 	private String fName;
@@ -54,10 +46,12 @@ public class ProgrammerConfig {
 	/** A custom description of this configuration */
 	private String fDescription;
 	public final static String KEY_DESCRIPTION = "description";
+	public final static String DEFAULT_DESCRIPTION = "Default AVRDude Programmer Configuration. Change for your setup";
 
 	/** The avrdude id of the programmer for this configuration */
 	private String fProgrammer;
 	public final static String KEY_PROGRAMMER = "programmer";
+	public final static String DEFAULT_PROGRAMMER = "stk500v2";
 
 	/**
 	 * The port for this configuration. If empty it will not be included in the
@@ -97,21 +91,31 @@ public class ProgrammerConfig {
 	private boolean fDirty;
 
 	/**
-	 * Constructs a ProgrammerConfig with the given name.
-	 * <p>
-	 * If the configuration already existed, its stored values are loaded from
-	 * the persistent preference storage.
-	 * </p>
+	 * Constructs a ProgrammerConfig with the given id and set the default
+	 * values.
 	 * 
-	 * @param name
-	 *            Unique name of the configuration.
+	 * @param id
+	 *            Unique id of the configuration.
 	 */
-	public ProgrammerConfig(String name) {
-		fName = name;
-		fConfigPrefs = AVRDudePreferences.getConfigPreferences();
-		fCurrentPrefs = fConfigPrefs.node(name);
-		readConfig();
+	protected ProgrammerConfig(String id) {
+		fId = id;
 		fDirty = false;
+		defaults();
+	}
+
+	/**
+	 * Constructs a ProgrammerConfig with the given id and load its values from
+	 * the given <code>Preferences</code>.
+	 * 
+	 * @param id
+	 *            Unique id of the configuration.
+	 * @param prefs
+	 *            <code>Preferences</code> node from which to load.
+	 */
+	protected ProgrammerConfig(String id, Preferences prefs) {
+		fId = id;
+		fDirty = false;
+		loadFromPrefs(prefs);
 	}
 
 	/**
@@ -125,17 +129,9 @@ public class ProgrammerConfig {
 	 * 
 	 * @param config
 	 */
-	public ProgrammerConfig(ProgrammerConfig config) {
-		fName = config.fName;
-		fConfigPrefs = config.fConfigPrefs;
-		fCurrentPrefs = config.fCurrentPrefs;
-		fDescription = config.fDescription;
-		fProgrammer = config.fProgrammer;
-		fPort = config.fPort;
-		fBaudrate = config.fBaudrate;
-		fExitReset = config.fExitReset;
-		fExitVcc = config.fExitVcc;
-		fDirty = config.fDirty;
+	protected ProgrammerConfig(ProgrammerConfig config) {
+		fId = config.fId;
+		loadFromConfig(config);
 	}
 
 	/**
@@ -148,48 +144,21 @@ public class ProgrammerConfig {
 	 *             If this configuration cannot be written to the preference
 	 *             storage area.
 	 */
-	public synchronized void save() throws BackingStoreException {
+	protected synchronized void save(Preferences prefs) throws BackingStoreException {
 
 		if (fDirty) {
-			// In case the name has changed we remove the old preference node of
-			// this configuration and create a new node with the current name
-			try {
-				fCurrentPrefs.removeNode();
-			} catch (IllegalStateException ise) {
-				// The node has already been removed (by another Instance of
-				// this config)
-				// For now we ignore this and happily write the configuration
-				// back to the storage.
-				// TODO Should removed configuration not be re-saveable?
-			}
-			fCurrentPrefs = fConfigPrefs.node(fName);
-
 			// write all values to the preferences
-			fCurrentPrefs.put(KEY_DESCRIPTION, fDescription);
-			fCurrentPrefs.put(KEY_PROGRAMMER, fProgrammer);
-			fCurrentPrefs.put(KEY_PORT, fPort);
-			fCurrentPrefs.put(KEY_BAUDRATE, fBaudrate);
-			fCurrentPrefs.put(KEY_EXITSPEC_RESET, fExitReset);
-			fCurrentPrefs.put(KEY_EXITSPEC_VCC, fExitVcc);
+			prefs.put(KEY_NAME, fName);
+			prefs.put(KEY_DESCRIPTION, fDescription);
+			prefs.put(KEY_PROGRAMMER, fProgrammer);
+			prefs.put(KEY_PORT, fPort);
+			prefs.put(KEY_BAUDRATE, fBaudrate);
+			prefs.put(KEY_EXITSPEC_RESET, fExitReset);
+			prefs.put(KEY_EXITSPEC_VCC, fExitVcc);
 
 			// flush the Preferences to the persistent storage
-			// we call this on the "root" node to flush the removed node
-			fConfigPrefs.flush();
+			prefs.flush();
 		}
-	}
-
-	/**
-	 * Deletes this configuration from the preference storage area.
-	 * <p>
-	 * Note: This Object is still valid and further calls to {@link #save()}
-	 * will add this configuration back to the preference storage.
-	 * </p>
-	 * 
-	 * @throws BackingStoreException
-	 */
-	public synchronized void delete() throws BackingStoreException {
-		fCurrentPrefs.removeNode();
-		fConfigPrefs.flush();
 	}
 
 	/**
@@ -224,6 +193,15 @@ public class ProgrammerConfig {
 			args.add("-E" + exitspec.toString());
 		}
 		return args;
+	}
+
+	/**
+	 * Gets the ID of this configuration.
+	 * 
+	 * @return <code>String</code> with the ID.
+	 */
+	public String getId() {
+		return fId;
 	}
 
 	/**
@@ -386,15 +364,50 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * Fill the values of this Configuration from the preference storage area.
+	 * Load the values of this Configuration from the preference storage area.
+	 * 
+	 * @param prefs <code>Preferences</code> node for this configuration
 	 */
-	private void readConfig() {
-		fDescription = fCurrentPrefs.get(KEY_DESCRIPTION, "");
-		fProgrammer = fCurrentPrefs.get(KEY_PROGRAMMER, "");
-		fPort = fCurrentPrefs.get(KEY_PORT, "");
-		fBaudrate = fCurrentPrefs.get(KEY_BAUDRATE, "");
-		fExitReset = fCurrentPrefs.get(KEY_EXITSPEC_RESET, "");
-		fExitVcc = fCurrentPrefs.get(KEY_EXITSPEC_VCC, "");
+	private void loadFromPrefs(Preferences prefs) {
+		fName = prefs.get(KEY_NAME, "");
+		fDescription = prefs.get(KEY_DESCRIPTION, "");
+		fProgrammer = prefs.get(KEY_PROGRAMMER, "");
+		fPort = prefs.get(KEY_PORT, "");
+		fBaudrate = prefs.get(KEY_BAUDRATE, "");
+		fExitReset = prefs.get(KEY_EXITSPEC_RESET, "");
+		fExitVcc = prefs.get(KEY_EXITSPEC_VCC, "");
+	}
+
+	/**
+	 * Load the values of this Configuration from the given <code>ProgrammerConfig</code>.
+	 * 
+	 * @param prefs Source <code>ProgrammerConfig</code>.
+	 */
+	protected void loadFromConfig(ProgrammerConfig config) {
+		fName = config.fName;
+		fDescription = config.fDescription;
+		fProgrammer = config.fProgrammer;
+		fPort = config.fPort;
+		fBaudrate = config.fBaudrate;
+		fExitReset = config.fExitReset;
+		fExitVcc = config.fExitVcc;
+		fDirty = config.fDirty;
+	}
+	
+	/**
+	 * Reset this Configuration to the default values.
+	 * <p>
+	 * The ID and the Name of this Configuration are not changed.
+	 * </p>
+	 */
+	public void defaults() {
+		// Set the defaults
+		fDescription = DEFAULT_DESCRIPTION;
+		fProgrammer = DEFAULT_PROGRAMMER;
+		fPort = "";
+		fBaudrate = "";
+		fExitReset = "";
+		fExitVcc = "";
 	}
 
 	/*

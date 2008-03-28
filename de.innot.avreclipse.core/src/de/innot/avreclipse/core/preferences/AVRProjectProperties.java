@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
@@ -74,12 +75,13 @@ public class AVRProjectProperties {
 
 	private String fMCUid;
 	private int fFCPU;
+
 	private boolean fUseExtRAM;
 	private int fExtRAMSize;
 	private boolean fUseExtRAMforHeap;
 	private boolean fUseEEPROM;
 
-	private String fAVRDudeProgrammer;
+	private String fAVRDudeProgrammerId;
 	private String fAVRDudeBitclock;
 	private boolean fAVRDudeNoSigCheck;
 	private boolean fAVRDudeNoWrite;
@@ -94,8 +96,6 @@ public class AVRProjectProperties {
 	/** Flag if any properties have been changed */
 	private boolean fDirty;
 
-	/** 
-	 *  */
 	/**
 	 * Load the AVR project properties from the given Preferences.
 	 * 
@@ -117,11 +117,13 @@ public class AVRProjectProperties {
 		fPrefs = prefs;
 		fMCUid = source.fMCUid;
 		fFCPU = source.fFCPU;
+
 		fUseExtRAM = source.fUseExtRAM;
 		fExtRAMSize = source.fExtRAMSize;
 		fUseExtRAMforHeap = source.fUseExtRAMforHeap;
 		fUseEEPROM = source.fUseEEPROM;
-		fAVRDudeProgrammer = source.fAVRDudeProgrammer;
+
+		fAVRDudeProgrammerId = source.fAVRDudeProgrammerId;
 		fAVRDudeBitclock = source.fAVRDudeBitclock;
 		fAVRDudeNoSigCheck = source.fAVRDudeNoSigCheck;
 		fAVRDudeNoWrite = source.fAVRDudeNoWrite;
@@ -153,13 +155,13 @@ public class AVRProjectProperties {
 		}
 	}
 
-	public String getAVRDudeProgrammer() {
-		return fAVRDudeProgrammer;
+	public String getAVRDudeProgrammerId() {
+		return fAVRDudeProgrammerId;
 	}
 
-	public void setAVRDudeProgrammer(String programmer) {
-		if (!fAVRDudeProgrammer.equals(programmer)) {
-			fAVRDudeProgrammer = programmer;
+	public void setAVRDudeProgrammerId(String programmerid) {
+		if (!fAVRDudeProgrammerId.equals(programmerid)) {
+			fAVRDudeProgrammerId = programmerid;
 			fDirty = true;
 		}
 	}
@@ -222,9 +224,13 @@ public class AVRProjectProperties {
 		arguments.add("-p" + avrdudemcuid);
 
 		// Add the options from the programmer configuration
-		ProgrammerConfig progcfg = new ProgrammerConfig(fAVRDudeProgrammer);
-		arguments.addAll(progcfg.getArguments());
+		ProgrammerConfig progcfg = ProgrammerConfigManager.getDefault().getConfig(
+		        fAVRDudeProgrammerId);
 
+		if (progcfg != null) {
+			arguments.addAll(progcfg.getArguments());
+		}
+		
 		// add the bitclock and the flags
 		if (fAVRDudeBitclock.length() != 0) {
 			arguments.add("-B" + fAVRDudeBitclock);
@@ -257,7 +263,7 @@ public class AVRProjectProperties {
 		fUseExtRAMforHeap = fPrefs.getBoolean(KEY_USE_EXT_RAM_HEAP, true);
 		fUseEEPROM = fPrefs.getBoolean(KEY_USE_EEPROM, DEFAULT_USE_EEPROM);
 
-		fAVRDudeProgrammer = fPrefs.get(KEY_AVRDUDE_PROGRAMMER, "");
+		fAVRDudeProgrammerId = fPrefs.get(KEY_AVRDUDE_PROGRAMMER, "");
 		fAVRDudeBitclock = fPrefs.get(KEY_AVRDUDE_BITCLOCK, DEFAULT_AVRDUDE_BITCLOCK);
 		fAVRDudeNoSigCheck = fPrefs.getBoolean(KEY_AVRDUDE_NOSIGCHECK, DEFAULT_AVRDUDE_NOSIGCHECK);
 		fAVRDudeNoWrite = fPrefs.getBoolean(KEY_AVRDUDE_NOWRITE, DEFAULT_AVRDUDE_NOWRITE);
@@ -284,7 +290,7 @@ public class AVRProjectProperties {
 				fPrefs.putBoolean(KEY_USE_EXT_RAM_HEAP, fUseExtRAMforHeap);
 				fPrefs.putBoolean(KEY_USE_EEPROM, fUseEEPROM);
 
-				fPrefs.put(KEY_AVRDUDE_PROGRAMMER, fAVRDudeProgrammer);
+				fPrefs.put(KEY_AVRDUDE_PROGRAMMER, fAVRDudeProgrammerId);
 				fPrefs.put(KEY_AVRDUDE_BITCLOCK, fAVRDudeBitclock);
 				fPrefs.putBoolean(KEY_AVRDUDE_NOSIGCHECK, fAVRDudeNoSigCheck);
 				fPrefs.putBoolean(KEY_AVRDUDE_NOWRITE, fAVRDudeNoWrite);

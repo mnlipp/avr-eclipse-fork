@@ -52,6 +52,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
 
@@ -119,7 +120,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 
 		// make a copy of the given Configuration that we can modify as required
-		fConfig = new ProgrammerConfig(config);
+		fConfig = ProgrammerConfigManager.getDefault().getConfigEditable(config);
 
 		// Remove the current name from the list of all names
 		fAllConfigs = allconfigs;

@@ -16,18 +16,15 @@
 package de.innot.avreclipse.core.preferences;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
-import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.AVRPlugin;
 
@@ -73,38 +70,6 @@ public class AVRDudePreferences {
 	}
 
 	/**
-	 * Gets a list of all Programmer configuration names currently in the
-	 * preferences.
-	 * 
-	 * @return <code>Set&lt;String&gt;</code> with all configuration names
-	 */
-	public static Set<String> getAllConfigs() {
-		// All Programmer Configurations are children of the CONFIGQUALIFIER
-		// rootnode in the preferences.
-		// So fetch all children and add them to a Set.
-		Set<String> allconfigs = new HashSet<String>();
-		IScopeContext scope = new InstanceScope();
-		IEclipsePreferences root = scope.getNode(CONFIGQUALIFIER);
-		String[] confignames = new String[0];
-		try {
-			confignames = root.childrenNames();
-		} catch (BackingStoreException e) {
-			// TODO What shall we do if we can't access the Preferences?
-			// For now log an error and return an empty list
-			Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-			        "Can't access the list of avrdude configuration preferences", e);
-			AVRPlugin.getDefault().log(status);
-			return allconfigs;
-		}
-
-		for (String conf : confignames) {
-			allconfigs.add(conf);
-		}
-
-		return allconfigs;
-	}
-
-	/**
 	 * Gets the instance root node Preferences for all Programmer
 	 * Configurations.
 	 * 
@@ -128,8 +93,8 @@ public class AVRDudePreferences {
 	 *             if the PreferenceStore could not be written to the storage.
 	 */
 	public static void savePreferences(IPreferenceStore store) throws IOException {
-		Assert.isTrue(store instanceof ScopedPreferenceStore);
-		((ScopedPreferenceStore) store).save();
+		Assert.isTrue(store instanceof IPersistentPreferenceStore);
+		((IPersistentPreferenceStore) store).save();
 	}
 
 	/**
