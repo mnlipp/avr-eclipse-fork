@@ -138,7 +138,7 @@
 	<extension
 		point="org.eclipse.cdt.ui.cPropertyTab">
 		<tab
-			class="de.innot.avreclipse.ui.propertypages.TargetHardwareTab"
+			class="de.innot.avreclipse.ui.propertypages.TabTargetHardware"
 			icon=""
 			name="Target Hardware"
 			weight="001"

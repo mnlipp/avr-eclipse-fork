@@ -48,7 +48,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @since 2.2
  * 
  */
-public class TargetHardwareTab extends AbstractAVRPropertyTab {
+public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 	private static final String LABEL_MCUTYPE = "MCU Type";
 	private static final String LABEL_FCPU = "MCU Clock Frequency";
