@@ -1,6 +1,6 @@
 /*******************************************************************************
  * 
- * Copyright (c) 2007 Thomas Holland (thomas@innot.de) and others
+ * Copyright (c) 2007,2008 Thomas Holland (thomas@innot.de) and others
  * 
  * This program and the accompanying materials are made
  * available under the terms of the GNU Public License v3
@@ -15,20 +15,15 @@
  *******************************************************************************/
 package de.innot.avreclipse.mbs;
 
+import java.util.List;
+
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable;
 import org.eclipse.cdt.managedbuilder.envvar.IConfigurationEnvironmentVariableSupplier;
 import org.eclipse.cdt.managedbuilder.envvar.IEnvironmentVariableProvider;
-import org.eclipse.core.resources.IProject;
-
-import de.innot.avreclipse.core.paths.AVRPath;
-import de.innot.avreclipse.core.paths.AVRPathProvider;
-import de.innot.avreclipse.core.paths.IPathProvider;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
- * Envvar Supplier.
+ * Environment variable supplier.
  * <p>
  * This class implements the {@link IConfigurationEnvironmentVariableSupplier}
  * interface and can be used for the
@@ -36,134 +31,23 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  * <code>toolChain</code> element.
  * </p>
  * <p>
- * Currently four Environment Variables are handled by this class.
- * <ul>
- * <li><code>$(AVRTARGETMCU)</code>: (see
- * {@link BuildConstants#TARGET_MCU_NAME})</li>
- * <li><code>$(AVRTARGETFCPU)</code>: (see
- * {@link BuildConstants#TARGET_FCPU_NAME})</li>
- * <li><code>$(BUILDARTIFACT)</code>: name of the target build artefact (the
- * .elf file)</li>
- * </ul>
- * These Environment Variables have the value of the corresponding options of
- * the current toolchain and can be used for postbuild scripts.
+ * See {@link BuildVariableValues} for a list of variables actually supported.
  * </p>
- * <ul>
- * <li><code>$(PATH)</code>: The current path prepended with the paths to
- * the avr-gcc executable and the make executable. This, together with the
- * selection of the paths on the preference page, allows for multiple avr-gcc
- * toolchains on one computer</li>
- * </ul>
  * 
  * @author Thomas Holland
- * @version 1.1
+ * @since 2.0
  */
-public class AVRTargetEnvvarSupplier implements
-		IConfigurationEnvironmentVariableSupplier, BuildConstants {
+public class AVRTargetEnvvarSupplier implements IConfigurationEnvironmentVariableSupplier {
 
-	static final String BUILDARTIFACT_NAME = "BUILDARTIFACT";
-
-	private ProjectPropertyManager fProjProps = null;
-
-	/**
-	 * This is a trivial implementation of the
-	 * <code>IBuildEnvironmentVariable</code> interface used internally by the
-	 * AVRTargetEnvvarSupplier.
-	 */
-
-	private class SimpleBuildEnvVar implements IBuildEnvironmentVariable {
-
-		private final String fName;
-		private final int fOperation;
-		private final IConfiguration fConfiguration;
-		private final AVRProjectProperties fProps;
-
-		public SimpleBuildEnvVar(String name, IConfiguration config) {
-			this(name, config, ENVVAR_REPLACE);
-		}
-
-		public SimpleBuildEnvVar(String name, IConfiguration config,
-				int operation) {
-			fName = name;
-			fConfiguration = config;
-			fOperation = operation;
-			fProps = fProjProps.getConfigurationProperties(config);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getDelimiter()
-		 */
-		public String getDelimiter() {
-			// return Delimiter according to the Platform
-			return System.getProperty("path.separator");
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getName()
-		 */
-		public String getName() {
-			return fName;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getOperation()
-		 */
-		public int getOperation() {
-			return fOperation;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.cdt.managedbuilder.envvar.IBuildEnvironmentVariable#getValue()
-		 */
-		public String getValue() {
-			if (TARGET_MCU_NAME.equals(fName)) {
-				// Target MCU
-				String targetmcu = fProps.getMCUId();
-				return targetmcu;
-
-			} else if (TARGET_FCPU_NAME.equals(fName)) {
-				// Target F_CPU
-				String fcpu = fProps.getFCPU();
-				return fcpu;
-
-			} else if (BUILDARTIFACT_NAME.equals(fName)) {
-				String artifact = fConfiguration.getArtifactName() + "."
-						+ fConfiguration.getArtifactExtension();
-				return artifact;
-
-			} else if ("PATH".equals(fName)) {
-				// Prepend the path to the executables to the PATH variable
-				IPathProvider gccpathprovider = new AVRPathProvider(AVRPath.AVRGCC);
-				String gccpath = gccpathprovider.getPath().toOSString();
-				IPathProvider makepathprovider = new AVRPathProvider(AVRPath.MAKE); 
-				String makepath = makepathprovider.getPath().toOSString();
-				
-				if (makepath != null && !("".equals(makepath))) {
-					gccpath += System.getProperty("path.separator");
-					gccpath += makepath;
-				}
-				if (gccpath != null && !("".equals(gccpath))) {
-					return gccpath;
-				}
-			}
-			return null;
-		}
-	}
+	/** A list of all known variable names this supplier supports */
+	private final static List<String> fAllVariableNames = BuildVariable.getVariableNames();
 
 	/**
 	 * Get the Build Environment Variable with the given name.
 	 * <p>
 	 * If the passed variable name matches any of the variables handled by this
-	 * class, it will return an <code>IBuildEnvironmentVariable</code> object
-	 * which dynamically handles the value.
+	 * plugin, it will return an <code>IBuildEnvironmentVariable</code> object
+	 * which handles the value dynamically.
 	 * </p>
 	 * 
 	 * @param variableName
@@ -179,32 +63,15 @@ public class AVRTargetEnvvarSupplier implements
 	 *         <code>variableName</code> did not match any of the implemented
 	 *         variable names.
 	 */
-	public IBuildEnvironmentVariable getVariable(String variableName,
-			IConfiguration configuration, IEnvironmentVariableProvider provider) {
+	public IBuildEnvironmentVariable getVariable(String variableName, IConfiguration configuration,
+	        IEnvironmentVariableProvider provider) {
 
 		if (variableName == null)
 			return null;
 
-		if (fProjProps == null) {
-			fProjProps = ProjectPropertyManager.getPropertyManager((IProject)configuration.getOwner());
+		if (fAllVariableNames.contains(variableName)) {
+			return new BuildVariable(variableName, configuration);
 		}
-
-		if (TARGET_MCU_NAME.equals(variableName)) {
-			// Target MCU
-			return new SimpleBuildEnvVar(TARGET_MCU_NAME, configuration);
-
-		} else if (TARGET_FCPU_NAME.equals(variableName)) {
-			// Target F_CPU
-			return new SimpleBuildEnvVar(TARGET_FCPU_NAME, configuration);
-
-		} else if (BUILDARTIFACT_NAME.equals(variableName)) {
-			return new SimpleBuildEnvVar(BUILDARTIFACT_NAME, configuration);
-
-		} else if ("PATH".equals(variableName)) {
-			return new SimpleBuildEnvVar("PATH", configuration,
-					IBuildEnvironmentVariable.ENVVAR_PREPEND);
-		}
-
 		return null;
 	}
 
@@ -220,14 +87,14 @@ public class AVRTargetEnvvarSupplier implements
 	 * 
 	 * @see #getVariable(String, IConfiguration, IEnvironmentVariableProvider)
 	 */
-	public IBuildEnvironmentVariable[] getVariables(
-			IConfiguration configuration, IEnvironmentVariableProvider provider) {
-		// Get the supported envvars from the getVariable() method
-		IBuildEnvironmentVariable[] envvars = new SimpleBuildEnvVar[4];
-		envvars[0] = getVariable(TARGET_MCU_NAME, configuration, provider);
-		envvars[1] = getVariable(TARGET_FCPU_NAME, configuration, provider);
-		envvars[2] = getVariable(BUILDARTIFACT_NAME, configuration, provider);
-		envvars[3] = getVariable("PATH", configuration, provider);
+	public IBuildEnvironmentVariable[] getVariables(IConfiguration configuration,
+	        IEnvironmentVariableProvider provider) {
+
+		IBuildEnvironmentVariable[] envvars = new BuildVariable[fAllVariableNames.size()];
+		for (int i = 0; i < fAllVariableNames.size(); i++) {
+			envvars[i] = new BuildVariable(fAllVariableNames.get(i), configuration);
+		}
+
 		return envvars;
 	}
 }
