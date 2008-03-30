@@ -435,7 +435,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		if (dialog.open() == Window.OK) {
 			// OK Button selected:
 			ProgrammerConfig newconfig = dialog.getResult();
-			fTargetProps.setAVRDudeProgrammerId(newconfig.getId());
+			fTargetProps.setAVRDudeProgrammer(newconfig);
 
 			addProgrammerConfig(newconfig);
 			updateData(fTargetProps);

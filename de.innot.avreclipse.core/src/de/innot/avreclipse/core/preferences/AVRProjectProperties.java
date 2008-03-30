@@ -81,6 +81,7 @@ public class AVRProjectProperties {
 	private boolean fUseExtRAMforHeap;
 	private boolean fUseEEPROM;
 
+	private ProgrammerConfig fAVRDudeProgrammer;
 	private String fAVRDudeProgrammerId;
 	private String fAVRDudeBitclock;
 	private boolean fAVRDudeNoSigCheck;
@@ -123,6 +124,7 @@ public class AVRProjectProperties {
 		fUseExtRAMforHeap = source.fUseExtRAMforHeap;
 		fUseEEPROM = source.fUseEEPROM;
 
+		fAVRDudeProgrammer = source.fAVRDudeProgrammer;
 		fAVRDudeProgrammerId = source.fAVRDudeProgrammerId;
 		fAVRDudeBitclock = source.fAVRDudeBitclock;
 		fAVRDudeNoSigCheck = source.fAVRDudeNoSigCheck;
@@ -155,6 +157,24 @@ public class AVRProjectProperties {
 		}
 	}
 
+	
+	public ProgrammerConfig getAVRDudeProgrammer() {
+		if (fAVRDudeProgrammer == null) {
+			return ProgrammerConfigManager.getDefault().getConfig(
+			        fAVRDudeProgrammerId);
+		} else {
+			return fAVRDudeProgrammer;
+		}
+	}
+	
+	public void setAVRDudeProgrammer(ProgrammerConfig progcfg) {
+		if (!progcfg.equals(fAVRDudeProgrammer)) {
+			fAVRDudeProgrammer = progcfg;
+			fAVRDudeProgrammerId = progcfg.getId();
+			fDirty = false;
+		}
+	}
+	
 	public String getAVRDudeProgrammerId() {
 		return fAVRDudeProgrammerId;
 	}
@@ -162,6 +182,7 @@ public class AVRProjectProperties {
 	public void setAVRDudeProgrammerId(String programmerid) {
 		if (!fAVRDudeProgrammerId.equals(programmerid)) {
 			fAVRDudeProgrammerId = programmerid;
+			fAVRDudeProgrammer = null;
 			fDirty = true;
 		}
 	}
@@ -219,13 +240,12 @@ public class AVRProjectProperties {
 	public List<String> getAVRDudeArguments() {
 		List<String> arguments = new ArrayList<String>();
 
-		// Add the mcu
+		// Convert the mcu id to the avrdude format and add it
 		String avrdudemcuid = AVRDude.getDefault().getMCUInfo(fMCUid);
 		arguments.add("-p" + avrdudemcuid);
 
 		// Add the options from the programmer configuration
-		ProgrammerConfig progcfg = ProgrammerConfigManager.getDefault().getConfig(
-		        fAVRDudeProgrammerId);
+		ProgrammerConfig progcfg = getAVRDudeProgrammer();
 
 		if (progcfg != null) {
 			arguments.addAll(progcfg.getArguments());
@@ -297,6 +317,10 @@ public class AVRProjectProperties {
 				fPrefs.putBoolean(KEY_AVRDUDE_USECOUNTER, fAVRDudeUseCounter);
 
 				fPrefs.flush();
+				
+				if (fAVRDudeProgrammer != null) {
+					ProgrammerConfigManager.getDefault().saveConfig(fAVRDudeProgrammer);
+				}
 			}
 		} catch (IllegalStateException ise) {
 			// This should not happen, but just in case we ignore this unchecked
