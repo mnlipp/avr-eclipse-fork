@@ -48,7 +48,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/** The list of all current Programmer Config Ids */
 	private Map<String, String> fProgCfgIDs = new HashMap<String, String>();
 
-	protected static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager.getDefault();
+	protected final static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager.getDefault();
 
 	/*
 	 * (non-Javadoc)
