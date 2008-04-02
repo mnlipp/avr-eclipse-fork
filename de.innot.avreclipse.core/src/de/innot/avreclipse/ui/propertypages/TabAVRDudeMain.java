@@ -311,7 +311,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performDefaults(AVRProjectProperties defaults) {
+	protected void performCopy(AVRProjectProperties defaults) {
 
 		// Reset the list of Programmer Configurations
 		loadProgrammerConfigs();

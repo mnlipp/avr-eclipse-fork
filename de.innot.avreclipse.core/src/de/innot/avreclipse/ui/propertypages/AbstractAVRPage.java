@@ -19,11 +19,17 @@ import java.util.List;
 
 import org.eclipse.cdt.ui.newui.AbstractPage;
 import org.eclipse.cdt.ui.newui.ICPropertyTab;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.dialogs.PropertyPage;
 
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
 import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
 
 /**
@@ -41,11 +47,16 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  */
 public abstract class AbstractAVRPage extends AbstractPage {
 
+	private final static String TEXT_COPYBUTTON = "Copy &Project Settings";
+
 	/** The configuration selection group from the AbstractPage class */
 	private Group fConfigGroup;
 
+	/** The "Copy from Project" Button */
+	private Button fCopyButton;
+
 	/** The ProjectPropertyManager for the current project */
-	private ProjectPropertyManager fPropertiesManager = null;
+	protected ProjectPropertyManager fPropertiesManager = null;
 
 	/*
 	 * (non-Javadoc)
@@ -73,6 +84,31 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.eclipse.jface.preference.PreferencePage#contributeButtons(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected void contributeButtons(Composite parent) {
+
+		fCopyButton = new Button(parent, SWT.NONE);
+		fCopyButton.setText(TEXT_COPYBUTTON);
+		fCopyButton.setEnabled(isPerConfig());
+
+		fCopyButton.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				performCopy();
+			}
+		});
+
+		// Increase the number of columns in the parent layout
+		((GridLayout) parent.getLayout()).numColumns++;
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractPage#performCancel()
 	 */
 	@Override
@@ -94,6 +130,16 @@ public abstract class AbstractAVRPage extends AbstractPage {
 		// then let the superclass handle the CDT specific modifications.
 		AVRPropertyPageManager.performOK(this, getCfgsEditable());
 		return super.performOk();
+	}
+
+	/**
+	 * Notifies that the "Copy from Project" button has been pressed.
+	 */
+	public void performCopy() {
+		// Get the per project properties and send them to all out tabs.
+		AVRProjectProperties projectprops = fPropertiesManager.getProjectProperties();
+		if (!noContentOnPage && displayedConfig)
+			forEach(AbstractAVRPropertyTab.COPY, projectprops);
 	}
 
 	/*
@@ -167,6 +213,11 @@ public abstract class AbstractAVRPage extends AbstractPage {
 		// Inform all our Tabs about the change.
 		// We pass a ICResourceDescription, even if it is not used.
 		forEach(ICPropertyTab.UPDATE, getResDesc());
+
+		// Enable / disable the "Copy from Project" Button
+		if (fCopyButton != null) {
+			fCopyButton.setEnabled(flag);
+		}
 	}
 
 	/**
@@ -179,7 +230,7 @@ public abstract class AbstractAVRPage extends AbstractPage {
 
 		// Get the Project Properties Manager (if it has not yet been loaded by
 		// another page)
-		fPropertiesManager = AVRPropertyPageManager.getProjectProperties(this, getProject());
+		fPropertiesManager = AVRPropertyPageManager.getPropertyManager(this, getProject());
 	}
 
 	/**

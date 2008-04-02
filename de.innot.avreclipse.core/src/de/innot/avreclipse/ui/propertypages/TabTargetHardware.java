@@ -69,10 +69,15 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	private Set<String> fMCUids;
 	private String[] fMCUNames;
 
+	private String fOldMCUid;
+	private String fOldFCPU;
+
 	private static final Image IMG_WARN = PlatformUI.getWorkbench().getSharedImages().getImage(
 	        ISharedImages.IMG_OBJS_WARN_TSK);
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
@@ -126,6 +131,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 				// Check if supported by avrdude and set the errorpane as
 				// required
 				checkAVRDude(mcuid);
+
+				// Set the rebuild flag for the configuration
+				getCfg().setRebuildState(true);
 			}
 		});
 
@@ -192,8 +200,17 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 */
 	@Override
 	protected void performApply(AVRProjectProperties dst) {
-		dst.setMCUId(fTargetCfg.getMCUId());
-		dst.setFCPU(fTargetCfg.getFCPU());
+		String newMCUid = fTargetCfg.getMCUId();
+		String newFCPU = fTargetCfg.getFCPU();
+
+		dst.setMCUId(newMCUid);
+		dst.setFCPU(newFCPU);
+
+		// Check if a rebuild is required
+		checkRebuildRequired();
+
+		fOldMCUid = newMCUid;
+		fOldFCPU = newFCPU;
 	}
 
 	/*
@@ -202,10 +219,22 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performDefaults(AVRProjectProperties defaults) {
+	protected void performCopy(AVRProjectProperties defaults) {
 		fTargetCfg.setMCUId(defaults.getMCUId());
 		fTargetCfg.setFCPU(defaults.getFCPU());
 		updateData(fTargetCfg);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performOK()
+	 */
+	@Override
+	protected void performOK() {
+		// We override this to set the rebuild state as required
+		checkRebuildRequired();
+		super.performOK();
 	}
 
 	/*
@@ -222,7 +251,13 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		fMCUcombo.select(fMCUcombo.indexOf(AVRMCUidConverter.id2name(mcuid)));
 		checkAVRDude(mcuid);
 
-		fFCPUcombo.setText(cfg.getFCPU());
+		String fcpu = cfg.getFCPU();
+		fFCPUcombo.setText(fcpu);
+
+		// Save the original values, so we can set the rebuild flag when any
+		// changes are applied.
+		fOldMCUid = mcuid;
+		fOldFCPU = fcpu;
 
 	}
 
@@ -230,7 +265,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 * Check if the given MCU is supported by avrdude and set visibility of the
 	 * MCU Warning Message accordingly.
 	 * 
-	 * @param mcuid The MCU id value to test
+	 * @param mcuid
+	 *            The MCU id value to test
 	 */
 	private void checkAVRDude(String mcuid) {
 		if (AVRDude.getDefault().hasMCU(mcuid)) {
@@ -238,5 +274,19 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		} else {
 			fMCUWarningComposite.setVisible(true);
 		}
+	}
+
+	/**
+	 * Checks if the current target values are different from the original ones
+	 * and set the rebuild flag for the configuration / project if yes.
+	 */
+	private void checkRebuildRequired() {
+		if (fOldMCUid != null) {
+			if (!(fTargetCfg.getMCUId().equals(fOldMCUid))
+			        || !(fTargetCfg.getFCPU().equals(fOldFCPU))) {
+				setRebuildState(true);
+			}
+		}
+
 	}
 }

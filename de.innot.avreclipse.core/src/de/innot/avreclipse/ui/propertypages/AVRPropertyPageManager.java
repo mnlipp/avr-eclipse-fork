@@ -22,6 +22,7 @@ import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICResourceDescription;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
+import org.eclipse.cdt.ui.newui.CDTPropertyManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -36,7 +37,7 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  * Manages the list of {@link AbstractAVRPage} for a property dialog.
  * <p>
  * This manager keeps track of all open property pages. Each page registers
- * itself by calling the {@link #getProjectProperties(PropertyPage, IProject)}
+ * itself by calling the {@link #getPropertyManager(PropertyPage, IProject)}
  * method.
  * </p>
  * <p>
@@ -44,10 +45,15 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  * dialog is modal, so only one property dialog = one session can be open at a
  * time.
  * </p>
+ * <p>
+ * This class is very similar to and supplements the
+ * <code>CDTPropertyManager</class>, which manages the list of all CDT <code>AbstractPage</code>s.</p> 
+ * 
+ * @see CDTPropertyManager
  * 
  * @author Thomas Holland
  * @since 2.2
- * 
+ *
  */
 public class AVRPropertyPageManager {
 
@@ -60,7 +66,22 @@ public class AVRPropertyPageManager {
 	/** The Project Property Manager for the current project */
 	private static ProjectPropertyManager fProperties;
 
-	public static ProjectPropertyManager getProjectProperties(PropertyPage page, IProject project) {
+	/**
+	 * Gets the the {@link ProjectPropertyManager} for the project and registers
+	 * the given page in the list of property pages.
+	 * <p>
+	 * On the first call to this method for a new or a different project, a new
+	 * session is initiated.
+	 * </p>
+	 * 
+	 * @param page
+	 *            <code>AbstractAVRPropertyPage</code> to register in this
+	 *            manager.
+	 * @param project
+	 *            The current project.
+	 * @return The <code>ProjectPropertyManager</code> for the given project.
+	 */
+	public static ProjectPropertyManager getPropertyManager(PropertyPage page, IProject project) {
 
 		// If no pages registered start a new static session
 		if (fPages.size() == 0) {
@@ -89,11 +110,26 @@ public class AVRPropertyPageManager {
 		return fProperties;
 	}
 
+	/**
+	 * Save all modifications to the properties to the properties storage and
+	 * remove the page from the manager.
+	 * <p>
+	 * Also the list of "per config" properties is synchronized with the list of
+	 * existing build configurations, so AVR properties for deleted build
+	 * configurations will be deleted as well.
+	 * </p>
+	 * 
+	 * @param page
+	 *            Originating page.
+	 * @param allconfigs
+	 *            Array with all build configuration description objects.
+	 */
 	public static void performOK(PropertyPage page, ICConfigurationDescription[] allconfigs) {
 		try {
 			fProperties.save();
 		} catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
+			// TODO Throw an Exception to the UI code to display an error
+			// message.
 			e.printStackTrace();
 		}
 
@@ -116,11 +152,27 @@ public class AVRPropertyPageManager {
 
 	}
 
+	/**
+	 * Cancel all modifications and remove the page from the manager.
+	 * 
+	 * @param page
+	 *            Originating page.
+	 */
 	public static void performCancel(PropertyPage page) {
 		fProperties.reload();
 		removePage(page);
 	}
 
+	/**
+	 * Remove the given <code>AbstractAVRPage</code> from the manager.
+	 * <p>
+	 * Once the last page has been removed from this manager, the current
+	 * session is closed.
+	 * </p>
+	 * 
+	 * @param page
+	 *            Page to remove from the manager.
+	 */
 	private static void removePage(PropertyPage page) {
 
 		if (fPages.contains(page)) {
@@ -135,6 +187,9 @@ public class AVRPropertyPageManager {
 
 	}
 
+	/**
+	 * @return A <code>List</code> of all managed pages.
+	 */
 	public static List<PropertyPage> getPages() {
 		return fPages;
 	}
@@ -149,13 +204,33 @@ public class AVRPropertyPageManager {
 		return fProperties.getConfigurationProperties(buildcfg, false, true);
 	}
 
+	/**
+	 * Get the current per project properties.
+	 * 
+	 * @return
+	 */
+	public static AVRProjectProperties getProjectProperties() {
+		return fProperties.getProjectProperties();
+	}
+
+	/**
+	 * Convenience method to get an <code>IConfiguration</code> from an
+	 * <code>ICResourceDescription</code>
+	 * 
+	 * @param resdesc
+	 *            An <code>ICResourceDescription</code>
+	 * @return <code>IConfiguration</code> associated with the given
+	 *         Description.
+	 */
 	private static IConfiguration getConfigFromConfigDesc(ICResourceDescription resdesc) {
 		ICConfigurationDescription cfgDes = resdesc.getConfiguration();
 		IConfiguration conf = ManagedBuildManager.getConfigurationForDescription(cfgDes);
 		return conf;
 	}
 
-	// Removes disposed items from list
+	/**
+	 * Listener to remove disposed pages from the manager.
+	 */
 	private static DisposeListener fDisposeListener = new DisposeListener() {
 		public void widgetDisposed(DisposeEvent e) {
 			Widget w = e.widget;

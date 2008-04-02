@@ -305,10 +305,7 @@ public class ProjectPropertyManager {
 	 */
 	public void save() throws BackingStoreException {
 
-		// Save the "per config" flag
-		IEclipsePreferences projectprefs = getProjectPreferences(fProject);
-		projectprefs.putBoolean(KEY_PER_CONFIG, fPerConfig);
-		projectprefs.flush();
+		savePerConfigFlag();
 
 		// Save the global project properties
 		if (fProjectProps != null) {
@@ -322,6 +319,18 @@ public class ProjectPropertyManager {
 	}
 
 	/**
+	 * Save the current value of the "per config" flag.
+	 * 
+	 * @throws BackingStoreException
+	 */
+	public void savePerConfigFlag() throws BackingStoreException {
+		// Save the "per config" flag
+		IEclipsePreferences projectprefs = getProjectPreferences(fProject);
+		projectprefs.putBoolean(KEY_PER_CONFIG, fPerConfig);
+		projectprefs.flush();
+	}
+
+	/**
 	 * Remove all configuration properties for which the referenced build
 	 * configuration does not exist anymore.
 	 */
@@ -329,9 +338,10 @@ public class ProjectPropertyManager {
 		// TODO This method does not work yet.
 		// Calling it will cause some exceptions later on for reasons unknown.
 		// For now do nothing
-		
-		if (false) return;
-		
+
+		if (false)
+			return;
+
 		// get list of all our configuration properties
 		IEclipsePreferences projprops = getProjectPreferences(fProject);
 		try {
