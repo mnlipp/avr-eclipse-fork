@@ -20,6 +20,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * This is the Main AVR Property Page.
@@ -58,6 +59,37 @@ public class PageMain extends AbstractAVRPage {
 		});
 
 		fPerConfigButton.setSelection(super.isPerConfig());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.cdt.ui.newui.AbstractPage#performApply()
+	 */
+	@Override
+	public void performApply() {
+
+		// Save the current state of the "per Config flag", and only the flag.
+		try {
+			fPropertiesManager.savePerConfigFlag();
+		} catch (BackingStoreException e) {
+			// TODO Pop an error dialog
+			e.printStackTrace();
+		}
+
+		// Let the superclass do any additional things.
+		super.performApply();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPage#contributeButtons(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected void contributeButtons(Composite parent) {
+		// Over-Override this method, because this page does not need the "Copy
+		// from Project" Button
 	}
 
 	/*
