@@ -94,7 +94,13 @@ public enum BuildVariableValues {
 	AVRDUDEACTIONOPTIONS() {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
-			return "not implemented yet";
+			AVRProjectProperties props = getPropsFromConfig(buildcfg);
+			List<String> avrdudeoptions = props.getAVRDudeActionArguments(buildcfg);
+			StringBuffer sb = new StringBuffer();
+			for (String option : avrdudeoptions) {
+				sb.append(option + " ");
+			}
+			return sb.toString();
 		}
 	},
 
