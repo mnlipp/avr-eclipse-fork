@@ -18,9 +18,16 @@ package de.innot.avreclipse.core.preferences;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IOption;
+import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.PluginIDs;
+import de.innot.avreclipse.core.avrdude.CalibrationBytes;
+import de.innot.avreclipse.core.avrdude.FuseBytes;
+import de.innot.avreclipse.core.avrdude.LockBits;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
@@ -45,48 +52,90 @@ public class AVRProjectProperties {
 
 	private static final String KEY_MCUTYPE = "MCUType";
 	private static final String DEFAULT_MCUTYPE = "atmega16";
+	private String fMCUid;
 
 	private static final String KEY_FCPU = "ClockFrequency";
 	private static final int DEFAULT_FCPU = 1000000;
+	private int fFCPU;
 
 	private static final String KEY_USE_EXT_RAM = "ExtendedRAM";
 	private static final boolean DEFAULT_USE_EXT_RAM = false;
+	private boolean fUseExtRAM;
 
 	private static final String KEY_EXT_RAM_SIZE = "ExtRAMSize";
+	private int fExtRAMSize;
 
 	private static final String KEY_USE_EXT_RAM_HEAP = "UseExtendedRAMforHeap";
+	private boolean fUseExtRAMforHeap;
 
 	private static final String KEY_USE_EEPROM = "UseEEPROM";
 	private static final boolean DEFAULT_USE_EEPROM = false;
+	private boolean fUseEEPROM;
 
 	private static final String KEY_AVRDUDE_PROGRAMMER = "avrdudeProgrammerID";
+	private ProgrammerConfig fAVRDudeProgrammer;
+	private String fAVRDudeProgrammerId;
 
 	private static final String KEY_AVRDUDE_BITCLOCK = "avrdudeBitclock";
 	private static final String DEFAULT_AVRDUDE_BITCLOCK = "";
+	private String fAVRDudeBitclock;
 
 	private static final String KEY_AVRDUDE_NOSIGCHECK = "avrdudeNoSigCheck";
 	private static final boolean DEFAULT_AVRDUDE_NOSIGCHECK = false;
+	private boolean fAVRDudeNoSigCheck;
 
 	private static final String KEY_AVRDUDE_NOWRITE = "avrdudeNoWrite";
 	private static final boolean DEFAULT_AVRDUDE_NOWRITE = false;
+	private boolean fAVRDudeNoWrite;
 
 	private static final String KEY_AVRDUDE_USECOUNTER = "avrdudeUseCounter";
 	private static final boolean DEFAULT_AVRDUDE_USECOUNTER = false;
-
-	private String fMCUid;
-	private int fFCPU;
-
-	private boolean fUseExtRAM;
-	private int fExtRAMSize;
-	private boolean fUseExtRAMforHeap;
-	private boolean fUseEEPROM;
-
-	private ProgrammerConfig fAVRDudeProgrammer;
-	private String fAVRDudeProgrammerId;
-	private String fAVRDudeBitclock;
-	private boolean fAVRDudeNoSigCheck;
-	private boolean fAVRDudeNoWrite;
 	private boolean fAVRDudeUseCounter;
+
+	private static final String KEY_AVRDUDE_BACKUP = "avrdudeBackup";
+	private static final boolean DEFAULT_AVRDUDE_BACKUP = true;
+	private boolean fAVRDudeBackup;
+
+	private static final String KEY_AVRDUDE_BACKUPFOLDER = "avrdudeBackupFolder";
+	private static final String DEFAULT_AVRDUDE_BACKUPFOLDER = ".backup";
+	private String fAVRDudeBackupFolder;
+
+	private static final String KEY_AVRDUDE_WRITEFLASH = "avrdudeWriteFlash";
+	private static final boolean DEFAULT_AVRDUDE_WRITEFLASH = true;
+	private boolean fAVRDudeWriteFlash;
+
+	private static final String KEY_AVRDUDE_FLASHFILE = "avrdudeFlashFile";
+	private static final String DEFAULT_AVRDUDE_FLASHFILE = "";
+	private String fAVRDudeFlashFile;
+
+	private static final String KEY_AVRDUDE_WRITEEEPROM = "avrdudeWriteEEPROM";
+	private static final boolean DEFAULT_AVRDUDE_WRITEEEPROM = true;
+	private boolean fAVRDudeWriteEEPROM;
+
+	private static final String KEY_AVRDUDE_EEPROMFILE = "avrdudeEEPROMFile";
+	private static final String DEFAULT_AVRDUDE_EEPROMFILE = "";
+	private String fAVRDudeEEPROMFile;
+
+	private static final String KEY_AVRDUDE_WRITEFUSES = "avrdudeWriteFusesBytes";
+	private static final boolean DEFAULT_AVRDUDE_WRITEFUSES = false;
+	private boolean fAVRDudeWriteFuses;
+
+	private static final String NODE_FUSES = "Fuses";
+	private FuseBytes fAVRDudeFuseBytes;
+
+	private static final String KEY_AVRDUDE_WRITELOCKBITS = "avrdudeWriteLockbits";
+	private static final boolean DEFAULT_AVRDUDE_WRITELOCKBITS = false;
+	private boolean fAVRDudeWriteLockbits;
+
+	private static final String NODE_LOCKS = "Locks";
+	private LockBits fAVRDudeLockbits;
+
+	private static final String KEY_AVRDUDE_WRITECALIBRATION = "avrdudeWriteCalibrartion";
+	private static final boolean DEFAULT_AVRDUDE_WRITECALIBRATION = false;
+	private boolean fAVRDudeWriteCalibration;
+
+	private static final String NODE_CALIBRATION = "CalibrartionBytes";
+	private CalibrationBytes fAVRDudeCalibration;
 
 	/**
 	 * The source/target Preferences for the properties or <code>null</code>
@@ -131,7 +180,25 @@ public class AVRProjectProperties {
 		fAVRDudeNoWrite = source.fAVRDudeNoWrite;
 		fAVRDudeUseCounter = source.fAVRDudeUseCounter;
 
-		fDirty = true;
+		fAVRDudeBackup = source.fAVRDudeBackup;
+		fAVRDudeBackupFolder = source.fAVRDudeBackupFolder;
+
+		fAVRDudeWriteFlash = source.fAVRDudeWriteFlash;
+		fAVRDudeFlashFile = source.fAVRDudeFlashFile;
+
+		fAVRDudeWriteEEPROM = source.fAVRDudeWriteEEPROM;
+		fAVRDudeEEPROMFile = source.fAVRDudeEEPROMFile;
+
+		fAVRDudeWriteFuses = source.fAVRDudeWriteFuses;
+		fAVRDudeFuseBytes = new FuseBytes(source.fAVRDudeFuseBytes);
+
+		fAVRDudeWriteLockbits = source.fAVRDudeWriteLockbits;
+		fAVRDudeLockbits = new LockBits(source.fAVRDudeLockbits);
+
+		fAVRDudeWriteCalibration = source.fAVRDudeWriteCalibration;
+		fAVRDudeCalibration = new CalibrationBytes(source.fAVRDudeCalibration);
+
+		fDirty = source.fDirty;
 	}
 
 	public String getMCUId() {
@@ -157,16 +224,14 @@ public class AVRProjectProperties {
 		}
 	}
 
-	
 	public ProgrammerConfig getAVRDudeProgrammer() {
 		if (fAVRDudeProgrammer == null) {
-			return ProgrammerConfigManager.getDefault().getConfig(
-			        fAVRDudeProgrammerId);
+			return ProgrammerConfigManager.getDefault().getConfig(fAVRDudeProgrammerId);
 		} else {
 			return fAVRDudeProgrammer;
 		}
 	}
-	
+
 	public void setAVRDudeProgrammer(ProgrammerConfig progcfg) {
 		if (!progcfg.equals(fAVRDudeProgrammer)) {
 			fAVRDudeProgrammer = progcfg;
@@ -174,7 +239,7 @@ public class AVRProjectProperties {
 			fDirty = false;
 		}
 	}
-	
+
 	public String getAVRDudeProgrammerId() {
 		return fAVRDudeProgrammerId;
 	}
@@ -231,6 +296,50 @@ public class AVRProjectProperties {
 		}
 	}
 
+	public boolean getAVRDudeBackupEnabled() {
+		return fAVRDudeBackup;
+	}
+
+	public void setAVRDudeBackupEnabled(boolean enabled) {
+		if (fAVRDudeBackup != enabled) {
+			fAVRDudeBackup = enabled;
+			fDirty = true;
+		}
+	}
+
+	public String getAVRDudeBackupFolder() {
+		return fAVRDudeBackupFolder;
+	}
+
+	public void setAVRDudeBackupFolder(String folder) {
+		if (!fAVRDudeBackupFolder.equals(folder)) {
+			fAVRDudeBackupFolder = folder;
+			fDirty = true;
+		}
+	}
+
+	public boolean getAVRDudeWriteFlash() {
+		return fAVRDudeWriteFlash;
+	}
+
+	public void setAVRDudeWriteFlash(boolean enabled) {
+		if (fAVRDudeWriteFlash != enabled) {
+			fAVRDudeWriteFlash = enabled;
+			fDirty = true;
+		}
+	}
+
+	public boolean getAVRDudeWriteEEPROM() {
+		return fAVRDudeWriteEEPROM;
+	}
+
+	public void setAVRDudeWriteEEPROM(boolean enabled) {
+		if (fAVRDudeWriteEEPROM != enabled) {
+			fAVRDudeWriteEEPROM = enabled;
+			fDirty = true;
+		}
+	}
+
 	/**
 	 * Gets the avrdude command arguments as defined by the properties.
 	 * 
@@ -250,7 +359,7 @@ public class AVRProjectProperties {
 		if (progcfg != null) {
 			arguments.addAll(progcfg.getArguments());
 		}
-		
+
 		// add the bitclock and the flags
 		if (fAVRDudeBitclock.length() != 0) {
 			arguments.add("-B" + fAVRDudeBitclock);
@@ -266,6 +375,21 @@ public class AVRProjectProperties {
 
 		if (fAVRDudeUseCounter) {
 			arguments.add("-y");
+		}
+
+		return arguments;
+	}
+
+	public List<String> getAVRDudeActionArguments(IConfiguration buildcfg) {
+		List<String> arguments = new ArrayList<String>();
+
+		if (fAVRDudeWriteFlash) {
+			ITool[] tools = buildcfg.getToolsBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_FLASH);
+			ITool objcopy = tools[0];
+			IOption outputoption = objcopy
+			        .getOptionBySuperClassId("de.innot.avreclipse.objcopy.flash.option.output");
+			String rawfilename = (String) outputoption.getValue();
+			arguments.add("-Uflash:w:" + rawfilename + ":i");
 		}
 
 		return arguments;
@@ -289,6 +413,26 @@ public class AVRProjectProperties {
 		fAVRDudeNoWrite = fPrefs.getBoolean(KEY_AVRDUDE_NOWRITE, DEFAULT_AVRDUDE_NOWRITE);
 		fAVRDudeUseCounter = fPrefs.getBoolean(KEY_AVRDUDE_USECOUNTER, DEFAULT_AVRDUDE_USECOUNTER);
 
+		fAVRDudeBackup = fPrefs.getBoolean(KEY_AVRDUDE_BACKUP, DEFAULT_AVRDUDE_BACKUP);
+		fAVRDudeBackupFolder = fPrefs.get(KEY_AVRDUDE_BACKUPFOLDER, DEFAULT_AVRDUDE_BACKUPFOLDER);
+
+		fAVRDudeWriteFlash = fPrefs.getBoolean(KEY_AVRDUDE_WRITEFLASH, DEFAULT_AVRDUDE_WRITEFLASH);
+		fAVRDudeFlashFile = fPrefs.get(KEY_AVRDUDE_FLASHFILE, DEFAULT_AVRDUDE_FLASHFILE);
+
+		fAVRDudeWriteEEPROM = fPrefs.getBoolean(KEY_AVRDUDE_WRITEEEPROM,
+		        DEFAULT_AVRDUDE_WRITEEEPROM);
+		fAVRDudeEEPROMFile = fPrefs.get(KEY_AVRDUDE_EEPROMFILE, DEFAULT_AVRDUDE_EEPROMFILE);
+
+		fAVRDudeWriteFuses = fPrefs.getBoolean(KEY_AVRDUDE_WRITEFUSES, DEFAULT_AVRDUDE_WRITEFUSES);
+		fAVRDudeFuseBytes = new FuseBytes(fPrefs.node(NODE_FUSES));
+
+		fAVRDudeWriteLockbits = fPrefs.getBoolean(KEY_AVRDUDE_WRITELOCKBITS,
+		        DEFAULT_AVRDUDE_WRITELOCKBITS);
+		fAVRDudeLockbits = new LockBits(fPrefs.node(NODE_LOCKS));
+
+		fAVRDudeWriteCalibration = fPrefs.getBoolean(KEY_AVRDUDE_WRITECALIBRATION,
+		        DEFAULT_AVRDUDE_WRITECALIBRATION);
+		fAVRDudeCalibration = new CalibrationBytes(fPrefs.node(NODE_CALIBRATION));
 		fDirty = false;
 	}
 
@@ -316,12 +460,29 @@ public class AVRProjectProperties {
 				fPrefs.putBoolean(KEY_AVRDUDE_NOWRITE, fAVRDudeNoWrite);
 				fPrefs.putBoolean(KEY_AVRDUDE_USECOUNTER, fAVRDudeUseCounter);
 
+				fPrefs.putBoolean(KEY_AVRDUDE_BACKUP, fAVRDudeBackup);
+				fPrefs.put(KEY_AVRDUDE_BACKUPFOLDER, fAVRDudeBackupFolder);
+
+				fPrefs.putBoolean(KEY_AVRDUDE_WRITEFLASH, fAVRDudeWriteFlash);
+				fPrefs.put(KEY_AVRDUDE_FLASHFILE, fAVRDudeFlashFile);
+
+				fPrefs.putBoolean(KEY_AVRDUDE_WRITEEEPROM, fAVRDudeWriteEEPROM);
+				fPrefs.put(KEY_AVRDUDE_EEPROMFILE, fAVRDudeEEPROMFile);
+
+				fPrefs.putBoolean(KEY_AVRDUDE_WRITEFUSES, fAVRDudeWriteFuses);
+				fPrefs.putBoolean(KEY_AVRDUDE_WRITELOCKBITS, fAVRDudeWriteLockbits);
+				fPrefs.putBoolean(KEY_AVRDUDE_WRITECALIBRATION, fAVRDudeWriteCalibration);
+
 				fPrefs.flush();
-				
+
 				if (fAVRDudeProgrammer != null) {
 					ProgrammerConfigManager.getDefault().saveConfig(fAVRDudeProgrammer);
 				}
 			}
+			fAVRDudeFuseBytes.save();
+			fAVRDudeLockbits.save();
+			fAVRDudeCalibration.save();
+
 		} catch (IllegalStateException ise) {
 			// This should not happen, but just in case we ignore this unchecked
 			// exception
