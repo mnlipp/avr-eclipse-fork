@@ -30,7 +30,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -443,12 +445,18 @@ public class AVRDude implements IMCUProvider {
 			String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
 			arglist.add("-C" + newconfigfile);
 		}
-		
-		// Run avrdude
+
+		// Set up the External Command
 		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
 		avrdude.redirectErrorStream(true);
+
+		IProgressMonitor monitor = new NullProgressMonitor();
+		ICommandOutputListener outputlistener = new OutputListener(monitor);
+		avrdude.setCommandOutputListener(outputlistener);
+
+		// Run avrdude
 		try {
-			avrdude.launch();
+			avrdude.launch(monitor);
 		} catch (IOException e) {
 			// Something didn't work while running the external command
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
@@ -460,6 +468,27 @@ public class AVRDude implements IMCUProvider {
 		List<String> stdout = avrdude.getStdOut();
 
 		return stdout;
+	}
+
+	/**
+	 * Internal class to listen to the output of avrdude and cancel avrdude if
+	 * the String "timeout" appears in the output.
+	 */
+	private static class OutputListener implements ICommandOutputListener {
+
+		private IProgressMonitor fProgressMonitor;
+
+		public OutputListener(IProgressMonitor monitor) {
+			fProgressMonitor = monitor;
+		}
+
+		public void handleLine(String line, StreamSource source) {
+
+			if (line.contains("timeout")) {
+				fProgressMonitor.setCanceled(true);
+			}
+		}
+
 	}
 
 	/**
