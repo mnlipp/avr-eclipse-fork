@@ -149,6 +149,12 @@
 			name="Main"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeActions"
+			icon=""
+			name="Actions"
+			weight="002"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 
 <!--
@@ -1605,6 +1611,62 @@
 		</tool>
 		
 
+<!-- 
+####################################################################################### 
+#    AVRDude Tool                                                                     # 
+####################################################################################### 
+-->
+		<tool id="de.innot.avreclipse.tool.avrdude" 
+			name="AVRDude"
+			command="echo"
+			commandLinePattern="${COMMAND} ${FLAGS}" >
+
+			<supportedProperties>
+				<property id="org.eclipse.cdt.build.core.buildArtefactType">
+					<value id="de.innot.avreclipse.buildArtefactType.app" />
+				</property>
+			</supportedProperties>
+
+			<option id="de.innot.avreclipse.avrdude.option.standard"
+				name="AVRDude Options"
+				valueType="string"
+				defaultValue="${AVRDUDEOPTIONS}"
+				command="" >
+			</option>
+
+			<option id="de.innot.avreclipse.avrdude.option.actions"
+				name="AVRDude Action Options"
+				valueType="string"
+				defaultValue="${AVRDUDEACTIONOPTIONS}"
+				command="" >
+			</option>
+
+			
+<!--  	
+	Using an option for the input filename is an ugly clutch, but the linker /archiver,
+	as final build target will not generate a build variable. 
+-->
+			<option id="de.innot.avreclipse.avrdude.option.input"
+				name="Input File"
+				valueType="string"
+				value="${BuildArtifactFilePrefix}${BuildArtifactFileName}"
+				defaultValue="${BuildArtifactFilePrefix}${BuildArtifactFileName}" >
+				<enablement type="CMD_USAGE">
+					<false/>
+				</enablement>
+			</option>
+			
+			<inputType id="de.innot.avreclipse.tool.avrdude.input"
+				primaryInput="false"
+				multipleOfType="true"
+				option="de.innot.avreclipse.avrdude.option.input" />
+
+			<outputType id="de.innot.avreclipse.tool.avrdude.output"
+				outputNames="avrdudedummy"
+				primaryOutput="true" 
+				buildVariable="AVRDUDEDUMMY"/>
+		</tool>
+
 		
 <!-- 
 ####################################################################################### 
@@ -1694,6 +1756,12 @@
 				valueType="boolean"
 				tip="Prints the size of the final target" >
 			</option>
+			<option id="de.innot.avreclipse.toolchain.options.toolchain.avrdude"
+				name="AVRDude"
+				category="de.innot.avreclipse.toolchain.category.addtools"
+				valueType="boolean"
+				tip="Uploads the application to the target MCU" >
+			</option>
  	
  			
 			<!-- ************************************************ -->
@@ -1775,7 +1843,7 @@
 				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" >
 				<toolChain id="de.innot.avreclipse.toolchain.winavr.app.debug"
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
-					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output;de.innot.avreclipse.tool.avrdude.output" > 
 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug"
 						defaultValue="false"
@@ -1789,6 +1857,9 @@
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.debug"
+						defaultValue="false"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.avrdude" /> 
 
 					<targetPlatform
 						id="de.innot.avreclipse.targetplatform.winavr.app.debug"
@@ -1848,6 +1919,16 @@
 						<enablement type="ALL">
 							<checkOption
 								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
+								value="true" />
+						</enablement>
+					</tool>
+					<tool 
+						id="de.innot.avreclipse.tool.avrdude.app.debug"
+						superClass="de.innot.avreclipse.tool.avrdude" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.debug"
 								holderId="de.innot.avreclipse.toolchain.winavr.app.debug"
 								value="true" />
 						</enablement>
