@@ -43,6 +43,9 @@ public interface PluginIDs {
 	/** ID of the linker tool. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_TOOL_LINKER = "de.innot.avreclipse.tool.linker.winavr";
 
+	/** ID of the flash objcopy tools. Value: {@value} */
+	public final static String PLUGIN_TOOLCHAIN_TOOL_FLASH = "de.innot.avreclipse.tool.objcopy.flash.winavr";
+	
 	/** ID of the size tool. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
 
