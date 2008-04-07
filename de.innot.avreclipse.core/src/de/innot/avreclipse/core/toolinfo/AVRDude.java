@@ -39,6 +39,9 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
@@ -144,7 +147,14 @@ public class AVRDude implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
 	public String getMCUInfo(String mcuid) {
-		Map<String, String> internalmap = loadMCUList();
+		Map<String, String> internalmap;
+		try {
+			internalmap = loadMCUList();
+		} catch (AVRDudeException e) {
+			// Something went wrong when avrdude was called. The exception has
+			// already been logged, so just return null
+			return null;
+		}
 		return internalmap.get(mcuid);
 	}
 
@@ -154,7 +164,14 @@ public class AVRDude implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
 	public Set<String> getMCUList() {
-		Map<String, String> internalmap = loadMCUList();
+		Map<String, String> internalmap;
+		try {
+			internalmap = loadMCUList();
+		} catch (AVRDudeException e) {
+			// Something went wrong when avrdude was called. The exception has
+			// already been logged, so just return an empty list.
+			return new HashSet<String>();
+		}
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
 	}
@@ -165,7 +182,14 @@ public class AVRDude implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
-		Map<String, String> internalmap = loadMCUList();
+		Map<String, String> internalmap;
+		try {
+			internalmap = loadMCUList();
+		} catch (AVRDudeException e) {
+			// Something went wrong when avrdude was called. The exception has
+			// already been logged, so just return false.
+			return false;
+		}
 		return internalmap.containsKey(mcuid);
 	}
 
@@ -173,8 +197,9 @@ public class AVRDude implements IMCUProvider {
 	 * Returns a Set of all currently supported Programmer devices.
 	 * 
 	 * @return <code>Set&lt;String&gt</code> with the avrdude id values.
+	 * @throws AVRDudeException
 	 */
-	public Set<String> getProgrammersList() {
+	public Set<String> getProgrammersList() throws AVRDudeException {
 		Map<String, ConfigEntry> internalmap = loadProgrammersList();
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
@@ -187,8 +212,10 @@ public class AVRDude implements IMCUProvider {
 	 *            <code>String</code> with the avrdude id of the programmer
 	 * @return <code>ConfigEntry</code> containing all known information
 	 *         extracted from the avrdude executable
+	 * @throws AVRDudeException
 	 */
-	public ConfigEntry getProgrammerInfo(String programmerid) {
+	public ConfigEntry getProgrammerInfo(String programmerid)
+			throws AVRDudeException {
 		Map<String, ConfigEntry> internalmap = loadProgrammersList();
 		return internalmap.get(programmerid);
 	}
@@ -214,7 +241,8 @@ public class AVRDude implements IMCUProvider {
 	 * @throws IOException
 	 *             Any Exception reading the configuration file.
 	 */
-	public synchronized String getConfigDetailInfo(ConfigEntry entry) throws IOException {
+	public synchronized String getConfigDetailInfo(ConfigEntry entry)
+			throws IOException {
 
 		List<String> configcontent = null;
 		// Test if we have already loaded the config file
@@ -250,6 +278,46 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
+	 * Return the MCU id value of the device currently attached to the given
+	 * Programmer.
+	 * 
+	 * @param config
+	 *            <code>ProgrammerConfig</code> with the Programmer to query.
+	 * @return <code>String</code> with the id of the attached MCU, or
+	 *         <code>null</code> if the id could not be read (e.g. no
+	 *         programmer attached).
+	 * @throws AVRDudeException
+	 */
+	public String getAttachedMCU(ProgrammerConfig config)
+			throws AVRDudeException {
+
+		List<String> configoptions = config.getArguments();
+		configoptions.add("-pm16");
+
+		List<String> stdout = runCommand(configoptions);
+		if (stdout == null) {
+			return null;
+		}
+
+		// Parse the output and look for a line "avrdude: Device signature =
+		// 0x123456"
+		Pattern mcuPat = Pattern.compile(".+signature.+(0x[\\da-fA-F]{6})");
+		Matcher m;
+
+		for (String line : stdout) {
+			m = mcuPat.matcher(line);
+			if (!m.matches()) {
+				continue;
+			}
+			// pattern matched. Get the Signature and convert it to a mcu id
+			String mcuid = Signatures.getDefault().getMCU(m.group(1));
+			return mcuid;
+		}
+		// Signature not found
+		return null;
+	}
+
+	/**
 	 * Internal method to read the config file with the given path and split it
 	 * into lines.
 	 * 
@@ -279,15 +347,17 @@ public class AVRDude implements IMCUProvider {
 			}
 
 		} finally {
-			br.close();
+			if (br != null)
+				br.close();
 		}
 		return content;
 	}
 
 	/**
 	 * @return Map&lt;mcu id, avrdude id&gt; of all supported MCUs
+	 * @throws AVRDudeException
 	 */
-	private Map<String, String> loadMCUList() {
+	private Map<String, String> loadMCUList() throws AVRDudeException {
 
 		if (!getToolPath().equals(fCurrentPath)) {
 			// toolpath has changed, reload the list
@@ -321,8 +391,10 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * @return Map&lt;mcu id, avrdude id&gt; of all supported Programmer
 	 *         devices.
+	 * @throws AVRDudeException
 	 */
-	private Map<String, ConfigEntry> loadProgrammersList() {
+	private Map<String, ConfigEntry> loadProgrammersList()
+			throws AVRDudeException {
 
 		if (!getToolPath().equals(fCurrentPath)) {
 			// toolpath has changed, reload the list
@@ -349,8 +421,10 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param resultmap
 	 * @param arguments
+	 * @throws AVRDudeException
 	 */
-	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap, String... arguments) {
+	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap,
+			String... arguments) throws AVRDudeException {
 
 		List<String> stdout = runCommand(arguments);
 		if (stdout == null) {
@@ -361,7 +435,8 @@ public class AVRDude implements IMCUProvider {
 		// " id = description [pathtoavrdude.conf:line]"
 		// The following pattern splits this into the four groups:
 		// id / description / path / line
-		Pattern mcuPat = Pattern.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
+		Pattern mcuPat = Pattern
+				.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
 		Matcher m;
 
 		for (String line : stdout) {
@@ -387,8 +462,9 @@ public class AVRDude implements IMCUProvider {
 	 * </p>
 	 * 
 	 * @return <code>String</code> with the command name and version
+	 * @throws AVRDudeException
 	 */
-	public String getNameAndVersion() {
+	public String getNameAndVersion() throws AVRDudeException {
 
 		// Execute avrdude with the "-v" option and parse the
 		// output
@@ -421,33 +497,64 @@ public class AVRDude implements IMCUProvider {
 	 * <code>List&lt;String&gt;</code>.
 	 * </p>
 	 * <p>
-	 * If the command fails to execute an entry is written to the log and
-	 * <code>null</code> is returned.
+	 * If the command fails to execute an entry is written to the log and an
+	 * {@link AVRDudeException} with the reason is thrown.
 	 * </p>
 	 * 
 	 * @param arguments
 	 *            Zero or more arguments for avrdude
 	 * @return A list of all output lines, or <code>null</code> if the command
 	 *         could not be launched.
+	 * @throws AVRDudeException
 	 */
-	private List<String> runCommand(String... arguments) {
+	private List<String> runCommand(String... arguments)
+			throws AVRDudeException {
 
-		String command = getToolPath().toOSString();
 		List<String> arglist = new ArrayList<String>(1);
 		for (String arg : arguments) {
 			arglist.add(arg);
 		}
 
+		return runCommand(arglist);
+	}
+
+	/**
+	 * Runs avrdude with the given arguments.
+	 * <p>
+	 * The Output of stdout and stderr are merged and returned in a
+	 * <code>List&lt;String&gt;</code>.
+	 * </p>
+	 * <p>
+	 * If the command fails to execute an entry is written to the log and an
+	 * {@link AVRDudeException} with the reason is thrown.
+	 * </p>
+	 * 
+	 * @param arguments
+	 *            <code>List&lt;String&gt;</code> with the arguments
+	 * @return A list of all output lines, or <code>null</code> if the command
+	 *         could not be launched.
+	 * @throws AVRDudeException
+	 *             when avrdude cannot be started or when avrdude returned an
+	 *             error errors.
+	 */
+	private List<String> runCommand(List<String> arglist)
+			throws AVRDudeException {
+
+		String command = getToolPath().toOSString();
+
 		// Check if the user has a custom configuration file
 		IPreferenceStore avrdudeprefs = AVRDudePreferences.getPreferenceStore();
-		boolean usecustomconfig = avrdudeprefs.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
+		boolean usecustomconfig = avrdudeprefs
+				.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
 		if (usecustomconfig) {
-			String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
+			String newconfigfile = avrdudeprefs
+					.getString(AVRDudePreferences.KEY_CONFIGFILE);
 			arglist.add("-C" + newconfigfile);
 		}
 
 		// Set up the External Command
-		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
+		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command,
+				arglist);
 		avrdude.redirectErrorStream(true);
 
 		IProgressMonitor monitor = new NullProgressMonitor();
@@ -456,25 +563,56 @@ public class AVRDude implements IMCUProvider {
 
 		// Run avrdude
 		try {
+			fAbortReason = null;
 			avrdude.launch(monitor);
 		} catch (IOException e) {
 			// Something didn't work while running the external command
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-			        + command, e);
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not start " + command, e);
 			AVRPlugin.getDefault().log(status);
-			return null;
+			throw new AVRDudeException(e);
 		}
 
+		// Test if avrdude was aborted
+		if (fAbortReason != null) {
+			throw new AVRDudeException(fAbortReason, fAbortLine);
+		}
+
+		// Everything was fine: get the ooutput from avrdude and return it to
+		// the caller
 		List<String> stdout = avrdude.getStdOut();
 
 		return stdout;
 	}
 
 	/**
-	 * Internal class to listen to the output of avrdude and cancel avrdude if
-	 * the String "timeout" appears in the output.
+	 * The Reason code why avrdude was aborted (or <code>null</code> if
+	 * avrdude finished normally)
 	 */
-	private static class OutputListener implements ICommandOutputListener {
+	protected Reason fAbortReason;
+
+	/** The line from the avrdude output that caused the abort */
+	protected String fAbortLine;
+
+	/**
+	 * Internal class to listen to the output of avrdude and cancel avrdude if
+	 * the certain key Strings appears in the output.
+	 * <p>
+	 * They are:
+	 * <ul>
+	 * <li><code>timeout</code></li>
+	 * <li><code>Can't open device</code></li>
+	 * <li><code>can't open config file</code></li>
+	 * <li><code>Can't find programmer id</code></li>
+	 * <li><code>AVR Part ???? not found</code></li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * Once any of these Strings is found in the output the associated Reason is
+	 * set and avrdude is aborted via the ProgressMonitor.
+	 * </p>
+	 */
+	private class OutputListener implements ICommandOutputListener {
 
 		private IProgressMonitor fProgressMonitor;
 
@@ -484,8 +622,28 @@ public class AVRDude implements IMCUProvider {
 
 		public void handleLine(String line, StreamSource source) {
 
+			boolean abort = false;
+
 			if (line.contains("timeout")) {
+				abort = true;
+				fAbortReason = Reason.TIMEOUT;
+			} else if (line.contains("can't open device")) {
+				abort = true;
+				fAbortReason = Reason.PORT_BLOCKED;
+			} else if (line.contains("can't open config file")) {
+				abort = true;
+				fAbortReason = Reason.CONFIG_NOT_FOUND;
+			} else if (line.contains("Can't find programmer id")) {
+				abort = true;
+				fAbortReason = Reason.UNKNOWN_PROGRAMMER;
+			} else if (line.matches("AVR Part.+not found")) {
+				abort = true;
+				fAbortReason = Reason.UNKNOWN_MCU;
+			}
+
+			if (abort) {
 				fProgressMonitor.setCanceled(true);
+				fAbortLine = line;
 			}
 		}
 

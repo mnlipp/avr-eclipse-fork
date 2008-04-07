@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 
 import de.innot.avreclipse.core.IMCUProvider;
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.Datasheets;
 import de.innot.avreclipse.core.toolinfo.GCC;
@@ -54,31 +55,41 @@ public enum MCUListColumn {
 	 * </p>
 	 */
 	NAMES(MCUNames.getDefault()) {
+		@Override
 		protected String getName() {
 			return "MCU Name";
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(fMCUProvider,
-					Datasheets.getDefault());
+			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(
+					fMCUProvider, Datasheets.getDefault());
 			fLabelProvider = labelprovider;
 			column.setLabelProvider(fLabelProvider);
 			return new ColumnWeightData(20, 60);
 		}
 
 		@Override
-		protected void internalUpdate(TableViewer tableviewer, TableViewerColumn viewercolumn) {
-			((URLColumnLabelProvider) fLabelProvider).updateColumn(tableviewer, viewercolumn);
+		protected void internalUpdate(TableViewer tableviewer,
+				TableViewerColumn viewercolumn) {
+			((URLColumnLabelProvider) fLabelProvider).updateColumn(tableviewer,
+					viewercolumn);
 		}
 	},
 	/**
 	 * Column with all MCUs supported by avr-gcc, shown as Yes/No images.
 	 */
 	AVRGCC(GCC.getDefault()) {
+		@Override
 		protected String getName() {
 			return GCC.getDefault().getNameAndVersion();
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column
+					.setLabelProvider(new BooleanColumnLabelProvider(
+							fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(8, 60);
 		}
@@ -88,11 +99,16 @@ public enum MCUListColumn {
 	 * as Yes/No images.
 	 */
 	AVRINCLUDE(AVRiohDeviceDescriptionProvider.getDefault()) {
+		@Override
 		protected String getName() {
 			return "<avr/io.h>";
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column
+					.setLabelProvider(new BooleanColumnLabelProvider(
+							fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
@@ -101,11 +117,20 @@ public enum MCUListColumn {
 	 * Column with all MCUs supported by avr-gcc, shown as Yes/No images.
 	 */
 	AVRDUDE(AVRDude.getDefault()) {
+		@Override
 		protected String getName() {
-			return AVRDude.getDefault().getNameAndVersion();
+			try {
+				return AVRDude.getDefault().getNameAndVersion();
+			} catch (AVRDudeException e) {
+				return "AVRDude not available";
+			}
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column
+					.setLabelProvider(new BooleanColumnLabelProvider(
+							fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
@@ -120,11 +145,16 @@ public enum MCUListColumn {
 	 * </p>
 	 */
 	AVRSTUDIO(Signatures.getDefault()) {
+		@Override
 		protected String getName() {
 			return "AVR Studio";
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column
+					.setLabelProvider(new BooleanColumnLabelProvider(
+							fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
@@ -133,11 +163,16 @@ public enum MCUListColumn {
 	 * Column with all known Signatures.
 	 */
 	SIGNATURE(Signatures.getDefault()) {
+		@Override
 		protected String getName() {
 			return "Signature";
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column.setLabelProvider(new StringColumnLabelProvider(fMCUProvider));
+			column
+					.setLabelProvider(new StringColumnLabelProvider(
+							fMCUProvider));
 			return new ColumnWeightData(15, 60);
 		}
 	},
@@ -146,9 +181,12 @@ public enum MCUListColumn {
 	 * out over the the whole width, but kept together.
 	 */
 	FILLER(null) {
+		@Override
 		protected String getName() {
 			return "";
 		}
+
+		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
 			column.setLabelProvider(new NullColumnLabelProvider());
 			return new ColumnWeightData(50, 5);
@@ -172,7 +210,7 @@ public enum MCUListColumn {
 
 	/** The referenced IMCUProvider of the MCU column */
 	protected IMCUProvider fMCUProvider;
-	
+
 	/**
 	 * The constructor is called from the enum values and sets the user visible
 	 * column name and the underlying provider.
@@ -242,7 +280,8 @@ public enum MCUListColumn {
 	 * @param tableviewer
 	 * @param column
 	 */
-	protected void internalUpdate(TableViewer tableviewer, TableViewerColumn column) {
+	protected void internalUpdate(TableViewer tableviewer,
+			TableViewerColumn column) {
 		// Enums that have something to update will override
 		// this method
 	};
@@ -264,10 +303,11 @@ public enum MCUListColumn {
 
 	/**
 	 * Gets the column name for the UI
+	 * 
 	 * @return String with the name
 	 */
 	protected abstract String getName();
-	
+
 	/**
 	 * A ColumnLabelProvider that always returns empty Strings as Labels. Used
 	 * by the {@ MCUListColumn#FILLER} column.

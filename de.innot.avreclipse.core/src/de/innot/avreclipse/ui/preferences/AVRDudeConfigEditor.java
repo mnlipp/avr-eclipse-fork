@@ -51,10 +51,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.AVRPlugin;
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
+import de.innot.avreclipse.ui.propertypages.AVRDudeErrorDialog;
 
 /**
  * Dialog to edit a AVRDude Programmer Configuration.
@@ -111,7 +113,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	/**
 	 * @param parent
 	 */
-	public AVRDudeConfigEditor(Shell parent, ProgrammerConfig config, Set<String> allconfigs) {
+	public AVRDudeConfigEditor(Shell parent, ProgrammerConfig config,
+			Set<String> allconfigs) {
 		super(parent);
 
 		setTitle("Edit AVRDude Programmer Configuration " + config.getName());
@@ -120,7 +123,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 
 		// make a copy of the given Configuration that we can modify as required
-		fConfig = ProgrammerConfigManager.getDefault().getConfigEditable(config);
+		fConfig = ProgrammerConfigManager.getDefault()
+				.getConfigEditable(config);
 
 		// Remove the current name from the list of all names
 		fAllConfigs = allconfigs;
@@ -128,18 +132,25 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			fAllConfigs.remove(fConfig.getName());
 		}
 
-		// Get the List of AVRDude Programmer ConfigEntries.
-		// They are used to build the List of Programmers and to show details of
-		// a selected programmer
-		Set<String> programmers = AVRDude.getDefault().getProgrammersList();
-		fConfigIDMap = new HashMap<String, ConfigEntry>(programmers.size());
-		fConfigNameMap = new HashMap<String, ConfigEntry>(programmers.size());
-		for (String progid : programmers) {
-			ConfigEntry entry = AVRDude.getDefault().getProgrammerInfo(progid);
-			fConfigIDMap.put(progid, entry);
-			fConfigNameMap.put(entry.description, entry);
-		}
+		try {
 
+			// Get the List of AVRDude Programmer ConfigEntries.
+			// They are used to build the List of Programmers and to show
+			// details of
+			// a selected programmer
+			Set<String> programmers = AVRDude.getDefault().getProgrammersList();
+			fConfigIDMap = new HashMap<String, ConfigEntry>(programmers.size());
+			fConfigNameMap = new HashMap<String, ConfigEntry>(programmers
+					.size());
+			for (String progid : programmers) {
+				ConfigEntry entry = AVRDude.getDefault().getProgrammerInfo(
+						progid);
+				fConfigIDMap.put(progid, entry);
+				fConfigNameMap.put(entry.description, entry);
+			}
+		} catch (AVRDudeException e) {
+			AVRDudeErrorDialog.openAVRDudeError(getShell(), e, null);
+		}
 	}
 
 	/*
@@ -196,7 +207,9 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		// Add a modify Listener to update the configuration for any name
 		// changes
 		name.addModifyListener(new ModifyListener() {
-			/* (non-Javadoc)
+			/*
+			 * (non-Javadoc)
+			 * 
 			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
@@ -208,11 +221,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				fConfig.setName(newname);
 				if (newname.length() == 0) {
 					Status status = new Status(Status.ERROR, "AVRDude",
-					        "Configuration name may not be empty", null);
+							"Configuration name may not be empty", null);
 					AVRDudeConfigEditor.this.updateStatus(status);
 				} else if (fAllConfigs.contains(newname)) {
 					Status status = new Status(Status.ERROR, "AVRDude",
-					        "Configuration with the same name already exists", null);
+							"Configuration with the same name already exists",
+							null);
 					AVRDudeConfigEditor.this.updateStatus(status);
 				} else {
 					AVRDudeConfigEditor.this.updateStatus(Status.OK_STATUS);
@@ -222,7 +236,9 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 		// Add a Verify Listener to suppress slashes ('/')
 		name.addVerifyListener(new VerifyListener() {
-			/* (non-Javadoc)
+			/*
+			 * (non-Javadoc)
+			 * 
 			 * @see org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
 			 */
 			public void verifyText(VerifyEvent event) {
@@ -246,7 +262,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		label.setText("Description");
 		final Text description = new Text(parent, SWT.BORDER);
 		description.setText(fConfig.getDescription());
-		description.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+		description.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false,
+				2, 1));
 		description.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
@@ -276,7 +293,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 		Group listgroup = new Group(parent, SWT.SHADOW_ETCHED_IN);
 		listgroup.setText("Programmer Hardware (-c)");
-		listgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		listgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3,
+				1));
 		FillLayout fl = new FillLayout();
 		fl.marginHeight = 5;
 		fl.marginWidth = 5;
@@ -285,14 +303,16 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		SashForm sashform = new SashForm(listgroup, SWT.HORIZONTAL);
 		sashform.setLayout(new GridLayout(2, false));
 
-		final List list = new List(sashform, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		final List list = new List(sashform, SWT.BORDER | SWT.V_SCROLL
+				| SWT.H_SCROLL);
 		list.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		String[] allprogrammers = getProgrammers();
 		list.setItems(allprogrammers);
 
 		Composite devicedetails = new Composite(sashform, SWT.NONE);
 		devicedetails.setLayout(new GridLayout());
-		devicedetails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		devicedetails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false,
+				false));
 
 		final Text fromtext = new Text(devicedetails, SWT.NONE);
 		fromtext.setEditable(false);
@@ -366,10 +386,11 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 		final Combo baudrate = new Combo(parent, SWT.BORDER);
 		baudrate.setText(fConfig.getDescription());
-		baudrate.setLayoutData(new GridData(SWT.LEFT, SWT.NONE, true, false, 2, 1));
+		baudrate.setLayoutData(new GridData(SWT.LEFT, SWT.NONE, true, false, 2,
+				1));
 		baudrate.add("default");
-		baudrate.setItems(new String[] { "", "1200", "2400", "4800", "9600", "19200", "38400",
-		        "57600", "115200", "230400", "460800" });
+		baudrate.setItems(new String[] { "", "1200", "2400", "4800", "9600",
+				"19200", "38400", "57600", "115200", "230400", "460800" });
 		baudrate.select(baudrate.indexOf(fConfig.getBaudrate()));
 
 		baudrate.addModifyListener(new ModifyListener() {
@@ -415,10 +436,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 */
 	private void addExitspecComposite(Composite parent) {
 		Group groupcontainer = new Group(parent, SWT.SHADOW_IN);
-		groupcontainer.setText("State of Parallel Port lines after AVRDude exit");
+		groupcontainer
+				.setText("State of Parallel Port lines after AVRDude exit");
 		groupcontainer.setForeground(parent.getForeground());
 
-		groupcontainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
+		groupcontainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false,
+				false, 3, 1));
 		FillLayout containerlayout = new FillLayout(SWT.HORIZONTAL);
 		containerlayout.spacing = 10;
 		containerlayout.marginWidth = 10;
@@ -458,11 +481,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			resetDefault.setSelection(true);
 		}
 		SelectionListener resetlistener = new SelectionAdapter() {
-			/*
-			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
-			 */
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Button button = (Button) e.widget;
 				fConfig.setExitspecResetline((String) button.getData());
@@ -502,11 +521,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			vccDefault.setSelection(true);
 		}
 		SelectionListener vcclistener = new SelectionAdapter() {
-			/*
-			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
-			 */
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Button button = (Button) e.widget;
 				fConfig.setExitspecVCCline((String) button.getData());
@@ -532,7 +547,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		label.setText("Command line preview");
 		fPreviewText = new Text(parent, SWT.BORDER);
 		fPreviewText.setEditable(false);
-		fPreviewText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+		fPreviewText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
+				false, 2, 1));
 	}
 
 	/**
@@ -593,8 +609,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 *            The multiline <code>Text</code> control for the details
 	 */
 	private void updateDetails(ConfigEntry entry, Text from, Text details) {
-		from.setText("Programmer details from [" + entry.configfile.toOSString() + ":"
-		        + entry.linenumber + "]");
+		from.setText("Programmer details from ["
+				+ entry.configfile.toOSString() + ":" + entry.linenumber + "]");
 		Job job = new UpdateDetailsJob(entry, details);
 		job.setSystem(true);
 		job.setPriority(Job.SHORT);
@@ -648,7 +664,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				}
 				// Get the preformatted info String from the AVRDude class and
 				// update the details Text control in the UI thread.
-				final String content = AVRDude.getDefault().getConfigDetailInfo(fConfigEntry);
+				final String content = AVRDude.getDefault()
+						.getConfigDetailInfo(fConfigEntry);
 				Display display = fTextControl.getDisplay();
 				if (display != null && !display.isDisposed()) {
 					display.syncExec(new Runnable() {
@@ -664,8 +681,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				// be no IOExceptions.
 				// But just in case we log the Error
 				Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				        "Can't access avrdude configuration file "
-				                + fConfigEntry.configfile.toOSString(), ioe);
+						"Can't access avrdude configuration file "
+								+ fConfigEntry.configfile.toOSString(), ioe);
 				AVRPlugin.getDefault().log(status);
 			} finally {
 				monitor.done();
