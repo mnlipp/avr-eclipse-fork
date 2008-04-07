@@ -1618,7 +1618,7 @@
 -->
 		<tool id="de.innot.avreclipse.tool.avrdude" 
 			name="AVRDude"
-			command="echo"
+			command="avrdude"
 			commandLinePattern="${COMMAND} ${FLAGS}" >
 
 			<supportedProperties>
@@ -1956,6 +1956,9 @@
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.release"
 						defaultValue="true"
 						superClass="de.innot.avreclipse.toolchain.options.toolchain.size" /> 
+					<option id="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.release"
+						defaultValue="false"
+						superClass="de.innot.avreclipse.toolchain.options.toolchain.avrdude" /> 
 
 					<targetPlatform
 						id="de.innot.avreclipse.targetplatform.winavr.app.release "
@@ -2015,6 +2018,16 @@
 						<enablement type="ALL">
 							<checkOption
 								optionId="de.innot.avreclipse.toolchain.options.toolchain.size.app.release"
+								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
+								value="true" />
+						</enablement>
+					</tool>
+					<tool 
+						id="de.innot.avreclipse.tool.avrdude.app.release"
+						superClass="de.innot.avreclipse.tool.avrdude" >
+						<enablement type="ALL">
+							<checkOption
+								optionId="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.release"
 								holderId="de.innot.avreclipse.toolchain.winavr.app.release"
 								value="true" />
 						</enablement>
