@@ -150,7 +150,7 @@ public class Signatures implements IMCUProvider {
 		// called often and a reverse map would add code complexity.
 		Set<String> keyset = fProps.stringPropertyNames();
 		for (String mcuid : keyset) {
-			if (fProps.getProperty(mcuid).equals(signature)) {
+			if (fProps.getProperty(mcuid).equalsIgnoreCase(signature)) {
 				return mcuid;
 			}
 		}
