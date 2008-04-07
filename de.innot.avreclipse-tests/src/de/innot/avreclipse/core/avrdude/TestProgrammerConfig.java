@@ -25,12 +25,14 @@ public class TestProgrammerConfig {
 	 */
 	@Test
 	public void testProgrammerConfig() throws BackingStoreException {
+		
+		ProgrammerConfigManager manager = ProgrammerConfigManager.getDefault();
 		// create a new ProgrammerConfig
-		ProgrammerConfig config = new ProgrammerConfig("test1");
+		ProgrammerConfig config = manager.createNewConfig();
 		assertNotNull(config);
-		assertEquals("test1", config.getName());
 
 		// test all options
+		config.setName("test1");
 		config.setDescription("testdescription");
 		config.setProgrammer("c2n232i"); // last entry
 		config.setPort("/test/port");
@@ -38,6 +40,7 @@ public class TestProgrammerConfig {
 		config.setExitspecResetline("reset");
 		config.setExitspecVCCline("novcc");
 
+		assertEquals("test1", config.getName());
 		assertEquals("testdescription", config.getDescription());
 		assertEquals("c2n232i", config.getProgrammer());
 		assertEquals("/test/port", config.getPort());
@@ -70,9 +73,10 @@ public class TestProgrammerConfig {
 		config.setBaudrate("654321");
 		config.setExitspecResetline("noreset");
 		config.setExitspecVCCline("vcc");
-		config.save();
+		manager.saveConfig(config);
 
-		ProgrammerConfig config3 = new ProgrammerConfig("test1");
+		// Test if the last changes have been persisted
+		ProgrammerConfig config3 = manager.getConfig(config.getId());
 		assertEquals("changeddesription", config3.getDescription());
 		assertEquals("avrisp", config3.getProgrammer());
 		assertEquals("/test/port/2", config3.getPort());
@@ -80,29 +84,10 @@ public class TestProgrammerConfig {
 		assertEquals("noreset", config3.getExitspecResetline());
 		assertEquals("vcc", config3.getExitspecVCCline());
 
-		// Test a name change
-		config.setName("newname");
-		config.save();
-
-		// Settings off previous name should be gone
-		ProgrammerConfig config5 = new ProgrammerConfig("test1");
-		assertEquals("", config5.getDescription());
-
-		// Test if the last changes have been persisted
-		ProgrammerConfig config4 = new ProgrammerConfig("newname");
-		assertEquals("changeddesription", config4.getDescription());
-		assertEquals("avrisp", config4.getProgrammer());
-		assertEquals("/test/port/2", config4.getPort());
-		assertEquals("654321", config4.getBaudrate());
-		assertEquals("noreset", config4.getExitspecResetline());
-		assertEquals("vcc", config4.getExitspecVCCline());
 
 		// Test delete
-		config.delete();
-
-		// saving the clone of deleted config should not throw an exception
-		config2.save();
-
+		manager.deleteConfig(config);
+		assertTrue(manager.getConfig(config.getId())==null);
+		
 	}
-
 }

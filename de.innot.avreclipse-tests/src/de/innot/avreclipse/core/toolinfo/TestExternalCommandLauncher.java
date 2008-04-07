@@ -13,7 +13,7 @@ import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 public class TestExternalCommandLauncher {
 
 	@Test
-	public void testExternalCommandLauncher() throws IOException, InterruptedException {
+	public void testExternalCommandLauncher() throws IOException {
 		String command = "echo";
 		List<String> arguments;
 		ExternalCommandLauncher testlauncher;

@@ -15,6 +15,8 @@ import org.eclipse.core.runtime.Platform;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
+
 /**
  * @author Thomas Holland
  * 
@@ -67,9 +69,10 @@ public class TestAVRDude {
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.toolinfo.AVRDude#getProgrammersList()}.
+	 * @throws AVRDudeException 
 	 */
 	@Test
-	public void testGetProgrammersList() {
+	public void testGetProgrammersList() throws AVRDudeException {
 		Set<String> programmers = tool.getProgrammersList();
 		assertNotNull(programmers);
 		assertTrue(programmers.size() > 5); // at least a few programmers should
