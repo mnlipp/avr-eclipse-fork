@@ -88,7 +88,7 @@ public class BuildMacro implements IBuildMacro {
 	 * 
 	 * @see org.eclipse.cdt.managedbuilder.macros.IBuildMacro#getStringValue()
 	 */
-	public String getStringValue() throws BuildMacroException {
+	public String getStringValue() {
 		return fValueHandler.getValue(fConfiguration);
 	}
 

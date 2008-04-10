@@ -70,6 +70,7 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 	 * 
 	 * @see OwnerDrawLabelProvider#dispose();
 	 */
+	@Override
 	public void dispose() {
 		fYesImage.dispose();
 		fNoImage.dispose();

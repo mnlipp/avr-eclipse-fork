@@ -81,8 +81,9 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	 * {@link #doStore()} method
 	 */
 	private List<ProgrammerConfig> fRemovedConfigs;
-	
-	private ProgrammerConfigManager fCfgManager = ProgrammerConfigManager.getDefault();
+
+	private ProgrammerConfigManager fCfgManager = ProgrammerConfigManager
+			.getDefault();
 
 	/**
 	 * Creates a AVRDude Programmers Configuration List field editor.
@@ -153,7 +154,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 				if (!configid.isEmpty()) {
 					ProgrammerConfig config = fCfgManager.getConfig(configid);
 					TableItem item = new TableItem(fTableControl, SWT.NONE);
-					item.setText(new String[] { config.getName(), config.getDescription() });
+					item.setText(new String[] { config.getName(),
+							config.getDescription() });
 					item.setData(config);
 				}
 			}
@@ -245,8 +247,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		if (fTableControl == null) {
 			// Create the Table control, add two columns (name and description)
 			// and set up the required listeners
-			fTableControl = new Table(parent, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION
-			        | SWT.V_SCROLL | SWT.H_SCROLL);
+			fTableControl = new Table(parent, SWT.BORDER | SWT.SINGLE
+					| SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
 			fTableControl.setFont(parent.getFont());
 			fTableControl.setLinesVisible(true);
 			fTableControl.setHeaderVisible(true);
@@ -352,8 +354,10 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		button.setText(label);
 		button.setFont(parent.getFont());
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
-		int widthHint = convertHorizontalDLUsToPixels(button, IDialogConstants.BUTTON_WIDTH);
-		data.widthHint = Math.max(widthHint, button.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
+		int widthHint = convertHorizontalDLUsToPixels(button,
+				IDialogConstants.BUTTON_WIDTH);
+		data.widthHint = Math.max(widthHint, button.computeSize(SWT.DEFAULT,
+				SWT.DEFAULT, true).x);
 		button.setLayoutData(data);
 		button.addSelectionListener(new SelectionAdapter() {
 			/*
@@ -458,8 +462,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		// Open the Config Editor.
 		// If the OK Button was selected, the modified Config is fetched from
 		// the Dialog and the relevant TableItem is updated.
-		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fTableControl.getShell(), config,
-		        allconfigs);
+		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fTableControl
+				.getShell(), config, allconfigs);
 		if (dialog.open() == Window.OK) {
 			// OK Button selected:
 			ProgrammerConfig newconfig = dialog.getResult();
@@ -469,8 +473,11 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 			}
 
 			// Change the TableItem
-			ti.setText(new String[] { newconfig.getName(), newconfig.getDescription() });
-			ti.setData(newconfig);
+			if (ti != null) {
+				ti.setText(new String[] { newconfig.getName(),
+						newconfig.getDescription() });
+				ti.setData(newconfig);
+			}
 			selectionChanged();
 		}
 	}
