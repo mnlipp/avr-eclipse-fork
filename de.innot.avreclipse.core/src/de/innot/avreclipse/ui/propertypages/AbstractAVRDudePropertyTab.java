@@ -28,6 +28,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
+import de.innot.avreclipse.core.preferences.AVRProjectProperties;
 
 /**
  * Extends {@link AbstractAVRPropertyTab} to manage the list of
@@ -48,7 +49,34 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/** The list of all current Programmer Config Ids */
 	private Map<String, String> fProgCfgIDs = new HashMap<String, String>();
 
-	protected final static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager.getDefault();
+	protected final static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager
+			.getDefault();
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performCopy(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 */
+	@Override
+	protected void performCopy(AVRProjectProperties srcprops) {
+		// Update the avrdude command preview.
+		// Extending classes should call super.performCopy() or call
+		// updatePreview() themself.
+		updatePreview(srcprops);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 */
+	@Override
+	protected void updateData(AVRProjectProperties props) {
+		// Update the avrdude command preview.
+		// Extending classes should call super.updateData() or call
+		// updatePreview() themself.
+		updatePreview(props);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -130,10 +158,9 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		if (fModifiedProgCfgs.containsKey(configid)) {
 			// requested config is in the list of modified configs
 			return fModifiedProgCfgs.get(configid);
-		} else {
-			// load the config from the preference store
-			return fCfgManager.getConfig(configid);
 		}
+		// load the config from the preference store
+		return fCfgManager.getConfig(configid);
 	}
 
 	/**
@@ -167,7 +194,8 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		// inform the interested superclasses about the new list.
 		// The selection index is set at -1 to indicate that no entry in
 		// particualar should be selected.
-		doProgConfigsChanged(allCfgNames.toArray(new String[allCfgNames.size()]), -1);
+		doProgConfigsChanged(allCfgNames
+				.toArray(new String[allCfgNames.size()]), -1);
 	}
 
 	/**
@@ -197,7 +225,8 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		int newindex = allnames.indexOf(configname);
 
 		// Inform any interested extending classes about the change
-		doProgConfigsChanged(allnames.toArray(new String[fProgCfgIDs.size()]), newindex);
+		doProgConfigsChanged(allnames.toArray(new String[fProgCfgIDs.size()]),
+				newindex);
 
 		return;
 	}
@@ -234,8 +263,11 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 				fCfgManager.saveConfig(cfg);
 			} catch (BackingStoreException e) {
 				// TODO: Should the user be informed? For now just log an Error
-				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				        "Can't save Programmer Configuration to Preference storage area", e);
+				IStatus status = new Status(
+						Status.ERROR,
+						AVRPlugin.PLUGIN_ID,
+						"Can't save Programmer Configuration to Preference storage area",
+						e);
 				AVRPlugin.getDefault().log(status);
 			}
 		}
@@ -265,5 +297,29 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 
 		// else check what the config manager knows
 		return fCfgManager.isValidId(id);
+	}
+
+	/**
+	 * Update the avrdude command line preview.
+	 * <p>
+	 * This is a convenience method equivalent to
+	 * 
+	 * <pre>
+	 * ((PageAVRDude) page).updatePreview(props);
+	 * </pre>
+	 * 
+	 * </p>
+	 * 
+	 * @param props
+	 *            The <code>AVRProjectProperties</code> for which to display
+	 *            the preview
+	 */
+	protected void updatePreview(AVRProjectProperties props) {
+
+		if (page instanceof PageAVRDude) {
+			PageAVRDude avrdudepage = (PageAVRDude) page;
+
+			avrdudepage.updatePreview(props);
+		}
 	}
 }

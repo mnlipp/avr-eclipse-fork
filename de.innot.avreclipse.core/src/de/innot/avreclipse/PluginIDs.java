@@ -37,6 +37,15 @@ public interface PluginIDs {
 	/** ID of the cpu frequency option of the base toolchain. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_OPTION_FCPU = "de.innot.avreclipse.toolchain.options.target.fcpu";
 	
+	/** ID of the "generate Flash" toolchain option. Value: {@value} */
+	public final static String PLUGIN_TOOLCHAIN_OPTION_GENERATEFLASH = "de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash";
+	
+	/** ID of the "generate EEPROM" toolchain option. Value: {@value} */
+	public final static String PLUGIN_TOOLCHAIN_OPTION_GENERATEEEPROM = "de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom";
+	
+	/** ID of the "avrdude" toolchain option. Value: {@value} */
+	public final static String PLUGIN_TOOLCHAIN_OPTION_AVRDUDE = "de.innot.avreclipse.toolchain.options.toolchain.objcopy.eeprom";
+
 	/** ID of the compiler tool. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_TOOL_COMPILER = "de.innot.avreclipse.tool.compiler.winavr";
 
@@ -45,7 +54,10 @@ public interface PluginIDs {
 
 	/** ID of the flash objcopy tools. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_TOOL_FLASH = "de.innot.avreclipse.tool.objcopy.flash.winavr";
-	
+
+	/** ID of the eeprom objcopy tools. Value: {@value} */
+	public final static String PLUGIN_TOOLCHAIN_TOOL_EEPROM = "de.innot.avreclipse.tool.objcopy.eeprom.winavr";
+
 	/** ID of the size tool. Value: {@value} */
 	public final static String PLUGIN_TOOLCHAIN_TOOL_SIZE = "de.innot.avreclipse.tool.size.winavr";
 

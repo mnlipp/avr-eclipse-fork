@@ -36,7 +36,14 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  * This is the parent for all AVR Project property pages.
  * <p>
  * This class extends CDT AbstractPage to participate in the build configuration
- * handling it provides.
+ * handling.
+ * </p>
+ * <p>
+ * It acts as an interface to the {@link ProjectPropertyManager}, which manages
+ * the list of all {@link AVRProjectProperties} of the current project. It also
+ * maintains the current status of the "per Config" flag and informs all other
+ * registered AVR Pages when the flag is changed via the
+ * {@link AbstractAVRPage#setPerConfig(boolean)} method.
  * </p>
  * 
  * @see AbstractPage
@@ -89,12 +96,15 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	@Override
 	protected void contributeButtons(Composite parent) {
 
+		// Add a "Copy Project Settings" Button in addition to the "Default" and
+		// "Apply" Buttons from the PreferencePage superclass.
+		// This button is only actived in the "per Config" mode and will copy
+		// the project properties to the current configuration.
 		fCopyButton = new Button(parent, SWT.NONE);
 		fCopyButton.setText(TEXT_COPYBUTTON);
 		fCopyButton.setEnabled(isPerConfig());
 
 		fCopyButton.addSelectionListener(new SelectionAdapter() {
-
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				performCopy();
@@ -137,7 +147,8 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	 */
 	public void performCopy() {
 		// Get the per project properties and send them to all out tabs.
-		AVRProjectProperties projectprops = fPropertiesManager.getProjectProperties();
+		AVRProjectProperties projectprops = fPropertiesManager
+				.getProjectProperties();
 		if (!noContentOnPage && displayedConfig)
 			forEach(AbstractAVRPropertyTab.COPY, projectprops);
 	}
@@ -230,7 +241,8 @@ public abstract class AbstractAVRPage extends AbstractPage {
 
 		// Get the Project Properties Manager (if it has not yet been loaded by
 		// another page)
-		fPropertiesManager = AVRPropertyPageManager.getPropertyManager(this, getProject());
+		fPropertiesManager = AVRPropertyPageManager.getPropertyManager(this,
+				getProject());
 	}
 
 	/**

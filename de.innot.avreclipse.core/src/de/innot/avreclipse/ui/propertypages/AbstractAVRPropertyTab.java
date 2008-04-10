@@ -20,11 +20,17 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.ui.properties.AbstractCBuildPropertyTab;
 import org.eclipse.cdt.ui.newui.ICPropertyTab;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.preferences.AVRProjectProperties;
@@ -38,6 +44,7 @@ import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
  * specific settings are stored, either per project or - at user discretion -
  * per build configuration.
  * </p>
+ * <p>
  * {@link #performApply(AVRProjectProperties)} and
  * {@link #updateData(AVRProjectProperties)} are almost identical to the methods
  * in <code>ICPropertyTab</code>, while <code>performDefaults()</code> is
@@ -83,6 +90,10 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * project properties, depending on whether the "Defaults" or the "Copy from
 	 * Project" Button has been clicked by the user.
 	 * </p>
+	 * <p>
+	 * The receiver should call <code>super.performCopy(srcprops)</code> to
+	 * let intermediate classes do any additional handling.
+	 * </p>
 	 * 
 	 * @param srcprops
 	 *            Source properties.
@@ -100,6 +111,10 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * Implementing classes should update their controls to the values of the
 	 * properties and can must make all future modifications directly to the
 	 * given properties.
+	 * </p>
+	 * <p>
+	 * The receiver should call <code>super.updateData(props)</code> to let
+	 * intermediate classes do any additional handling.
 	 * </p>
 	 * 
 	 * @param props
@@ -119,9 +134,11 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		// This message is very similar to DEFAULTS, and from the viewpoint of
 		// extending classes, identical, as both call the performCopy() of the
 		// extending class.
+		// This is implemented for the "Copy Project Settings" Button.
 		switch (kind) {
 		case COPY:
 			AVRProjectProperties projectprops = (AVRProjectProperties) data;
+			updateData(projectprops);
 			performCopy(projectprops);
 			break;
 		default:
@@ -136,7 +153,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 *      org.eclipse.cdt.core.settings.model.ICResourceDescription)
 	 */
 	@Override
-	protected void performApply(ICResourceDescription src, ICResourceDescription dst) {
+	protected void performApply(ICResourceDescription src,
+			ICResourceDescription dst) {
 
 		// Apply should only save the values of this Tab.
 		// To do this, we get a fresh Property Element, which is filled with the
@@ -181,8 +199,9 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	protected void updateData(ICResourceDescription resdesc) {
 
 		// Translate ICResourceDescription to AVRProjectProperties and pass them
-		// to the extening class.
-		AVRProjectProperties props = AVRPropertyPageManager.getConfigProperties(resdesc);
+		// to the extending class.
+		AVRProjectProperties props = AVRPropertyPageManager
+				.getConfigProperties(resdesc);
 		updateData(props);
 	}
 
@@ -220,7 +239,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 			getCfg().setRebuildState(rebuild);
 		} else {
 			// Set the rebuild flag for the complete project
-			ManagedBuildManager.getBuildInfo(getCfg().getOwner()).setRebuildState(rebuild);
+			ManagedBuildManager.getBuildInfo(getCfg().getOwner())
+					.setRebuildState(rebuild);
 		}
 	}
 
@@ -239,9 +259,160 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		Layout parentlayout = parent.getLayout();
 		if (parentlayout instanceof GridLayout) {
 			int columns = ((GridLayout) parentlayout).numColumns;
-			GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false, columns, 1);
+			GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false,
+					columns, 1);
 			separator.setLayoutData(gridData);
 		}
+	}
+
+	/**
+	 * Returns the value of the "per config" flag for this project.
+	 * 
+	 * @return <code>true</code> if each build configuration has its own
+	 *         properties.
+	 */
+	protected boolean isPerConfig() {
+		if (page instanceof AbstractAVRPage) {
+			AbstractAVRPage avrpage = (AbstractAVRPage) page;
+			return avrpage.isPerConfig();
+		}
+		return true;
+	}
+
+	/**
+	 * Create and return a "Workplace" browse Button.
+	 * <p>
+	 * Clicking the Button will open a Workplace file selector Dialog and the
+	 * result is copied to the supplied <code>Text</code> Control.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            Parent <code>Composite</code>, which needs to have
+	 *            <code>GridLayout</code>
+	 * @param text
+	 *            Target <code>Text</code> Control
+	 * @return <code>Button</code> Control with the created Button.
+	 */
+	protected Button setupWorkplaceButton(Composite parent, final Text text) {
+		Button button = new Button(parent, SWT.PUSH);
+		button.setText(WORKSPACEBUTTON_NAME);
+		GridData gd = new GridData(SWT.CENTER, SWT.NONE, false, false);
+		// make all Buttons the same size
+		gd.minimumWidth = BUTTON_WIDTH;
+		button.setLayoutData(gd);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				String location = getWorkspaceFileDialog(text.getShell(),
+						EMPTY_STR);
+				if (location != null) {
+					text.setText(location);
+				}
+			}
+		});
+		return button;
+	}
+
+	/**
+	 * Create and return a "Filesystem" browse Button.
+	 * <p>
+	 * Clicking the Button will open a file selector Dialog and the result is
+	 * copied to the supplied <code>Text</code> Control.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            Parent <code>Composite</code>, which needs to have
+	 *            <code>GridLayout</code>
+	 * @param text
+	 *            Target <code>Text</code> Control
+	 * @param exts
+	 *            <code>String[]</code> with all valid file extensions. Files
+	 *            with other extensions will be filtered.
+	 * @return <code>Button</code> Control with the created Button.
+	 */
+	protected Button setupFilesystemButton(Composite parent, final Text text,
+			final String[] exts) {
+		Button button = new Button(parent, SWT.PUSH);
+		button.setText(FILESYSTEMBUTTON_NAME);
+		GridData gd = new GridData(SWT.CENTER, SWT.NONE, false, false);
+		// make all Buttons the same size
+		gd.minimumWidth = BUTTON_WIDTH;
+		button.setLayoutData(gd);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				String location = getFileSystemFileDialog(text.getShell(),
+						EMPTY_STR, exts);
+				if (location != null) {
+					text.setText(location);
+				}
+			}
+		});
+		return button;
+	}
+
+	/**
+	 * Create and return a "Variable" browse Button.
+	 * <p>
+	 * Clicking the Button will open a variable selector Dialog and the result
+	 * is inserted into the supplied <code>Text</code> Control at the current
+	 * cursor position.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            Parent <code>Composite</code>, which needs to have
+	 *            <code>GridLayout</code>
+	 * @param text
+	 *            Target <code>Text</code> Control
+	 * @return <code>Button</code> Control with the created Button.
+	 */
+	protected Button setupVariableButton(Composite parent, final Text text) {
+		Button button = new Button(parent, SWT.PUSH);
+		button.setText(VARIABLESBUTTON_NAME);
+		GridData gd = new GridData(SWT.CENTER, SWT.NONE, false, false);
+		// make all Buttons the same size
+		gd.minimumWidth = BUTTON_WIDTH;
+		button.setLayoutData(gd);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				String var = getVariableDialog(text.getShell(), getResDesc()
+						.getConfiguration());
+				if (var != null) {
+					text.insert(var);
+				}
+			}
+		});
+		return button;
+	}
+
+	/**
+	 * Open a FileSystem Dialog and return the selected file as a
+	 * <code>String</code>.
+	 * 
+	 * @param shell
+	 *            Shell in which to open the Dialog
+	 * @param text
+	 *            Root file name
+	 * @param exts
+	 *            <code>String[]</code> with all valid file extensions. Files
+	 *            with other extensions will be filtered.
+	 * @return <code>String</code> with the selected filename or <cod>null</code>
+	 *         if the user has cancelled or an error occured.
+	 */
+	public static String getFileSystemFileDialog(Shell shell, String text,
+			String[] exts) {
+
+		// Why has the AbstractCPropertyTab.getFileSystemDialog() a hardcoded
+		// list of extensions?
+		// This is basically the same method, but with a list of valid
+		// extensions as parameter.
+		FileDialog dialog = new FileDialog(shell);
+		if (text != null && text.trim().length() != 0)
+			dialog.setFilterPath(text);
+		dialog.setFilterExtensions(exts);
+		dialog.setText(FILESYSTEM_FILE_DIALOG_TITLE);
+		return dialog.open();
 	}
 
 }

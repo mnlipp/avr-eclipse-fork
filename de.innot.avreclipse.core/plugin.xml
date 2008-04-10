@@ -150,10 +150,16 @@
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 		<tab
-			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeActions"
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFlashEEPROM"
 			icon=""
-			name="Actions"
+			name="Flash / EEPROM"
 			weight="002"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeAdvanced"
+			icon=""
+			name="Advanced"
+			weight="004"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 
