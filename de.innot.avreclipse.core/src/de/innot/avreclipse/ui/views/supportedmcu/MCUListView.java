@@ -46,8 +46,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
 import de.innot.avreclipse.PluginIDs;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**

@@ -25,8 +25,8 @@ import org.eclipse.cdt.make.internal.core.scannerconfig2.PerProjectSICollector;
 import org.eclipse.cdt.managedbuilder.scannerconfig.IManagedScannerInfoCollector;
 import org.eclipse.core.resources.IProject;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * Gather built in compiler settings.

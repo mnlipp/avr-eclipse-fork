@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
 
 /**
  * The AVRDude Actions Tab page.
@@ -58,20 +58,20 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 
 	private final static String GROUP_NOSIGCHECK = "Device Signature Check";
 	private final static String LABEL_NOSIGCHECK = "Enable this if the target MCU has a broken (erased or overwritten) device signature\n"
-			+ "but is otherwise operating normally.";
+	        + "but is otherwise operating normally.";
 	private final static String TEXT_NOSIGCHECK = "Disable device signature check";
 
 	private final static String GROUP_BITCLOCK = "JTAG ICE BitClock";
 	private final static String LABEL_BITCLOCK = "Specify the bit clock period in microseconds for the JTAG interface or the ISP clock (JTAG ICE only).\n"
-			+ "Set this to > 1.0 for target MCUs running with less than 4MHz on a JTAG ICE.\n"
-			+ "Leave the field empty to use the preset bit clock period of the selected Programmer.";
+	        + "Set this to > 1.0 for target MCUs running with less than 4MHz on a JTAG ICE.\n"
+	        + "Leave the field empty to use the preset bit clock period of the selected Programmer.";
 	private final static String TEXT_BITCLOCK = "JTAG ICE bitclock";
 	private final static String LABEL_BITCLOCK_UNIT = "µs";
 
 	private final static String GROUP_DELAY = "BitBang Programmer Bit State Change Delay";
 	private final static String LABEL_DELAY = "Specify the delay in microseconds for each bit change on bitbang-type programmers.\n"
-			+ "Set this when the the host system is very fast, or the target runs off a slow clock\n"
-			+ "Leave the field empty to run the ISP connection at max speed.";
+	        + "Set this when the the host system is very fast, or the target runs off a slow clock\n"
+	        + "Leave the field empty to run the ISP connection at max speed.";
 	private final static String TEXT_DELAY = "Bit state change delay";
 	private final static String LABEL_DELAY_UNIT = "µs";
 
@@ -80,9 +80,9 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	private Button fNoSigCheckButton;
 	private Text fBitClockText;
 	private Text fBitBangDelayText;
-	
+
 	/** The Properties that this page works with */
-	private AVRProjectProperties fTargetProps;
+	private AVRDudeProperties fTargetProps;
 
 	/*
 	 * (non-Javadoc)
@@ -139,9 +139,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		group.setText(GROUP_BITCLOCK);
 
 		Label label = new Label(group, SWT.WRAP);
-		label
-				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3,
-						1));
+		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
 		label.setText(LABEL_BITCLOCK);
 
 		setupLabel(group, TEXT_BITCLOCK, 1, SWT.NONE);
@@ -153,7 +151,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		fBitClockText.setLayoutData(gd);
 		fBitClockText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				fTargetProps.setAVRDudeBitclock(fBitClockText.getText());
+				fTargetProps.setBitclock(fBitClockText.getText());
 				updatePreview(fTargetProps);
 			}
 		});
@@ -193,9 +191,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		group.setText(GROUP_DELAY);
 
 		Label label = new Label(group, SWT.WRAP);
-		label
-				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3,
-						1));
+		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
 		label.setText(LABEL_DELAY);
 
 		setupLabel(group, TEXT_DELAY, 1, SWT.NONE);
@@ -207,8 +203,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		fBitBangDelayText.setLayoutData(gd);
 		fBitBangDelayText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				fTargetProps
-						.setAVRDudeBitBangDelay(fBitBangDelayText.getText());
+				fTargetProps.setBitBangDelay(fBitBangDelayText.getText());
 				updatePreview(fTargetProps);
 			}
 		});
@@ -243,11 +238,11 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		if (source.equals(fNoVerifyButton)) {
 			// No Verify checkbox selected
 			boolean noverify = fNoVerifyButton.getSelection();
-			fTargetProps.setAVRDudeNoVerify(noverify);
+			fTargetProps.setNoVerify(noverify);
 		} else if (source.equals(fNoSigCheckButton)) {
 			// No Signature checkbox selected
 			boolean nosigcheck = fNoSigCheckButton.getSelection();
-			fTargetProps.setAVRDudeNoSigCheck(nosigcheck);
+			fTargetProps.setNoSigCheck(nosigcheck);
 		}
 
 		updatePreview(fTargetProps);
@@ -259,20 +254,21 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performApply(AVRProjectProperties dst) {
+	protected void performApply(AVRDudeProperties dstprops) {
 
 		if (fTargetProps == null) {
 			// updataData() has not been called and this tab has no (modified)
 			// settings yet.
 			return;
 		}
+
 		// Copy the currently selected values of this tab to the given, fresh
 		// Properties.
 		// The caller of this method will handle the actual saving
-		dst.setAVRDudeNoVerify(fTargetProps.getAVRDudeNoVerify());
-		dst.setAVRDudeNoSigCheck(fTargetProps.getAVRDudeNoSigCheck());
-		dst.setAVRDudeBitclock(fTargetProps.getAVRDudeBitclock());
-		dst.setAVRDudeBitBangDelay(fTargetProps.getAVRDudeBitBangDelay());
+		dstprops.setNoVerify(fTargetProps.getNoVerify());
+		dstprops.setNoSigCheck(fTargetProps.getNoSigCheck());
+		dstprops.setBitclock(fTargetProps.getBitclock());
+		dstprops.setBitBangDelay(fTargetProps.getBitBangDelay());
 	}
 
 	/*
@@ -281,16 +277,13 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performCopy(AVRProjectProperties source) {
-
-		// Let the superclass update the avrdude command preview
-		super.performCopy(source);
+	protected void performCopy(AVRDudeProperties srcprops) {
 
 		// Reload the items on this page
-		fTargetProps.setAVRDudeNoVerify(source.getAVRDudeNoVerify());
-		fTargetProps.setAVRDudeNoSigCheck(source.getAVRDudeNoSigCheck());
-		fTargetProps.setAVRDudeBitclock(source.getAVRDudeBitclock());
-		fTargetProps.setAVRDudeBitBangDelay(source.getAVRDudeBitBangDelay());
+		fTargetProps.setNoVerify(srcprops.getNoVerify());
+		fTargetProps.setNoSigCheck(srcprops.getNoSigCheck());
+		fTargetProps.setBitclock(srcprops.getBitclock());
+		fTargetProps.setBitBangDelay(srcprops.getBitBangDelay());
 		updateData(fTargetProps);
 	}
 
@@ -300,17 +293,14 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void updateData(AVRProjectProperties props) {
-
-		// Let the superclass update the avrdude command preview
-		super.updateData(props);
+	protected void updateData(AVRDudeProperties props) {
 
 		fTargetProps = props;
 
 		// Update the GUI widgets on this Tab.
-		fNoVerifyButton.setSelection(props.getAVRDudeNoVerify());
-		fNoSigCheckButton.setSelection(props.getAVRDudeNoSigCheck());
-		fBitClockText.setText(props.getAVRDudeBitclock());
-		fBitBangDelayText.setText(props.getAVRDudeBitBangDelay());
+		fNoVerifyButton.setSelection(fTargetProps.getNoVerify());
+		fNoSigCheckButton.setSelection(fTargetProps.getNoSigCheck());
+		fBitClockText.setText(fTargetProps.getBitclock());
+		fBitBangDelayText.setText(fTargetProps.getBitBangDelay());
 	}
 }

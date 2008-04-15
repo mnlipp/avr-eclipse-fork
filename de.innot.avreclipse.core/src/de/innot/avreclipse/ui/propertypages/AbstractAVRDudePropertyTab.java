@@ -28,7 +28,8 @@ import org.osgi.service.prefs.BackingStoreException;
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
 
 /**
  * Extends {@link AbstractAVRPropertyTab} to manage the list of
@@ -52,19 +53,37 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	protected final static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager
 			.getDefault();
 
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.properties.AVRProjectProperties)
+	 */
+	@Override
+	protected void performApply(AVRProjectProperties dst) {
+		// Get the AVRDude Properties and pass it to the subclass
+		AVRDudeProperties avrdudeprops = dst.getAVRDudeProperties();
+		performApply(avrdudeprops);
+
+	}
+	
+	abstract protected void performApply(AVRDudeProperties dstprops);
+	
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performCopy(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performCopy(AVRProjectProperties srcprops) {
+	protected void performCopy(AVRProjectProperties src) {
+		
+		// Get the AVRDude Properties and pass it to the subclass
+		AVRDudeProperties avrdudeprops = src.getAVRDudeProperties();
+		performCopy(avrdudeprops);
+		
 		// Update the avrdude command preview.
-		// Extending classes should call super.performCopy() or call
-		// updatePreview() themself.
-		updatePreview(srcprops);
+		updatePreview(avrdudeprops);
 	}
 
+	abstract protected void performCopy(AVRDudeProperties srcprops);
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -72,11 +91,15 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 */
 	@Override
 	protected void updateData(AVRProjectProperties props) {
+		// Get the AVRDude Properties and pass it to the subclass
+		AVRDudeProperties avrdudeprops = props.getAVRDudeProperties();
+		updateData(avrdudeprops);
+
 		// Update the avrdude command preview.
-		// Extending classes should call super.updateData() or call
-		// updatePreview() themself.
-		updatePreview(props);
+		updatePreview(props.getAVRDudeProperties());
 	}
+	
+	abstract protected void updateData(AVRDudeProperties avrdudeprops);
 
 	/*
 	 * (non-Javadoc)
@@ -314,7 +337,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 *            The <code>AVRProjectProperties</code> for which to display
 	 *            the preview
 	 */
-	protected void updatePreview(AVRProjectProperties props) {
+	protected void updatePreview(AVRDudeProperties props) {
 
 		if (page instanceof PageAVRDude) {
 			PageAVRDude avrdudepage = (PageAVRDude) page;

@@ -29,8 +29,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.dialogs.PropertyPage;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * This is the parent for all AVR Project property pages.

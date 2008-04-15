@@ -30,8 +30,8 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * Manages the list of {@link AbstractAVRPage} for a property dialog.

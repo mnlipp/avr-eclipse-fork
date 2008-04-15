@@ -40,8 +40,8 @@ import org.eclipse.swt.widgets.Text;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.natures.AVRProjectNature;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 

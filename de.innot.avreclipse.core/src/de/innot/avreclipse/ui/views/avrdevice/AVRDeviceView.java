@@ -67,8 +67,8 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ViewPart;
 
 import de.innot.avreclipse.PluginIDs;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.devicedescription.ICategory;
 import de.innot.avreclipse.devicedescription.IDeviceDescription;

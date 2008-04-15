@@ -39,7 +39,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.ui.preferences.AVRDudeConfigEditor;
 
 /**
@@ -67,13 +67,13 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private final static String TEXT_EDITBUTTON = "Edit...";
 	private final static String TEXT_NEWBUTTON = "New...";
 	private final static String LABEL_CONFIG_WARNING = "The Programmer configuration previously associated with this project/configuration\n"
-			+ "does not exist anymore. Please select a different one.";
+	        + "does not exist anymore. Please select a different one.";
 	private final static String LABEL_NOCONFIG = "Please select a Programmer Configuration to enable avrdude functions";
 
 	private final static String GROUP_COUNTER = "Flash memory erase cycle counter";
 	private final static String LABEL_COUNTER = "Enable this to have avrdude count the number of flash erase cycles.\n"
-			+ "Note: the value is stored in the last four bytes of the EEPROM,\n"
-			+ "so do not enable this if your application needs the last four bytes of the EEPROM.";
+	        + "Note: the value is stored in the last four bytes of the EEPROM,\n"
+	        + "so do not enable this if your application needs the last four bytes of the EEPROM.";
 	private final static String TEXT_COUNTER = "Enable erase cycle counter";
 	private final static String TEXT_READBUTTON = "Read";
 	private final static String TEXT_WRITEBUTTON = "Write";
@@ -92,11 +92,11 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private Text fCounterValue;
 
 	/** The Properties that this page works with */
-	private AVRProjectProperties fTargetProps;
+	private AVRDudeProperties fTargetProps;
 
 	/** Warning image used for invalid Programmer Config values */
-	private static final Image IMG_WARN = PlatformUI.getWorkbench()
-			.getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK);
+	private static final Image IMG_WARN = PlatformUI.getWorkbench().getSharedImages().getImage(
+	        ISharedImages.IMG_OBJS_WARN_TSK);
 
 	/*
 	 * (non-Javadoc)
@@ -126,19 +126,17 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private void addProgrammerConfigSection(Composite parent) {
 
 		Group configgroup = setupGroup(parent, GROUP_PROGCONFIG, 3, SWT.NONE);
-		configgroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false,
-				1, 1));
+		configgroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 
 		fProgrammerCombo = new Combo(configgroup, SWT.READ_ONLY);
-		fProgrammerCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false));
+		fProgrammerCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fProgrammerCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				String selectedname = fProgrammerCombo.getItem(fProgrammerCombo
-						.getSelectionIndex());
+				String selectedname = fProgrammerCombo
+				        .getItem(fProgrammerCombo.getSelectionIndex());
 				String selectedid = getProgrammerConfigId(selectedname);
-				fTargetProps.setAVRDudeProgrammerId(selectedid);
+				fTargetProps.setProgrammerId(selectedid);
 				showProgrammerWarning("", false);
 				updatePreview(fTargetProps);
 			}
@@ -147,8 +145,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		loadProgrammerConfigs();
 
 		// Edit... Button
-		Button editButton = setupButton(configgroup, TEXT_EDITBUTTON, 1,
-				SWT.NONE);
+		Button editButton = setupButton(configgroup, TEXT_EDITBUTTON, 1, SWT.NONE);
 		editButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -167,8 +164,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 		// The Warning icon / message composite
 		Composite warningComposite = new Composite(configgroup, SWT.NONE);
-		warningComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false, 3, 1));
+		warningComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
 		GridLayout gl = new GridLayout(2, false);
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
@@ -177,13 +173,11 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		warningComposite.setLayout(gl);
 
 		fConfigWarningIcon = new Label(warningComposite, SWT.LEFT);
-		fConfigWarningIcon.setLayoutData(new GridData(SWT.BEGINNING,
-				SWT.BEGINNING, false, false));
+		fConfigWarningIcon.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
 		fConfigWarningIcon.setImage(IMG_WARN);
 
 		fConfigWarningMessage = new Label(warningComposite, SWT.LEFT);
-		fConfigWarningMessage.setLayoutData(new GridData(
-				GridData.FILL_HORIZONTAL));
+		fConfigWarningMessage.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		fConfigWarningMessage.setText("two-line\ndummy");
 
 		// By default make the warning invisible
@@ -208,8 +202,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private void addUseCycleCounterSection(Composite parent) {
 
 		Group countergroup = setupGroup(parent, GROUP_COUNTER, 1, SWT.NONE);
-		countergroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false, 1, 1));
+		countergroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 
 		setupLabel(countergroup, LABEL_COUNTER, 2, SWT.NONE);
 
@@ -218,12 +211,10 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		// Cycle Counter load / write control composite
 
 		fCounterOptionsComposite = new Composite(countergroup, SWT.NONE);
-		fCounterOptionsComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE,
-				true, false, 2, 1));
+		fCounterOptionsComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		fCounterOptionsComposite.setLayout(new GridLayout(4, false));
 
-		setupLabel(fCounterOptionsComposite, "Current Erase Cycle Counter", 1,
-				SWT.NONE);
+		setupLabel(fCounterOptionsComposite, "Current Erase Cycle Counter", 1, SWT.NONE);
 
 		fCounterValue = setupText(fCounterOptionsComposite, 1, SWT.BORDER);
 		fCounterValue.setTextLimit(5); // Max. 65535
@@ -238,8 +229,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		});
 
 		// Read Button
-		Button readButton = setupButton(fCounterOptionsComposite,
-				TEXT_READBUTTON, 1, SWT.NONE);
+		Button readButton = setupButton(fCounterOptionsComposite, TEXT_READBUTTON, 1, SWT.NONE);
 		readButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -248,8 +238,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		});
 
 		// Write Button
-		Button writeButton = setupButton(fCounterOptionsComposite,
-				TEXT_WRITEBUTTON, 1, SWT.NONE);
+		Button writeButton = setupButton(fCounterOptionsComposite, TEXT_WRITEBUTTON, 1, SWT.NONE);
 		writeButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -271,8 +260,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private void addNoWriteSection(Composite parent) {
 
 		Group group = setupGroup(parent, GROUP_NOWRITE, 1, SWT.NONE);
-		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-				false, 1, 1));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		setupLabel(group, LABEL_NOWRITE, 1, SWT.NONE);
 		fNoWriteCheck = setupCheck(group, TEXT_NOWRITE, 1, SWT.CHECK);
@@ -293,14 +281,14 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 			// No Write = Simulation Checkbox has been selected
 			// Write the new value to the target properties
 			boolean newvalue = fNoWriteCheck.getSelection();
-			fTargetProps.setAVRDudeNoWrite(newvalue);
+			fTargetProps.setNoWrite(newvalue);
 
 		} else if (b.equals(fCounterCheck)) {
 			// Use Cycle Counter Checkbox has been selected
 			// Write the new value to the target properties
 			// and enable / disable the Counter Options composite accordingly
 			boolean newvalue = fCounterCheck.getSelection();
-			fTargetProps.setAVRDudeUseCounter(newvalue);
+			fTargetProps.setUseCounter(newvalue);
 			setEnabled(fCounterOptionsComposite, newvalue);
 		}
 
@@ -314,7 +302,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performApply(AVRProjectProperties dst) {
+	protected void performApply(AVRDudeProperties dstprops) {
 
 		// Save all new / modified programmer configurations
 		saveProgrammerConfigs();
@@ -322,9 +310,24 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		// Copy the currently selected values of this tab to the given, fresh
 		// Properties.
 		// The caller of this method will handle the actual saving
-		dst.setAVRDudeProgrammerId(fTargetProps.getAVRDudeProgrammerId());
-		dst.setAVRDudeNoWrite(fTargetProps.getAVRDudeNoWrite());
-		dst.setAVRDudeUseCounter(fTargetProps.getAVRDudeUseCounter());
+		dstprops.setProgrammerId(fTargetProps.getProgrammerId());
+		dstprops.setNoWrite(fTargetProps.getNoWrite());
+		dstprops.setUseCounter(fTargetProps.getUseCounter());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults()
+	 */
+	@Override
+	protected void performDefaults() {
+
+		// Reset the list of Programmer Configurations
+		loadProgrammerConfigs();
+
+		// The other defaults related stuff is done in the performCopy() method,
+		// which is called later by the superclass.
 	}
 
 	/*
@@ -333,18 +336,12 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performCopy(AVRProjectProperties source) {
-
-		// Let the superclass update the avrdude command preview
-		super.performCopy(source);
-
-		// Reset the list of Programmer Configurations
-		loadProgrammerConfigs();
+	protected void performCopy(AVRDudeProperties srcprops) {
 
 		// Reload the items on this page
-		fTargetProps.setAVRDudeProgrammerId(source.getAVRDudeProgrammerId());
-		fTargetProps.setAVRDudeNoWrite(source.getAVRDudeNoWrite());
-		fTargetProps.setAVRDudeUseCounter(source.getAVRDudeUseCounter());
+		fTargetProps.setProgrammerId(srcprops.getProgrammerId());
+		fTargetProps.setNoWrite(srcprops.getNoWrite());
+		fTargetProps.setUseCounter(srcprops.getUseCounter());
 		updateData(fTargetProps);
 	}
 
@@ -354,10 +351,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void updateData(AVRProjectProperties props) {
-
-		// Let the superclass update the avrdude command preview
-		super.updateData(props);
+	protected void updateData(AVRDudeProperties props) {
 
 		fTargetProps = props;
 
@@ -365,7 +359,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		// If the programmerid of the target properties does not exist,
 		// show a warning and select the first item (without copying it into the
 		// Target Properties)
-		String programmerid = props.getAVRDudeProgrammerId();
+		String programmerid = fTargetProps.getProgrammerId();
 		if (programmerid.length() == 0) {
 			// No Programmer has been set yet
 			// Deselect the combo and show a Message
@@ -386,9 +380,9 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 			}
 		}
 
-		fNoWriteCheck.setSelection(props.getAVRDudeNoWrite());
+		fNoWriteCheck.setSelection(fTargetProps.getNoWrite());
 
-		boolean usecounter = props.getAVRDudeUseCounter();
+		boolean usecounter = fTargetProps.getUseCounter();
 		fCounterCheck.setSelection(usecounter);
 		setEnabled(fCounterOptionsComposite, usecounter);
 
@@ -461,15 +455,15 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		// If the OK Button was selected, the modified Config is fetched from
 		// the Dialog and the the superclass is informed about the addition /
 		// modification.
-		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fProgrammerCombo
-				.getShell(), oldconfig, allconfignames);
+		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fProgrammerCombo.getShell(),
+		        oldconfig, allconfignames);
 		if (dialog.open() == Window.OK) {
 			// OK Button selected:
 			ProgrammerConfig newconfig = dialog.getResult();
-			fTargetProps.setAVRDudeProgrammer(newconfig);
+			fTargetProps.setProgrammer(newconfig);
 
 			addProgrammerConfig(newconfig);
-			updateData(fTargetProps);
+			updateData(fTargetProps.getParent());
 		}
 	}
 
@@ -520,9 +514,9 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 		// TODO implement this
 
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite
-				.getShell(), "Information", null, "Read not implemented yet",
-				MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
+		        null, "Read not implemented yet", MessageDialog.INFORMATION, new String[] { "OK" },
+		        0);
 		dlg.setBlockOnOpen(true);
 		dlg.open();
 		fCounterValue.setText("1234");
@@ -539,9 +533,9 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 		// TODO implement this
 
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite
-				.getShell(), "Information", null, "Write not implemented yet",
-				MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
+		        null, "Write not implemented yet", MessageDialog.INFORMATION,
+		        new String[] { "OK" }, 0);
 		dlg.setBlockOnOpen(true);
 		dlg.open();
 	}

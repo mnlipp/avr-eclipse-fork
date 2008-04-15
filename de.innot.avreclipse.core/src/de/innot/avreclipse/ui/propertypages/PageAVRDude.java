@@ -27,7 +27,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
 
 /**
  * The AVRDude property page.
@@ -100,7 +101,7 @@ public class PageAVRDude extends AbstractAVRPage {
 	 *            The <code>AVRProjectProperties</code> for which to display
 	 *            the preview
 	 */
-	public void updatePreview(AVRProjectProperties props) {
+	public void updatePreview(AVRDudeProperties avrdudeprops) {
 
 		// Don't do anything until this page is drawn.
 		if (fPreviewText == null) {
@@ -111,7 +112,7 @@ public class PageAVRDude extends AbstractAVRPage {
 
 		// Get the standard AVRDude arguments as defined in the given
 		// properties.
-		List<String> allargs = props.getAVRDudeArguments();
+		List<String> allargs = avrdudeprops.getArguments();
 
 		for (String arg : allargs) {
 			sb.append(arg);
@@ -124,7 +125,7 @@ public class PageAVRDude extends AbstractAVRPage {
 				.getConfigurationForDescription(getResDesc().getConfiguration());
 
 		// ...and all action arguments for the current configuration
-		List<String> allactionargs = props.getAVRDudeActionArguments(buildcfg);
+		List<String> allactionargs = avrdudeprops.getActionArguments(buildcfg);
 
 		// append all actions, one per line for better readabilty
 		for (String arg : allactionargs) {

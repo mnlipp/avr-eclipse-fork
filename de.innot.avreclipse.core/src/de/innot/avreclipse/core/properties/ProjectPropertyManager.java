@@ -13,7 +13,7 @@
  * $Id$
  *     
  *******************************************************************************/
-package de.innot.avreclipse.core.preferences;
+package de.innot.avreclipse.core.properties;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +34,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.AVRPlugin;
+import de.innot.avreclipse.core.preferences.BuildConfigurationScope;
 
 /**
  * Container for the Project Properties of an AVR Project.

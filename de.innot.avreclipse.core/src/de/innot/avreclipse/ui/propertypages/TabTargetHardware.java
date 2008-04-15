@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -43,7 +44,7 @@ import org.eclipse.ui.progress.IProgressService;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -62,12 +63,12 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	private static final String TEXT_LOADBUTTON = "Load from Programmer";
 
 	/** List of common MCU frequencies (taken from mfile) */
-	private static final String[] FCPU_VALUES = { "1000000", "1843200",
-			"2000000", "3686400", "4000000", "7372800", "8000000", "11059200",
-			"14745600", "16000000", "18432000", "20000000" };
+	private static final String[] FCPU_VALUES = { "1000000", "1843200", "2000000", "3686400",
+	        "4000000", "7372800", "8000000", "11059200", "14745600", "16000000", "18432000",
+	        "20000000" };
 
 	/** The Properties that this page works with */
-	private AVRProjectProperties fTargetCfg;
+	private AVRProjectProperties fTargetProps;
 
 	private Combo fMCUcombo;
 	private Composite fMCUWarningComposite;
@@ -80,8 +81,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	private String fOldMCUid;
 	private String fOldFCPU;
 
-	private static final Image IMG_WARN = PlatformUI.getWorkbench()
-			.getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK);
+	private static final Image IMG_WARN = PlatformUI.getWorkbench().getSharedImages().getImage(
+	        ISharedImages.IMG_OBJS_WARN_TSK);
 
 	/*
 	 * (non-Javadoc)
@@ -119,12 +120,13 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
 		FontMetrics fm = getFontMetrics(parent);
-		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 12);
+		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 14);
 
 		// MCU Selection Combo
-		Label label = new Label(parent, SWT.NONE);
-		label.setText(LABEL_MCUTYPE);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		setupLabel(parent, LABEL_MCUTYPE, 1, SWT.NONE);
+		// Label label = new Label(parent, SWT.NONE);
+		// label.setText(LABEL_MCUTYPE);
+		// label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 
 		fMCUcombo = new Combo(parent, SWT.READ_ONLY | SWT.DROP_DOWN);
 		fMCUcombo.setLayoutData(gd);
@@ -134,10 +136,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		fMCUcombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				String mcuname = fMCUcombo.getItem(fMCUcombo
-						.getSelectionIndex());
+				String mcuname = fMCUcombo.getItem(fMCUcombo.getSelectionIndex());
 				String mcuid = AVRMCUidConverter.name2id(mcuname);
-				fTargetCfg.setMCUId(mcuid);
+				fTargetProps.setMCUId(mcuid);
 
 				// Check if supported by avrdude and set the errorpane as
 				// required
@@ -150,8 +151,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		// Load from Device Button
 		Button loadbutton = setupButton(parent, TEXT_LOADBUTTON, 1, SWT.NONE);
-		loadbutton
-				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		loadbutton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		loadbutton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -160,7 +160,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		});
 
 		// Dummy Label for Padding
-		label = new Label(parent, SWT.NONE);
+		Label label = new Label(parent, SWT.NONE);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		// The Warning Composite
@@ -190,7 +190,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		GridData gd = new GridData();
 		FontMetrics fm = getFontMetrics(parent);
-		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 12);
+		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 14);
 
 		setupLabel(parent, LABEL_FCPU, 1, SWT.NONE);
 
@@ -203,8 +203,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		fFCPUcombo.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				if (fTargetCfg != null) {
-					fTargetCfg.setFCPU(fFCPUcombo.getText());
+				if (fTargetProps != null) {
+					fTargetProps.setFCPU(fFCPUcombo.getText());
 				}
 			}
 		});
@@ -229,12 +229,12 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	@Override
 	protected void performApply(AVRProjectProperties dst) {
 
-		if (fTargetCfg == null) {
+		if (fTargetProps == null) {
 			// Do nothing if the Target properties do not exist.
 			return;
 		}
-		String newMCUid = fTargetCfg.getMCUId();
-		String newFCPU = fTargetCfg.getFCPU();
+		String newMCUid = fTargetProps.getMCUId();
+		String newFCPU = fTargetProps.getFCPU();
 
 		dst.setMCUId(newMCUid);
 		dst.setFCPU(newFCPU);
@@ -253,9 +253,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 */
 	@Override
 	protected void performCopy(AVRProjectProperties defaults) {
-		fTargetCfg.setMCUId(defaults.getMCUId());
-		fTargetCfg.setFCPU(defaults.getFCPU());
-		updateData(fTargetCfg);
+		fTargetProps.setMCUId(defaults.getMCUId());
+		fTargetProps.setFCPU(defaults.getFCPU());
+		updateData(fTargetProps);
 	}
 
 	/*
@@ -278,7 +278,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	@Override
 	protected void updateData(AVRProjectProperties cfg) {
 
-		fTargetCfg = cfg;
+		fTargetProps = cfg;
 
 		String mcuid = cfg.getMCUId();
 		fMCUcombo.select(fMCUcombo.indexOf(AVRMCUidConverter.id2name(mcuid)));
@@ -315,8 +315,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 */
 	private void checkRebuildRequired() {
 		if (fOldMCUid != null) {
-			if (!(fTargetCfg.getMCUId().equals(fOldMCUid))
-					|| !(fTargetCfg.getFCPU().equals(fOldFCPU))) {
+			if (!(fTargetProps.getMCUId().equals(fOldMCUid))
+			        || !(fTargetProps.getFCPU().equals(fOldFCPU))) {
 				setRebuildState(true);
 			}
 		}
@@ -330,14 +330,18 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 * </p>
 	 */
 	private void loadComboFromDevice() {
-		final ProgrammerConfig config = fTargetCfg.getAVRDudeProgrammer();
+		ProgrammerConfig config = fTargetProps.getAVRDudeProperties().getProgrammer();
 		if (config == null) {
 			// TODO Display Dialog to select a Programmer
+			MessageDialog
+			        .openInformation(
+			                usercomp.getShell(),
+			                "AVRDude Information",
+			                "No AVRDude Programmer Config set for the Project.\nSet a Programmer Config in the AVRDude properties page.");
 			return;
 		}
 
-		IProgressService progressService = PlatformUI.getWorkbench()
-				.getProgressService();
+		IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
 		MCUFromDeviceRunner runner = new MCUFromDeviceRunner(config);
 		try {
 			progressService.busyCursorWhile(runner);
@@ -345,8 +349,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 			// This is an wrapper for an AVRDudeException
 			// Get the root Exception and display an Error Message
 			Throwable cause = e.getCause();
-			AVRDudeErrorDialog.openAVRDudeError(usercomp.getShell(), cause,
-					config);
+			AVRDudeErrorDialog.openAVRDudeError(usercomp.getShell(), cause, config);
 			return;
 		} catch (InterruptedException e) {
 			// User has canceled - do nothing
@@ -371,8 +374,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 			fConfig = config;
 		}
 
-		public void run(IProgressMonitor monitor)
-				throws InvocationTargetException {
+		public void run(IProgressMonitor monitor) throws InvocationTargetException {
 			try {
 				fMCU = AVRDude.getDefault().getAttachedMCU(fConfig);
 			} catch (AVRDudeException e) {

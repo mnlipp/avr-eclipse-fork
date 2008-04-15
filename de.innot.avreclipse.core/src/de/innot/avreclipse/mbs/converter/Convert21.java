@@ -20,8 +20,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.natures.AVRProjectNature;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * @author Thomas

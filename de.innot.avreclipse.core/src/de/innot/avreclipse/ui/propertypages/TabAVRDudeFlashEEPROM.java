@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.PluginIDs;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
 
 /**
  * The AVRDude Flash and EEPROM Tab page.
@@ -90,11 +90,10 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	private Button fEEPROMVariableButton;
 
 	/** The Properties that this page works with */
-	private AVRProjectProperties fTargetProps;
+	private AVRDudeProperties fTargetProps;
 
 	/** The file extensions for image files. Used by the file selector. */
-	public final static String[] IMAGE_EXTS = new String[] { "*.hex", "*.eep",
-			"*.bin", "*.srec" };
+	public final static String[] IMAGE_EXTS = new String[] { "*.hex", "*.eep", "*.bin", "*.srec" };
 
 	/*
 	 * (non-Javadoc)
@@ -134,19 +133,16 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		Group group = new Group(parent, SWT.NONE);
 		group.setText(GROUP_FLASH);
 		group.setLayout(new GridLayout(2, false));
-		group
-				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1,
-						1));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		// No Upload Button
 		fFlashNoUploadButton = new Button(group, SWT.RADIO);
 		fFlashNoUploadButton.setText(TEXT_FLASH_NOUPLOAD);
-		fFlashNoUploadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-				false, false, 2, 1));
+		fFlashNoUploadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fFlashNoUploadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteFlash(false);
+				fTargetProps.setWriteFlash(false);
 				enableFlashFileGroup(false);
 				updatePreview(fTargetProps);
 			}
@@ -155,13 +151,13 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from Config Button
 		fFlashUploadConfigButton = new Button(group, SWT.RADIO);
 		fFlashUploadConfigButton.setText(TEXT_FLASH_FROMCONFIG);
-		fFlashUploadConfigButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-				false, false, 2, 1));
+		fFlashUploadConfigButton
+		        .setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fFlashUploadConfigButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteFlash(true);
-				fTargetProps.setAVRDudeFlashFile("");
+				fTargetProps.setWriteFlash(true);
+				fTargetProps.setFlashFile("");
 				fFlashFileText.setText("");
 				// Set the corresponding "Generate Flash Image" in the current
 				// toolchain(s).
@@ -174,13 +170,12 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from file Button
 		fFlashUploadFileButton = new Button(group, SWT.RADIO);
 		fFlashUploadFileButton.setText(TEXT_FLASH_FROMFILE);
-		fFlashUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-				false, false, 2, 1));
+		fFlashUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fFlashUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteFlash(true);
-				fFlashFileText.setText(fTargetProps.getAVRDudeFlashFile());
+				fTargetProps.setWriteFlash(true);
+				fFlashFileText.setText(fTargetProps.getFlashFile());
 				enableFlashFileGroup(true);
 				updatePreview(fTargetProps);
 			}
@@ -192,12 +187,11 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
 		fFlashFileText = new Text(group, SWT.BORDER);
-		fFlashFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false));
+		fFlashFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fFlashFileText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				String newpath = fFlashFileText.getText();
-				fTargetProps.setAVRDudeFlashFile(newpath);
+				fTargetProps.setFlashFile(newpath);
 				updatePreview(fTargetProps);
 			}
 		});
@@ -205,17 +199,14 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The three File Dialog Buttons (and a alignment/filler Label),
 		// all wrapped in a composite.
 		Composite compo = new Composite(group, SWT.NONE);
-		compo
-				.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2,
-						1));
+		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 
 		label = new Label(compo, SWT.NONE); // Filler
 		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		fFlashWorkplaceButton = setupWorkplaceButton(compo, fFlashFileText);
-		fFlashFilesystemButton = setupFilesystemButton(compo, fFlashFileText,
-				IMAGE_EXTS);
+		fFlashFilesystemButton = setupFilesystemButton(compo, fFlashFileText, IMAGE_EXTS);
 		fFlashVariableButton = setupVariableButton(compo, fFlashFileText);
 
 	}
@@ -257,19 +248,16 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		Group group = new Group(parent, SWT.NONE);
 		group.setText(GROUP_EEPROM);
 		group.setLayout(new GridLayout(2, false));
-		group
-				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1,
-						1));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		// No Upload Button
 		fEEPROMNoUploadButton = new Button(group, SWT.RADIO);
 		fEEPROMNoUploadButton.setText(TEXT_EEPROM_NOUPLOAD);
-		fEEPROMNoUploadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-				false, false, 2, 1));
+		fEEPROMNoUploadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fEEPROMNoUploadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteEEPROM(false);
+				fTargetProps.setWriteEEPROM(false);
 				enableEEPROMFileGroup(false);
 				updatePreview(fTargetProps);
 			}
@@ -278,13 +266,13 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from Config Button
 		fEEPROMUploadConfigButton = new Button(group, SWT.RADIO);
 		fEEPROMUploadConfigButton.setText(TEXT_EEPROM_FROMCONFIG);
-		fEEPROMUploadConfigButton.setLayoutData(new GridData(SWT.FILL,
-				SWT.FILL, false, false, 2, 1));
+		fEEPROMUploadConfigButton
+		        .setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fEEPROMUploadConfigButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteEEPROM(true);
-				fTargetProps.setAVRDudeEEPROMFile("");
+				fTargetProps.setWriteEEPROM(true);
+				fTargetProps.setEEPROMFile("");
 				fEEPROMFileText.setText("");
 				enableEEPROMFileGroup(false);
 				// Set the corresponding "Generate EEPROM Image" in the current
@@ -297,13 +285,12 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from file Button
 		fEEPROMUploadFileButton = new Button(group, SWT.RADIO);
 		fEEPROMUploadFileButton.setText(TEXT_EEPROM_FROMFILE);
-		fEEPROMUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-				false, false, 2, 1));
+		fEEPROMUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fEEPROMUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setAVRDudeWriteEEPROM(true);
-				fEEPROMFileText.setText(fTargetProps.getAVRDudeEEPROMFile());
+				fTargetProps.setWriteEEPROM(true);
+				fEEPROMFileText.setText(fTargetProps.getEEPROMFile());
 				enableEEPROMFileGroup(true);
 				updatePreview(fTargetProps);
 			}
@@ -315,12 +302,11 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
 		fEEPROMFileText = new Text(group, SWT.BORDER);
-		fEEPROMFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false));
+		fEEPROMFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fEEPROMFileText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				String newpath = fEEPROMFileText.getText();
-				fTargetProps.setAVRDudeEEPROMFile(newpath);
+				fTargetProps.setEEPROMFile(newpath);
 				updatePreview(fTargetProps);
 			}
 		});
@@ -328,17 +314,14 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The three File Dialog Buttons (and a alignment/filler Label),
 		// all wrapped in a composite.
 		Composite compo = new Composite(group, SWT.NONE);
-		compo
-				.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2,
-						1));
+		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 
 		label = new Label(compo, SWT.NONE); // Filler
 		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		fEEPROMWorkplaceButton = setupWorkplaceButton(compo, fEEPROMFileText);
-		fEEPROMFilesystemButton = setupFilesystemButton(compo, fEEPROMFileText,
-				IMAGE_EXTS);
+		fEEPROMFilesystemButton = setupFilesystemButton(compo, fEEPROMFileText, IMAGE_EXTS);
 		fEEPROMVariableButton = setupVariableButton(compo, fEEPROMFileText);
 
 	}
@@ -363,28 +346,29 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performApply(AVRProjectProperties dst) {
+	protected void performApply(AVRDudeProperties dstprops) {
 
 		if (fTargetProps == null) {
 			// updataData() has not been called and this tab has no (modified)
 			// settings yet.
 			return;
 		}
+
 		// Copy the currently selected values of this tab to the given, fresh
 		// Properties.
 		// The caller of this method will handle the actual saving
-		dst.setAVRDudeWriteFlash(fTargetProps.getAVRDudeWriteFlash());
-		dst.setAVRDudeFlashFile(fTargetProps.getAVRDudeFlashFile());
+		dstprops.setWriteFlash(fTargetProps.getWriteFlash());
+		dstprops.setFlashFile(fTargetProps.getFlashFile());
 
-		dst.setAVRDudeWriteEEPROM(fTargetProps.getAVRDudeWriteEEPROM());
-		dst.setAVRDudeEEPROMFile(fTargetProps.getAVRDudeEEPROMFile());
+		dstprops.setWriteEEPROM(fTargetProps.getWriteEEPROM());
+		dstprops.setEEPROMFile(fTargetProps.getEEPROMFile());
 
 		// Update the "Generate xxx images" options of
 		// the current toolchain / all toolchains as required
-		if (fTargetProps.getAVRDudeWriteFlash()) {
+		if (fTargetProps.getWriteFlash()) {
 			setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEFLASH);
 		}
-		if (fTargetProps.getAVRDudeWriteEEPROM()) {
+		if (fTargetProps.getWriteEEPROM()) {
 			setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEEEPROM);
 		}
 
@@ -396,18 +380,14 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void performCopy(AVRProjectProperties source) {
-
-		// Let the superclass update the avrdude command preview
-		super.performCopy(source);
+	protected void performCopy(AVRDudeProperties srcprops) {
 
 		// Reload the items on this page
-		fTargetProps.setAVRDudeWriteFlash(source.getAVRDudeWriteFlash());
-		fTargetProps.setAVRDudeFlashFile(source.getAVRDudeFlashFile());
+		fTargetProps.setWriteFlash(srcprops.getWriteFlash());
+		fTargetProps.setFlashFile(srcprops.getFlashFile());
 
-		fTargetProps.setAVRDudeWriteEEPROM(source.getAVRDudeWriteEEPROM());
-		fTargetProps.setAVRDudeEEPROMFile(source.getAVRDudeEEPROMFile());
-
+		fTargetProps.setWriteEEPROM(srcprops.getWriteEEPROM());
+		fTargetProps.setEEPROMFile(srcprops.getEEPROMFile());
 		updateData(fTargetProps);
 	}
 
@@ -417,16 +397,13 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRProjectProperties)
 	 */
 	@Override
-	protected void updateData(AVRProjectProperties props) {
-
-		// Let the superclass update the avrdude command preview
-		super.updateData(props);
+	protected void updateData(AVRDudeProperties props) {
 
 		fTargetProps = props;
 
 		// Update the flash group
-		boolean writeflash = props.getAVRDudeWriteFlash();
-		String flashfile = props.getAVRDudeFlashFile();
+		boolean writeflash = fTargetProps.getWriteFlash();
+		String flashfile = fTargetProps.getFlashFile();
 
 		// There are three possibilities:
 		// a) No upload wanted: writeflash == false
@@ -456,8 +433,8 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		fFlashFileText.setText(flashfile);
 
 		// Update the eeprom group
-		boolean writeeeprom = props.getAVRDudeWriteEEPROM();
-		String eepromfile = props.getAVRDudeEEPROMFile();
+		boolean writeeeprom = fTargetProps.getWriteEEPROM();
+		String eepromfile = fTargetProps.getEEPROMFile();
 
 		// There are three possibilities:
 		// a) No upload wanted: writeeeprom == false
@@ -519,7 +496,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			ICConfigurationDescription[] allconfigdesc = page.getCfgsEditable();
 			for (ICConfigurationDescription cfgdesc : allconfigdesc) {
 				IConfiguration buildcfg = ManagedBuildManager
-						.getConfigurationForDescription(cfgdesc);
+				        .getConfigurationForDescription(cfgdesc);
 				setBuildConfigGenerateFlag(buildcfg, optionid);
 			}
 		}
@@ -536,8 +513,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * @param optionid
 	 *            <code>String</code> with the id of the boolean option.
 	 */
-	private void setBuildConfigGenerateFlag(IConfiguration buildcfg,
-			String optionid) {
+	private void setBuildConfigGenerateFlag(IConfiguration buildcfg, String optionid) {
 
 		IToolChain toolchain = buildcfg.getToolChain();
 
@@ -545,19 +521,17 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The requested option will only be set to true, if the avrdude option
 		// is true as well.
 		IOption avrdudeoption = toolchain
-				.getOptionBySuperClassId("de.innot.avreclipse.toolchain.options.toolchain.avrdude");
+		        .getOptionBySuperClassId("de.innot.avreclipse.toolchain.options.toolchain.avrdude");
 
 		IOption option = toolchain.getOptionBySuperClassId(optionid);
 
 		try {
 			if (avrdudeoption.getBooleanValue()) {
-				ManagedBuildManager
-						.setOption(buildcfg, toolchain, option, true);
+				ManagedBuildManager.setOption(buildcfg, toolchain, option, true);
 			}
 		} catch (BuildException e) {
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-					"Internal Error: Toolchain Option " + optionid
-							+ " is not of type Boolean", e);
+			        "Internal Error: Toolchain Option " + optionid + " is not of type Boolean", e);
 			AVRPlugin.getDefault().log(status);
 		}
 	}

@@ -24,8 +24,8 @@ import org.eclipse.core.resources.IProject;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * This <code>Enum</code> contains a list of all available variable names.
@@ -82,7 +82,7 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
-			List<String> avrdudeoptions = props.getAVRDudeArguments();
+			List<String> avrdudeoptions = props.getAVRDudeProperties().getArguments();
 			StringBuffer sb = new StringBuffer();
 			for (String option : avrdudeoptions) {
 				sb.append(option + " ");
@@ -95,7 +95,7 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
-			List<String> avrdudeoptions = props.getAVRDudeActionArguments(buildcfg);
+			List<String> avrdudeoptions = props.getAVRDudeProperties().getActionArguments(buildcfg);
 			StringBuffer sb = new StringBuffer();
 			for (String option : avrdudeoptions) {
 				sb.append(option + " ");

@@ -33,8 +33,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.service.prefs.BackingStoreException;
 
-import de.innot.avreclipse.core.preferences.AVRProjectProperties;
-import de.innot.avreclipse.core.preferences.ProjectPropertyManager;
+import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * Abstract parent class for all AVR Property tabs.
@@ -91,8 +91,9 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * Project" Button has been clicked by the user.
 	 * </p>
 	 * <p>
-	 * The receiver should call <code>super.performCopy(srcprops)</code> to
-	 * let intermediate classes do any additional handling.
+	 * It is up to the implementor to call
+	 * {@link #updateData(AVRProjectProperties)} to update the representation
+	 * after the copy has taken place.
 	 * </p>
 	 * 
 	 * @param srcprops
@@ -112,15 +113,26 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * properties and can must make all future modifications directly to the
 	 * given properties.
 	 * </p>
-	 * <p>
-	 * The receiver should call <code>super.updateData(props)</code> to let
-	 * intermediate classes do any additional handling.
-	 * </p>
 	 * 
 	 * @param props
 	 *            <code>AVRProjectProperties</code> the tab must work with.
 	 */
 	protected abstract void updateData(AVRProjectProperties props);
+
+	/**
+	 * Action for a defaults event.
+	 * <p>
+	 * This is called in addition to {@link #performCopy(AVRProjectProperties)},
+	 * so that subclasses can override to add any special handling for the
+	 * defaults case, which does not apply to the copy event. E.g. the main page
+	 * overrides this to reset the list of available programmers.
+	 * </p>
+	 * 
+	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performDefaults()
+	 */
+	protected void performDefaults() {
+		// Subclasse
+	};
 
 	/*
 	 * (non-Javadoc)
@@ -130,18 +142,40 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 */
 	@Override
 	public void handleTabEvent(int kind, Object data) {
-		// Override handleTabEvent to handle the COPY message.
-		// This message is very similar to DEFAULTS, and from the viewpoint of
-		// extending classes, identical, as both call the performCopy() of the
-		// extending class.
-		// This is implemented for the "Copy Project Settings" Button.
+		// Override handleTabEvent to handle the COPY and DEFAULTS messages.
+		// 
+		// The DEFAULTS message is intercepted here, because the handling of
+		// defaults is different in the AVR tabs compared to the standard
+		// CPropertyTabs. The default properties are not writable (at least not
+		// saveable), so we cannot pass the default properties directly to the
+		// updateData() method.
+		// Instead the default properties are passed to the new performCopy(),
+		// which is implemented in subclasses and in which they copy their
+		// relevant properties from the given default/project properties.
+		// 
+		// The same method is used to reset a tab to the project settings. If
+		// the "Copy Project Settings" Button is pressed, the parent
+		// AbstractAVRPage will get the Project properties and generate a COPY
+		// message with the project properties attached.
+		//
+		// Both handlers call updateData(getResDesc()) first, because
+		// updateData() is used to pass a valid AVRProjectProperties to the
+		// subclass and might not have been called when the handler is executed.
 		switch (kind) {
 		case COPY:
+			updateData(getResDesc());
 			AVRProjectProperties projectprops = (AVRProjectProperties) data;
-			updateData(projectprops);
 			performCopy(projectprops);
 			break;
+		case ICPropertyTab.DEFAULTS:
+			updateData(getResDesc());
+			AVRProjectProperties defaultprops = ProjectPropertyManager.getDefaultProperties();
+			performDefaults();
+			performCopy(defaultprops);
+			break;
 		default:
+			// All other messages (APPLY, DISPOSE etc.) are handled by the
+			// superclass.
 			super.handleTabEvent(kind, data);
 		}
 	}
@@ -153,13 +187,12 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 *      org.eclipse.cdt.core.settings.model.ICResourceDescription)
 	 */
 	@Override
-	protected void performApply(ICResourceDescription src,
-			ICResourceDescription dst) {
+	protected void performApply(ICResourceDescription src, ICResourceDescription dst) {
 
 		// Apply should only save the values of this Tab.
 		// To do this, we get a fresh Property Element, which is filled with the
 		// values from the property storage.
-		// Then this new Element is passed on to the extending class, which
+		// Then this new Element is passed on to the subclass, which
 		// modifies only its own values.
 		// Finally the Element is saved again to the property storage.
 
@@ -180,28 +213,14 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performDefaults()
-	 */
-	@Override
-	protected void performDefaults() {
-		// Get the default Properties and let the extending class copy the
-		// relevant values from it.
-		AVRProjectProperties tc = ProjectPropertyManager.getDefaultProperties();
-		performCopy(tc);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#updateData(org.eclipse.cdt.core.settings.model.ICResourceDescription)
 	 */
 	@Override
 	protected void updateData(ICResourceDescription resdesc) {
 
 		// Translate ICResourceDescription to AVRProjectProperties and pass them
-		// to the extending class.
-		AVRProjectProperties props = AVRPropertyPageManager
-				.getConfigProperties(resdesc);
+		// to the subclass.
+		AVRProjectProperties props = AVRPropertyPageManager.getConfigProperties(resdesc);
 		updateData(props);
 	}
 
@@ -239,8 +258,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 			getCfg().setRebuildState(rebuild);
 		} else {
 			// Set the rebuild flag for the complete project
-			ManagedBuildManager.getBuildInfo(getCfg().getOwner())
-					.setRebuildState(rebuild);
+			ManagedBuildManager.getBuildInfo(getCfg().getOwner()).setRebuildState(rebuild);
 		}
 	}
 
@@ -259,8 +277,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		Layout parentlayout = parent.getLayout();
 		if (parentlayout instanceof GridLayout) {
 			int columns = ((GridLayout) parentlayout).numColumns;
-			GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false,
-					columns, 1);
+			GridData gridData = new GridData(SWT.FILL, SWT.NONE, true, false, columns, 1);
 			separator.setLayoutData(gridData);
 		}
 	}
@@ -303,8 +320,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
-				String location = getWorkspaceFileDialog(text.getShell(),
-						EMPTY_STR);
+				String location = getWorkspaceFileDialog(text.getShell(), EMPTY_STR);
 				if (location != null) {
 					text.setText(location);
 				}
@@ -330,8 +346,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 *            with other extensions will be filtered.
 	 * @return <code>Button</code> Control with the created Button.
 	 */
-	protected Button setupFilesystemButton(Composite parent, final Text text,
-			final String[] exts) {
+	protected Button setupFilesystemButton(Composite parent, final Text text, final String[] exts) {
 		Button button = new Button(parent, SWT.PUSH);
 		button.setText(FILESYSTEMBUTTON_NAME);
 		GridData gd = new GridData(SWT.CENTER, SWT.NONE, false, false);
@@ -341,8 +356,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
-				String location = getFileSystemFileDialog(text.getShell(),
-						EMPTY_STR, exts);
+				String location = getFileSystemFileDialog(text.getShell(), EMPTY_STR, exts);
 				if (location != null) {
 					text.setText(location);
 				}
@@ -376,8 +390,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
-				String var = getVariableDialog(text.getShell(), getResDesc()
-						.getConfiguration());
+				String var = getVariableDialog(text.getShell(), getResDesc().getConfiguration());
 				if (var != null) {
 					text.insert(var);
 				}
@@ -400,8 +413,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * @return <code>String</code> with the selected filename or <cod>null</code>
 	 *         if the user has cancelled or an error occured.
 	 */
-	public static String getFileSystemFileDialog(Shell shell, String text,
-			String[] exts) {
+	public static String getFileSystemFileDialog(Shell shell, String text, String[] exts) {
 
 		// Why has the AbstractCPropertyTab.getFileSystemDialog() a hardcoded
 		// list of extensions?
