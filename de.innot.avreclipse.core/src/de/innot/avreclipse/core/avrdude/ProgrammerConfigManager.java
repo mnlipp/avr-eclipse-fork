@@ -170,6 +170,12 @@ public class ProgrammerConfigManager {
 	 */
 	public ProgrammerConfig getConfig(String id) {
 
+		// Test for empty / null id
+		if (id == null)
+			return null;
+		if (id.length() == 0)
+			return null;
+
 		// Test if the config is already in the cache
 		if (fConfigsCache.containsKey(id)) {
 			return fConfigsCache.get(id);
