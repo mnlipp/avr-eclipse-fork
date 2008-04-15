@@ -64,6 +64,16 @@ public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
 	public void createFieldEditors() {
 		final Composite parent = getFieldEditorParent();
 
+		// Add the "Use Console" boolean field editor
+		BooleanFieldEditor useconsole = new BooleanFieldEditor(
+		        AVRDudePreferences.KEY_USECONSOLE,
+		        "Log internal AVRDude output to console", parent);
+		addField(useconsole);
+
+		// Add a separator bar
+		Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+		separator.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
+
 		// Add the Configuration file settings
 		MyBooleanFieldEditor usecustomconfig = new MyBooleanFieldEditor(
 		        AVRDudePreferences.KEY_USECUSTOMCONFIG,
@@ -75,9 +85,9 @@ public class AVRDudePreferencePage extends FieldEditorPreferencePage implements
 		addField(fFileEditor);
 
 		// Add a separator bar
-		Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+		separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
 		separator.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
-
+		
 		// Add the Programmer Configuration Mangager Field Editor
 		fConfigEditor = new ProgConfigListFieldEditor("Programmer configurations", parent);
 		addField(fConfigEditor);
