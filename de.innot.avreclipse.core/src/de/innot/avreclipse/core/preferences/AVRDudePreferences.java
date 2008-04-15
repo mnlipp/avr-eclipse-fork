@@ -47,10 +47,13 @@ public class AVRDudePreferences {
 
 	/** Set <code>true</code> to use a custom configuration file */
 	public static final String KEY_USECUSTOMCONFIG = "customconfigfile";
+	public static final boolean DEFAULT_USECUSTOMCONFIG = false;
 
 	/** Path to a custom avrdude.conf configuration file */
 	public static final String KEY_CONFIGFILE = "avrdudeconf";
-
+	
+	public static final String KEY_USECONSOLE = "avrdudeUseConsole";
+	public static final boolean DEFAULT_USECONSOLE = true;
 	/**
 	 * Gets the instance AVRDude preferences.
 	 * 
@@ -121,8 +124,9 @@ public class AVRDudePreferences {
 		// other than the build-in.
 		// And the default is to not use it.
 
-		prefs.putBoolean(KEY_USECUSTOMCONFIG, Boolean.valueOf(false));
+		prefs.putBoolean(KEY_USECUSTOMCONFIG, DEFAULT_USECUSTOMCONFIG);
 		prefs.put(KEY_CONFIGFILE, "");
+		prefs.putBoolean(KEY_USECONSOLE, DEFAULT_USECONSOLE);
 
 	}
 

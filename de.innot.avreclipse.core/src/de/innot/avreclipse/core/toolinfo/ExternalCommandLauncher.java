@@ -16,6 +16,7 @@
 package de.innot.avreclipse.core.toolinfo;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,6 +28,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
@@ -66,6 +73,13 @@ public class ExternalCommandLauncher {
 	/** The listener to be informed about each new line of output */
 	private ICommandOutputListener fLogEventListener = null;
 
+	private MessageConsole fConsole = null;
+
+	private final static Color COLOR_STDOUT = PlatformUI.getWorkbench().getDisplay()
+	        .getSystemColor(SWT.COLOR_DARK_GREEN);
+	private final static Color COLOR_STDERR = PlatformUI.getWorkbench().getDisplay()
+	        .getSystemColor(SWT.COLOR_DARK_RED);
+
 	/**
 	 * A runnable class that will read a Stream until EOF, storing each line in
 	 * a List and also calling a listener for each line.
@@ -75,21 +89,30 @@ public class ExternalCommandLauncher {
 		private BufferedReader fReader;
 		private List<String> fLog;
 		private StreamSource fSource;
+		private MessageConsoleStream fConsoleOutput = null;
 
 		/**
 		 * Construct a Streamrunner that will read the given InputStream and log
 		 * all lines in the given List.
+		 * <p>
+		 * If a valid <code>OutputStream</code> is set, everything read by
+		 * this <code>LogStreamRunner</code> is also written to it.
 		 * 
 		 * @param instream
 		 *            <code>InputStream</code> to read
 		 * @param log
 		 *            <code>List&lt;String&gt;</code> where all lines of the
 		 *            instream are stored
+		 * @param consolestream
+		 *            <code>OutputStream</code> for secondary console output,
+		 *            or <code>null</code> for no console output.
 		 */
-		public LogStreamRunner(InputStream instream, StreamSource source, List<String> log) {
+		public LogStreamRunner(InputStream instream, StreamSource source, List<String> log,
+		        MessageConsoleStream consolestream) {
 			fReader = new BufferedReader(new InputStreamReader(instream));
 			fSource = source;
 			fLog = log;
+			fConsoleOutput = consolestream;
 		}
 
 		/*
@@ -111,6 +134,11 @@ public class ExternalCommandLauncher {
 						}
 						// Add the line to the total output
 						fLog.add(line);
+
+						// And print to the console (if active)
+						if (fConsoleOutput != null) {
+							fConsoleOutput.print(line + "\n");
+						}
 					} else {
 						break;
 					}
@@ -204,6 +232,58 @@ public class ExternalCommandLauncher {
 	 */
 	public int launch(IProgressMonitor monitor) throws IOException {
 		Process process = null;
+		final MessageConsoleStream defaultConsoleStream;
+		final MessageConsoleStream stdoutConsoleStream;
+		final MessageConsoleStream stderrConsoleStream;
+
+		// Init the console output if a console has been set
+		// This will set the low / high water marks,
+		// get three MessageStreams for the console
+		// (default in black, stdout in dark green, stderr in dark red)
+		// and print a small header (incl. command name and all args)
+		if (fConsole != null) {
+			// Limit the size of the console
+			fConsole.setWaterMarks(8192, 16384);
+
+			// and get the output streams
+			defaultConsoleStream = fConsole.newMessageStream();
+			stdoutConsoleStream = fConsole.newMessageStream();
+			stderrConsoleStream = fConsole.newMessageStream();
+
+			// Set colors for the streams. This needs to be done in the UI
+			// thread (in which we may not be)
+			Display display = PlatformUI.getWorkbench().getDisplay();
+			if (display != null && !display.isDisposed()) {
+				display.syncExec(new Runnable() {
+					public void run() {
+						stdoutConsoleStream.setColor(COLOR_STDOUT);
+						stderrConsoleStream.setColor(COLOR_STDERR);
+					}
+				});
+			}
+			// Now print the Command line before any output is written to
+			// the console.
+			defaultConsoleStream.println("====================================================");
+			defaultConsoleStream.print("Launching ");
+			List<String> commandAndOptions = fProcessBuilder.command();
+			for (String str : commandAndOptions) {
+				defaultConsoleStream.print(str + " ");
+			}
+			defaultConsoleStream.println();
+			defaultConsoleStream.println("Output:");
+		} else {
+			// No console output requested, set all streams to null
+			defaultConsoleStream = null;
+			stdoutConsoleStream = null;
+			stderrConsoleStream = null;
+		}
+
+		// Get the name of the command (without the path)
+		// This is used upon exit to print a nice exit message
+		String command = fProcessBuilder.command().get(0);
+		String commandname = command.substring(command.lastIndexOf(File.separatorChar) + 1);
+
+		// After the setup we can now start the command
 		try {
 			monitor.beginTask("Launching " + fProcessBuilder.command().get(0), 100);
 
@@ -213,9 +293,9 @@ public class ExternalCommandLauncher {
 			process = fProcessBuilder.start();
 
 			Thread stdoutRunner = new Thread(new LogStreamRunner(process.getInputStream(),
-			        StreamSource.STDOUT, fStdOut));
+			        StreamSource.STDOUT, fStdOut, stdoutConsoleStream));
 			Thread stderrRunner = new Thread(new LogStreamRunner(process.getErrorStream(),
-			        StreamSource.STDERR, fStdErr));
+			        StreamSource.STDERR, fStdErr, stderrConsoleStream));
 
 			synchronized (fRunLock) {
 				// Wait either for the logrunners to terminate or the user to
@@ -231,17 +311,37 @@ public class ExternalCommandLauncher {
 					if (monitor.isCanceled() == true) {
 						process.destroy();
 						process.waitFor();
+
+						if (defaultConsoleStream != null) {
+							// Write an Abort Message to the console (if active)
+							defaultConsoleStream.println(commandname + " execution aborted");
+						}
 						return -1;
 					}
 				}
 			}
+
+			// external process finished normally
 			monitor.worked(95);
+			if (defaultConsoleStream != null) {
+				defaultConsoleStream.println(commandname + " finished");
+			}
 		} catch (InterruptedException e) {
 			// This thread was interrupted from outside
 			// consider this to be a failure of the external programm
+			if (defaultConsoleStream != null) {
+				// Write an Abort Message to the console (if active)
+				defaultConsoleStream.println(commandname + " execution interrupted");
+			}
 			return -1;
 		} finally {
 			monitor.done();
+			if (defaultConsoleStream != null)
+				defaultConsoleStream.close();
+			if (stdoutConsoleStream != null)
+				stdoutConsoleStream.close();
+			if (stderrConsoleStream != null)
+				stderrConsoleStream.close();
 		}
 		// if we make it to here, the process has run without any Exceptions
 		return process.exitValue();
@@ -302,10 +402,10 @@ public class ExternalCommandLauncher {
 	/**
 	 * Redirects the <code>stderr</code> output to <code>stdout</code>.
 	 * <p>
-	 * Use this either when not sure which stream an external program writes
-	 * its output to (some programs, like avr-size.exe write their help output
-	 * to stderr), or when you like any error messages inserted into the normal output
-	 * stream for analysis
+	 * Use this either when not sure which stream an external program writes its
+	 * output to (some programs, like avr-size.exe write their help output to
+	 * stderr), or when you like any error messages inserted into the normal
+	 * output stream for analysis
 	 * </p>
 	 * <p>
 	 * Note: The redirection takes place at system level, so a command output
@@ -320,5 +420,25 @@ public class ExternalCommandLauncher {
 	 */
 	public void redirectErrorStream(boolean redirect) {
 		fProcessBuilder.redirectErrorStream(redirect);
+	}
+
+	/**
+	 * Sets a Console where all output of the external command will go.
+	 * <p>
+	 * This is mostly for debugging. The output to the console is in addition to
+	 * the normal logging of this class.
+	 * </p>
+	 * <p>
+	 * This method must be called before the {@link #launch()} method. Once the
+	 * external command has been launched, calling this method will not have any
+	 * effect.
+	 * </p>
+	 * 
+	 * @param console
+	 *            <code>MessageConsole</code> or <code>null</code> to
+	 *            disable console output.
+	 */
+	public void setConsole(MessageConsole console) {
+		fConsole = console;
 	}
 }

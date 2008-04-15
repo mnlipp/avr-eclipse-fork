@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.console.MessageConsole;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
@@ -67,6 +68,9 @@ public class AVRDude implements IMCUProvider {
 
 	/** The singleton instance of this class */
 	private static AVRDude instance = null;
+
+	/** The preference store for AVRDude */
+	private IPreferenceStore fPrefsStore;
 
 	/**
 	 * A list of all currently supported MCUs (with avrdude MCU id values),
@@ -112,6 +116,7 @@ public class AVRDude implements IMCUProvider {
 
 	// Prevent Instantiation of the class
 	private AVRDude() {
+		fPrefsStore = AVRDudePreferences.getPreferenceStore();
 	}
 
 	/**
@@ -214,8 +219,7 @@ public class AVRDude implements IMCUProvider {
 	 *         extracted from the avrdude executable
 	 * @throws AVRDudeException
 	 */
-	public ConfigEntry getProgrammerInfo(String programmerid)
-			throws AVRDudeException {
+	public ConfigEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
 		Map<String, ConfigEntry> internalmap = loadProgrammersList();
 		return internalmap.get(programmerid);
 	}
@@ -241,8 +245,7 @@ public class AVRDude implements IMCUProvider {
 	 * @throws IOException
 	 *             Any Exception reading the configuration file.
 	 */
-	public synchronized String getConfigDetailInfo(ConfigEntry entry)
-			throws IOException {
+	public synchronized String getConfigDetailInfo(ConfigEntry entry) throws IOException {
 
 		List<String> configcontent = null;
 		// Test if we have already loaded the config file
@@ -288,8 +291,7 @@ public class AVRDude implements IMCUProvider {
 	 *         programmer attached).
 	 * @throws AVRDudeException
 	 */
-	public String getAttachedMCU(ProgrammerConfig config)
-			throws AVRDudeException {
+	public String getAttachedMCU(ProgrammerConfig config) throws AVRDudeException {
 
 		List<String> configoptions = config.getArguments();
 		configoptions.add("-pm16");
@@ -393,8 +395,7 @@ public class AVRDude implements IMCUProvider {
 	 *         devices.
 	 * @throws AVRDudeException
 	 */
-	private Map<String, ConfigEntry> loadProgrammersList()
-			throws AVRDudeException {
+	private Map<String, ConfigEntry> loadProgrammersList() throws AVRDudeException {
 
 		if (!getToolPath().equals(fCurrentPath)) {
 			// toolpath has changed, reload the list
@@ -423,8 +424,8 @@ public class AVRDude implements IMCUProvider {
 	 * @param arguments
 	 * @throws AVRDudeException
 	 */
-	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap,
-			String... arguments) throws AVRDudeException {
+	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap, String... arguments)
+	        throws AVRDudeException {
 
 		List<String> stdout = runCommand(arguments);
 		if (stdout == null) {
@@ -435,8 +436,7 @@ public class AVRDude implements IMCUProvider {
 		// " id = description [pathtoavrdude.conf:line]"
 		// The following pattern splits this into the four groups:
 		// id / description / path / line
-		Pattern mcuPat = Pattern
-				.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
+		Pattern mcuPat = Pattern.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
 		Matcher m;
 
 		for (String line : stdout) {
@@ -507,8 +507,7 @@ public class AVRDude implements IMCUProvider {
 	 *         could not be launched.
 	 * @throws AVRDudeException
 	 */
-	private List<String> runCommand(String... arguments)
-			throws AVRDudeException {
+	private List<String> runCommand(String... arguments) throws AVRDudeException {
 
 		List<String> arglist = new ArrayList<String>(1);
 		for (String arg : arguments) {
@@ -522,7 +521,8 @@ public class AVRDude implements IMCUProvider {
 	 * Runs avrdude with the given arguments.
 	 * <p>
 	 * The Output of stdout and stderr are merged and returned in a
-	 * <code>List&lt;String&gt;</code>.
+	 * <code>List&lt;String&gt;</code>. If the "use Console" flag is set in
+	 * the Preferences, the complete output is shown on a Console as well.
 	 * </p>
 	 * <p>
 	 * If the command fails to execute an entry is written to the log and an
@@ -537,26 +537,28 @@ public class AVRDude implements IMCUProvider {
 	 *             when avrdude cannot be started or when avrdude returned an
 	 *             error errors.
 	 */
-	private List<String> runCommand(List<String> arglist)
-			throws AVRDudeException {
+	private List<String> runCommand(List<String> arglist) throws AVRDudeException {
 
 		String command = getToolPath().toOSString();
 
 		// Check if the user has a custom configuration file
 		IPreferenceStore avrdudeprefs = AVRDudePreferences.getPreferenceStore();
-		boolean usecustomconfig = avrdudeprefs
-				.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
+		boolean usecustomconfig = avrdudeprefs.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
 		if (usecustomconfig) {
-			String newconfigfile = avrdudeprefs
-					.getString(AVRDudePreferences.KEY_CONFIGFILE);
+			String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
 			arglist.add("-C" + newconfigfile);
 		}
 
 		// Set up the External Command
-		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command,
-				arglist);
+		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
 		avrdude.redirectErrorStream(true);
 
+		// Set the Console (if requested by the user in the preferences)
+		if (fPrefsStore.getBoolean(AVRDudePreferences.KEY_USECONSOLE)) {
+			MessageConsole console = AVRPlugin.getDefault().getConsole("AVRDude");
+			avrdude.setConsole(console);
+		}
+		
 		IProgressMonitor monitor = new NullProgressMonitor();
 		ICommandOutputListener outputlistener = new OutputListener(monitor);
 		avrdude.setCommandOutputListener(outputlistener);
@@ -567,8 +569,8 @@ public class AVRDude implements IMCUProvider {
 			avrdude.launch(monitor);
 		} catch (IOException e) {
 			// Something didn't work while running the external command
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-					"Could not start " + command, e);
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
+			        + command, e);
 			AVRPlugin.getDefault().log(status);
 			throw new AVRDudeException(e);
 		}
