@@ -1,0 +1,76 @@
+/*******************************************************************************
+ * 
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the GNU Public License v3
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * 
+ * Contributors:
+ *     Thomas Holland - initial API and implementation
+ *     
+ * $Id$
+ *     
+ *******************************************************************************/
+package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
+
+/**
+ * A basic implementation of an PartDescriptionFile reader.
+ * <p>
+ * This class will fetch the MCU id from the given Document and pass the
+ * document to the {@link #parse(Document)} method of the subclass.
+ * </p>
+ * 
+ * @author Thomas Holland
+ * @since 2.2
+ * 
+ */
+public abstract class BaseReader implements IPDFreader {
+
+	/** Element name for the MCU type */
+	private final static String PARTNAME = "PART_NAME";
+
+	/** The MCU id value as read from the part description file */
+	protected String fMCUid;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#read(org.w3c.dom.Document)
+	 */
+	public void read(Document document) {
+
+		// Get the MCU name from the <PART_NAME> element
+		NodeList nodes = document.getElementsByTagName(PARTNAME);
+		String partname = nodes.item(0).getFirstChild().getNodeValue();
+		fMCUid = AVRMCUidConverter.name2id(partname);
+
+		if (partname.endsWith("comp")) {
+			// ignore entries ending with "comp", as they only seem to be an
+			// "complete" version of base files with the same signature
+			return;
+		}
+
+		parse(document);
+	}
+
+	/**
+	 * Parse the given <code>Document</code>.
+	 * <p>
+	 * The MCU id has already been parsed and is stored in the field
+	 * {@link #fMCUid}.
+	 * </p>
+	 * 
+	 * @param document
+	 *            XML DOM with the content of a single Atmel part description
+	 *            file.
+	 */
+	abstract protected void parse(Document document);
+
+}
