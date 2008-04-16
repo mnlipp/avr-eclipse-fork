@@ -34,6 +34,9 @@ public class AVRMCUidConverter {
 			return null;
 		}
 		// AVR Specific
+		if (mcuid.startsWith("atxmega")) {
+			return "ATXmega"+mcuid.substring(7).toUpperCase();
+		}
 		if (mcuid.startsWith("atmega")) {
 			return "ATmega" + mcuid.substring(6).toUpperCase();
 		}
