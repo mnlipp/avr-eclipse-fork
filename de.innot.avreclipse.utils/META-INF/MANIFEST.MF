@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AVR Eclipse Development Utilities
+Bundle-SymbolicName: de.innot.avreclipse.utils;singleton:=true
+Bundle-Version: 0.0.0
+Bundle-ClassPath: de.innot.avreclipse.utils/
+Bundle-Activator: de.innot.avreclipse.devutils.Activator
+Bundle-Vendor: Thomas Holland
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ de.innot.avreclipse.core
+Eclipse-LazyStart: true
+Export-Package: de.innot.avreclipse.devutils;uses:="org.eclipse.ui.plugin,org.eclipse.equinox.app,org.osgi.framework"
