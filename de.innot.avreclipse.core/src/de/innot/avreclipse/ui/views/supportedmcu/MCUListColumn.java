@@ -29,6 +29,7 @@ import de.innot.avreclipse.core.toolinfo.Datasheets;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.toolinfo.MCUNames;
 import de.innot.avreclipse.core.toolinfo.Signatures;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvider;
 
 /**
@@ -62,18 +63,16 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(
-					fMCUProvider, Datasheets.getDefault());
+			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(fMCUProvider,
+			        Datasheets.getDefault());
 			fLabelProvider = labelprovider;
 			column.setLabelProvider(fLabelProvider);
 			return new ColumnWeightData(20, 60);
 		}
 
 		@Override
-		protected void internalUpdate(TableViewer tableviewer,
-				TableViewerColumn viewercolumn) {
-			((URLColumnLabelProvider) fLabelProvider).updateColumn(tableviewer,
-					viewercolumn);
+		protected void internalUpdate(TableViewer tableviewer, TableViewerColumn viewercolumn) {
+			((URLColumnLabelProvider) fLabelProvider).updateColumn(tableviewer, viewercolumn);
 		}
 	},
 	/**
@@ -87,9 +86,7 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column
-					.setLabelProvider(new BooleanColumnLabelProvider(
-							fMCUProvider));
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(8, 60);
 		}
@@ -106,13 +103,12 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column
-					.setLabelProvider(new BooleanColumnLabelProvider(
-							fMCUProvider));
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
 	},
+
 	/**
 	 * Column with all MCUs supported by avr-gcc, shown as Yes/No images.
 	 */
@@ -128,9 +124,23 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column
-					.setLabelProvider(new BooleanColumnLabelProvider(
-							fMCUProvider));
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
+			column.getColumn().setAlignment(SWT.CENTER);
+			return new ColumnWeightData(5, 60);
+		}
+	},
+	/**
+	 * Column with all MCU which have Fuse Descriptions, shown as Yes/No images.
+	 */
+	FUSES(Fuses.getDefault()) {
+		@Override
+		protected String getName() {
+			return "Fuses";
+		}
+
+		@Override
+		protected ColumnWeightData initColumn(TableViewerColumn column) {
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
@@ -152,9 +162,7 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column
-					.setLabelProvider(new BooleanColumnLabelProvider(
-							fMCUProvider));
+			column.setLabelProvider(new BooleanColumnLabelProvider(fMCUProvider));
 			column.getColumn().setAlignment(SWT.CENTER);
 			return new ColumnWeightData(5, 60);
 		}
@@ -170,9 +178,7 @@ public enum MCUListColumn {
 
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
-			column
-					.setLabelProvider(new StringColumnLabelProvider(
-							fMCUProvider));
+			column.setLabelProvider(new StringColumnLabelProvider(fMCUProvider));
 			return new ColumnWeightData(15, 60);
 		}
 	},
@@ -280,8 +286,7 @@ public enum MCUListColumn {
 	 * @param tableviewer
 	 * @param column
 	 */
-	protected void internalUpdate(TableViewer tableviewer,
-			TableViewerColumn column) {
+	protected void internalUpdate(TableViewer tableviewer, TableViewerColumn column) {
 		// Enums that have something to update will override
 		// this method
 	};
