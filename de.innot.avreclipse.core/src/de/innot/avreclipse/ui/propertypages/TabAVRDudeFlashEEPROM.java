@@ -63,14 +63,12 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	private final static String GROUP_FLASH = "Upload Flash Memory Image";
 	private final static String TEXT_FLASH_NOUPLOAD = "do not upload flash memory image";
 	private final static String TEXT_FLASH_FROMCONFIG = "from build";
-	private final static String TEXT_FLASH_FROMFILE = "from file";
-	private final static String LABEL_FLASHFILE = "Flash memory image file";
+	private final static String TEXT_FLASH_FROMFILE = "from Flash memory image file:";
 
 	private final static String GROUP_EEPROM = "Upload EEPROM Image";
 	private final static String TEXT_EEPROM_NOUPLOAD = "do not upload eeprom image";
 	private final static String TEXT_EEPROM_FROMCONFIG = "from build";
-	private final static String TEXT_EEPROM_FROMFILE = "from file";
-	private final static String LABEL_EEPROMFILE = "EEPROM image file";
+	private final static String TEXT_EEPROM_FROMFILE = "from EEPROM image file:";
 
 	// The GUI widgets
 	private Button fFlashNoUploadButton;
@@ -170,7 +168,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from file Button
 		fFlashUploadFileButton = new Button(group, SWT.RADIO);
 		fFlashUploadFileButton.setText(TEXT_FLASH_FROMFILE);
-		fFlashUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+		fFlashUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		fFlashUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -181,11 +179,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			}
 		});
 
-		// The image file Text Control (with Label)
-		Label label = new Label(group, SWT.NONE);
-		label.setText(LABEL_FLASHFILE);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-
+		// The image file Text Control
 		fFlashFileText = new Text(group, SWT.BORDER);
 		fFlashFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fFlashFileText.addModifyListener(new ModifyListener() {
@@ -202,7 +196,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 
-		label = new Label(compo, SWT.NONE); // Filler
+		Label label = new Label(compo, SWT.NONE); // Filler
 		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		fFlashWorkplaceButton = setupWorkplaceButton(compo, fFlashFileText);
@@ -285,7 +279,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Upload from file Button
 		fEEPROMUploadFileButton = new Button(group, SWT.RADIO);
 		fEEPROMUploadFileButton.setText(TEXT_EEPROM_FROMFILE);
-		fEEPROMUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+		fEEPROMUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		fEEPROMUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -296,11 +290,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			}
 		});
 
-		// The image file Text Control (with Label)
-		Label label = new Label(group, SWT.NONE);
-		label.setText(LABEL_EEPROMFILE);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-
+		// The image file Text Control
 		fEEPROMFileText = new Text(group, SWT.BORDER);
 		fEEPROMFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fEEPROMFileText.addModifyListener(new ModifyListener() {
@@ -317,7 +307,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 
-		label = new Label(compo, SWT.NONE); // Filler
+		Label label = new Label(compo, SWT.NONE); // Filler
 		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		fEEPROMWorkplaceButton = setupWorkplaceButton(compo, fEEPROMFileText);
