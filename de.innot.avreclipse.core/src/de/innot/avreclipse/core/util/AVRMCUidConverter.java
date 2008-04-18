@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: GCC.java 163 2008-01-28 18:54:15Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.core.util;
