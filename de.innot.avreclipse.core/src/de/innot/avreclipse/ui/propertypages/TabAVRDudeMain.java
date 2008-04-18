@@ -18,20 +18,22 @@ package de.innot.avreclipse.ui.propertypages;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -49,10 +51,8 @@ import de.innot.avreclipse.ui.preferences.AVRDudeConfigEditor;
  * <ul>
  * <li>Avrdude Programmer Configuration, incl. buttons to edit the current
  * config or add a new config</li>
- * <li>Enable Flash memory erase cycle counter, incl. the non-property related
- * options to load / write the current cycle counter value to / from a connected
- * device</li>
- * <li>Enable the no-Write / Simulation mode</li>
+ * <li>The JTAG BitClock</li>
+ * <li>The BitBanger bit change delay</li>
  * </ul>
  * </p>
  * 
@@ -63,6 +63,7 @@ import de.innot.avreclipse.ui.preferences.AVRDudeConfigEditor;
 public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 	// The GUI texts
+	// Programmer config selection group
 	private final static String GROUP_PROGCONFIG = "Programmer configuration";
 	private final static String TEXT_EDITBUTTON = "Edit...";
 	private final static String TEXT_NEWBUTTON = "New...";
@@ -70,26 +71,30 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	        + "does not exist anymore. Please select a different one.";
 	private final static String LABEL_NOCONFIG = "Please select a Programmer Configuration to enable avrdude functions";
 
-	private final static String GROUP_COUNTER = "Flash memory erase cycle counter";
-	private final static String LABEL_COUNTER = "Enable this to have avrdude count the number of flash erase cycles.\n"
-	        + "Note: the value is stored in the last four bytes of the EEPROM,\n"
-	        + "so do not enable this if your application needs the last four bytes of the EEPROM.";
-	private final static String TEXT_COUNTER = "Enable erase cycle counter";
-	private final static String TEXT_READBUTTON = "Read";
-	private final static String TEXT_WRITEBUTTON = "Write";
+	// JTAG Bitclock group
+	private final static String GROUP_BITCLOCK = "JTAG ICE BitClock";
+	private final static String LABEL_BITCLOCK = "Specify the bit clock period in microseconds for the JTAG interface or the ISP clock (JTAG ICE only).\n"
+	        + "Set this to > 1.0 for target MCUs running with less than 4MHz on a JTAG ICE.\n"
+	        + "Leave the field empty to use the preset bit clock period of the selected Programmer.";
+	private final static String TEXT_BITCLOCK = "JTAG ICE bitclock";
+	private final static String LABEL_BITCLOCK_UNIT = "µs";
 
-	private final static String GROUP_NOWRITE = "Simulation Mode";
-	private final static String LABEL_NOWRITE = "Note: Even with this option set, AVRDude might still perform a chip erase.";
-	private final static String TEXT_NOWRITE = "Simulation mode (no data is actually written to the device)";
+	// BitBang delay group
+	private final static String GROUP_DELAY = "BitBang Programmer Bit State Change Delay";
+	private final static String LABEL_DELAY = "Specify the delay in microseconds for each bit change on bitbang-type programmers.\n"
+	        + "Set this when the the host system is very fast, or the target runs off a slow clock\n"
+	        + "Leave the field empty to run the ISP connection at max speed.";
+	private final static String TEXT_DELAY = "Bit state change delay";
+	private final static String LABEL_DELAY_UNIT = "µs";
 
 	// The GUI widgets
 	private Combo fProgrammerCombo;
 	private Label fConfigWarningIcon;
 	private Label fConfigWarningMessage;
-	private Button fNoWriteCheck;
-	private Button fCounterCheck;
-	private Composite fCounterOptionsComposite;
-	private Text fCounterValue;
+
+	private Text fBitClockText;
+
+	private Text fBitBangDelayText;
 
 	/** The Properties that this page works with */
 	private AVRDudeProperties fTargetProps;
@@ -110,9 +115,9 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 		addProgrammerConfigSection(parent);
 
-		addUseCycleCounterSection(parent);
+		addBitClockSection(parent);
 
-		addNoWriteSection(parent);
+		addBitBangDelaySection(parent);
 
 	}
 
@@ -126,7 +131,7 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	private void addProgrammerConfigSection(Composite parent) {
 
 		Group configgroup = setupGroup(parent, GROUP_PROGCONFIG, 3, SWT.NONE);
-		configgroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+		configgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		fProgrammerCombo = new Combo(configgroup, SWT.READ_ONLY);
 		fProgrammerCombo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
@@ -188,112 +193,125 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 	}
 
 	/**
-	 * Add the GUI section for the Flash memory cycle counter settings.
+	 * The JTAG bitclock section.
 	 * <p>
-	 * This section contains not only the actual checkbox, but also some
-	 * controls to read/write the current cycle counter. These controls are not
-	 * directly related to the properties, but it seems like a good idea to put
-	 * them here.
+	 * The primary control in this section is a text field, that accepts only
+	 * floating point numbers.
 	 * </p>
 	 * 
 	 * @param parent
 	 *            <code>Composite</code>
 	 */
-	private void addUseCycleCounterSection(Composite parent) {
+	private void addBitClockSection(Composite parent) {
 
-		Group countergroup = setupGroup(parent, GROUP_COUNTER, 1, SWT.NONE);
-		countergroup.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+		// TODO this could be replaced by a combo to select standard values.
+		// Also this could be implemented as a frequency selector like in AVR
+		// Studio
+		// However, investigations into the avrdude source code indicate, that
+		// the different programmer backends interpret this number differently.
+		// Especially the stk500v2 backend interprets this number relative to the
+		// clock frequency of the stk500 programmer.
 
-		setupLabel(countergroup, LABEL_COUNTER, 2, SWT.NONE);
+		Group group = new Group(parent, SWT.NONE);
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		group.setLayout(new GridLayout(3, false));
+		group.setText(GROUP_BITCLOCK);
 
-		fCounterCheck = setupCheck(countergroup, TEXT_COUNTER, 2, SWT.NONE);
+		Label label = new Label(group, SWT.WRAP);
+		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		label.setText(LABEL_BITCLOCK);
 
-		// Cycle Counter load / write control composite
+		setupLabel(group, TEXT_BITCLOCK, 1, SWT.NONE);
 
-		fCounterOptionsComposite = new Composite(countergroup, SWT.NONE);
-		fCounterOptionsComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
-		fCounterOptionsComposite.setLayout(new GridLayout(4, false));
-
-		setupLabel(fCounterOptionsComposite, "Current Erase Cycle Counter", 1, SWT.NONE);
-
-		fCounterValue = setupText(fCounterOptionsComposite, 1, SWT.BORDER);
-		fCounterValue.setTextLimit(5); // Max. 65535
-		fCounterValue.addVerifyListener(new VerifyListener() {
-			// only allow digits as cycle counter values
+		fBitClockText = new Text(group, SWT.BORDER | SWT.RIGHT);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		FontMetrics fm = getFontMetrics(parent);
+		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 12);
+		fBitClockText.setLayoutData(gd);
+		fBitClockText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				fTargetProps.setBitclock(fBitClockText.getText());
+				updatePreview(fTargetProps);
+			}
+		});
+		fBitClockText.addVerifyListener(new VerifyListener() {
 			public void verifyText(VerifyEvent event) {
+				// Accept only digits and -at most- one dot '.'
+				int dotcount = 0;
+				if (fBitClockText.getText().contains(".")) {
+					dotcount++;
+				}
 				String text = event.text;
-				if (!text.matches("[0-9]*")) {
-					event.doit = false;
+				for (int i = 0; i < text.length(); i++) {
+					char ch = text.charAt(i);
+					if (ch == '.') {
+						dotcount++;
+						if (dotcount > 1) {
+							event.doit = false;
+							return;
+						}
+					} else if (!('0' <= ch && ch <= '9')) {
+						event.doit = false;
+						return;
+					}
 				}
 			}
 		});
 
-		// Read Button
-		Button readButton = setupButton(fCounterOptionsComposite, TEXT_READBUTTON, 1, SWT.NONE);
-		readButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				readCycleCounter();
-			}
-		});
-
-		// Write Button
-		Button writeButton = setupButton(fCounterOptionsComposite, TEXT_WRITEBUTTON, 1, SWT.NONE);
-		writeButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				writeCycleCounter();
-			}
-		});
-
-		// Disable by default. The updateData() method will enable/disable
-		// according to the actual property settings.
-		setEnabled(fCounterOptionsComposite, false);
+		// Label with the units (microseconds)
+		setupLabel(group, LABEL_BITCLOCK_UNIT, 1, SWT.FILL);
 	}
 
 	/**
-	 * Add the No Write / Simulate check button.
+	 * The BitBang bit change delay section.
+	 * <p>
+	 * The primary control in this section is a text field, that accepts only
+	 * integers.
+	 * </p>
 	 * 
 	 * @param parent
 	 *            <code>Composite</code>
 	 */
-	private void addNoWriteSection(Composite parent) {
+	private void addBitBangDelaySection(Composite parent) {
 
-		Group group = setupGroup(parent, GROUP_NOWRITE, 1, SWT.NONE);
-		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		Group group = new Group(parent, SWT.NONE);
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		group.setLayout(new GridLayout(3, false));
+		group.setText(GROUP_DELAY);
 
-		setupLabel(group, LABEL_NOWRITE, 1, SWT.NONE);
-		fNoWriteCheck = setupCheck(group, TEXT_NOWRITE, 1, SWT.CHECK);
-	}
+		Label label = new Label(group, SWT.WRAP);
+		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		label.setText(LABEL_DELAY);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#checkPressed(org.eclipse.swt.events.SelectionEvent)
-	 */
-	@Override
-	protected void checkPressed(SelectionEvent e) {
-		// This is called for all checkbuttons / tributtons which have been set
-		// up with the setupXXX() calls
-		Control b = (Control) e.widget;
+		setupLabel(group, TEXT_DELAY, 1, SWT.NONE);
 
-		if (b.equals(fNoWriteCheck)) {
-			// No Write = Simulation Checkbox has been selected
-			// Write the new value to the target properties
-			boolean newvalue = fNoWriteCheck.getSelection();
-			fTargetProps.setNoWrite(newvalue);
+		fBitBangDelayText = new Text(group, SWT.BORDER | SWT.RIGHT);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
+		FontMetrics fm = getFontMetrics(parent);
+		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 12);
+		fBitBangDelayText.setLayoutData(gd);
+		fBitBangDelayText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				fTargetProps.setBitBangDelay(fBitBangDelayText.getText());
+				updatePreview(fTargetProps);
+			}
+		});
+		fBitBangDelayText.addVerifyListener(new VerifyListener() {
+			public void verifyText(VerifyEvent event) {
+				// Accept only digits
+				String text = event.text;
+				for (int i = 0; i < text.length(); i++) {
+					char ch = text.charAt(i);
+					if (!('0' <= ch && ch <= '9')) {
+						event.doit = false;
+						return;
+					}
+				}
+			}
+		});
 
-		} else if (b.equals(fCounterCheck)) {
-			// Use Cycle Counter Checkbox has been selected
-			// Write the new value to the target properties
-			// and enable / disable the Counter Options composite accordingly
-			boolean newvalue = fCounterCheck.getSelection();
-			fTargetProps.setUseCounter(newvalue);
-			setEnabled(fCounterOptionsComposite, newvalue);
-		}
-
-		// Update the avrdude command line preview
-		updatePreview(fTargetProps);
+		// Label with the units (microseconds)
+		setupLabel(group, LABEL_DELAY_UNIT, 1, SWT.FILL);
 	}
 
 	/*
@@ -311,8 +329,8 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		// Properties.
 		// The caller of this method will handle the actual saving
 		dstprops.setProgrammerId(fTargetProps.getProgrammerId());
-		dstprops.setNoWrite(fTargetProps.getNoWrite());
-		dstprops.setUseCounter(fTargetProps.getUseCounter());
+		dstprops.setBitclock(fTargetProps.getBitclock());
+		dstprops.setBitBangDelay(fTargetProps.getBitBangDelay());
 	}
 
 	/*
@@ -340,8 +358,8 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 
 		// Reload the items on this page
 		fTargetProps.setProgrammerId(srcprops.getProgrammerId());
-		fTargetProps.setNoWrite(srcprops.getNoWrite());
-		fTargetProps.setUseCounter(srcprops.getUseCounter());
+		fTargetProps.setBitclock(srcprops.getBitclock());
+		fTargetProps.setBitBangDelay(srcprops.getBitBangDelay());
 		updateData(fTargetProps);
 	}
 
@@ -380,11 +398,8 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 			}
 		}
 
-		fNoWriteCheck.setSelection(fTargetProps.getNoWrite());
-
-		boolean usecounter = fTargetProps.getUseCounter();
-		fCounterCheck.setSelection(usecounter);
-		setEnabled(fCounterOptionsComposite, usecounter);
+		fBitClockText.setText(fTargetProps.getBitclock());
+		fBitBangDelayText.setText(fTargetProps.getBitBangDelay());
 
 	}
 
@@ -481,63 +496,6 @@ public class TabAVRDudeMain extends AbstractAVRDudePropertyTab {
 		fConfigWarningMessage.setText(text);
 		fConfigWarningMessage.pack();
 		fConfigWarningMessage.setVisible(true);
-	}
-
-	/**
-	 * Enable / Disable the given composite.
-	 * <p>
-	 * This method will call setEnabled(value) for all children of the supplied
-	 * composite.
-	 * </p>
-	 * 
-	 * @param composite
-	 *            A <code>Composite</code> with some controls.
-	 * @param value
-	 *            <code>true</code> to enable, <code>false</code> to disable
-	 *            the given composite.
-	 */
-	private void setEnabled(Composite composite, boolean value) {
-		Control[] children = composite.getChildren();
-		for (Control child : children) {
-			child.setEnabled(value);
-		}
-	}
-
-	/**
-	 * Read the current cycles value from the currently attached device.
-	 * <p>
-	 * The actual read is done in a separate Thread to reduce the impact on the
-	 * GUI.
-	 * </p>
-	 */
-	private void readCycleCounter() {
-
-		// TODO implement this
-
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
-		        null, "Read not implemented yet", MessageDialog.INFORMATION, new String[] { "OK" },
-		        0);
-		dlg.setBlockOnOpen(true);
-		dlg.open();
-		fCounterValue.setText("1234");
-	}
-
-	/**
-	 * Write the selected cycles value to the currently attached device.
-	 * <p>
-	 * The actual load is done in a separate Thread to reduce the impact on the
-	 * GUI.
-	 * </p>
-	 */
-	private void writeCycleCounter() {
-
-		// TODO implement this
-
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
-		        null, "Write not implemented yet", MessageDialog.INFORMATION,
-		        new String[] { "OK" }, 0);
-		dlg.setBlockOnOpen(true);
-		dlg.open();
 	}
 
 }
