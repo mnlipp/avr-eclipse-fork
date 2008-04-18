@@ -144,9 +144,9 @@
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
 		<tab
-			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeMain"
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeProgrammer"
 			icon=""
-			name="Main"
+			name="Programmer"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 		<tab
