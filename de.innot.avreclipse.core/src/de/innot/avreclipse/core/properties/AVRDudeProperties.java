@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
-import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
-import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
@@ -532,9 +529,11 @@ public class AVRDudeProperties {
 				action = AVRDudeActionFactory.writeFlashAction(fFlashFile);
 			}
 			if (action != null) {
-				String argument = action.getArgument();
+				String argument;
 				if (resolve) {
-					argument = resolveMacros(buildcfg, argument);
+					argument = action.getArgument(buildcfg);
+				} else {
+					argument = action.getArgument();
 				}
 				arguments.add(argument);
 			}
@@ -547,9 +546,11 @@ public class AVRDudeProperties {
 				action = AVRDudeActionFactory.writeEEPROMAction(fEEPROMFile);
 			}
 			if (action != null) {
-				String argument = action.getArgument();
+				String argument;
 				if (resolve) {
-					argument = resolveMacros(buildcfg, argument);
+					argument = action.getArgument(buildcfg);
+				} else {
+					argument = action.getArgument();
 				}
 				arguments.add(argument);
 			}
@@ -640,35 +641,6 @@ public class AVRDudeProperties {
 			// exception
 			ise.printStackTrace();
 		}
-	}
-
-	/**
-	 * Resolve all CDT macros in the given string.
-	 * <p>
-	 * If the string did not contain macros or the macros could not be resolved,
-	 * the original string is returned.
-	 * </p>
-	 * 
-	 * @param buildcfg
-	 *            <code>IConfiguration</code> for the macro context.
-	 * @param value
-	 *            The source <code>String</code> with macros
-	 * @return The new <code>String</code> with all macros resolved.
-	 */
-	private String resolveMacros(IConfiguration buildcfg, String string) {
-
-		String resolvedstring = string;
-
-		IBuildMacroProvider provider = ManagedBuildManager.getBuildMacroProvider();
-
-		try {
-			resolvedstring = provider.resolveValue(string,
-			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
-		} catch (BuildMacroException e) {
-			// Do nothing = return the original string
-		}
-
-		return resolvedstring;
 	}
 
 	@Override

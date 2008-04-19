@@ -20,7 +20,6 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 /**
@@ -93,7 +92,8 @@ public class AVRDudeAction {
 	 * Get the avrdude action option.
 	 * <p>
 	 * The filename (if set) will be resolved against the given
-	 * <code>IConfiguration</code>.
+	 * <code>IConfiguration</code>. Also the filename is converted to the OS
+	 * format.
 	 * 
 	 * @param buildcfg
 	 *            <code>IConfiguration</code> context for resolving macros.
@@ -110,6 +110,9 @@ public class AVRDudeAction {
 		// Windows needs quotes around the filename
 		sb.append(WINQUOTE);
 
+		// Two types: immediate mode or file mode
+		// in the first case the immediate value is added to the output
+		// in the second case the filename is included in the output
 		if (fFileType.equals(FileType.immediate)) {
 			// Eye Candy. We could just pass the integer value.
 			// However, because the user always sees hex values for the
@@ -121,11 +124,11 @@ public class AVRDudeAction {
 		} else {
 			// We insert the Filename
 			// Resolve the filename if we have a IConfiguration to resolve
-			// against.
+			// against. Also change to path to the OS format while we are at it
 			String filename;
 			if (buildcfg != null) {
-				IPath filepath = resolveMacros(fFilename, buildcfg);
-				filename = filepath.toOSString();
+				String resolvedfilename = resolveMacros(buildcfg, fFilename);
+				filename = new Path(resolvedfilename).toOSString();
 			} else {
 				filename = fFilename;
 			}
@@ -141,18 +144,32 @@ public class AVRDudeAction {
 		return sb.toString();
 	}
 
-	private IPath resolveMacros(String name, IConfiguration buildcfg) {
+	/**
+	 * Resolve all CDT macros in the given string.
+	 * <p>
+	 * If the string did not contain macros or the macros could not be resolved,
+	 * the original string is returned.
+	 * </p>
+	 * 
+	 * @param buildcfg
+	 *            <code>IConfiguration</code> for the macro context.
+	 * @param value
+	 *            The source <code>String</code> with macros
+	 * @return The new <code>String</code> with all macros resolved.
+	 */
+	private String resolveMacros(IConfiguration buildcfg, String string) {
 
-		String resolvedname = null;
+		String resolvedstring = string;
+
 		IBuildMacroProvider provider = ManagedBuildManager.getBuildMacroProvider();
 
 		try {
-			resolvedname = provider.resolveValue(name,
+			resolvedstring = provider.resolveValue(string,
 			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (BuildMacroException e) {
+			// Do nothing = return the original string
 		}
 
-		return new Path(resolvedname);
-
+		return resolvedstring;
 	}
 }
