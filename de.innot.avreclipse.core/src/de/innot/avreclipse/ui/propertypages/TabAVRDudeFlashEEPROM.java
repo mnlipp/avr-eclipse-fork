@@ -155,8 +155,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteFlash(true);
-				fTargetProps.setFlashFile("");
-				fFlashFileText.setText("");
+				fTargetProps.setFlashFromConfig(true);
 				// Set the corresponding "Generate Flash Image" in the current
 				// toolchain(s).
 				setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEFLASH);
@@ -173,6 +172,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteFlash(true);
+				fTargetProps.setFlashFromConfig(false);
 				fFlashFileText.setText(fTargetProps.getFlashFile());
 				enableFlashFileGroup(true);
 				updatePreview(fTargetProps);
@@ -266,8 +266,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteEEPROM(true);
-				fTargetProps.setEEPROMFile("");
-				fEEPROMFileText.setText("");
+				fTargetProps.setEEPROMFromConfig(true);
 				enableEEPROMFileGroup(false);
 				// Set the corresponding "Generate EEPROM Image" in the current
 				// toolchain(s).
@@ -284,6 +283,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteEEPROM(true);
+				fTargetProps.setEEPROMFromConfig(false);
 				fEEPROMFileText.setText(fTargetProps.getEEPROMFile());
 				enableEEPROMFileGroup(true);
 				updatePreview(fTargetProps);
@@ -348,17 +348,19 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// Properties.
 		// The caller of this method will handle the actual saving
 		dstprops.setWriteFlash(fTargetProps.getWriteFlash());
+		dstprops.setFlashFromConfig(fTargetProps.getFlashFromConfig());
 		dstprops.setFlashFile(fTargetProps.getFlashFile());
 
 		dstprops.setWriteEEPROM(fTargetProps.getWriteEEPROM());
+		dstprops.setEEPROMFromConfig(fTargetProps.getEEPROMFromConfig());
 		dstprops.setEEPROMFile(fTargetProps.getEEPROMFile());
 
 		// Update the "Generate xxx images" options of
 		// the current toolchain / all toolchains as required
-		if (fTargetProps.getWriteFlash()) {
+		if (fTargetProps.getWriteFlash() && !fTargetProps.getFlashFromConfig()) {
 			setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEFLASH);
 		}
-		if (fTargetProps.getWriteEEPROM()) {
+		if (fTargetProps.getWriteEEPROM() && !fTargetProps.getEEPROMFromConfig()) {
 			setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEEEPROM);
 		}
 
@@ -374,9 +376,11 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 
 		// Reload the items on this page
 		fTargetProps.setWriteFlash(srcprops.getWriteFlash());
+		fTargetProps.setFlashFromConfig(srcprops.getFlashFromConfig());
 		fTargetProps.setFlashFile(srcprops.getFlashFile());
 
 		fTargetProps.setWriteEEPROM(srcprops.getWriteEEPROM());
+		fTargetProps.setEEPROMFromConfig(srcprops.getEEPROMFromConfig());
 		fTargetProps.setEEPROMFile(srcprops.getEEPROMFile());
 		updateData(fTargetProps);
 	}
@@ -392,14 +396,12 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		fTargetProps = props;
 
 		// Update the flash group
-		boolean writeflash = fTargetProps.getWriteFlash();
-		String flashfile = fTargetProps.getFlashFile();
 
 		// There are three possibilities:
-		// a) No upload wanted: writeflash == false
-		// b) Upload from config: writeflash == true && flashfile empty
-		// c) Upload from file: writeflash == true && flashfile not empty
-		if (!writeflash) {
+		// a) No upload wanted: WriteFlash == false
+		// b) Upload from config: WriteFlash == true && FromConfig == true
+		// c) Upload from file: WriteFlash == true && FromConfig == false
+		if (!fTargetProps.getWriteFlash()) {
 			// a) No upload wanted
 			fFlashNoUploadButton.setSelection(true);
 			fFlashUploadConfigButton.setSelection(false);
@@ -408,7 +410,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		} else {
 			// write flash
 			fFlashNoUploadButton.setSelection(false);
-			if (flashfile.length() == 0) {
+			if (fTargetProps.getFlashFromConfig()) {
 				// b) write flash - use build config filename
 				fFlashUploadConfigButton.setSelection(true);
 				fFlashUploadFileButton.setSelection(false);
@@ -420,17 +422,15 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				enableFlashFileGroup(true);
 			}
 		}
-		fFlashFileText.setText(flashfile);
+		fFlashFileText.setText(fTargetProps.getFlashFile());
 
 		// Update the eeprom group
-		boolean writeeeprom = fTargetProps.getWriteEEPROM();
-		String eepromfile = fTargetProps.getEEPROMFile();
 
 		// There are three possibilities:
-		// a) No upload wanted: writeeeprom == false
-		// b) Upload from config: writeeeprom == true && eepromfile empty
-		// c) Upload from file: writeeeprom == true && eepromfile not empty
-		if (!writeeeprom) {
+		// a) No upload wanted: WriteEEPROM == false
+		// b) Upload from config: WriteEEPROM == true && FromConfig == true
+		// c) Upload from file: WriteEEPROM == true && FromConfig == false
+		if (!fTargetProps.getWriteEEPROM()) {
 			// a) don't write eeprom
 			fEEPROMNoUploadButton.setSelection(true);
 			fEEPROMUploadConfigButton.setSelection(false);
@@ -439,7 +439,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		} else {
 			// write eeprom
 			fEEPROMNoUploadButton.setSelection(false);
-			if (eepromfile.length() == 0) {
+			if (fTargetProps.getEEPROMFromConfig()) {
 				// b) write eeprom - use build config filename
 				fEEPROMUploadConfigButton.setSelection(true);
 				fEEPROMUploadFileButton.setSelection(false);
@@ -451,7 +451,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				enableEEPROMFileGroup(true);
 			}
 		}
-		fEEPROMFileText.setText(eepromfile);
+		fEEPROMFileText.setText(fTargetProps.getEEPROMFile());
 	}
 
 	/**

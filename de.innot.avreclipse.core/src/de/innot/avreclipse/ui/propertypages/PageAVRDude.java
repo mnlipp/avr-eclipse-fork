@@ -191,7 +191,7 @@ public class PageAVRDude extends AbstractAVRPage {
 		        .getConfiguration());
 
 		// ...and all action arguments for the current configuration
-		List<String> allactionargs = avrdudeprops.getActionArguments(buildcfg);
+		List<String> allactionargs = avrdudeprops.getActionArguments(buildcfg, true);
 
 		// append all actions, one per line for better readabilty
 		for (String arg : allactionargs) {

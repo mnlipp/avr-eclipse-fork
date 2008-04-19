@@ -346,16 +346,18 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 *            with other extensions will be filtered.
 	 * @return <code>Button</code> Control with the created Button.
 	 */
-	protected Button setupFilesystemButton(Composite parent, final Text text, final String[] exts) {
+	protected Button setupFilesystemButton(Composite parent, final Text text, String[] exts) {
 		Button button = new Button(parent, SWT.PUSH);
 		button.setText(FILESYSTEMBUTTON_NAME);
 		GridData gd = new GridData(SWT.CENTER, SWT.NONE, false, false);
 		// make all Buttons the same size
 		gd.minimumWidth = BUTTON_WIDTH;
 		button.setLayoutData(gd);
+		button.setData(exts);
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
+				String[] exts = (String[])event.widget.getData();
 				String location = getFileSystemFileDialog(text.getShell(), EMPTY_STR, exts);
 				if (location != null) {
 					text.setText(location);

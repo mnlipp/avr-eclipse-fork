@@ -19,11 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
+import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
+import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
+import de.innot.avreclipse.core.avrdude.FuseBytes;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
@@ -47,66 +51,106 @@ import de.innot.avreclipse.core.toolinfo.AVRDude;
  */
 public class AVRDudeProperties {
 
+	/** Reference to the parent properties */
 	private AVRProjectProperties fParent;
 
-	private static final String KEY_PROGRAMMER = "ProgrammerID";
+	/** The currently selected <code>ProgrammerConfig</code> */
 	private ProgrammerConfig fProgrammer;
-	private String fProgrammerId;
 
+	/** ID of the currently selected <code>ProgrammerConfig</code> */
+	private String fProgrammerId;
+	private static final String KEY_PROGRAMMER = "ProgrammerID";
+
+	/** Current JTAG BitClock value. Contains a float value or be empty */
+	private String fBitclock;
 	private static final String KEY_BITCLOCK = "Bitclock";
 	private static final String DEFAULT_BITCLOCK = "";
-	private String fBitclock;
 
+	/** Current BitBanger bit change delay. Contains an int value or be empty */
+	private String fBitBangDelay;
 	private static final String KEY_BITBANGDELAY = "BitBangDelay";
 	private static final String DEFAULT_BITBANGDELAY = "";
-	private String fBitBangDelay;
 
+	/** No Signature Check flag. <code>true</code> disables the signature check */
+	private boolean fNoSigCheck;
 	private static final String KEY_NOSIGCHECK = "NoSigCheck";
 	private static final boolean DEFAULT_NOSIGCHECK = false;
-	private boolean fNoSigCheck;
 
+	/** No Verify flag. <code>true</code> disables the automatic verify */
+	private boolean fNoVerify;
 	private static final String KEY_NOVERIFY = "NoVerify";
 	private static final boolean DEFAULT_NOVERIFY = false;
-	private boolean fNoVerify;
 
+	/** No Write Mode flag. <code>true</code> inhibits most write actions */
+	private boolean fNoWrite;
 	private static final String KEY_NOWRITE = "NoWrite";
 	private static final boolean DEFAULT_NOWRITE = false;
-	private boolean fNoWrite;
 
+	/** Use Erase Cycle Counter flags. <code>true</code> enables the counter */
+	private boolean fUseCounter;
 	private static final String KEY_USECOUNTER = "UseCounter";
 	private static final boolean DEFAULT_USECOUNTER = false;
-	private boolean fUseCounter;
 
+	/** Write Flash Image flag. <code>true</code> to upload an image file */
+	private boolean fWriteFlash;
 	private static final String KEY_WRITEFLASH = "WriteFlash";
 	private static final boolean DEFAULT_WRITEFLASH = true;
-	private boolean fWriteFlash;
 
+	/**
+	 * Use Build Config Image flag. <code>true</code> to get the name of the
+	 * flash image file from the current <code>IConfiguration</code>
+	 */
+	private boolean fFlashFromConfig;
+	private static final String KEY_FLASHFROMCONFIG = "FlashFromConfig";
+	private static final boolean DEFAULT_FLASHFROMCONFIG = true;
+
+	/**
+	 * Name of the Flash image file. Only used when
+	 * <code>fFlashFromConfig</code> is <code>false</code>
+	 */
+	private String fFlashFile;
 	private static final String KEY_FLASHFILE = "FlashFile";
 	private static final String DEFAULT_FLASHFILE = "";
-	private String fFlashFile;
 
+	/** Write EEPROM Image flag. <code>true</code> to upload an image file */
+	private boolean fWriteEEPROM;
 	private static final String KEY_WRITEEEPROM = "WriteEEPROM";
 	private static final boolean DEFAULT_WRITEEEPROM = false;
-	private boolean fWriteEEPROM;
 
+	/**
+	 * Use Build Config Image flag. <code>true</code> to get the name of the
+	 * eeprom image file from the current <code>IConfiguration</code>
+	 */
+	private boolean fEEPROMFromConfig;
+	private static final String KEY_EEPROMFROMCONFIG = "EEPROMFromConfig";
+	private static final boolean DEFAULT_EEPROMFROMCONFIG = true;
+
+	/**
+	 * Name of the EEPROM image file. Only used when
+	 * <code>fEEPROMFromConfig</code> is <code>false</code>
+	 */
+	private String fEEPROMFile;
 	private static final String KEY_EEPROMFILE = "EEPROMFile";
 	private static final String DEFAULT_EEPROMFILE = "";
-	private String fEEPROMFile;
 
+	/** Write Fuse Bytes flag. <code>true</code> to upload fuse bytes */
 	private static final String KEY_WRITEFUSES = "WriteFusesBytes";
 	private static final boolean DEFAULT_WRITEFUSES = false;
 	private boolean fWriteFuses;
 
-//	private static final String NODE_FUSES = "Fuses";
-//	private FuseBytes fFuseBytes;
+	/** The <code>FuseBytes</code> with all fuse bytes related settings. */
+	private FuseBytes fFuseBytes;
+	private static final String NODE_FUSES = "Fuses";
 
+	/** Write Lock Byte flag. <code>true</code> to upload the lock byte */
+	private boolean fWriteLockbits;
 	private static final String KEY_WRITELOCKBITS = "WriteLockbits";
 	private static final boolean DEFAULT_WRITELOCKBITS = false;
-	private boolean fWriteLockbits;
 
-	// private static final String NODE_LOCKS = "Locks";
+	/** The <code>LockBits</code> with all lock byte related settings. */
 	// private LockBits fLockbits;
-
+	// private static final String NODE_LOCKS = "Locks";
+	// Unused for now
 	private static final String KEY_WRITECALIBRATION = "WriteCalibrartion";
 	private static final boolean DEFAULT_WRITECALIBRATION = false;
 	private boolean fWriteCalibration;
@@ -124,10 +168,18 @@ public class AVRDudeProperties {
 	private boolean fDirty;
 
 	/**
-	 * Load the AVR project properties from the given Preferences.
+	 * Create a new AVRDudeProperties object and load the properties from the
+	 * Preferences.
+	 * <p>
+	 * If the given Preferences has no saved properties yet, the default values
+	 * are used.
+	 * </p>
 	 * 
 	 * @param prefs
-	 *            <code>IEclipsePreferences</code>
+	 *            <code>Preferences</code> to read the properties from.
+	 * @param parent
+	 *            Reference to the <code>AVRProjectProperties</code> parent
+	 *            object.
 	 */
 	public AVRDudeProperties(Preferences prefs, AVRProjectProperties parent) {
 		fPrefs = prefs;
@@ -136,13 +188,27 @@ public class AVRDudeProperties {
 	}
 
 	/**
-	 * Load the AVR Project properties from the given
-	 * <code>AVRConfigurationProperties</code> object.
+	 * Copy constructor.
+	 * <p>
+	 * Create a new AVRDudeProperties object and copy the values from the given
+	 * AVRDudeProperties object.
+	 * </p>
+	 * <p>
+	 * All values from the source are copied, except for the source Preferences
+	 * and the Parent.
+	 * </p>
 	 * 
+	 * @param prefs
+	 *            <code>Preferences</code> to read the properties from.
+	 * @param parent
+	 *            Reference to the <code>AVRProjectProperties</code> parent
+	 *            object.
 	 * @param source
+	 *            <code>AVRDudeProperties</code> object to copy.
 	 */
-	public AVRDudeProperties(Preferences prefs, AVRProjectProperties parent, AVRDudeProperties source) {
-		fParent = source.fParent;
+	public AVRDudeProperties(Preferences prefs, AVRProjectProperties parent,
+	        AVRDudeProperties source) {
+		fParent = parent;
 		fPrefs = prefs;
 
 		fProgrammer = source.fProgrammer;
@@ -155,13 +221,15 @@ public class AVRDudeProperties {
 		fUseCounter = source.fUseCounter;
 
 		fWriteFlash = source.fWriteFlash;
+		fFlashFromConfig = source.fFlashFromConfig;
 		fFlashFile = source.fFlashFile;
 
 		fWriteEEPROM = source.fWriteEEPROM;
+		fEEPROMFromConfig = source.fEEPROMFromConfig;
 		fEEPROMFile = source.fEEPROMFile;
 
 		fWriteFuses = source.fWriteFuses;
-		// fFuseBytes = new FuseBytes(source.fAVRDudeFuseBytes);
+		fFuseBytes = new FuseBytes(prefs.node(NODE_FUSES), this, source.fFuseBytes);
 
 		fWriteLockbits = source.fWriteLockbits;
 		// fAVRDudeLockbits = new LockBits(source.fAVRDudeLockbits);
@@ -173,6 +241,11 @@ public class AVRDudeProperties {
 		fDirty = source.fDirty;
 	}
 
+	/**
+	 * Get a reference to the parent properties.
+	 * 
+	 * @return <code>AVRProjectProperties</code>
+	 */
 	public AVRProjectProperties getParent() {
 		return fParent;
 	}
@@ -282,6 +355,17 @@ public class AVRDudeProperties {
 		}
 	}
 
+	public boolean getFlashFromConfig() {
+		return fFlashFromConfig;
+	}
+
+	public void setFlashFromConfig(boolean useconfig) {
+		if (fFlashFromConfig != useconfig) {
+			fFlashFromConfig = useconfig;
+			fDirty = true;
+		}
+	}
+
 	public String getFlashFile() {
 		return fFlashFile;
 	}
@@ -304,6 +388,17 @@ public class AVRDudeProperties {
 		}
 	}
 
+	public boolean getEEPROMFromConfig() {
+		return fEEPROMFromConfig;
+	}
+
+	public void setEEPROMFromConfig(boolean useconfig) {
+		if (fEEPROMFromConfig != useconfig) {
+			fEEPROMFromConfig = useconfig;
+			fDirty = true;
+		}
+	}
+
 	public String getEEPROMFile() {
 		return fEEPROMFile;
 	}
@@ -320,10 +415,14 @@ public class AVRDudeProperties {
 	}
 
 	public void setWriteFuses(boolean enabled) {
-		if (!fWriteFuses != enabled) {
+		if (fWriteFuses != enabled) {
 			fWriteFuses = enabled;
 			fDirty = true;
 		}
+	}
+
+	public FuseBytes getFuseBytes() {
+		return fFuseBytes;
 	}
 
 	/**
@@ -342,7 +441,6 @@ public class AVRDudeProperties {
 
 		// Add the options from the programmer configuration
 		ProgrammerConfig progcfg = getProgrammer();
-
 		if (progcfg != null) {
 			arguments.addAll(progcfg.getArguments());
 		}
@@ -357,52 +455,108 @@ public class AVRDudeProperties {
 			arguments.add("-i" + fBitBangDelay);
 		}
 
+		// add the No Signature Check flag
 		if (fNoSigCheck) {
 			arguments.add("-F");
 		}
 
+		// add the Simulation / no-write flag
+		if (fNoWrite) {
+			arguments.add("-n");
+			// Add the "no Verify" flag to suppress nuisance error messages
+			// (if not already set)
+			if (!fNoVerify)
+				arguments.add("-V");
+		}
+
+		// add the No Verify flag
 		if (fNoVerify) {
 			arguments.add("-V");
 		}
 
-		if (fNoWrite) {
-			arguments.add("-n");
-			// Add the "no Verify" flag to suppress nuisance error messages
-			arguments.add("-V");
-		}
-
+		// add the Use Erase Cycle Counter flag
 		if (fUseCounter) {
 			arguments.add("-y");
+		}
+
+		// Disable safe mode when Fuses are written, otherwise the fuses will be
+		// restored after the write.
+		// Safemode is *not* disabled in Simulation mode, because even with the
+		// no-write flag, fuse bytes may change values accidentally and should
+		// be restored.
+		if (fWriteFuses && !fNoWrite) {
+			arguments.add("-u");
 		}
 
 		return arguments;
 	}
 
+	/**
+	 * Get the list of avrdude action options according to the current
+	 * properties.
+	 * <p>
+	 * Currently the following actions are supported:
+	 * <ul>
+	 * <li>write flash image</li>
+	 * <li>write eeprom image</li>
+	 * <li>write fuse bytes</li>
+	 * </ul>
+	 * Only for sections enabled with the <code>setWriteXXXX(true)</code>
+	 * method will avrdude actions be created.
+	 * </p>
+	 * <p>
+	 * Macros in the filenames for the flash and eeprom image files are not
+	 * resolved. Use {@link #getActionArguments(IConfiguration, boolean)} to get
+	 * the arguments with all macros resolved.
+	 * </p>
+	 * <p>
+	 * This is a convenience method for
+	 * <code>getArguments(buildcfg, true)</code>
+	 * </p>
+	 * 
+	 * @return <code>List&lt;String&gt;</code> with avrdude action options.
+	 */
 	public List<String> getActionArguments(IConfiguration buildcfg) {
+		return getActionArguments(buildcfg, false);
+	}
+
+	public List<String> getActionArguments(IConfiguration buildcfg, boolean resolve) {
 		List<String> arguments = new ArrayList<String>();
 
 		AVRDudeAction action = null;
 
 		if (fWriteFlash) {
-			if (fFlashFile.length() == 0) {
+			if (fFlashFromConfig) {
 				action = AVRDudeActionFactory.writeFlashAction(buildcfg);
 			} else {
 				action = AVRDudeActionFactory.writeFlashAction(fFlashFile);
 			}
 			if (action != null) {
-				arguments.add(action.getArgument());
+				String argument = action.getArgument();
+				if (resolve) {
+					argument = resolveMacros(buildcfg, argument);
+				}
+				arguments.add(argument);
 			}
 		}
 
 		if (fWriteEEPROM) {
-			if (fEEPROMFile.length() == 0) {
+			if (fEEPROMFromConfig) {
 				action = AVRDudeActionFactory.writeEEPROMAction(buildcfg);
 			} else {
 				action = AVRDudeActionFactory.writeEEPROMAction(fEEPROMFile);
 			}
 			if (action != null) {
-				arguments.add(action.getArgument());
+				String argument = action.getArgument();
+				if (resolve) {
+					argument = resolveMacros(buildcfg, argument);
+				}
+				arguments.add(argument);
 			}
+		}
+
+		if (fWriteFuses) {
+			arguments.addAll(fFuseBytes.getArguments(fParent.getMCUId()));
 		}
 
 		return arguments;
@@ -421,21 +575,20 @@ public class AVRDudeProperties {
 		fUseCounter = fPrefs.getBoolean(KEY_USECOUNTER, DEFAULT_USECOUNTER);
 
 		fWriteFlash = fPrefs.getBoolean(KEY_WRITEFLASH, DEFAULT_WRITEFLASH);
+		fFlashFromConfig = fPrefs.getBoolean(KEY_FLASHFROMCONFIG, DEFAULT_FLASHFROMCONFIG);
 		fFlashFile = fPrefs.get(KEY_FLASHFILE, DEFAULT_FLASHFILE);
 
-		fWriteEEPROM = fPrefs.getBoolean(KEY_WRITEEEPROM,
-		        DEFAULT_WRITEEEPROM);
+		fWriteEEPROM = fPrefs.getBoolean(KEY_WRITEEEPROM, DEFAULT_WRITEEEPROM);
+		fEEPROMFromConfig = fPrefs.getBoolean(KEY_EEPROMFROMCONFIG, DEFAULT_EEPROMFROMCONFIG);
 		fEEPROMFile = fPrefs.get(KEY_EEPROMFILE, DEFAULT_EEPROMFILE);
 
 		fWriteFuses = fPrefs.getBoolean(KEY_WRITEFUSES, DEFAULT_WRITEFUSES);
-		// fFuseBytes = new FuseBytes(fPrefs.node(NODE_FUSES));
+		fFuseBytes = new FuseBytes(fPrefs.node(NODE_FUSES), this);
 
-		fWriteLockbits = fPrefs.getBoolean(KEY_WRITELOCKBITS,
-		        DEFAULT_WRITELOCKBITS);
+		fWriteLockbits = fPrefs.getBoolean(KEY_WRITELOCKBITS, DEFAULT_WRITELOCKBITS);
 		// fAVRDudeLockbits = new LockBits(fPrefs.node(NODE_LOCKS));
 
-		fWriteCalibration = fPrefs.getBoolean(KEY_WRITECALIBRATION,
-		        DEFAULT_WRITECALIBRATION);
+		fWriteCalibration = fPrefs.getBoolean(KEY_WRITECALIBRATION, DEFAULT_WRITECALIBRATION);
 		// fAVRDudeCalibration = new
 		// CalibrationBytes(fPrefs.node(NODE_CALIBRATION));
 		fDirty = false;
@@ -461,9 +614,11 @@ public class AVRDudeProperties {
 				fPrefs.putBoolean(KEY_USECOUNTER, fUseCounter);
 
 				fPrefs.putBoolean(KEY_WRITEFLASH, fWriteFlash);
+				fPrefs.putBoolean(KEY_FLASHFROMCONFIG, fFlashFromConfig);
 				fPrefs.put(KEY_FLASHFILE, fFlashFile);
 
 				fPrefs.putBoolean(KEY_WRITEEEPROM, fWriteEEPROM);
+				fPrefs.putBoolean(KEY_EEPROMFROMCONFIG, fEEPROMFromConfig);
 				fPrefs.put(KEY_EEPROMFILE, fEEPROMFile);
 
 				fPrefs.putBoolean(KEY_WRITEFUSES, fWriteFuses);
@@ -476,7 +631,7 @@ public class AVRDudeProperties {
 					ProgrammerConfigManager.getDefault().saveConfig(fProgrammer);
 				}
 			}
-			// fFuseBytes.save();
+			fFuseBytes.save();
 			// fAVRDudeLockbits.save();
 			// fAVRDudeCalibration.save();
 
@@ -485,6 +640,35 @@ public class AVRDudeProperties {
 			// exception
 			ise.printStackTrace();
 		}
+	}
+
+	/**
+	 * Resolve all CDT macros in the given string.
+	 * <p>
+	 * If the string did not contain macros or the macros could not be resolved,
+	 * the original string is returned.
+	 * </p>
+	 * 
+	 * @param buildcfg
+	 *            <code>IConfiguration</code> for the macro context.
+	 * @param value
+	 *            The source <code>String</code> with macros
+	 * @return The new <code>String</code> with all macros resolved.
+	 */
+	private String resolveMacros(IConfiguration buildcfg, String string) {
+
+		String resolvedstring = string;
+
+		IBuildMacroProvider provider = ManagedBuildManager.getBuildMacroProvider();
+
+		try {
+			resolvedstring = provider.resolveValue(string,
+			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
+		} catch (BuildMacroException e) {
+			// Do nothing = return the original string
+		}
+
+		return resolvedstring;
 	}
 
 	@Override

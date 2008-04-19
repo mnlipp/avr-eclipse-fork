@@ -156,6 +156,12 @@
 			weight="002"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFuses"
+			icon=""
+			name="Fuses"
+			weight="003"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeAdvanced"
 			icon=""
 			name="Advanced"

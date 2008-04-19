@@ -279,18 +279,17 @@ public abstract class AbstractAVRPage extends AbstractPage {
 	}
 
 	/**
-	 * Enable / Disable the given group.
+	 * Enable / Disable the given Composite.
 	 * 
-	 * @param group
-	 *            A <code>Group</code> with some controls.
+	 * @param compo
+	 *            A <code>Composite</code> with some controls.
 	 * @param value
 	 *            <code>true</code> to enable, <code>false</code> to disable
 	 *            the given group.
 	 */
-	private void setEnabled(Group group, boolean value) {
-		Control[] children = group.getChildren();
+	private void setEnabled(Composite compo, boolean value) {
+		Control[] children = compo.getChildren();
 		for (Control child : children) {
-			// TODO Change to setVisible
 			child.setEnabled(value);
 		}
 	}

@@ -10,11 +10,12 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRProjectProperties.java 387 2008-04-06 18:42:55Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,16 +23,20 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.Action;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.FileType;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.MemType;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * This class provides some static methods to get {@link AVRDudeAction} objects
- * for most scenarios.
+ * for common scenarios.
  * 
  * @author Thomas Holland
  * @since 2.2
@@ -40,14 +45,14 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction.MemType;
 public class AVRDudeActionFactory {
 
 	/** The name of the fuses for 1, 2 or 3 fusebytes */
-	private final static String[][] FUSENAMEMAP = { {}, { "fuse" },
-			{ "lfuse", "hfuse" }, { "lfuse", "hfuse", "efuse" } };
+	private final static MemType[][] FUSENAMEMAP = { {}, { MemType.fuse },
+	        { MemType.lfuse, MemType.hfuse }, { MemType.lfuse, MemType.hfuse, MemType.efuse } };
 
 	/**
 	 * Get a list of actions to read all readable elements of an MCU and write
 	 * them to the given folder.
 	 * <p>
-	 * This methid needs the mcu id to determine what memories are readable from
+	 * This method needs the mcu id to determine what memories are readable from
 	 * the device.
 	 * </p>
 	 * <p>
@@ -98,8 +103,7 @@ public class AVRDudeActionFactory {
 	 * @return <code>List&lt;String&gt;</code> with all actions required to
 	 *         backup the mcu
 	 */
-	public static List<AVRDudeAction> backupActions(String mcuid,
-			String backupfolderpath) {
+	public static List<AVRDudeAction> backupActions(String mcuid, String backupfolderpath) {
 
 		List<AVRDudeAction> actions = new ArrayList<AVRDudeAction>();
 
@@ -109,23 +113,24 @@ public class AVRDudeActionFactory {
 		// int fusecount = Fuses.getMCUInfo(mcuid);
 		int fusecount = 3;
 
-		String[] fusenames = FUSENAMEMAP[fusecount];
+		MemType[] fusenames = FUSENAMEMAP[fusecount];
 
 		IPath destpath = new Path(backupfolderpath);
 
-		actions.add(new AVRDudeAction(MemType.signature, Action.read, destpath
-				.append("signature"), FileType.hex));
+		String flashfile = destpath.append("flash.hex").toOSString();
+		String eepromfile = destpath.append("eeprom.eep").toOSString();
+		String signaturefile = destpath.append("signature").toOSString();
 
-		actions.add(new AVRDudeAction(MemType.flash, Action.read, destpath
-				.append("flash.hex"), FileType.iHex));
+		actions.add(new AVRDudeAction(MemType.signature, Action.read, signaturefile, FileType.hex));
 
-		actions.add(new AVRDudeAction(MemType.eeprom, Action.read, destpath
-				.append("eeprom.eep"), FileType.iHex));
+		actions.add(new AVRDudeAction(MemType.flash, Action.read, flashfile, FileType.iHex));
 
-		for (String name : fusenames) {
+		actions.add(new AVRDudeAction(MemType.eeprom, Action.read, eepromfile, FileType.iHex));
+
+		for (MemType type : fusenames) {
 			// TODO change this to fuses format once fuse files are implemented.
-			actions.add(new AVRDudeAction(MemType.valueOf(name), Action.read,
-					destpath.append("name"), FileType.hex));
+			actions.add(new AVRDudeAction(type, Action.read, destpath.append(type.toString())
+			        .toOSString(), FileType.hex));
 		}
 
 		// TODO lock and calibration are still missing
@@ -156,8 +161,7 @@ public class AVRDudeActionFactory {
 
 		AVRDudeAction action = null;
 
-		ITool[] tools = buildcfg
-				.getToolsBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_FLASH);
+		ITool[] tools = buildcfg.getToolsBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_FLASH);
 		// Test if there is a Generate Flash Image tool in the toolchain of the
 		// configuration.
 		if (tools.length != 0) {
@@ -168,10 +172,10 @@ public class AVRDudeActionFactory {
 			// outputelement.getValue().
 			ITool objcopy = tools[0];
 			IOption outputoption = objcopy
-					.getOptionBySuperClassId("de.innot.avreclipse.objcopy.flash.option.output");
-			String rawfilename = (String) outputoption.getValue();
+			        .getOptionBySuperClassId("de.innot.avreclipse.objcopy.flash.option.output");
+			String filename = (String) outputoption.getValue();
 
-			action = writeFlashAction(rawfilename);
+			action = writeFlashAction(filename);
 		}
 		return action;
 	}
@@ -183,14 +187,18 @@ public class AVRDudeActionFactory {
 	 * The generated action uses {@link AVRDudeAction.FileType#auto} to let
 	 * avrdude determine the file type.
 	 * </p>
+	 * <p>
+	 * Any macros in the filename are not resolved. It is up to the caller to
+	 * resolve any macros as required.
+	 * </p>
 	 * 
 	 * @param filename
 	 *            <code>String</code> with the flash image file name.
 	 * @return <code>AVRDudeAction</code>
 	 */
 	public static AVRDudeAction writeFlashAction(String filename) {
-		return new AVRDudeAction(MemType.flash, Action.write,
-				new Path(filename), FileType.auto);
+
+		return new AVRDudeAction(MemType.flash, Action.write, filename, FileType.auto);
 	}
 
 	/**
@@ -216,8 +224,7 @@ public class AVRDudeActionFactory {
 
 		AVRDudeAction action = null;
 
-		ITool[] tools = buildcfg
-				.getToolsBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_EEPROM);
+		ITool[] tools = buildcfg.getToolsBySuperClassId(PluginIDs.PLUGIN_TOOLCHAIN_TOOL_EEPROM);
 		// Test if there is a Generate EEPROM Image tool in the toolchain of the
 		// configuration.
 		if (tools.length != 0) {
@@ -228,10 +235,10 @@ public class AVRDudeActionFactory {
 			// outputelement.getValue().
 			ITool objcopy = tools[0];
 			IOption outputoption = objcopy
-					.getOptionBySuperClassId("de.innot.avreclipse.objcopy.eeprom.option.output");
-			String rawfilename = (String) outputoption.getValue();
+			        .getOptionBySuperClassId("de.innot.avreclipse.objcopy.eeprom.option.output");
+			String filename = (String) outputoption.getValue();
 
-			action = writeEEPROMAction(rawfilename);
+			action = writeEEPROMAction(filename);
 		}
 		return action;
 	}
@@ -243,13 +250,71 @@ public class AVRDudeActionFactory {
 	 * The generated action uses {@link AVRDudeAction.FileType#auto} to let
 	 * avrdude determine the file type.
 	 * </p>
+	 * <p>
+	 * Any macros in the filename are not resolved. It is up to the caller to
+	 * resolve any macros as required.
+	 * </p>
 	 * 
 	 * @param filename
 	 *            <code>String</code> with the flash image file name.
 	 * @return <code>AVRDudeAction</code>
 	 */
 	public static AVRDudeAction writeEEPROMAction(String filename) {
-		return new AVRDudeAction(MemType.eeprom, Action.write, new Path(
-				filename), FileType.auto);
+		return new AVRDudeAction(MemType.eeprom, Action.write, filename, FileType.auto);
 	}
+
+	/**
+	 * Create a List of {@link AVRDudeAction} objects to write the all given
+	 * fuse byte values.
+	 * <p>
+	 * If a fuse byte value is <code>-1</code>, no action is created for it.
+	 * </p>
+	 * 
+	 * @param mcuid
+	 *            <code>String</code> with a valid MCU id value.
+	 * @param fusevalues
+	 *            Array of <code>int</code> with the byte values (0-255). All
+	 *            other values are ignored (no action created).
+	 * @return <code>List&lt;AVRDudeAction&gt;</code> with all actions. List
+	 *         may be empty if the MCU has no fuses or no valid fuse byte value
+	 *         was given.
+	 */
+	public static List<AVRDudeAction> writeFuseBytes(String mcuid, int fusevalues[]) {
+
+		List<AVRDudeAction> fuseactions = new ArrayList<AVRDudeAction>();
+
+		// Test if this is a 1 Fuse or 2-3 Fuse MCU
+		int fusecount;
+		try {
+			fusecount = Fuses.getDefault().getFuseByteCount(mcuid);
+		} catch (IOException e) {
+			// Can't access the FuseDescription Objects?
+			// Log the Exception and return an empty list.
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+			        "Can't access the FuseDescription file for " + mcuid, e);
+			AVRPlugin.getDefault().log(status);
+			return fuseactions;
+		}
+
+		// Do some checks.
+		if (fusecount <= 0) {
+			// given MCU has no fuses.
+			// return an empty List
+			return fuseactions;
+		}
+
+		// Get the name mapping
+		MemType[] fusenames = FUSENAMEMAP[fusecount];
+
+		// iterate over all fusenames until we run out of names or out of values
+		for (int i = 0; i < fusenames.length && i < fusevalues.length; i++) {
+			int value = fusevalues[i];
+			if (0 <= value && value <= 255) {
+				fuseactions.add(new AVRDudeAction(fusenames[i], Action.write, fusevalues[i]));
+			}
+		}
+
+		return fuseactions;
+	}
+
 }
