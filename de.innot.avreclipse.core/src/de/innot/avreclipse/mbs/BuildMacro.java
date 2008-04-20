@@ -21,8 +21,10 @@ import java.util.List;
 import org.eclipse.cdt.core.cdtvariables.CdtVariableException;
 import org.eclipse.cdt.core.cdtvariables.ICdtVariable;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacro;
+import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.eclipse.cdt.managedbuilder.macros.IBuildMacroStatus;
 
 /**
@@ -131,6 +133,39 @@ public class BuildMacro implements IBuildMacro {
 			}
 		}
 		return allmacronames;
+	}
+
+	/**
+	 * Resolve all CDT macros in the given string.
+	 * <p>
+	 * If the string did not contain macros or the macros could not be resolved,
+	 * the original string is returned.
+	 * </p>
+	 * 
+	 * @param buildcfg
+	 *            <code>IConfiguration</code> for the macro context.
+	 * @param value
+	 *            The source <code>String</code> with macros
+	 * @return The new <code>String</code> with all macros resolved.
+	 */
+	public static String resolveMacros(IConfiguration buildcfg, String string) {
+
+		// This method is put here, because it is needed in multiple locations
+		// and instead of duplicating it over and over putting it here makes at
+		// least some sense, even though this class does not use it.
+
+		String resolvedstring = string;
+
+		IBuildMacroProvider provider = ManagedBuildManager.getBuildMacroProvider();
+
+		try {
+			resolvedstring = provider.resolveValue(string,
+			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
+		} catch (BuildMacroException e) {
+			// Do nothing = return the original string
+		}
+
+		return resolvedstring;
 	}
 
 }
