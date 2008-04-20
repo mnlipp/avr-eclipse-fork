@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.innot.avreclipse.util.URLDownloadException;
@@ -45,6 +46,7 @@ public class TestURLDownloadManager {
 	 * @throws MalformedURLException
 	 */
 	@Test
+	@Ignore
 	public void testNormalDownload() throws MalformedURLException {
 		URL testurl = new URL(
 		        "http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");
@@ -98,6 +100,7 @@ public class TestURLDownloadManager {
 	 * @throws MalformedURLException
 	 */
 	@Test
+	@Ignore
 	public void testFailedDownload() throws MalformedURLException {
 		// unknown file
 		URL testurl = new URL("http://avr-eclipse.sourceforge.net/foobar.zip");
@@ -130,6 +133,7 @@ public class TestURLDownloadManager {
 	 * @throws InterruptedException
 	 */
 	@Test
+	@Ignore
 	public void testCanceledDownload() throws MalformedURLException, InterruptedException {
 		final URL testurl = new URL(
 		        "http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");

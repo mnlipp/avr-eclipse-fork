@@ -25,7 +25,7 @@ public class TestProgrammerConfig {
 	 */
 	@Test
 	public void testProgrammerConfig() throws BackingStoreException {
-		
+
 		ProgrammerConfigManager manager = ProgrammerConfigManager.getDefault();
 		// create a new ProgrammerConfig
 		ProgrammerConfig config = manager.createNewConfig();
@@ -58,7 +58,7 @@ public class TestProgrammerConfig {
 		assertEquals(expected, actual);
 
 		// Test cloning
-		ProgrammerConfig config2 = new ProgrammerConfig(config);
+		ProgrammerConfig config2 = manager.getConfigEditable(config);
 		assertEquals("testdescription", config2.getDescription());
 		assertEquals("c2n232i", config2.getProgrammer());
 		assertEquals("/test/port", config2.getPort());
@@ -84,10 +84,9 @@ public class TestProgrammerConfig {
 		assertEquals("noreset", config3.getExitspecResetline());
 		assertEquals("vcc", config3.getExitspecVCCline());
 
-
 		// Test delete
 		manager.deleteConfig(config);
-		assertTrue(manager.getConfig(config.getId())==null);
-		
+		assertTrue(manager.getConfig(config.getId()) == null);
+
 	}
 }
