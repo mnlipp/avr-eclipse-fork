@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.console.MessageConsole;
 
@@ -506,8 +507,9 @@ public class AVRDude implements IMCUProvider {
 	 * @return A list of all output lines, or <code>null</code> if the command
 	 *         could not be launched.
 	 * @throws AVRDudeException
+	 *             when avrdude cannot be started or when avrdude returned an
 	 */
-	private List<String> runCommand(String... arguments) throws AVRDudeException {
+	public List<String> runCommand(String... arguments) throws AVRDudeException {
 
 		List<String> arglist = new ArrayList<String>(1);
 		for (String arg : arguments) {
@@ -515,6 +517,26 @@ public class AVRDude implements IMCUProvider {
 		}
 
 		return runCommand(arglist);
+	}
+
+	/**
+	 * Runs avrdude with the given arguments.
+	 * <p>
+	 * This method is equivalent to
+	 * <code>runCommand(arglist, new NullProgressMonitor())</code>.
+	 * 
+	 * @see #runCommand(List, IProgressMonitor)
+	 * 
+	 * @param arguments
+	 *            <code>List&lt;String&gt;</code> with the arguments
+	 * @return A list of all output lines, or <code>null</code> if the command
+	 *         could not be launched.
+	 * @throws AVRDudeException
+	 *             when avrdude cannot be started or when avrdude returned an
+	 *             error errors.
+	 */
+	public List<String> runCommand(List<String> arglist) throws AVRDudeException {
+		return runCommand(arglist, new NullProgressMonitor(), false);
 	}
 
 	/**
@@ -531,60 +553,76 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param arguments
 	 *            <code>List&lt;String&gt;</code> with the arguments
+	 * @param monitor
+	 *            <code>IProgressMonitor</code> to cancel the running process.
+	 * @param forceconsole
+	 *            If <code>true</code> all output is copied to the console,
+	 *            regardless of the "use console" flag.
 	 * @return A list of all output lines, or <code>null</code> if the command
 	 *         could not be launched.
 	 * @throws AVRDudeException
 	 *             when avrdude cannot be started or when avrdude returned an
 	 *             error errors.
 	 */
-	private List<String> runCommand(List<String> arglist) throws AVRDudeException {
+	public List<String> runCommand(List<String> arglist, IProgressMonitor monitor,
+	        boolean forceconsole) throws AVRDudeException {
 
-		String command = getToolPath().toOSString();
-
-		// Check if the user has a custom configuration file
-		IPreferenceStore avrdudeprefs = AVRDudePreferences.getPreferenceStore();
-		boolean usecustomconfig = avrdudeprefs.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
-		if (usecustomconfig) {
-			String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
-			arglist.add("-C" + newconfigfile);
-		}
-
-		// Set up the External Command
-		ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
-		avrdude.redirectErrorStream(true);
-
-		// Set the Console (if requested by the user in the preferences)
-		if (fPrefsStore.getBoolean(AVRDudePreferences.KEY_USECONSOLE)) {
-			MessageConsole console = AVRPlugin.getDefault().getConsole("AVRDude");
-			avrdude.setConsole(console);
-		}
-		
-		IProgressMonitor monitor = new NullProgressMonitor();
-		ICommandOutputListener outputlistener = new OutputListener(monitor);
-		avrdude.setCommandOutputListener(outputlistener);
-
-		// Run avrdude
 		try {
-			fAbortReason = null;
-			avrdude.launch(monitor);
-		} catch (IOException e) {
-			// Something didn't work while running the external command
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-			        + command, e);
-			AVRPlugin.getDefault().log(status);
-			throw new AVRDudeException(e);
+			monitor.beginTask("Running avrdude", 100);
+
+			String command = getToolPath().toOSString();
+
+			// Check if the user has a custom configuration file
+			IPreferenceStore avrdudeprefs = AVRDudePreferences.getPreferenceStore();
+			boolean usecustomconfig = avrdudeprefs
+			        .getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
+			if (usecustomconfig) {
+				String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
+				arglist.add("-C" + newconfigfile);
+			}
+
+			// Set up the External Command
+			ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
+			avrdude.redirectErrorStream(true);
+
+			// Set the Console (if requested by the user in the preferences)
+			if (fPrefsStore.getBoolean(AVRDudePreferences.KEY_USECONSOLE) || forceconsole) {
+				MessageConsole console = AVRPlugin.getDefault().getConsole("AVRDude");
+				avrdude.setConsole(console);
+			}
+
+			ICommandOutputListener outputlistener = new OutputListener(monitor);
+			avrdude.setCommandOutputListener(outputlistener);
+
+			monitor.worked(10);
+			// Run avrdude
+			try {
+				fAbortReason = null;
+				avrdude.launch(new SubProgressMonitor(monitor, 80));
+			} catch (IOException e) {
+				// Something didn't work while running the external command
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
+				        + command, e);
+				AVRPlugin.getDefault().log(status);
+				throw new AVRDudeException(e);
+			}
+
+			// Test if avrdude was aborted
+			if (fAbortReason != null) {
+				throw new AVRDudeException(fAbortReason, fAbortLine);
+			}
+
+			// Everything was fine: get the ooutput from avrdude and return it
+			// to
+			// the caller
+			List<String> stdout = avrdude.getStdOut();
+
+			monitor.worked(10);
+
+			return stdout;
+		} finally {
+			monitor.done();
 		}
-
-		// Test if avrdude was aborted
-		if (fAbortReason != null) {
-			throw new AVRDudeException(fAbortReason, fAbortLine);
-		}
-
-		// Everything was fine: get the ooutput from avrdude and return it to
-		// the caller
-		List<String> stdout = avrdude.getStdOut();
-
-		return stdout;
 	}
 
 	/**
@@ -638,6 +676,9 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.contains("Can't find programmer id")) {
 				abort = true;
 				fAbortReason = Reason.UNKNOWN_PROGRAMMER;
+			} else if (line.contains("no programmer has been specified")) {
+				abort = true;
+				fAbortReason = Reason.NO_PROGRAMMER;
 			} else if (line.matches("AVR Part.+not found")) {
 				abort = true;
 				fAbortReason = Reason.UNKNOWN_MCU;
@@ -648,7 +689,6 @@ public class AVRDude implements IMCUProvider {
 				fAbortLine = line;
 			}
 		}
-
 	}
 
 	/**
