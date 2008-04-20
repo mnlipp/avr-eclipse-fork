@@ -136,6 +136,11 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 							+ "(Window > Preferences... -> AVR -> AVRDude)";
 				}
 				break;
+				
+			case NO_PROGRAMMER:
+				message = "No Programmer selected\n\n"
+					+"Check the avrdude properties for the project.";
+				break;
 
 			case UNKNOWN_PROGRAMMER:
 				message = "AVRDude does not recognize the selected programmer id "
