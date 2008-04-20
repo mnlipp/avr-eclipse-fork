@@ -181,6 +181,13 @@ public class ExternalCommandLauncher {
 		List<String> commandlist = new ArrayList<String>();
 		commandlist.add(command);
 		if (arguments != null) {
+			if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+				// If on Windows, go through all arguments and fix the quoting.
+				// See the comments to winQuote() below on why we need this.
+				for (int i = 0; i < arguments.size(); i++) {
+					arguments.set(i, winQuote(arguments.get(i)));
+				}
+			}
 			commandlist.addAll(arguments);
 		}
 		fProcessBuilder = new ProcessBuilder(commandlist);
@@ -441,4 +448,59 @@ public class ExternalCommandLauncher {
 	public void setConsole(MessageConsole console) {
 		fConsole = console;
 	}
+
+	/**
+	 * Correctly enclose in quotes for Windows.
+	 * <p>
+	 * The Windows implementation of Java has problems, if an argument contains
+	 * at least one space and contains quotes. With a space ProcessBuilder will
+	 * automatically enclose the whole argument in quotes (good), but quotes in
+	 * the argument are not escaped (bad).
+	 * </p>
+	 * <p>
+	 * This method is a workaround that will enclose the given String with
+	 * quotes if required, escaping all quotes with the string (again as
+	 * required).
+	 * </p>
+	 * 
+	 * @see ProcessImpl
+	 * @see <a
+	 *      href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6468220">Sun
+	 *      Java Bug 6468220</a>
+	 * 
+	 * @param s
+	 *            Source <code>String</code>
+	 * @return String enclosed in quotes and with inner quotes escaped.
+	 */
+	private String winQuote(String s) {
+		if (!needsQuoting(s))
+			return s;
+		s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
+		s = s.replaceAll("([\\\\]*)\\z", "$1$1");
+		return "\"" + s + "\"";
+	}
+
+	/**
+	 * Test if a String argument needs to be encapsuled in quotes.
+	 * 
+	 * @param s
+	 * @return <code>true</code> if the given String contains characters which
+	 *         would required quoting the string.
+	 */
+	private boolean needsQuoting(String s) {
+		int len = s.length();
+		if (len == 0) // empty string have to be quoted as well
+			return true;
+		for (int i = 0; i < len; i++) {
+			switch (s.charAt(i)) {
+			case ' ':
+			case '\t':
+			case '\\':
+			case '"':
+				return true;
+			}
+		}
+		return false;
+	}
+
 }
