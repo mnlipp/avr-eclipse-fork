@@ -153,6 +153,37 @@ public class FuseBytes {
 	}
 
 	/**
+	 * Get the MCU id value for which the the fuse bytes are valid.
+	 * 
+	 * @return <code>String</code> with an mcu id.
+	 */
+	public String getMCUId() {
+
+		// TODO: if a fuses file is used, return the mcuid from the file.
+
+		return fMCUid;
+	}
+
+	/**
+	 * Tells this class that the current fuse byte values are valid for the
+	 * given MCU.
+	 * <p>
+	 * Use this method with care, as there will be no checks if the current
+	 * values actually make sense for the new MCU type.
+	 * </p>
+	 * <p>
+	 * The new setting is only valid for the internally stored values. If a
+	 * fuses file is used it is not affected and a call to {@link #getMCUId()}
+	 * will return the mcu from the fuses file, not this one.
+	 * </p>
+	 * 
+	 * @param mcuid
+	 */
+	public void setMCUId(String mcuid) {
+		fMCUid = mcuid;
+	}
+
+	/**
 	 * Get the current value of the "Use Fuses File" flag.
 	 * 
 	 * @see #setFusesFile(String)

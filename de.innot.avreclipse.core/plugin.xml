@@ -64,6 +64,32 @@
 
 <!--
 ####################################################################################### 
+#    Popup Menues (Context Menues)                                                    # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.popupMenus">
+		<objectContribution
+			objectClass="org.eclipse.core.resources.IProject"
+			id="de.innot.avreclipse.menu.popup.avr">
+			<menu label="AVR" id="de.innot.avreclipse.menu.popup.avr">
+				<separator name="upload"></separator>
+			</menu>
+			<action
+				class="de.innot.avreclipse.ui.actions.UploadProjectAction"
+				enablesFor="1" id="de.innot.avreclipse.actions.projectupload"
+				label="Upload Project to Device"
+				menubarPath="de.innot.avreclipse.menu.popup.avr/upload">
+			</action>
+			<visibility>
+				<objectState name="projectNature"
+					value="de.innot.avreclipse.core.avrnature">
+				</objectState>
+			</visibility>
+		</objectContribution>
+	</extension>
+
+<!--
+####################################################################################### 
 #    Preference Pages                                                                 # 
 ####################################################################################### 
 -->
@@ -85,6 +111,9 @@
 ####################################################################################### 
 -->
 	<extension point="org.eclipse.ui.propertyPages">
+		<!-- ############################### -->
+		<!-- Main AVR  Properties Page       -->
+		<!-- ############################### -->
 		<page
             class="de.innot.avreclipse.ui.propertypages.PageMain"
             id="de.innot.avreclipse.propertypage.avrmain"
@@ -100,6 +129,9 @@
 				</or>          
 			</enabledWhen>
         </page>    
+		<!-- ############################### -->
+		<!-- Target Hardware Properties Page -->
+		<!-- ############################### -->
 		<page
             class="de.innot.avreclipse.ui.propertypages.PageTargetHardware"
             id="de.innot.avreclipse.propertypage.avrtargethardware"
@@ -116,6 +148,9 @@
 				</or>          
 			</enabledWhen>
         </page>    
+		<!-- ############################### -->
+		<!-- AVRDude Properties Page         -->
+		<!-- ############################### -->
 		<page
             class="de.innot.avreclipse.ui.propertypages.PageAVRDude"
             id="de.innot.avreclipse.propertypage.avrdude"
@@ -135,32 +170,42 @@
 		
 	</extension>
 	
+<!--
+####################################################################################### 
+#    Property Page Tabs                                                               # 
+####################################################################################### 
+-->
 	<extension
 		point="org.eclipse.cdt.ui.cPropertyTab">
+		<!-- #### Target Hardware Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabTargetHardware"
 			icon=""
 			name="Target Hardware"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
+		<!-- #### AVRDude/Programmer Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeProgrammer"
 			icon=""
 			name="Programmer"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<!-- #### AVRDude/Flash + EEPROM Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFlashEEPROM"
 			icon=""
 			name="Flash / EEPROM"
 			weight="002"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<!-- #### AVRDude/Fuses Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFuses"
 			icon=""
 			name="Fuses"
 			weight="003"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+		<!-- #### AVRDude/Avanced Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeAdvanced"
 			icon=""

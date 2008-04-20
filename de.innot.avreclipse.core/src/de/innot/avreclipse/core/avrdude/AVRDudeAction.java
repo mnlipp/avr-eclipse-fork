@@ -15,12 +15,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
-import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
-import org.eclipse.cdt.managedbuilder.macros.BuildMacroException;
-import org.eclipse.cdt.managedbuilder.macros.IBuildMacroProvider;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Path;
+
+import de.innot.avreclipse.mbs.BuildMacro;
 
 /**
  * @author Thomas Holland
@@ -28,11 +30,21 @@ import org.eclipse.core.runtime.Path;
  */
 public class AVRDudeAction {
 
-	private final static String WINQUOTE = System.getProperty("os.name").toLowerCase().contains(
-	        "windows") ? "\"" : "";
-
 	public enum MemType {
-		flash, eeprom, signature, fuse, lfuse, hfuse, efuse, lock, calibration;
+		flash("Flash"), eeprom("EEPROM"), signature("Signature"), fuse("Fuse Byte"), lfuse(
+		        "Low Fuse Byte"), hfuse("High Fuse Byte"), efuse("Extended Fuse Byte"), lock(
+		        "Lock Byte"), calibration("Calibration Bytes");
+
+		private String name;
+
+		private MemType(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 
 	public enum Action {
@@ -42,6 +54,16 @@ public class AVRDudeAction {
 
 		private Action(String op) {
 			symbol = op;
+		}
+
+		protected static Action getAction(String symbol) {
+			Action[] allactions = Action.values();
+			for (Action action : allactions) {
+				if (action.symbol.equals(symbol)) {
+					return action;
+				}
+			}
+			return null;
 		}
 	}
 
@@ -53,6 +75,16 @@ public class AVRDudeAction {
 
 		private FileType(String type) {
 			symbol = type;
+		}
+
+		protected static FileType getFileType(String symbol) {
+			FileType[] alltypes = FileType.values();
+			for (FileType filetype : alltypes) {
+				if (filetype.symbol.equals(symbol)) {
+					return filetype;
+				}
+			}
+			return null;
 		}
 	}
 
@@ -77,6 +109,28 @@ public class AVRDudeAction {
 		fAction = action;
 		fImmediateValue = value;
 		fFileType = FileType.immediate;
+	}
+
+	/**
+	 * Get the name of the file.
+	 * 
+	 * @return <code>String</code> with the filename or <code>null</code> if
+	 *         this is an immediate action.
+	 */
+	public String getFilename() {
+		if (fFileType == FileType.immediate) {
+			return null;
+		}
+		return fFilename;
+	}
+
+	/**
+	 * Get the memory type of this action.
+	 * 
+	 * @return <code>MemType</code> enum value
+	 */
+	public MemType getMemType() {
+		return fMemType;
 	}
 
 	/**
@@ -107,9 +161,6 @@ public class AVRDudeAction {
 		sb.append(fAction.symbol);
 		sb.append(":");
 
-		// Windows needs quotes around the filename
-		sb.append(WINQUOTE);
-
 		// Two types: immediate mode or file mode
 		// in the first case the immediate value is added to the output
 		// in the second case the filename is included in the output
@@ -127,7 +178,7 @@ public class AVRDudeAction {
 			// against. Also change to path to the OS format while we are at it
 			String filename;
 			if (buildcfg != null) {
-				String resolvedfilename = resolveMacros(buildcfg, fFilename);
+				String resolvedfilename = BuildMacro.resolveMacros(buildcfg, fFilename);
 				filename = new Path(resolvedfilename).toOSString();
 			} else {
 				filename = fFilename;
@@ -136,40 +187,160 @@ public class AVRDudeAction {
 			sb.append(filename);
 		}
 
-		sb.append(WINQUOTE);
-
 		sb.append(":");
 		sb.append(fFileType.symbol);
 
 		return sb.toString();
 	}
 
+	private final static Pattern fRemoveTrim = Pattern.compile(".*-U\\s*(.*?)");
+
 	/**
-	 * Resolve all CDT macros in the given string.
+	 * Create an action for the given argument.
 	 * <p>
-	 * If the string did not contain macros or the macros could not be resolved,
-	 * the original string is returned.
+	 * This is the reverse of {@link #getArgument()}. It parses the argument
+	 * and extracts the information required to make a new
+	 * <code>AVRDudeAction</code>
 	 * </p>
+	 * <p>
+	 * The current implementation requires that the filetype at the end is set,
+	 * otherwise it will not parse
 	 * 
-	 * @param buildcfg
-	 *            <code>IConfiguration</code> for the macro context.
-	 * @param value
-	 *            The source <code>String</code> with macros
-	 * @return The new <code>String</code> with all macros resolved.
+	 * @param argument
+	 * @return
 	 */
-	private String resolveMacros(IConfiguration buildcfg, String string) {
+	public static AVRDudeAction getActionForArgument(String argument) {
+		// This method is needed to program myself out of an hole. I want the
+		// User interface to show a nice description of what is going on, but
+		// within the user interface I have only the argument because
+		// AVRDudeProperties keeps the Actions to itself. And changing
+		// AVRDudeProperties would have broken more stuff, so I use this little
+		// hack to infer a description from the argument it created itself.
 
-		String resolvedstring = string;
+		// From the basic flow this is close to the parse_op() function from
+		// avrdude, although this is more forgiving.
 
-		IBuildMacroProvider provider = ManagedBuildManager.getBuildMacroProvider();
+		// The four parts of info we extract from the argument
+		// FileType is optional for avrdude and defaults to "auto"
+		MemType memtype;
+		Action action;
+		String filename;
+		FileType filetype = FileType.auto;
 
-		try {
-			resolvedstring = provider.resolveValue(string,
-			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
-		} catch (BuildMacroException e) {
-			// Do nothing = return the original string
+		// First remove all trimming, i.e. the "-U", and enclosing quotes and
+		// whitespaces
+		Matcher matcher = fRemoveTrim.matcher(argument);
+		if (!matcher.matches())
+			// argument does not start with "-U"
+			throw new IllegalArgumentException("Invalid argument for avrdude");
+
+		String arg = matcher.group(1);
+
+		// Get the first colon. Everything before it is the memtype,
+		// the first char behind it is the action (r / w / v)
+		int p = arg.indexOf(':');
+
+		if (p == -1) {
+			// Without colon the argument is filename for a write flash action
+			return new AVRDudeAction(MemType.flash, Action.write, arg, FileType.auto);
 		}
 
-		return resolvedstring;
+		// MemType
+		String field = arg.substring(0, p);
+		try {
+			memtype = MemType.valueOf(field);
+		} catch (IllegalArgumentException iae) {
+			throw new IllegalArgumentException("Invalid memory specification \"" + field + "\"",
+			        iae);
+		}
+
+		// Action
+		field = arg.substring(p + 1, p + 2);
+		action = Action.getAction(field);
+		if (action == null) {
+			throw new IllegalArgumentException("Invalid action specification \"" + field + "\"");
+		}
+
+		// Get the next colon after the action field
+		p = arg.indexOf(':', p + 1);
+
+		int startfilename = p + 1;
+		int endfilename = arg.length();
+
+		// Is there a colon behind the filename?
+		p = arg.lastIndexOf(':');
+		if (p >= startfilename && p < arg.length() - 1) {
+			// Yes. The char behind it is the filetype
+			field = arg.substring(p + 1, p + 2);
+			filetype = FileType.getFileType(field);
+			if (filetype == null) {
+				throw new IllegalArgumentException("Invalid file type specification \"" + field
+				        + "\"");
+			}
+			endfilename = p;
+		}
+
+		// Get the filename
+		filename = arg.substring(startfilename, endfilename);
+
+		// OK, we have all four pieces of information
+		AVRDudeAction result;
+
+		if (filetype == FileType.immediate) {
+			result = new AVRDudeAction(memtype, action, Integer.decode(filename));
+		} else {
+			result = new AVRDudeAction(memtype, action, filename, filetype);
+		}
+
+		return result;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		// Build a nice, descriptive String that can be shown in the user
+		// interface.
+		StringBuilder sb = new StringBuilder(80);
+		switch (fAction) {
+		case read:
+			sb.append("Reading ");
+			sb.append(fMemType);
+			sb.append(" to file \"");
+			sb.append(fFilename);
+			sb.append("\" in ");
+			sb.append(fFileType);
+			sb.append(" format");
+			break;
+		case write:
+			sb.append("Writing \"");
+			if (fFileType == FileType.immediate) {
+				sb.append("0x");
+				sb.append(Integer.toHexString(fImmediateValue));
+			} else {
+				sb.append(fFilename);
+			}
+			sb.append("\" to ");
+			sb.append(fMemType);
+			break;
+		case verify:
+			sb.append("Verifying \"");
+			sb.append(fMemType);
+			sb.append(" against \"");
+			if (fFileType == FileType.immediate) {
+				sb.append("0x");
+				sb.append(Integer.toHexString(fImmediateValue));
+			} else {
+				sb.append(fFilename);
+			}
+			sb.append("\"");
+			break;
+		}
+
+		return sb.toString();
+	}
+
 }
