@@ -43,7 +43,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.avrdude.FuseBytes;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.GCC;
@@ -61,6 +63,14 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	private static final String LABEL_MCUTYPE = "MCU Type";
 	private static final String LABEL_FCPU = "MCU Clock Frequency";
 	private static final String TEXT_LOADBUTTON = "Load from Programmer";
+
+	private final static String TITLE_AVRDUDEWARNING = "AVRDude Information";
+	private final static String TEXT_AVRDUDEWARNING = "No AVRDude Programmer Config set for the Project.\n"
+	        + "Set a Programmer Configuration in the AVRDude properties page.";
+
+	private final static String TITLE_FUSEBYTEWARNING = "Fuse Byte Conflict";
+	private final static String TEXT_FUSEBYTEWARNING = "Selected MCU is not compatible with the currently set fuse bytes.\n"
+	        + "Please check the fuse byte settings on the AVRDude Fuses tab.";
 
 	/** List of common MCU frequencies (taken from mfile) */
 	private static final String[] FCPU_VALUES = { "1000000", "1843200", "2000000", "3686400",
@@ -143,6 +153,10 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 				// Check if supported by avrdude and set the errorpane as
 				// required
 				checkAVRDude(mcuid);
+
+				// Check fuse byte settings and pop a message if the settings
+				// are not compatible
+				checkFuseBytes(mcuid);
 
 				// Set the rebuild flag for the configuration
 				getCfg().setRebuildState(true);
@@ -310,6 +324,28 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	}
 
 	/**
+	 * Check if the FuseBytes in the current properties are compatible with the
+	 * selected mcu. If not, a warning dialog is shown.
+	 */
+	private void checkFuseBytes(String mcuid) {
+		AVRDudeProperties avrdudeprops = fTargetProps.getAVRDudeProperties();
+
+		if (!avrdudeprops.getWriteFuses()) {
+			// Fuses are not written, so no need for a warning.
+			// The fuses tab will show a warning once the WriteFuses flag is
+			// changed.
+			return;
+		}
+
+		FuseBytes fusebytes = avrdudeprops.getFuseBytes();
+
+		if (!(fusebytes.isValidFor(mcuid))) {
+			MessageDialog.openWarning(fMCUcombo.getShell(), TITLE_FUSEBYTEWARNING,
+			        TEXT_FUSEBYTEWARNING);
+		}
+	}
+
+	/**
 	 * Checks if the current target values are different from the original ones
 	 * and set the rebuild flag for the configuration / project if yes.
 	 */
@@ -333,11 +369,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		ProgrammerConfig config = fTargetProps.getAVRDudeProperties().getProgrammer();
 		if (config == null) {
 			// TODO Display Dialog to select a Programmer
-			MessageDialog
-			        .openInformation(
-			                usercomp.getShell(),
-			                "AVRDude Information",
-			                "No AVRDude Programmer Config set for the Project.\nSet a Programmer Config in the AVRDude properties page.");
+			MessageDialog.openInformation(usercomp.getShell(), TITLE_AVRDUDEWARNING,
+			        TEXT_AVRDUDEWARNING);
 			return;
 		}
 
