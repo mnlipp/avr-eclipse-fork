@@ -193,6 +193,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The three File Dialog Buttons (and a alignment/filler Label),
 		// all wrapped in a composite.
 		Composite compo = new Composite(group, SWT.NONE);
+		compo.setBackgroundMode(SWT.INHERIT_FORCE);
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 
@@ -304,6 +305,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The three File Dialog Buttons (and a alignment/filler Label),
 		// all wrapped in a composite.
 		Composite compo = new Composite(group, SWT.NONE);
+		compo.setBackgroundMode(SWT.INHERIT_FORCE);
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		compo.setLayout(new GridLayout(4, false));
 

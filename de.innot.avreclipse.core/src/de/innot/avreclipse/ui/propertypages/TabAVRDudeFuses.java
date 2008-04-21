@@ -227,6 +227,7 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		// The three File Dialog Buttons (and a alignment/filler Label),
 		// all wrapped in a composite.
 		Composite compo = new Composite(parent, SWT.NONE);
+		compo.setBackgroundMode(SWT.INHERIT_FORCE);
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 4, 1));
 		compo.setLayout(new GridLayout(4, false));
 
@@ -293,6 +294,7 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		// add the read button
 		fFusesReadButton = new Button(parent, SWT.PUSH);
 		fFusesReadButton.setText(TEXT_READDEVICE);
+		fFusesReadButton.setBackground(parent.getBackground());
 		GridData editbuttonGD = new GridData(SWT.FILL, SWT.TOP, false, false);
 		fFusesReadButton.setLayoutData(editbuttonGD);
 		fFusesReadButton.addSelectionListener(new SelectionAdapter() {
@@ -305,6 +307,7 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		// add the copy button
 		fFusesCopyButton = new Button(parent, SWT.PUSH);
 		fFusesCopyButton.setText(TEXT_COPYFILE);
+		fFusesCopyButton.setBackground(parent.getBackground());
 		GridData copybuttonGD = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
 		fFusesCopyButton.setLayoutData(copybuttonGD);
 

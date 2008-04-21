@@ -206,6 +206,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 
 		// Read Button
 		Button readButton = setupButton(fCounterOptionsComposite, TEXT_READBUTTON, 1, SWT.NONE);
+		readButton.setBackground(parent.getBackground());
 		readButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -215,6 +216,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 
 		// Write Button
 		Button writeButton = setupButton(fCounterOptionsComposite, TEXT_WRITEBUTTON, 1, SWT.NONE);
+		writeButton.setBackground(parent.getBackground());
 		writeButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

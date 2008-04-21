@@ -112,7 +112,8 @@ public class PageAVRDude extends AbstractAVRPage {
 
 		// Now add the avrdude command preview box
 		// This is am ExpandableComposite...
-		fPreviewCompo = new ExpandableComposite(fSashForm, SWT.NONE);
+		fPreviewCompo = new ExpandableComposite(fSashForm, SWT.NONE,
+		        ExpandableComposite.CLIENT_INDENT | ExpandableComposite.TWISTIE);
 		fPreviewCompo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fPreviewCompo.setLayout(new GridLayout(1, false));
 		fPreviewCompo.setText(TEXT_PREVIEW);

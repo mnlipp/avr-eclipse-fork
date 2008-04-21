@@ -151,6 +151,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 
 		// Edit... Button
 		Button editButton = setupButton(configgroup, TEXT_EDITBUTTON, 1, SWT.NONE);
+		editButton.setBackground(parent.getBackground());
 		editButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -160,6 +161,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 
 		// New... Button
 		Button newButton = setupButton(configgroup, TEXT_NEWBUTTON, 1, SWT.NONE);
+		newButton.setBackground(parent.getBackground());
 		newButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
