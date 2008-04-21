@@ -15,6 +15,8 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import java.text.MessageFormat;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -81,7 +83,7 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 	 */
 	public static void openAVRDudeError(Shell parentShell, Throwable exc,
 			ProgrammerConfig config) {
-		String message;
+		String message, source;
 
 		if (exc instanceof AVRDudeException) {
 			AVRDudeException avrdudeexc = (AVRDudeException) exc;
@@ -129,24 +131,22 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					message = "AVRDude can not find its default configuration file.\n\n"
 							+ "Check your avrdude setup.";
 				} else {
-					message = "AVRDude can not find configuration file ["
-							+ customconfig
-							+ "].\n\n"
+					source = "AVRDude can not find configuration file [{0}].\n\n"
 							+ "Check in the AVRDude Preferences if the path to the custom avrdude configuration file is correct\n"
 							+ "(Window > Preferences... -> AVR -> AVRDude)";
+					message = MessageFormat.format(source, customconfig);
 				}
 				break;
-				
+
 			case NO_PROGRAMMER:
 				message = "No Programmer selected\n\n"
-					+"Check the avrdude properties for the project.";
+						+ "Check the avrdude properties for the project.";
 				break;
 
 			case UNKNOWN_PROGRAMMER:
-				message = "AVRDude does not recognize the selected programmer id "
-						+ programmer
-						+ ".\n\n"
+				source = "AVRDude does not recognize the selected programmer id {0}\n\n"
 						+ "Check the current Programmer Configuration.";
+				message = MessageFormat.format(source, programmer);
 				break;
 
 			case UNKNOWN_MCU:
@@ -155,24 +155,27 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 				break;
 
 			case TIMEOUT:
-				message = "Operation timed out while trying to access the avrdude programmer "
-						+ programmer
-						+ ".\n\n"
+				source = "Operation timed out while trying to access the avrdude programmer {0}\n\n"
 						+ "Check that the Programmer is connected and switched on.";
+				message = MessageFormat.format(source, programmer);
 				break;
 
 			case PORT_BLOCKED:
-				message = "The port "
-						+ port
-						+ " for the Programmer "
-						+ programmer
-						+ " is blocked.\n\n"
+				source = "The port {0} for the Programmer {1} is blocked.\n\n"
 						+ "Check that no other instances of AVRDude or any other programm is using the port";
+				message = MessageFormat.format(source, port, programmer);
 				break;
+
+			case PARSE_ERROR:
+				message = "Could not understand the output from AVRDude.\n"
+						+ "You probably have newer AVRDude version with a changed output format.\n\n"
+						+ "Please contact the AVR Eclipse Plugin maintainer to have this fixed.\n"
+						+ "https://sourceforge.net/projects/avr-eclipse/";
 
 			default:
 				message = "An unhandled Error occured while accessing AVRDude.\n\n"
-						+ "See below for details and report this error the the Plugin author";
+						+ "See below for details and report this error the the Plugin maintainer.\n"
+						+ "https://sourceforge.net/projects/avr-eclipse/";
 			}
 
 		} else {
