@@ -18,16 +18,16 @@ package de.innot.avreclipse.core.avrdude;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
 /**
- * A simple SchedulingRule to prevent avrdude from being started multiple times
- * (which would probably result in a PORT_BLOCKED Exception).
+ * A simple SchedulingRule to prevent avrdude from being started multiple times (which would
+ * probably result in a PORT_BLOCKED Exception).
  * <p>
- * Instances of this Rule can should be added to all Jobs that run avrdude and
- * will cause actual access to a programmer.
+ * Instances of this Rule can should be added to all Jobs that run avrdude and will cause actual
+ * access to a programmer.
  * </p>
  * <p>
- * The rule will try to determine conflicts by comparing the ProgrammerConfig of
- * this Rule with that of an conflicting rule. If there is a chance that both
- * configs use the same port, this rule will report a conflict.
+ * The rule will try to determine conflicts by comparing the ProgrammerConfig of this Rule with that
+ * of an conflicting rule. If there is a chance that both configs use the same port, this rule will
+ * report a conflict.
  * </p>
  * 
  * @author Thomas Holland
@@ -37,7 +37,7 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 public class AVRDudeSchedulingRule implements ISchedulingRule {
 
 	/** The Config to determine which port avrdude is currently running on */
-	private ProgrammerConfig fProgrammerConfig;
+	private final ProgrammerConfig	fProgrammerConfig;
 
 	/**
 	 * Creates a new SchedulingRule for the given ProgrammerConfig.
@@ -72,8 +72,18 @@ public class AVRDudeSchedulingRule implements ISchedulingRule {
 			// Don't care about other Rules
 			return false;
 
+		// But conflict with ourself
+		if (rule == this)
+			return true;
+
 		AVRDudeSchedulingRule testrule = (AVRDudeSchedulingRule) rule;
 		ProgrammerConfig testcfg = testrule.fProgrammerConfig;
+
+		// if either config is null we have no conflict (because the call to avrdude will fail
+		// anyway)
+		if (fProgrammerConfig == null || testcfg == null) {
+			return false;
+		}
 
 		// We only have no conflict for sure, if the Programmers are the same...
 		if (fProgrammerConfig.getProgrammer().equals(testcfg.getProgrammer())) {
