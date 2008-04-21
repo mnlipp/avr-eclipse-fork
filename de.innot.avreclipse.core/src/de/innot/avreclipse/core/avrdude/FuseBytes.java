@@ -26,17 +26,17 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
 
 /**
  * Container for the Fuse Byte values.
  * <p>
- * This class has two modes. Depending on the {@link #fUseFile} flag, it will
- * either read the fuse values from a supplied file or stores the actual
- * fusebytes. The mode is selected by the user in the Properties user interface.
+ * This class has two modes. Depending on the {@link #fUseFile} flag, it will either read the fuse
+ * values from a supplied file or stores the actual fusebytes. The mode is selected by the user in
+ * the Properties user interface.
  * </p>
  * <p>
- * This class can be used either standalone or as part of the
- * AVRProjectProperties structure.
+ * This class can be used either standalone or as part of the AVRProjectProperties structure.
  * </p>
  * 
  * @author Thomas Holland
@@ -46,11 +46,14 @@ import de.innot.avreclipse.core.properties.AVRDudeProperties;
 public class FuseBytes {
 
 	/** Maximum number of Fuse Bytes supported. */
-	public final static int MAX_FUSEBYTES = 3;
+	public final static int			MAX_FUSEBYTES			= 3;
+
+	/** Empty fusebytes */
+	public final static int[]		EMPTY_FUSES				= new int[] { -1, -1, -1 };
 
 	/** The MCU id for which the current fuse byte values are valid */
-	private String fMCUid;
-	private static final String KEY_FUSEMCUID = "FuseMCUid";
+	private String					fMCUid;
+	private static final String		KEY_FUSEMCUID			= "FuseMCUid";
 
 	/**
 	 * Use fuses file flag.
@@ -61,9 +64,9 @@ public class FuseBytes {
 	 * If <code>false</code> the values from {@link #fFuseValues} are used.
 	 * </p>
 	 */
-	private boolean fUseFile;
-	private final static String KEY_USEFUSEFILE = "UseFuseFile";
-	private final static boolean DEFAULT_USEFUSESFILE = false;
+	private boolean					fUseFile;
+	private final static String		KEY_USEFUSEFILE			= "UseFuseFile";
+	private final static boolean	DEFAULT_USEFUSESFILE	= false;
 
 	/**
 	 * The name of the fuses file.
@@ -71,13 +74,13 @@ public class FuseBytes {
 	 * This is used when the {@link #fUseFile} flag is <code>true</code>.
 	 * </p>
 	 * <p>
-	 * The name can contain macros. They can be resolved by the caller or with
-	 * the {@link #getFusesFileResolved(IConfiguration)} method.
+	 * The name can contain macros. They can be resolved by the caller or with the
+	 * {@link #getFusesFileResolved(IConfiguration)} method.
 	 * </p>
 	 */
-	private String fFusesFile;
-	private final static String KEY_FUSESFILE = "FusesFile";
-	private final static String DEFAULT_FUSESFILE = "";
+	private String					fFusesFile;
+	private final static String		KEY_FUSESFILE			= "FusesFile";
+	private final static String		DEFAULT_FUSESFILE		= "";
 
 	/**
 	 * The current fuse byte values.
@@ -85,44 +88,41 @@ public class FuseBytes {
 	 * This is used when the {@link #fUseFile} flag is <code>false</code>.
 	 * </p>
 	 */
-	private int[] fFuseValues = new int[MAX_FUSEBYTES];
-	private final static String KEY_FUSEVALUES = "FuseValues";
-	private final static String SEPARATOR = ":";
+	private final FuseByteValues	fFuseValues;
+	private final static String		KEY_FUSEVALUES			= "FuseValues";
+	private final static String		SEPARATOR				= ":";
 
 	/**
-	 * The <code>Preferences</code> used to read / save the current
-	 * properties.
+	 * The <code>Preferences</code> used to read / save the current properties.
 	 * 
 	 */
-	private Preferences fPrefs;
+	private final Preferences		fPrefs;
 
 	/**
-	 * The Parent <code>AVRDudeProperties</code>. Can be <code>null</code>
-	 * if this class is used in stand alone mode.
+	 * The Parent <code>AVRDudeProperties</code>. Can be <code>null</code> if this class is
+	 * used in stand alone mode.
 	 * 
 	 */
-	private AVRDudeProperties fParent;
+	private final AVRDudeProperties	fParent;
 
 	/** <code>true</code> if the properties have been modified and need saving. */
-	private boolean fDirty = false;
+	private boolean					fDirty					= false;
 
 	/**
-	 * Create a new FuseBytes object and load the properties from the
-	 * Preferences.
+	 * Create a new FuseBytes object and load the properties from the Preferences.
 	 * <p>
-	 * If the given Preferences has no saved properties yet, the default values
-	 * are used.
+	 * If the given Preferences has no saved properties yet, the default values are used.
 	 * </p>
 	 * 
 	 * @param prefs
 	 *            <code>Preferences</code> to read the properties from.
 	 * @param parent
-	 *            Reference to the <code>AVRDudeProperties</code> parent
-	 *            object.
+	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 */
 	public FuseBytes(Preferences prefs, AVRDudeProperties parent) {
 		fPrefs = prefs;
 		fParent = parent;
+		fFuseValues = new FuseByteValues(parent.getParent().getMCUId());
 
 		loadFuseBytes();
 	}
@@ -130,15 +130,13 @@ public class FuseBytes {
 	/**
 	 * Create a new FuseBytes object and copy from the given FuseByte object.
 	 * <p>
-	 * All values from the source are copied, except for the source Preferences
-	 * and the Parent.
+	 * All values from the source are copied, except for the source Preferences and the Parent.
 	 * </p>
 	 * 
 	 * @param prefs
 	 *            <code>Preferences</code> to read the properties from.
 	 * @param parent
-	 *            Reference to the <code>AVRDudeProperties</code> parent
-	 *            object.
+	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 * @param source
 	 *            <code>FuseBytes</code> object to copy.
 	 */
@@ -149,7 +147,7 @@ public class FuseBytes {
 		fMCUid = source.fMCUid;
 
 		fUseFile = source.fUseFile;
-		System.arraycopy(source.fFuseValues, 0, fFuseValues, 0, MAX_FUSEBYTES);
+		fFuseValues = new FuseByteValues(source.fFuseValues);
 	}
 
 	/**
@@ -165,16 +163,15 @@ public class FuseBytes {
 	}
 
 	/**
-	 * Tells this class that the current fuse byte values are valid for the
-	 * given MCU.
+	 * Tells this class that the current fuse byte values are valid for the given MCU.
 	 * <p>
-	 * Use this method with care, as there will be no checks if the current
-	 * values actually make sense for the new MCU type.
+	 * Use this method with care, as there will be no checks if the current values actually make
+	 * sense for the new MCU type.
 	 * </p>
 	 * <p>
-	 * The new setting is only valid for the internally stored values. If a
-	 * fuses file is used it is not affected and a call to {@link #getMCUId()}
-	 * will return the mcu from the fuses file, not this one.
+	 * The new setting is only valid for the internally stored values. If a fuses file is used it is
+	 * not affected and a call to {@link #getMCUId()} will return the mcu from the fuses file, not
+	 * this one.
 	 * </p>
 	 * 
 	 * @param mcuid
@@ -190,9 +187,8 @@ public class FuseBytes {
 	 * @see #getFuseValue(int)
 	 * @see #getFuseValues()
 	 * 
-	 * @return <code>true</code> if the fuse values are taken from a file,
-	 *         <code>false</code> if the values stored in this object are
-	 *         used.
+	 * @return <code>true</code> if the fuse values are taken from a file, <code>false</code> if
+	 *         the values stored in this object are used.
 	 */
 	public boolean getUseFile() {
 		return fUseFile;
@@ -207,9 +203,8 @@ public class FuseBytes {
 	 * 
 	 * 
 	 * @param usefile
-	 *            <code>true</code> if the fuse values should be read from the
-	 *            file, <code>false</code> if the values stored in this object
-	 *            are used.
+	 *            <code>true</code> if the fuse values should be read from the file,
+	 *            <code>false</code> if the values stored in this object are used.
 	 */
 	public void setUseFile(boolean usefile) {
 		if (fUseFile != usefile) {
@@ -221,15 +216,14 @@ public class FuseBytes {
 	/**
 	 * Get the current name of the fuses file with all macros resolved.
 	 * <p>
-	 * Note: The returned path may still be OS independent and needs to be
-	 * converted to an OS specific path (e.g. with
-	 * <code>new Path(resolvedname).toOSString()</code>
+	 * Note: The returned path may still be OS independent and needs to be converted to an OS
+	 * specific path (e.g. with <code>new Path(resolvedname).toOSString()</code>
 	 * </p>
 	 * 
 	 * @param buildcfg
 	 *            <code>IConfiguration</code> with the macro context.
-	 * @return <code>String</code> with the resolved fuses filename. May be
-	 *         empty and may not point to an actual or valid fuses file.
+	 * @return <code>String</code> with the resolved fuses filename. May be empty and may not
+	 *         point to an actual or valid fuses file.
 	 */
 	public String getFusesFileResolved(IConfiguration buildcfg) {
 		return resolveMacros(buildcfg, fFusesFile);
@@ -241,8 +235,8 @@ public class FuseBytes {
 	 * The returned string may still contain macros.
 	 * </p>
 	 * 
-	 * @return <code>String</code> with the name of the fuses file. May be
-	 *         empty and may not point to an actual or valid fuses file.
+	 * @return <code>String</code> with the name of the fuses file. May be empty and may not point
+	 *         to an actual or valid fuses file.
 	 */
 	public String getFusesFile() {
 		return fFusesFile;
@@ -251,8 +245,7 @@ public class FuseBytes {
 	/**
 	 * Set the name of the fuses file.
 	 * <p>
-	 * The given filename is stored as-is. There are no checks if the file is
-	 * valid or even exists.
+	 * The given filename is stored as-is. There are no checks if the file is valid or even exists.
 	 * </p>
 	 * 
 	 * @param fusesfile
@@ -268,39 +261,33 @@ public class FuseBytes {
 	/**
 	 * Get all current fuse byte values.
 	 * <p>
-	 * Get all fuse bytes according to the current setting either from a file or
-	 * from the object storage.
+	 * Get all fuse bytes according to the current setting either from a file or from the object
+	 * storage.
 	 * </p>
 	 * <p>
-	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no
-	 * value was set.
+	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p>
 	 * <p>
-	 * This always returns the maximum number of values, regardless of the
-	 * number of fuse bytes of the current MCU. It is up to the caller to use
-	 * only those values actually supported.
+	 * This always returns the maximum number of values, regardless of the number of fuse bytes of
+	 * the current MCU. It is up to the caller to use only those values actually supported.
 	 * </p>
 	 * 
 	 * 
 	 * @return Array of <code>int</code> with all fuse byte values.
 	 */
 	public int[] getFuseValues() {
-		if (fUseFile) {
-			return getFuseValuesFromFile();
-		}
+		if (fUseFile) { return getFuseValuesFromFile(); }
 		return getFuseValuesFromObject();
 	}
 
 	/**
 	 * Get all current fuse byte values from the fuses file.
 	 * <p>
-	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no
-	 * value was set.
+	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p>
 	 * <p>
-	 * This always returns the maximum number of values, regardless of the
-	 * number of fuse bytes of the current MCU. It is up to the caller to use
-	 * only those values actually supported.
+	 * This always returns the maximum number of values, regardless of the number of fuse bytes of
+	 * the current MCU. It is up to the caller to use only those values actually supported.
 	 * </p>
 	 * 
 	 * 
@@ -314,28 +301,24 @@ public class FuseBytes {
 	/**
 	 * Get all current fuse byte values stored in the object.
 	 * <p>
-	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no
-	 * value was set.
+	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p>
 	 * <p>
-	 * This always returns the maximum number of values, regardless of the
-	 * number of fuse bytes of the current MCU. It is up to the caller to use
-	 * only those values actually supported.
+	 * This always returns the maximum number of values, regardless of the number of fuse bytes of
+	 * the current MCU. It is up to the caller to use only those values actually supported.
 	 * </p>
 	 * 
 	 * @return Array of <code>int</code> with all fuse byte values.
 	 */
 	public int[] getFuseValuesFromObject() {
-		int[] copy = new int[fFuseValues.length];
-		System.arraycopy(fFuseValues, 0, copy, 0, fFuseValues.length);
-		return copy;
+		return fFuseValues.getValues();
 	}
 
 	/**
 	 * Sets the values of all fuse bytes in the object.
 	 * <p>
-	 * Even with the "Use Fuses File" flag set, this method will set the values
-	 * stored in the object.
+	 * Even with the "Use Fuses File" flag set, this method will set the values stored in the
+	 * object.
 	 * </p>
 	 * 
 	 * @see #setFuseValue(int, int)
@@ -343,14 +326,13 @@ public class FuseBytes {
 	 * @param values
 	 *            Array of <code>int</code> with the new values.
 	 * @throws IllegalArgumentException
-	 *             if any value in the array is not a byte value or not
-	 *             <code>-1</code>
+	 *             if any value in the array is not a byte value or not <code>-1</code>
 	 */
 	public void setFuseValues(int[] values) {
 		// While values[].length should be equal to the length of the internal
 		// field (and equal to MAX_FUSEBYTES), we use this to avoid any
 		// OutOfBoundExceptions
-		int min = Math.min(values.length, fFuseValues.length);
+		int min = Math.min(values.length, MAX_FUSEBYTES);
 
 		// Set all individual values. setFuseValue() will take care of setting
 		// the dirty flag as needed.
@@ -362,19 +344,17 @@ public class FuseBytes {
 	/**
 	 * Get a single Fuse byte value.
 	 * <p>
-	 * Get the fuse byte according to the current setting either from a file or
-	 * from the object storage.
+	 * Get the fuse byte according to the current setting either from a file or from the object
+	 * storage.
 	 * </p>
 	 * 
 	 * @param index
 	 *            The fuse byte to read. Must be between 0 and 2
-	 * @return <code>int</code> with the byte value or <code>-1</code> if
-	 *         the value was not set or the index is out of bounds.
+	 * @return <code>int</code> with the byte value or <code>-1</code> if the value was not set
+	 *         or the index is out of bounds.
 	 */
 	public int getFuseValue(int index) {
-		if (!(0 <= index && index < MAX_FUSEBYTES)) {
-			return -1;
-		}
+		if (!(0 <= index && index < MAX_FUSEBYTES)) { return -1; }
 
 		// getFuseValues() will take care of the "use fuses file" flag and
 		// return the relevant fusebyte values.
@@ -385,31 +365,26 @@ public class FuseBytes {
 	/**
 	 * Set a single Fuse byte value.
 	 * <p>
-	 * The value is always written to the object storage, regardless of the "Use
-	 * Fuses File" flag.
+	 * The value is always written to the object storage, regardless of the "Use Fuses File" flag.
 	 * </p>
 	 * 
 	 * @param index
 	 *            The fuse byte to set. Must be between 0 and 2
 	 * @param value
-	 *            <code>int</code> with the byte value (0-255) or
-	 *            <code>-1</code> to unset the value.
+	 *            <code>int</code> with the byte value (0-255) or <code>-1</code> to unset the
+	 *            value.
 	 * @throws IllegalArgumentException
-	 *             if the index is out of bounds (0-2) or the value is out of
-	 *             range (-1 to 255)
+	 *             if the index is out of bounds (0-2) or the value is out of range (-1 to 255)
 	 */
 	public void setFuseValue(int index, int value) {
-		if (!(0 <= index && index < MAX_FUSEBYTES)) {
-			throw new IllegalArgumentException("invalid fusebyte index:" + index
-			        + " (must be between 0 and " + MAX_FUSEBYTES + ")");
-		}
-		if (!(-1 <= value && value <= 255)) {
-			throw new IllegalArgumentException("invalid value:" + index
-			        + " (must be between 0 and 255)");
-		}
+		if (!(0 <= index && index < MAX_FUSEBYTES)) { throw new IllegalArgumentException(
+				"invalid fusebyte index:" + index + " (must be between 0 and " + MAX_FUSEBYTES
+						+ ")"); }
+		if (!(-1 <= value && value <= 255)) { throw new IllegalArgumentException("invalid value:"
+				+ index + " (must be between 0 and 255)"); }
 
-		if (fFuseValues[index] != value) {
-			fFuseValues[index] = value;
+		if (fFuseValues.getValue(index) != value) {
+			fFuseValues.setValue(index, value);
 			fDirty = true;
 		}
 	}
@@ -424,10 +399,9 @@ public class FuseBytes {
 	/**
 	 * Get the list of avrdude arguments required to write all fuse bytes.
 	 * <p>
-	 * Note: This method does <strong>not</strong> set the "-u" flag to disable
-	 * the safemode. It is up to the caller to add this flag. If the "disable
-	 * safemode" flag is not set, avrdude will restore the previous fusebyte
-	 * values after the new values have been written.
+	 * Note: This method does <strong>not</strong> set the "-u" flag to disable the safemode. It is
+	 * up to the caller to add this flag. If the "disable safemode" flag is not set, avrdude will
+	 * restore the previous fusebyte values after the new values have been written.
 	 * </p>
 	 * 
 	 * @return <code>List&lt;String&gt;</code> with avrdude action options.
@@ -435,13 +409,13 @@ public class FuseBytes {
 	public List<String> getArguments(String mcuid) {
 		List<String> args = new ArrayList<String>();
 
-		if (!isValidFor(mcuid)) {
+		if (!isCompatibleWith(mcuid)) {
 			// If the fuse bytes are not valid (mismatch between read and
 			// assigned mcu id) return an empty list,
 			return args;
 		}
 
-		int[] fusevalues = fFuseValues;
+		int[] fusevalues = getFuseValues();
 
 		if (fUseFile) {
 			// Use a fuses file
@@ -465,8 +439,7 @@ public class FuseBytes {
 	/**
 	 * Load the properties from the Preferences.
 	 * <p>
-	 * The <code>Preferences</code> object used is set in the constructor of
-	 * this class.
+	 * The <code>Preferences</code> object used is set in the constructor of this class.
 	 * </p>
 	 * 
 	 */
@@ -482,14 +455,16 @@ public class FuseBytes {
 
 		String fusevaluestring = fPrefs.get(KEY_FUSEVALUES, "");
 
+		// Clear the old values
+		fFuseValues.setValues(EMPTY_FUSES);
+
 		// split the values
 		String[] values = fusevaluestring.split(SEPARATOR);
-		for (int i = 0; i < values.length && i < MAX_FUSEBYTES; i++) {
+		int count = Math.min(values.length, MAX_FUSEBYTES);
+		for (int i = 0; i < count; i++) {
 			String value = values[i];
 			if (value.length() != 0) {
-				fFuseValues[i] = Integer.parseInt(values[i]);
-			} else {
-				fFuseValues[i] = -1;
+				fFuseValues.setValue(i, Integer.parseInt(values[i]));
 			}
 		}
 
@@ -498,8 +473,7 @@ public class FuseBytes {
 	/**
 	 * Save the current property values to the Preferences.
 	 * <p>
-	 * The <code>Preferences</code> object used is set in the constructor of
-	 * this class.
+	 * The <code>Preferences</code> object used is set in the constructor of this class.
 	 * </p>
 	 * 
 	 * @throws BackingStoreException
@@ -511,9 +485,10 @@ public class FuseBytes {
 			fPrefs.put(KEY_FUSESFILE, fFusesFile);
 
 			// convert the values to a single String
-			StringBuffer sb = new StringBuffer(fFuseValues[0]);
-			for (int i = 1; i < MAX_FUSEBYTES; i++) {
-				sb.append(SEPARATOR + fFuseValues[i]);
+			StringBuilder sb = new StringBuilder(20);
+			for (int i = 0; i < MAX_FUSEBYTES; i++) {
+				if (i > 0) sb.append(SEPARATOR);
+				sb.append(fFuseValues.getValue(i));
 			}
 			fPrefs.put(KEY_FUSEVALUES, sb.toString());
 
@@ -524,8 +499,8 @@ public class FuseBytes {
 	/**
 	 * Resolve all CDT macros in the given string.
 	 * <p>
-	 * If the string did not contain macros or the macros could not be resolved,
-	 * the original string is returned.
+	 * If the string did not contain macros or the macros could not be resolved, the original string
+	 * is returned.
 	 * </p>
 	 * 
 	 * @param buildcfg
@@ -542,7 +517,7 @@ public class FuseBytes {
 
 		try {
 			resolvedstring = provider.resolveValue(string,
-			        "", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
+					"", " ", IBuildMacroProvider.CONTEXT_CONFIGURATION, buildcfg); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (BuildMacroException e) {
 			// Do nothing = return the original string
 		}
@@ -553,11 +528,11 @@ public class FuseBytes {
 	/**
 	 * Test if this Object is valid for the given MCU.
 	 * 
-	 * @return <code>true</code> if the current fuse byte values (either
-	 *         immediate or from a file) are valid for the given MCU id.
+	 * @return <code>true</code> if the current fuse byte values (either immediate or from a file)
+	 *         are valid for the given MCU id.
 	 * 
 	 */
-	public boolean isValidFor(String mcuid) {
+	public boolean isCompatibleWith(String mcuid) {
 		if (fUseFile) {
 			// TODO: Check against the file
 			return false;
