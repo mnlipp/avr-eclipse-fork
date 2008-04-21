@@ -41,19 +41,17 @@ import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 /**
  * Launch external programs.
  * <p>
- * This is a wrapper around the <code>java.lang.ProcessBuilder</code> to
- * launch external programs and fetch their results.
+ * This is a wrapper around the <code>java.lang.ProcessBuilder</code> to launch external programs
+ * and fetch their results.
  * </p>
  * <p>
- * The results of the program run are stored in two
- * <code>List&lt;String&gt;</code> arrays, one for the stdout and one for
- * stderr. Receivers can also register a {@link ICommandOutputListener} to get
- * the output line by line while it is generated, for example to update the user
- * interface.
+ * The results of the program run are stored in two <code>List&lt;String&gt;</code> arrays, one
+ * for the stdout and one for stderr. Receivers can also register a {@link ICommandOutputListener}
+ * to get the output line by line while it is generated, for example to update the user interface.
  * </p>
  * <p>
- * Optionally an <code>IProgressMonitor</code> can be passed to the launch
- * method to cancel running commands
+ * Optionally an <code>IProgressMonitor</code> can be passed to the launch method to cancel
+ * running commands
  * </p>
  * 
  * @author Thomas Holland
@@ -63,52 +61,52 @@ import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 public class ExternalCommandLauncher {
 
 	/** Lock for internal synchronization */
-	private Object fRunLock;
+	private final Object			fRunLock;
 
-	private ProcessBuilder fProcessBuilder;
+	private final ProcessBuilder	fProcessBuilder;
 
-	private List<String> fStdOut;
-	private List<String> fStdErr;
+	private List<String>			fStdOut;
+	private List<String>			fStdErr;
 
 	/** The listener to be informed about each new line of output */
-	private ICommandOutputListener fLogEventListener = null;
+	private ICommandOutputListener	fLogEventListener	= null;
 
-	private MessageConsole fConsole = null;
+	private MessageConsole			fConsole			= null;
 
-	private final static Color COLOR_STDOUT = PlatformUI.getWorkbench().getDisplay()
-	        .getSystemColor(SWT.COLOR_DARK_GREEN);
-	private final static Color COLOR_STDERR = PlatformUI.getWorkbench().getDisplay()
-	        .getSystemColor(SWT.COLOR_DARK_RED);
+	private final static Color		COLOR_STDOUT		= PlatformUI.getWorkbench().getDisplay()
+																.getSystemColor(
+																		SWT.COLOR_DARK_GREEN);
+	private final static Color		COLOR_STDERR		= PlatformUI.getWorkbench().getDisplay()
+																.getSystemColor(SWT.COLOR_DARK_RED);
 
 	/**
-	 * A runnable class that will read a Stream until EOF, storing each line in
-	 * a List and also calling a listener for each line.
+	 * A runnable class that will read a Stream until EOF, storing each line in a List and also
+	 * calling a listener for each line.
 	 */
 	private class LogStreamRunner implements Runnable {
 
-		private BufferedReader fReader;
-		private List<String> fLog;
-		private StreamSource fSource;
-		private MessageConsoleStream fConsoleOutput = null;
+		private final BufferedReader	fReader;
+		private final List<String>		fLog;
+		private final StreamSource		fSource;
+		private MessageConsoleStream	fConsoleOutput	= null;
 
 		/**
-		 * Construct a Streamrunner that will read the given InputStream and log
-		 * all lines in the given List.
+		 * Construct a Streamrunner that will read the given InputStream and log all lines in the
+		 * given List.
 		 * <p>
-		 * If a valid <code>OutputStream</code> is set, everything read by
-		 * this <code>LogStreamRunner</code> is also written to it.
+		 * If a valid <code>OutputStream</code> is set, everything read by this
+		 * <code>LogStreamRunner</code> is also written to it.
 		 * 
 		 * @param instream
 		 *            <code>InputStream</code> to read
 		 * @param log
-		 *            <code>List&lt;String&gt;</code> where all lines of the
-		 *            instream are stored
+		 *            <code>List&lt;String&gt;</code> where all lines of the instream are stored
 		 * @param consolestream
-		 *            <code>OutputStream</code> for secondary console output,
-		 *            or <code>null</code> for no console output.
+		 *            <code>OutputStream</code> for secondary console output, or <code>null</code>
+		 *            for no console output.
 		 */
 		public LogStreamRunner(InputStream instream, StreamSource source, List<String> log,
-		        MessageConsoleStream consolestream) {
+				MessageConsoleStream consolestream) {
 			fReader = new BufferedReader(new InputStreamReader(instream));
 			fSource = source;
 			fLog = log;
@@ -146,7 +144,7 @@ public class ExternalCommandLauncher {
 			} catch (IOException e) {
 				// This is unlikely to happen, but log it nevertheless
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				        "I/O Error reading output", e);
+						"I/O Error reading output", e);
 				AVRPlugin.getDefault().log(status);
 			} finally {
 				try {
@@ -163,14 +161,13 @@ public class ExternalCommandLauncher {
 	}
 
 	/**
-	 * Creates a new ExternalCommandLauncher for the given command and a list of
-	 * arguments.
+	 * Creates a new ExternalCommandLauncher for the given command and a list of arguments.
 	 * 
 	 * @param command
 	 *            <code>String</code> with the command
 	 * @param arguments
-	 *            <code>List&lt;String&gt;</code> with all arguments or
-	 *            <code>null</code> if no arguments
+	 *            <code>List&lt;String&gt;</code> with all arguments or <code>null</code> if no
+	 *            arguments
 	 */
 	public ExternalCommandLauncher(String command, List<String> arguments) {
 		Assert.isNotNull(command);
@@ -198,16 +195,14 @@ public class ExternalCommandLauncher {
 	 * <p>
 	 * This method blocks until the external program has finished.
 	 * <p>
-	 * The output from <code>stdout</code> can be retrieved with
-	 * {@link #getStdOut()}, the output from <code>stderr</code> likewise
-	 * with {@link #getStdErr()}.
+	 * The output from <code>stdout</code> can be retrieved with {@link #getStdOut()}, the output
+	 * from <code>stderr</code> likewise with {@link #getStdErr()}.
 	 * </p>
 	 * 
 	 * @see java.lang.Process
 	 * @see java.lang.ProcessBuilder#start()
 	 * 
-	 * @return Result code of the external program. Usually <code>0</code>
-	 *         means successful.
+	 * @return Result code of the external program. Usually <code>0</code> means successful.
 	 * @throws IOException
 	 *             An Exception from the underlying Process.
 	 */
@@ -218,22 +213,20 @@ public class ExternalCommandLauncher {
 	/**
 	 * Launch the external program with a ProgressMonitor.
 	 * <p>
-	 * This method blocks until the external program has finished or the
-	 * ProgressMonitor is canceled.
+	 * This method blocks until the external program has finished or the ProgressMonitor is
+	 * canceled.
 	 * <p>
-	 * The output from <code>stdout</code> can be retrieved with
-	 * {@link #getStdOut()}, the output from <code>stderr</code> likewise
-	 * with {@link #getStdErr()}.
+	 * The output from <code>stdout</code> can be retrieved with {@link #getStdOut()}, the output
+	 * from <code>stderr</code> likewise with {@link #getStdErr()}.
 	 * </p>
 	 * 
 	 * @see java.lang.Process
 	 * @see java.lang.ProcessBuilder#start()
 	 * 
 	 * @param monitor
-	 *            A <code>IProgressMonitor</code> to cancel the running
-	 *            external program
-	 * @return Result code of the external program. Usually <code>0</code>
-	 *         means successful. A canceled program will return <code>-1</code>
+	 *            A <code>IProgressMonitor</code> to cancel the running external program
+	 * @return Result code of the external program. Usually <code>0</code> means successful. A
+	 *         canceled program will return <code>-1</code>
 	 * @throws IOException
 	 *             An Exception from the underlying Process.
 	 */
@@ -270,7 +263,8 @@ public class ExternalCommandLauncher {
 			}
 			// Now print the Command line before any output is written to
 			// the console.
-			defaultConsoleStream.println("====================================================");
+			defaultConsoleStream.println();
+			defaultConsoleStream.println();
 			defaultConsoleStream.print("Launching ");
 			List<String> commandAndOptions = fProcessBuilder.command();
 			for (String str : commandAndOptions) {
@@ -300,9 +294,9 @@ public class ExternalCommandLauncher {
 			process = fProcessBuilder.start();
 
 			Thread stdoutRunner = new Thread(new LogStreamRunner(process.getInputStream(),
-			        StreamSource.STDOUT, fStdOut, stdoutConsoleStream));
+					StreamSource.STDOUT, fStdOut, stdoutConsoleStream));
 			Thread stderrRunner = new Thread(new LogStreamRunner(process.getErrorStream(),
-			        StreamSource.STDERR, fStdErr, stderrConsoleStream));
+					StreamSource.STDERR, fStdErr, stderrConsoleStream));
 
 			synchronized (fRunLock) {
 				// Wait either for the logrunners to terminate or the user to
@@ -343,52 +337,43 @@ public class ExternalCommandLauncher {
 			return -1;
 		} finally {
 			monitor.done();
-			if (defaultConsoleStream != null)
-				defaultConsoleStream.close();
-			if (stdoutConsoleStream != null)
-				stdoutConsoleStream.close();
-			if (stderrConsoleStream != null)
-				stderrConsoleStream.close();
+			if (defaultConsoleStream != null) defaultConsoleStream.close();
+			if (stdoutConsoleStream != null) stdoutConsoleStream.close();
+			if (stderrConsoleStream != null) stderrConsoleStream.close();
 		}
 		// if we make it to here, the process has run without any Exceptions
 		return process.exitValue();
 	}
 
 	/**
-	 * Returns the <code>stdout</code> output from the last external Program
-	 * launch.
+	 * Returns the <code>stdout</code> output from the last external Program launch.
 	 * 
-	 * @return <code>List&lt;String&gt;</code> with all lines or
-	 *         <code>null</code> if the external program has never been
-	 *         launched
+	 * @return <code>List&lt;String&gt;</code> with all lines or <code>null</code> if the
+	 *         external program has never been launched
 	 */
 	public List<String> getStdOut() {
 		return fStdOut;
 	}
 
 	/**
-	 * Returns the <code>stderr</code> output from the last external Program
-	 * launch.
+	 * Returns the <code>stderr</code> output from the last external Program launch.
 	 * 
-	 * @return <code>List&lt;String&gt;</code> with all lines or
-	 *         <code>null</code> if the external program has never been
-	 *         launched
+	 * @return <code>List&lt;String&gt;</code> with all lines or <code>null</code> if the
+	 *         external program has never been launched
 	 */
 	public List<String> getStdErr() {
 		return fStdErr;
 	}
 
 	/**
-	 * Sets a listener that will receive all lines from the external program
-	 * output as they are read.
+	 * Sets a listener that will receive all lines from the external program output as they are
+	 * read.
 	 * <p>
-	 * The listener can be used to update the user interface according to the
-	 * current output.
+	 * The listener can be used to update the user interface according to the current output.
 	 * </p>
 	 * 
 	 * @param listener
-	 *            Object implementing the {@link ICommandOutputListener}
-	 *            Interface.
+	 *            Object implementing the {@link ICommandOutputListener} Interface.
 	 */
 	public synchronized void setCommandOutputListener(ICommandOutputListener listener) {
 		Assert.isNotNull(listener);
@@ -398,8 +383,8 @@ public class ExternalCommandLauncher {
 	/**
 	 * Removes the current command output listener.
 	 * <p>
-	 * While it is safe to call this while an external program is running, it is
-	 * probably better to just ignore superfluous output.
+	 * While it is safe to call this while an external program is running, it is probably better to
+	 * just ignore superfluous output.
 	 * </p>
 	 */
 	public synchronized void removeCommandOutputListener() {
@@ -409,21 +394,19 @@ public class ExternalCommandLauncher {
 	/**
 	 * Redirects the <code>stderr</code> output to <code>stdout</code>.
 	 * <p>
-	 * Use this either when not sure which stream an external program writes its
-	 * output to (some programs, like avr-size.exe write their help output to
-	 * stderr), or when you like any error messages inserted into the normal
-	 * output stream for analysis
+	 * Use this either when not sure which stream an external program writes its output to (some
+	 * programs, like avr-size.exe write their help output to stderr), or when you like any error
+	 * messages inserted into the normal output stream for analysis
 	 * </p>
 	 * <p>
-	 * Note: The redirection takes place at system level, so a command output
-	 * listener will only receive the mixed output.
+	 * Note: The redirection takes place at system level, so a command output listener will only
+	 * receive the mixed output.
 	 * </p>
 	 * 
 	 * @see ProcessBuilder#redirectErrorStream(boolean)
 	 * 
 	 * @param redirect
-	 *            <code>true</code> to redirect <code>stderr</code> to
-	 *            <code>stdout</code>
+	 *            <code>true</code> to redirect <code>stderr</code> to <code>stdout</code>
 	 */
 	public void redirectErrorStream(boolean redirect) {
 		fProcessBuilder.redirectErrorStream(redirect);
@@ -432,18 +415,16 @@ public class ExternalCommandLauncher {
 	/**
 	 * Sets a Console where all output of the external command will go.
 	 * <p>
-	 * This is mostly for debugging. The output to the console is in addition to
-	 * the normal logging of this class.
+	 * This is mostly for debugging. The output to the console is in addition to the normal logging
+	 * of this class.
 	 * </p>
 	 * <p>
-	 * This method must be called before the {@link #launch()} method. Once the
-	 * external command has been launched, calling this method will not have any
-	 * effect.
+	 * This method must be called before the {@link #launch()} method. Once the external command has
+	 * been launched, calling this method will not have any effect.
 	 * </p>
 	 * 
 	 * @param console
-	 *            <code>MessageConsole</code> or <code>null</code> to
-	 *            disable console output.
+	 *            <code>MessageConsole</code> or <code>null</code> to disable console output.
 	 */
 	public void setConsole(MessageConsole console) {
 		fConsole = console;
@@ -452,29 +433,25 @@ public class ExternalCommandLauncher {
 	/**
 	 * Correctly enclose in quotes for Windows.
 	 * <p>
-	 * The Windows implementation of Java has problems, if an argument contains
-	 * at least one space and contains quotes. With a space ProcessBuilder will
-	 * automatically enclose the whole argument in quotes (good), but quotes in
-	 * the argument are not escaped (bad).
+	 * The Windows implementation of Java has problems, if an argument contains at least one space
+	 * and contains quotes. With a space ProcessBuilder will automatically enclose the whole
+	 * argument in quotes (good), but quotes in the argument are not escaped (bad).
 	 * </p>
 	 * <p>
-	 * This method is a workaround that will enclose the given String with
-	 * quotes if required, escaping all quotes with the string (again as
-	 * required).
+	 * This method is a workaround that will enclose the given String with quotes if required,
+	 * escaping all quotes with the string (again as required).
 	 * </p>
 	 * 
 	 * @see ProcessImpl
-	 * @see <a
-	 *      href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6468220">Sun
-	 *      Java Bug 6468220</a>
+	 * @see <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6468220">Sun Java Bug
+	 *      6468220</a>
 	 * 
 	 * @param s
 	 *            Source <code>String</code>
 	 * @return String enclosed in quotes and with inner quotes escaped.
 	 */
 	private String winQuote(String s) {
-		if (!needsQuoting(s))
-			return s;
+		if (!needsQuoting(s)) return s;
 		s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
 		s = s.replaceAll("([\\\\]*)\\z", "$1$1");
 		return "\"" + s + "\"";
@@ -484,8 +461,8 @@ public class ExternalCommandLauncher {
 	 * Test if a String argument needs to be encapsuled in quotes.
 	 * 
 	 * @param s
-	 * @return <code>true</code> if the given String contains characters which
-	 *         would required quoting the string.
+	 * @return <code>true</code> if the given String contains characters which would required
+	 *         quoting the string.
 	 */
 	private boolean needsQuoting(String s) {
 		int len = s.length();
@@ -493,11 +470,11 @@ public class ExternalCommandLauncher {
 			return true;
 		for (int i = 0; i < len; i++) {
 			switch (s.charAt(i)) {
-			case ' ':
-			case '\t':
-			case '\\':
-			case '"':
-				return true;
+				case ' ':
+				case '\t':
+				case '\\':
+				case '"':
+					return true;
 			}
 		}
 		return false;
