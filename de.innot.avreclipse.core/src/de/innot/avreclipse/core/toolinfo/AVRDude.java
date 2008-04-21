@@ -17,6 +17,7 @@ package de.innot.avreclipse.core.toolinfo;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ import org.eclipse.ui.console.MessageConsole;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
+import de.innot.avreclipse.core.avrdude.AVRDudeAction;
+import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
@@ -48,18 +51,19 @@ import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRDudePreferences;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
  * This class handles all interactions with the avrdude program.
  * <p>
- * It implements the {@link IMCUProvider} Interface to get a list of all MCUs
- * supported by the selected version of AVRDude. Additional methods are
- * available to get a list of all supported Programmers.
+ * It implements the {@link IMCUProvider} Interface to get a list of all MCUs supported by the
+ * selected version of AVRDude. Additional methods are available to get a list of all supported
+ * Programmers.
  * </p>
  * <p>
- * This class implements the Singleton pattern. Use the {@link #getDefault()}
- * method to get the instance of this class.
+ * This class implements the Singleton pattern. Use the {@link #getDefault()} method to get the
+ * instance of this class.
  * </p>
  * 
  * @author Thomas Holland
@@ -68,43 +72,42 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 public class AVRDude implements IMCUProvider {
 
 	/** The singleton instance of this class */
-	private static AVRDude instance = null;
+	private static AVRDude					instance			= null;
 
 	/** The preference store for AVRDude */
-	private IPreferenceStore fPrefsStore;
+	private final IPreferenceStore			fPrefsStore;
 
 	/**
-	 * A list of all currently supported MCUs (with avrdude MCU id values),
-	 * mapped to the ConfigEntry
-	 */
-	private Map<String, ConfigEntry> fMCUList;
-
-	/**
-	 * A list of all currently supported Programmer devices, mapped to the
+	 * A list of all currently supported MCUs (with avrdude MCU id values), mapped to the
 	 * ConfigEntry
 	 */
-	private Map<String, ConfigEntry> fProgrammerList;
+	private Map<String, ConfigEntry>		fMCUList;
 
 	/**
-	 * Mapping of the Plugin MCU Id values (as keys) to the avrdude mcu id
-	 * values (as values)
+	 * A list of all currently supported Programmer devices, mapped to the ConfigEntry
 	 */
-	private Map<String, String> fMCUIdMap = null;
+	private Map<String, ConfigEntry>		fProgrammerList;
+
+	/**
+	 * Mapping of the Plugin MCU Id values (as keys) to the avrdude mcu id values (as values)
+	 */
+	private Map<String, String>				fMCUIdMap			= null;
 
 	/** The current path to the directory of the avrdude executable */
-	private IPath fCurrentPath = null;
+	private IPath							fCurrentPath		= null;
 
 	/** The name of the avrdude executable */
-	private final static String fCommandName = "avrdude";
+	private final static String				fCommandName		= "avrdude";
 
 	/** The Path provider for the avrdude executable */
-	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRDUDE);
+	private final IPathProvider				fPathProvider		= new AVRPathProvider(
+																		AVRPath.AVRDUDE);
 
 	/**
-	 * A cache of one or more avrdude config files. The config files are stored
-	 * as List&lt;String&gt; with one entry per line
+	 * A cache of one or more avrdude config files. The config files are stored as
+	 * List&lt;String&gt; with one entry per line
 	 */
-	private Map<IPath, List<String>> fConfigFileCache = new HashMap<IPath, List<String>>();
+	private final Map<IPath, List<String>>	fConfigFileCache	= new HashMap<IPath, List<String>>();
 
 	/**
 	 * Get the singleton instance of the AVRDude class.
@@ -123,8 +126,8 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Returns the name of the AVRDude executable.
 	 * <p>
-	 * On Windows Systems the ".exe" extension is not included and needs to be
-	 * added for access to avrdude other than executing the programm.
+	 * On Windows Systems the ".exe" extension is not included and needs to be added for access to
+	 * avrdude other than executing the programm.
 	 * </p>
 	 * 
 	 * @return String with "avrdude"
@@ -136,8 +139,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Returns the full path to the AVRDude executable.
 	 * <p>
-	 * Note: On Windows Systems the returned path does not include the ".exe"
-	 * extension.
+	 * Note: On Windows Systems the returned path does not include the ".exe" extension.
 	 * </p>
 	 * 
 	 * @return <code>IPath</code> to the avrdude executable
@@ -216,8 +218,8 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param programmerid
 	 *            <code>String</code> with the avrdude id of the programmer
-	 * @return <code>ConfigEntry</code> containing all known information
-	 *         extracted from the avrdude executable
+	 * @return <code>ConfigEntry</code> containing all known information extracted from the
+	 *         avrdude executable
 	 * @throws AVRDudeException
 	 */
 	public ConfigEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
@@ -226,23 +228,20 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * Returns the section of the avrdude.conf configuration file describing the
-	 * the given ConfigEntry.
+	 * Returns the section of the avrdude.conf configuration file describing the the given
+	 * ConfigEntry.
 	 * <p>
-	 * The extract is returned as a multiline <code>String</code> that can be
-	 * used directly in an Text Control in the GUI.
+	 * The extract is returned as a multiline <code>String</code> that can be used directly in an
+	 * Text Control in the GUI.
 	 * </p>
 	 * <p>
-	 * Note: The first call to this method may take some time, as the complete
-	 * avrdude.conf file is read and and split into lines (currently around 450
-	 * Kbyte). This method is Synchronized, so it is safe to call it multiple
-	 * times.
+	 * Note: The first call to this method may take some time, as the complete avrdude.conf file is
+	 * read and and split into lines (currently around 450 Kbyte). This method is Synchronized, so
+	 * it is safe to call it multiple times.
 	 * 
 	 * @param entry
-	 *            The <code>ConfigEntry</code> for which to get the
-	 *            avrdude.conf entry.
-	 * @return A <code>String</code> with the relevant lines, separated with
-	 *         '\n'.
+	 *            The <code>ConfigEntry</code> for which to get the avrdude.conf entry.
+	 * @return A <code>String</code> with the relevant lines, separated with '\n'.
 	 * @throws IOException
 	 *             Any Exception reading the configuration file.
 	 */
@@ -282,18 +281,17 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * Return the MCU id value of the device currently attached to the given
-	 * Programmer.
+	 * Return the MCU id value of the device currently attached to the given Programmer.
 	 * 
 	 * @param config
 	 *            <code>ProgrammerConfig</code> with the Programmer to query.
-	 * @return <code>String</code> with the id of the attached MCU, or
-	 *         <code>null</code> if the id could not be read (e.g. no
-	 *         programmer attached).
+	 * @return <code>String</code> with the id of the attached MCU.
 	 * @throws AVRDudeException
 	 */
 	public String getAttachedMCU(ProgrammerConfig config) throws AVRDudeException {
 
+		if (config == null)
+			throw new AVRDudeException(Reason.NO_PROGRAMMER, "", null);
 		List<String> configoptions = config.getArguments();
 		configoptions.add("-pm16");
 
@@ -316,18 +314,81 @@ public class AVRDude implements IMCUProvider {
 			String mcuid = Signatures.getDefault().getMCU(m.group(1));
 			return mcuid;
 		}
-		// Signature not found
-		return null;
+		// Signature not found. This probably means that our simple parser is
+		// broken
+		throw new AVRDudeException(Reason.PARSE_ERROR,
+				"Could not find a valid Signature in the avrdude output", null);
 	}
 
 	/**
-	 * Internal method to read the config file with the given path and split it
-	 * into lines.
+	 * Return the Fuse Bytes of the device currently attached to the given Programmer.
+	 * <p>
+	 * The values are read by calling avdude with the "-U" option to read all available fusebytes
+	 * and storing them in tempfiles in the system temp directory. These files are read to get the
+	 * values and deleted afterwards.
+	 * </p>
+	 * 
+	 * @param config
+	 *            <code>ProgrammerConfig</code> with the Programmer to query.
+	 * @return <code>FuseByteValues</code> with the values and the MCU id of the attached MCU.
+	 * @throws AVRDudeException
+	 */
+	public FuseByteValues getFuseBytes(ProgrammerConfig config) throws AVRDudeException {
+
+		// First get the attached MCU
+		String mcuid = getAttachedMCU(config);
+
+		FuseByteValues values = new FuseByteValues(mcuid);
+
+		int fusebytecount = values.getFuseByteCount();
+		List<String> args = new ArrayList<String>(config.getArguments());
+		args.add("-p" + getMCUInfo(mcuid));
+
+		IPath tempdir = getTempDir();
+
+		for (int i = 0; i < fusebytecount; i++) {
+			String tmpfilename = tempdir.append("fuse" + i + ".hex").toOSString();
+			AVRDudeAction action = AVRDudeActionFactory.readFuseByte(mcuid, i, tmpfilename);
+			args.add(action.getArgument());
+		}
+
+		List<String> stdout = runCommand(args);
+		if (stdout == null) {
+			return null;
+		}
+
+		// get the temporary files, read and parse them and delete them afterwards
+
+		for (int i = 0; i < fusebytecount; i++) {
+			File tmpfile = tempdir.append("fuse" + i + ".hex").toFile();
+
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(new FileReader(tmpfile));
+				String valueString = in.readLine();
+				int value = Integer.decode(valueString);
+				values.setValue(i, value);
+				in.close();
+				// Delete the temporary file. If it failes (unlikely), well, there is not much we
+				// can do about it so we ignore it. Especially Windows users are used to a bazillion
+				// stale tempfiles in their temp directory anyway.
+				tmpfile.delete();
+			} catch (FileNotFoundException fnfe) {
+				throw new AVRDudeException(Reason.UNKNOWN, "Can't read temporary file", fnfe);
+			} catch (IOException ioe) {
+				throw new AVRDudeException(Reason.UNKNOWN, "Can't read temporary file", ioe);
+			}
+		}
+
+		return values;
+	}
+
+	/**
+	 * Internal method to read the config file with the given path and split it into lines.
 	 * 
 	 * @param path
 	 *            <code>IPath</code> to a configuration file.
-	 * @return A <code>List&lt;String&gt;</code> with all lines of the given
-	 *         configuration file
+	 * @return A <code>List&lt;String&gt;</code> with all lines of the given configuration file
 	 * @throws IOException
 	 *             Any Exception reading the configuration file.
 	 */
@@ -392,8 +453,7 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * @return Map&lt;mcu id, avrdude id&gt; of all supported Programmer
-	 *         devices.
+	 * @return Map&lt;mcu id, avrdude id&gt; of all supported Programmer devices.
 	 * @throws AVRDudeException
 	 */
 	private Map<String, ConfigEntry> loadProgrammersList() throws AVRDudeException {
@@ -426,7 +486,7 @@ public class AVRDude implements IMCUProvider {
 	 * @throws AVRDudeException
 	 */
 	private void readAVRDudeConfigOutput(Map<String, ConfigEntry> resultmap, String... arguments)
-	        throws AVRDudeException {
+			throws AVRDudeException {
 
 		List<String> stdout = runCommand(arguments);
 		if (stdout == null) {
@@ -458,8 +518,8 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Get the command name and the current version of avrdude.
 	 * <p>
-	 * The name is defined in {@link #fCommandName}. The version is gathered by
-	 * executing with the "-v" option and parsing the output.
+	 * The name is defined in {@link #fCommandName}. The version is gathered by executing with the
+	 * "-v" option and parsing the output.
 	 * </p>
 	 * 
 	 * @return <code>String</code> with the command name and version
@@ -494,8 +554,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Runs avrdude with the given arguments.
 	 * <p>
-	 * The Output of stdout and stderr are merged and returned in a
-	 * <code>List&lt;String&gt;</code>.
+	 * The Output of stdout and stderr are merged and returned in a <code>List&lt;String&gt;</code>.
 	 * </p>
 	 * <p>
 	 * If the command fails to execute an entry is written to the log and an
@@ -504,8 +563,8 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param arguments
 	 *            Zero or more arguments for avrdude
-	 * @return A list of all output lines, or <code>null</code> if the command
-	 *         could not be launched.
+	 * @return A list of all output lines, or <code>null</code> if the command could not be
+	 *         launched.
 	 * @throws AVRDudeException
 	 *             when avrdude cannot be started or when avrdude returned an
 	 */
@@ -522,18 +581,16 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Runs avrdude with the given arguments.
 	 * <p>
-	 * This method is equivalent to
-	 * <code>runCommand(arglist, new NullProgressMonitor())</code>.
+	 * This method is equivalent to <code>runCommand(arglist, new NullProgressMonitor())</code>.
 	 * 
 	 * @see #runCommand(List, IProgressMonitor)
 	 * 
 	 * @param arguments
 	 *            <code>List&lt;String&gt;</code> with the arguments
-	 * @return A list of all output lines, or <code>null</code> if the command
-	 *         could not be launched.
+	 * @return A list of all output lines, or <code>null</code> if the command could not be
+	 *         launched.
 	 * @throws AVRDudeException
-	 *             when avrdude cannot be started or when avrdude returned an
-	 *             error errors.
+	 *             when avrdude cannot be started or when avrdude returned an error errors.
 	 */
 	public List<String> runCommand(List<String> arglist) throws AVRDudeException {
 		return runCommand(arglist, new NullProgressMonitor(), false);
@@ -542,9 +599,9 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Runs avrdude with the given arguments.
 	 * <p>
-	 * The Output of stdout and stderr are merged and returned in a
-	 * <code>List&lt;String&gt;</code>. If the "use Console" flag is set in
-	 * the Preferences, the complete output is shown on a Console as well.
+	 * The Output of stdout and stderr are merged and returned in a <code>List&lt;String&gt;</code>.
+	 * If the "use Console" flag is set in the Preferences, the complete output is shown on a
+	 * Console as well.
 	 * </p>
 	 * <p>
 	 * If the command fails to execute an entry is written to the log and an
@@ -556,16 +613,15 @@ public class AVRDude implements IMCUProvider {
 	 * @param monitor
 	 *            <code>IProgressMonitor</code> to cancel the running process.
 	 * @param forceconsole
-	 *            If <code>true</code> all output is copied to the console,
-	 *            regardless of the "use console" flag.
-	 * @return A list of all output lines, or <code>null</code> if the command
-	 *         could not be launched.
+	 *            If <code>true</code> all output is copied to the console, regardless of the "use
+	 *            console" flag.
+	 * @return A list of all output lines, or <code>null</code> if the command could not be
+	 *         launched.
 	 * @throws AVRDudeException
-	 *             when avrdude cannot be started or when avrdude returned an
-	 *             error errors.
+	 *             when avrdude cannot be started or when avrdude returned an error errors.
 	 */
 	public List<String> runCommand(List<String> arglist, IProgressMonitor monitor,
-	        boolean forceconsole) throws AVRDudeException {
+			boolean forceconsole) throws AVRDudeException {
 
 		try {
 			monitor.beginTask("Running avrdude", 100);
@@ -575,7 +631,7 @@ public class AVRDude implements IMCUProvider {
 			// Check if the user has a custom configuration file
 			IPreferenceStore avrdudeprefs = AVRDudePreferences.getPreferenceStore();
 			boolean usecustomconfig = avrdudeprefs
-			        .getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
+					.getBoolean(AVRDudePreferences.KEY_USECUSTOMCONFIG);
 			if (usecustomconfig) {
 				String newconfigfile = avrdudeprefs.getString(AVRDudePreferences.KEY_CONFIGFILE);
 				arglist.add("-C" + newconfigfile);
@@ -602,7 +658,7 @@ public class AVRDude implements IMCUProvider {
 			} catch (IOException e) {
 				// Something didn't work while running the external command
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-				        + command, e);
+						+ command, e);
 				AVRPlugin.getDefault().log(status);
 				throw new AVRDudeException(e);
 			}
@@ -626,17 +682,27 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * The Reason code why avrdude was aborted (or <code>null</code> if
-	 * avrdude finished normally)
+	 * Get the path to the System temp directory.
+	 * 
+	 * @return <code>IPath</code>
 	 */
-	protected Reason fAbortReason;
+	private IPath getTempDir() {
 
-	/** The line from the avrdude output that caused the abort */
-	protected String fAbortLine;
+		String tmpdir = System.getProperty("java.io.tmpdir");
+		return new Path(tmpdir);
+	}
 
 	/**
-	 * Internal class to listen to the output of avrdude and cancel avrdude if
-	 * the certain key Strings appears in the output.
+	 * The Reason code why avrdude was aborted (or <code>null</code> if avrdude finished normally)
+	 */
+	protected Reason	fAbortReason;
+
+	/** The line from the avrdude output that caused the abort */
+	protected String	fAbortLine;
+
+	/**
+	 * Internal class to listen to the output of avrdude and cancel avrdude if the certain key
+	 * Strings appears in the output.
 	 * <p>
 	 * They are:
 	 * <ul>
@@ -648,13 +714,13 @@ public class AVRDude implements IMCUProvider {
 	 * </ul>
 	 * </p>
 	 * <p>
-	 * Once any of these Strings is found in the output the associated Reason is
-	 * set and avrdude is aborted via the ProgressMonitor.
+	 * Once any of these Strings is found in the output the associated Reason is set and avrdude is
+	 * aborted via the ProgressMonitor.
 	 * </p>
 	 */
 	private class OutputListener implements ICommandOutputListener {
 
-		private IProgressMonitor fProgressMonitor;
+		private final IProgressMonitor	fProgressMonitor;
 
 		public OutputListener(IProgressMonitor monitor) {
 			fProgressMonitor = monitor;
@@ -694,30 +760,30 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Container class for AVRDude configuration entries.
 	 * <p>
-	 * This class is stores the four informations that avrdude supplies about a
-	 * Programming device or a MCU part:
+	 * This class is stores the four informations that avrdude supplies about a Programming device
+	 * or a MCU part:
 	 * </p>
 	 * <ul>
 	 * <li>{@link #avrdudeid} = AVRDude internal id</li>
 	 * <li>{@link #description} = Human readable description</li>
-	 * <li>{@link #configfile} = Path to the avrdude configuration file which
-	 * declares this programmer or part</li>
-	 * <li>{@link #linenumber} = Line number within the configuration file
-	 * where the definition starts</li>
+	 * <li>{@link #configfile} = Path to the avrdude configuration file which declares this
+	 * programmer or part</li>
+	 * <li>{@link #linenumber} = Line number within the configuration file where the definition
+	 * starts</li>
 	 * </ul>
 	 * 
 	 */
 	public static class ConfigEntry {
 		/** AVRDude internal id for this entry */
-		public String avrdudeid;
+		public String	avrdudeid;
 
 		/** (Human readable) description of this entry */
-		public String description;
+		public String	description;
 
 		/** Path to the configuration file which contains the definition */
-		public IPath configfile;
+		public IPath	configfile;
 
 		/** line number of the start of the definition */
-		public int linenumber;
+		public int		linenumber;
 	}
 }

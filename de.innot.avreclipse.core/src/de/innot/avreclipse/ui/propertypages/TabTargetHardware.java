@@ -50,6 +50,7 @@ import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 
 /**
  * This tab handles setting of all target hardware related properties.
@@ -339,7 +340,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		FuseBytes fusebytes = avrdudeprops.getFuseBytes();
 
-		if (!(fusebytes.isValidFor(mcuid))) {
+		if (!(fusebytes.isCompatibleWith(mcuid))) {
 			MessageDialog.openWarning(fMCUcombo.getShell(), TITLE_FUSEBYTEWARNING,
 			        TEXT_FUSEBYTEWARNING);
 		}
