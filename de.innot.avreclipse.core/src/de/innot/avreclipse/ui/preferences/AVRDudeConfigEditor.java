@@ -56,7 +56,7 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
-import de.innot.avreclipse.ui.propertypages.AVRDudeErrorDialog;
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 
 /**
  * Dialog to edit a AVRDude Programmer Configuration.
