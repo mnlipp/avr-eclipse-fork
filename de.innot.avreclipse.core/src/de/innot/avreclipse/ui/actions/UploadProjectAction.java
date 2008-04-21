@@ -50,14 +50,13 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.avrdude.FuseBytes;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.mbs.BuildMacro;
-import de.innot.avreclipse.ui.propertypages.AVRDudeErrorDialog;
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
  * @author Thomas Holland
@@ -66,32 +65,33 @@ import de.innot.avreclipse.ui.propertypages.AVRDudeErrorDialog;
  */
 public class UploadProjectAction extends ActionDelegate {
 
-	private final static String TITLE_UPLOAD = "AVRDude Upload";
+	private final static String	TITLE_UPLOAD		= "AVRDude Upload";
 
-	private final static String SOURCE_BUILDCONFIG = "active build configuration";
-	private final static String SOURCE_PROJECT = "project";
+	private final static String	SOURCE_BUILDCONFIG	= "active build configuration";
+	private final static String	SOURCE_PROJECT		= "project";
 
-	private final static String MSG_NOPROJECT = "The current selection does not contain anything that can be uploaded with AVRDude.";
+	private final static String	MSG_NOPROJECT		= "The current selection does not contain anything that can be uploaded with AVRDude.";
 
-	private final static String MSG_NOPROGRAMMER = "No Programmer has been set for the {0}.\n\n"
-	        + "Please select a Programmer in the project properties\n"
-	        + "(Properties -> AVRDude -> Programmer";
+	private final static String	MSG_NOPROGRAMMER	= "No Programmer has been set for the {0}.\n\n"
+															+ "Please select a Programmer in the project properties\n"
+															+ "(Properties -> AVRDude -> Programmer";
 
-	private final static String MSG_WRONGMCU = "AVRDude does not support the project target MCU [{0}]\n\n"
-	        + "Please select a different target MCU if you want to use AVRDude.\n"
-	        + "(Properties -> Target Hardware)";
+	private final static String	MSG_WRONGMCU		= "AVRDude does not support the project target MCU [{0}]\n\n"
+															+ "Please select a different target MCU if you want to use AVRDude.\n"
+															+ "(Properties -> Target Hardware)";
 
-	private final static String MSG_NOACTIONS = "The {0} has no options set to upload anything to the device.\n\n"
-	        + "Please select at least one item to upload (flash / eeprom / fuses / lockbits)";
+	private final static String	MSG_NOACTIONS		= "The {0} has no options set to upload anything to the device.\n\n"
+															+ "Please select at least one item to upload (flash / eeprom / fuses / lockbits)";
 
-	private final static String MSG_MISSING_FILE = "The file [{0}] for the {1} memory does not exist or is not readable\n\n"
-	        + "Maybe the project needs to be build first.";
+	private final static String	MSG_MISSING_FILE	= "The file [{0}] for the {1} memory does not exist or is not readable\n\n"
+															+ "Maybe the project needs to be build first.";
 
-	private final static String MSG_INVALIDFUSEBYTE = "The fuse byte(s) to upload are for an {0} MCU, "
-	        + "which is not compatible with the {2} target MCU [{1}]\n\n"
-	        + "Please check the fuse byte settings.\n" + "(Properties -> AVRDude -> Fuses)";
+	private final static String	MSG_INVALIDFUSEBYTE	= "The fuse byte(s) to upload are for an {0} MCU, "
+															+ "which is not compatible with the {2} target MCU [{1}]\n\n"
+															+ "Please check the fuse byte settings.\n"
+															+ "(Properties -> AVRDude -> Fuses)";
 
-	private IProject fProject;
+	private IProject			fProject;
 
 	/**
 	 * Constructor for this Action.
@@ -103,6 +103,7 @@ public class UploadProjectAction extends ActionDelegate {
 	/**
 	 * @see IActionDelegate#selectionChanged(IAction, ISelection)
 	 */
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 
 		// The user has selected a different Workbench object.
@@ -115,9 +116,7 @@ public class UploadProjectAction extends ActionDelegate {
 		} else {
 			return;
 		}
-		if (item == null) {
-			return;
-		}
+		if (item == null) { return; }
 		IProject project = null;
 
 		// See if the given selection is an IProject (directly or via IAdaptable
@@ -134,6 +133,7 @@ public class UploadProjectAction extends ActionDelegate {
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
+	@Override
 	public void run(IAction action) {
 
 		// Check that we have a AVR Project
@@ -147,7 +147,7 @@ public class UploadProjectAction extends ActionDelegate {
 		} catch (CoreException e) {
 			// Log the Exception
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-			        "Can't access project nature", e);
+					"Can't access project nature", e);
 			AVRPlugin.getDefault().log(status);
 		}
 
@@ -157,13 +157,11 @@ public class UploadProjectAction extends ActionDelegate {
 
 		// Get the avr properties for the active configuration
 		AVRProjectProperties targetprops = ProjectPropertyManager.getPropertyManager(fProject)
-		        .getActiveProperties();
+				.getActiveProperties();
 
 		// Check if the avrdude properties are valid.
 		// if not the checkProperties() method will display an error message box
-		if (!checkProperties(activecfg, targetprops)) {
-			return;
-		}
+		if (!checkProperties(activecfg, targetprops)) { return; }
 
 		// Everything is fine -> run avrdude
 		runAVRDude(activecfg, targetprops);
@@ -225,8 +223,7 @@ public class UploadProjectAction extends ActionDelegate {
 		for (String argument : actionlist) {
 			AVRDudeAction action = AVRDudeAction.getActionForArgument(argument);
 			String filename = action.getFilename();
-			if (filename == null)
-				continue;
+			if (filename == null) continue;
 			IPath rawfile = new Path(filename);
 			IPath unresolvedfile = rawfile;
 			IPath resolvedfile = rawfile;
@@ -235,7 +232,7 @@ public class UploadProjectAction extends ActionDelegate {
 				// folder and append our filename. Then resolve any macros
 				unresolvedfile = buildcfg.getBuildData().getBuilderCWD().append(rawfile);
 				resolvedfile = new Path(BuildMacro.resolveMacros(buildcfg, unresolvedfile
-				        .toString()));
+						.toString()));
 			}
 			File realfile = resolvedfile.toFile();
 			if (!realfile.canRead()) {
@@ -246,7 +243,7 @@ public class UploadProjectAction extends ActionDelegate {
 		}
 		if (invalidfile != null) {
 			String message = MessageFormat.format(MSG_MISSING_FILE, invalidfile.toString(),
-			        formemtype);
+					formemtype);
 			MessageDialog.openError(getShell(), TITLE_UPLOAD, message);
 			return false;
 		}
@@ -254,11 +251,11 @@ public class UploadProjectAction extends ActionDelegate {
 		// Check that the fuses are valid (if they are to be uploaded)
 		if (props.getAVRDudeProperties().getWriteFuses()) {
 			FuseBytes fusebytes = props.getAVRDudeProperties().getFuseBytes();
-			if (!fusebytes.isValidFor(props.getMCUId())) {
+			if (!fusebytes.isCompatibleWith(props.getMCUId())) {
 				String fusesmcuid = AVRMCUidConverter.id2name(fusebytes.getMCUId());
 				String propsmcuid = AVRMCUidConverter.id2name(props.getMCUId());
 				String message = MessageFormat.format(MSG_INVALIDFUSEBYTE, fusesmcuid, propsmcuid,
-				        source);
+						source);
 				MessageDialog.openError(getShell(), TITLE_UPLOAD, message);
 				return false;
 			}
@@ -269,10 +266,10 @@ public class UploadProjectAction extends ActionDelegate {
 	}
 
 	/**
-	 * The current ProgrammerConfiguration id. Used in the UploadJob for some
-	 * error messages when avrdude fails.
+	 * The current ProgrammerConfiguration id. Used in the UploadJob for some error messages when
+	 * avrdude fails.
 	 */
-	private String fProgrammerId;
+	private String	fProgrammerId;
 
 	/**
 	 * Start the AVRDude UploadJob.
@@ -313,8 +310,8 @@ public class UploadProjectAction extends ActionDelegate {
 	 */
 	private class UploadJob extends Job {
 
-		private List<String> fOptions;
-		private List<String> fActions;
+		private final List<String>	fOptions;
+		private final List<String>	fActions;
 
 		public UploadJob(List<String> options, List<String> actions) {
 			super("AVRDude Upload");
@@ -378,48 +375,6 @@ public class UploadProjectAction extends ActionDelegate {
 				monitor.done();
 			}
 
-			return Status.OK_STATUS;
-		}
-	}
-
-	/**
-	 * Displays an Error Message box for am <code>AVRDudeException</code>.
-	 * 
-	 */
-	private static class AVRDudeErrorDialogJob extends UIJob {
-
-		private AVRDudeException fException;
-
-		private ProgrammerConfig fProgConfig;
-
-		/**
-		 * Create a new Job to display an AVRDudeErrorDialog.
-		 * 
-		 * @param jobDisplay
-		 *            The <code>Display</code> to show the message on.
-		 * @param exception
-		 *            The Exception for which to display the error dialog.
-		 * @param programmerconfigid
-		 *            The id of the programmer in use when the Exception was
-		 *            thrown. Used for some error messages.
-		 */
-		public AVRDudeErrorDialogJob(Display jobDisplay, AVRDudeException exception,
-		        String programmerconfigid) {
-			super(jobDisplay, "AVRDude Error");
-			fException = exception;
-			fProgConfig = ProgrammerConfigManager.getDefault().getConfig(programmerconfigid);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.ui.progress.UIJob#runInUIThread(org.eclipse.core.runtime.IProgressMonitor)
-		 */
-		@Override
-		public IStatus runInUIThread(IProgressMonitor monitor) {
-
-			AVRDudeErrorDialog.openAVRDudeError(getDisplay().getActiveShell(), fException,
-			        fProgConfig);
 			return Status.OK_STATUS;
 		}
 	}
