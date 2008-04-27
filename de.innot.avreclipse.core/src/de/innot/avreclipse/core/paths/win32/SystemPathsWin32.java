@@ -112,8 +112,6 @@ public class SystemPathsWin32 {
 			return getWinAVRPath("avr/include");
 		case AVRDUDE:
 			return getWinAVRPath("bin");
-		case AVRDUDECONFIG:
-			return getWinAVRPath("bin");
 		case MAKE:
 			return getWinAVRPath("utils/bin");
 		case PDFPATH:

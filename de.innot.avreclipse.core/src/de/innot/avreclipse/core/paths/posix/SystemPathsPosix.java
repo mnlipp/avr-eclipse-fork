@@ -61,15 +61,19 @@ import de.innot.avreclipse.core.paths.AVRPath;
 public class SystemPathsPosix {
 
 	private static SystemPathsPosix fInstance = null;
-	
-    private static ILock lock = Job.getJobManager().newLock();
+
+	private static ILock lock = Job.getJobManager().newLock();
 
 	private Map<AVRPath, IPath> fPathCache = null;
 
 	private final static IPath fEmptyPath = new Path("");
 
-	private final static String[] fSearchPaths = { "/usr/local/", "/usr/",
-			"/opt/", "/etc/", "~/", "/home/" };
+	/** Paths to be searched in order. */
+	// /etc/ was used to find the avrdude.conf file. While this is currently not
+	// required I leave it in just in case we will be looking for some other
+	// configuration file in a future version of the plugin.
+	private final static String[] fSearchPaths = { "/usr/local/", "/usr/", "/opt/", "/etc/", "~/",
+	        "/home/" };
 
 	public static SystemPathsPosix getDefault() {
 		if (fInstance == null) {
@@ -83,7 +87,7 @@ public class SystemPathsPosix {
 	}
 
 	public void clearCache() {
-		
+
 		try {
 			lock.acquire();
 			if (fPathCache != null) {
@@ -93,8 +97,7 @@ public class SystemPathsPosix {
 			lock.release();
 		}
 	}
-	
-	
+
 	public IPath getSystemPath(AVRPath pathcontext) {
 		IPath path = null;
 
@@ -121,7 +124,7 @@ public class SystemPathsPosix {
 			lock.release();
 		}
 		return path;
-		
+
 	}
 
 	private IPath internalGetPath(AVRPath pathcontext) {
@@ -149,8 +152,7 @@ public class SystemPathsPosix {
 	private IPath find(String file) {
 
 		for (String findpath : fSearchPaths) {
-			IPath testpath = executeCommand("find " + findpath + " -path "
-					+ file);
+			IPath testpath = executeCommand("find " + findpath + " -path " + file);
 			if (!testpath.isEmpty()) {
 				return testpath;
 			}
@@ -191,9 +193,12 @@ public class SystemPathsPosix {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (br != null) br.close();
-				if (isr != null) isr.close();
-				if (is != null) is.close();
+				if (br != null)
+					br.close();
+				if (isr != null)
+					isr.close();
+				if (is != null)
+					is.close();
 			} catch (IOException e) {
 				// can't do anything about it
 			}
