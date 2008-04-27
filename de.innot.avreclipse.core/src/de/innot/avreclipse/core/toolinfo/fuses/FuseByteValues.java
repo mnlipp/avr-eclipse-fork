@@ -88,7 +88,7 @@ public class FuseByteValues {
 
 	public int getFuseByteCount() {
 		try {
-			return Fuses.getDefault().getFuseByteCount(fMCUId);
+			return Fuses.getDefault().getByteCount(fMCUId);
 		} catch (IOException e) {
 			// If you want to see the Exception use the Fuses class directly
 			return 0;

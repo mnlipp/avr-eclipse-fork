@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: Signatures.java 390 2008-04-07 00:13:08Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo.fuses;
@@ -37,24 +37,24 @@ import de.innot.avreclipse.core.IMCUProvider;
 /**
  * This class handles the list of Fuse descriptions.
  * <p>
- * Most AVR MCUs have between one and three fusebytes. The description of these
- * fuses for each MCU type is stored in a {@link FusesDescription} object. This
- * class manages the list of all available fuse byte descriptions.
+ * Most AVR MCUs have between one and three fusebytes. The description of these fuses for each MCU
+ * type is stored in a {@link IDescriptionHolder} object. This class manages the list of all
+ * available fuse byte descriptions.
  * </p>
  * <p>
- * To get the <code>FuseDescription</code for a MCU id use
+ * To get the <code>IDescriptionHolder</code for a MCU id use
  * {@link #getDescription(String)}.
  * </p>
  * <p>
  * This class manages two lists of fuse description files. 
  * The default list is included with the plugin and can be 
- * found in the <code>properties/fusedesc</code> folder 
+ * found in the <code>properties/fusedesc/</code> folder 
  * of this Plugin.
  * </p>
  * <p>
  * The second list is the for the current Eclipse instance 
  * and is located in the instance state area 
- * (<code>.metadata/.plugins/de.innot.avreclipse.core/fuses.properties</code>)
+ * (<code>.metadata/.plugins/de.innot.avreclipse.core/fusesdesc/</code>)
  * </p>
  * <p>
  * Each folder contains serialized <code>FusesDescription</code> 
@@ -68,19 +68,19 @@ import de.innot.avreclipse.core.IMCUProvider;
 public class Fuses implements IMCUProvider {
 
 	// paths to the default and instance properties files
-	private final static String DEFAULTFOLDER = "/properties/fusedesc";
-	private final static String INSTANCEFOLDER = "fusedesc";
+	private final static String						DEFAULTFOLDER			= "/properties/fusedesc";
+	private final static String						INSTANCEFOLDER			= "fusedesc";
 
-	/** File name extension for <code>FusesDescription</code> objects. */
-	private final static String FUSES_EXTENSION = ".desc";
+	/** File name extension for <code>IDescriptionHolder</code> objects. */
+	private final static String						DESCRIPTION_EXTENSION	= ".desc";
 
-	/** Cache of accessed <code>FusesDescription</code> objects */
-	private Map<String, FusesDescription> fCache;
+	/** Cache of accessed <code>IDescriptionHolder</code> objects */
+	private final Map<String, IDescriptionHolder>	fCache;
 
-	/** List of all MCU id values for which FuseDescriptions exist */
-	private Set<String> fMCUList = null;
+	/** List of all MCU id values for which Descriptions exist */
+	private Set<String>								fMCUList				= null;
 
-	private static Fuses fInstance = null;
+	private static Fuses							fInstance				= null;
 
 	/**
 	 * Get the default instance of the Fuses class
@@ -91,24 +91,25 @@ public class Fuses implements IMCUProvider {
 		return fInstance;
 	}
 
-	// private constructor to prevent instantiation
-	private Fuses() {
+	// protected constructor to prevent outside instantiation.
+	protected Fuses() {
 		// Init the cache
-		fCache = new HashMap<String, FusesDescription>();
+		fCache = new HashMap<String, IDescriptionHolder>();
 	}
 
 	/**
-	 * Get the {@link FusesDescription} for the given MCU id.
+	 * Get the {@link IDescriptionHolder} with the fuse byte bitfield descriptions for the given MCU
+	 * id.
 	 * 
 	 * @param mcuid
-	 *            String with a valid MCU id
-	 * @return <code>FusesDescription</code> for the MCU or <code>null</code>
-	 *         if the given MCU id is unknown.
+	 *            <code>String</code> with a valid MCU id
+	 * @return <code>IDescriptionHolder</code> for the MCU or <code>null</code> if the given MCU
+	 *         id is unknown.
 	 * @throws IOException
-	 *             if either the storage locations can't be accessed or a file
-	 *             exists, but can't be accessed.
+	 *             if either the storage locations can't be accessed or a file exists, but can't be
+	 *             accessed.
 	 */
-	public FusesDescription getFusesDescription(String mcuid) throws IOException {
+	public IDescriptionHolder getDescription(String mcuid) throws IOException {
 
 		if (mcuid == null || (mcuid.length() == 0)) {
 			return null;
@@ -133,7 +134,7 @@ public class Fuses implements IMCUProvider {
 		}
 		IPath[] allpaths = new IPath[] { instancelocation, defaultlocation };
 
-		FusesDescription desc = null;
+		IDescriptionHolder desc = null;
 
 		for (IPath path : allpaths) {
 			desc = getDescriptionFromLocation(mcuid, path);
@@ -163,16 +164,16 @@ public class Fuses implements IMCUProvider {
 	 * 
 	 * @param mcuid
 	 *            A valid MCU id value.
-	 * @return <code>int</code> with the number of fuse bytes for the mcu or
-	 *         -1 if the MCU id is unknown.
+	 * @return <code>int</code> with the number of fuse bytes for the mcu or -1 if the MCU id is
+	 *         unknown.
 	 * @throws IOException
 	 */
-	public int getFuseByteCount(String mcuid) throws IOException {
+	public int getByteCount(String mcuid) throws IOException {
 		// Get the Description
-		FusesDescription desc;
-		desc = getFusesDescription(mcuid);
+		IDescriptionHolder desc;
+		desc = getDescription(mcuid);
 		if (desc != null) {
-			return desc.getFuseByteCount();
+			return desc.getByteCount();
 		}
 		return -1;
 	}
@@ -189,7 +190,7 @@ public class Fuses implements IMCUProvider {
 	public String getMCUInfo(String mcuid) {
 		int count = 0;
 		try {
-			count = getFuseByteCount(mcuid);
+			count = getByteCount(mcuid);
 		} catch (IOException e) {
 			return null;
 		}
@@ -229,7 +230,7 @@ public class Fuses implements IMCUProvider {
 			String[] allfiles = currfolder.list(new FilenameFilter() {
 				// Little filter to accept only files ending with ".desc"
 				public boolean accept(File dir, String name) {
-					if (name.endsWith(FUSES_EXTENSION)) {
+					if (name.endsWith(DESCRIPTION_EXTENSION)) {
 						return true;
 					}
 					return false;
@@ -262,9 +263,19 @@ public class Fuses implements IMCUProvider {
 		return fMCUList.contains(mcuid);
 	}
 
-	private FusesDescription getDescriptionFromLocation(String mcuid, IPath location) {
+	/**
+	 * De-Serialize the DescriptionHolder object for a MCU from the given location.
+	 * 
+	 * @param mcuid
+	 *            <code>String</code> with the MCU id value.
+	 * @param location
+	 *            <code>IPath</code> to a folder containing the serialized description holder
+	 *            objects.
+	 * @return
+	 */
+	private IDescriptionHolder getDescriptionFromLocation(String mcuid, IPath location) {
 
-		String filename = mcuid + FUSES_EXTENSION;
+		String filename = mcuid + DESCRIPTION_EXTENSION;
 
 		// Test if a file with the right name is in the location
 		File file = location.append(filename).toFile();
@@ -294,13 +305,12 @@ public class Fuses implements IMCUProvider {
 	/**
 	 * Get the folder for the instance fuse description files.
 	 * <p>
-	 * The default location is the <code>fusedesc</code> folder in the core
-	 * plugin storage area (<code>Worspace_loc/.metadata/plugins/de.innot.avreclipse.core/fusedesc</code>).
+	 * The default location is the <code>fusedesc</code> folder in the core plugin storage area (<code>Worspace_loc/.metadata/plugins/de.innot.avreclipse.core/fusedesc</code>).
 	 * </p>
 	 * 
 	 * @return <code>IPath</code> to the instance storage area.
 	 */
-	public static IPath getInstanceStorageLocation() {
+	public IPath getInstanceStorageLocation() {
 
 		IPath statelocation = AVRPlugin.getDefault().getStateLocation();
 		IPath location = statelocation.append(INSTANCEFOLDER);
@@ -311,14 +321,13 @@ public class Fuses implements IMCUProvider {
 	/**
 	 * Get the folder for the build-in fuse description files.
 	 * <p>
-	 * The default location is the <code>properties/fusedesc</code> folder in
-	 * the core plugin.
+	 * The default location is the <code>properties/fusedesc</code> folder in the core plugin.
 	 * </p>
 	 * 
 	 * @return <code>IPath</code> to the default location.
 	 * @throws IOException
 	 */
-	public static IPath getDefaultStorageLocation() throws IOException {
+	public IPath getDefaultStorageLocation() throws IOException {
 
 		Bundle avrplugin = AVRPlugin.getDefault().getBundle();
 		URL locationurl = avrplugin.getEntry(DEFAULTFOLDER);
