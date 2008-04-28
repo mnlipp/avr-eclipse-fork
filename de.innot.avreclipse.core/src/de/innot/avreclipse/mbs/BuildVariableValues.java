@@ -64,6 +64,8 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
+			if (props == null)
+				return "";
 			String targetmcu = props.getMCUId();
 			return targetmcu;
 		}
@@ -73,6 +75,8 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
+			if (props == null)
+				return "";
 			String fcpu = props.getFCPU();
 			return fcpu;
 		}
@@ -82,6 +86,8 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
+			if (props == null)
+				return "";
 			List<String> avrdudeoptions = props.getAVRDudeProperties().getArguments();
 			StringBuffer sb = new StringBuffer();
 			for (String option : avrdudeoptions) {
@@ -95,6 +101,8 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			AVRProjectProperties props = getPropsFromConfig(buildcfg);
+			if (props == null)
+				return "";
 			List<String> avrdudeoptions = props.getAVRDudeProperties().getActionArguments(buildcfg);
 			StringBuffer sb = new StringBuffer();
 			for (String option : avrdudeoptions) {
