@@ -33,6 +33,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction.Action;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.FileType;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.MemType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
+import de.innot.avreclipse.core.toolinfo.fuses.Locks;
 
 /**
  * This class provides some static methods to get {@link AVRDudeAction} objects for common
@@ -45,8 +46,11 @@ import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 public class AVRDudeActionFactory {
 
 	/** The name of the fuses for 1, 2 or 3 fusebytes */
-	private final static MemType[][]	FUSENAMEMAP	= { {}, { MemType.fuse },
+	private final static MemType[][]	FUSENAMEMAP		= { {}, { MemType.fuse },
 			{ MemType.lfuse, MemType.hfuse }, { MemType.lfuse, MemType.hfuse, MemType.efuse } };
+
+	/** The name of the lockbit bytes (currently only one) */
+	private final static MemType[][]	LOCKSNAMEMAP	= { {}, { MemType.lock } };
 
 	/**
 	 * Get a list of actions to read all readable elements of an MCU and write them to the given
@@ -278,7 +282,7 @@ public class AVRDudeActionFactory {
 		// Test if this is a 1 Fuse or 2-3 Fuse MCU
 		int fusecount;
 		try {
-			fusecount = Fuses.getDefault().getFuseByteCount(mcuid);
+			fusecount = Fuses.getDefault().getByteCount(mcuid);
 		} catch (IOException e) {
 			// Can't access the FuseDescription Objects?
 			// Log the Exception and return an empty list.
@@ -332,7 +336,7 @@ public class AVRDudeActionFactory {
 
 		int fusecount;
 		try {
-			fusecount = Fuses.getDefault().getFuseByteCount(mcuid);
+			fusecount = Fuses.getDefault().getByteCount(mcuid);
 		} catch (IOException e) {
 			return null;
 		}
@@ -342,6 +346,97 @@ public class AVRDudeActionFactory {
 			return null;
 		}
 		return new AVRDudeAction(fusenames[fuseindex], Action.read, filename, FileType.hex);
+
+	}
+
+	/**
+	 * Create a List of {@link AVRDudeAction} objects to write the all given lockbit byte values.
+	 * <p>
+	 * If a byte value is <code>-1</code>, no action is created for it.
+	 * </p>
+	 * 
+	 * @param mcuid
+	 *            <code>String</code> with a valid MCU id value.
+	 * @param values
+	 *            Array of <code>int</code> with the byte values (0-255). All other values are
+	 *            ignored (no action created).
+	 * @return <code>List&lt;AVRDudeAction&gt;</code> with all actions. List may be empty if the
+	 *         MCU has no locks or no valid lockbit byte value was given.
+	 */
+	public static List<AVRDudeAction> writeLockbitBytes(String mcuid, int values[]) {
+
+		List<AVRDudeAction> actions = new ArrayList<AVRDudeAction>();
+
+		// Get the number of lockbit bytes the mcu supports. Currently this will always be 1, as all
+		// current AVR MCUs have one and only one lockbit byte. However I left this code in just in
+		// case future AVR MCUs will have more than one lockbit byte.
+		int count;
+		try {
+			count = Locks.getDefault().getByteCount(mcuid);
+		} catch (IOException e) {
+			// Can't access the LockbitsDescription Objects?
+			// Log the Exception and return an empty list.
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Can't access the LockbitsDescription file for " + mcuid, e);
+			AVRPlugin.getDefault().log(status);
+			return actions;
+		}
+
+		// Do some checks.
+		if (count <= 0) {
+			// given MCU has no fuses.
+			// return an empty List
+			return actions;
+		}
+
+		// Get the name mapping
+		MemType[] allnames = LOCKSNAMEMAP[count];
+
+		// iterate over all names until we run out of names or out of values
+		int maxcount = Math.min(allnames.length, values.length);
+		for (int i = 0; i < maxcount; i++) {
+			int value = values[i];
+			if (0 <= value && value <= 255) {
+				actions.add(new AVRDudeAction(allnames[i], Action.write, values[i]));
+			}
+		}
+
+		return actions;
+	}
+
+	/**
+	 * Create an {@link AVRDudeAction} to read single lockbit byte from the MCU.
+	 * <p>
+	 * The generated action uses {@link AVRDudeAction.FileType#hex}, so the created file will have
+	 * exactly one single hex value in C Format ("0xFF").
+	 * </p>
+	 * <p>
+	 * Any macros in the filename are not resolved. It is up to the caller to resolve any macros as
+	 * required.
+	 * </p>
+	 * 
+	 * @param mcuid
+	 *            ID of the MCU to determine the correct lock name
+	 * @param index
+	 *            The lockbit byte to read. Currently only <code>0</code> is supported.
+	 * @param filename
+	 *            <code>String</code> for the target file.
+	 * @return <code>AVRDudeAction</code>
+	 */
+	public static AVRDudeAction readLockbitByte(String mcuid, int index, String filename) {
+
+		int count;
+		try {
+			count = Locks.getDefault().getByteCount(mcuid);
+		} catch (IOException e) {
+			return null;
+		}
+		MemType[] allnames = LOCKSNAMEMAP[count];
+
+		if (!(0 <= index && index < allnames.length)) {
+			return null;
+		}
+		return new AVRDudeAction(allnames[index], Action.read, filename, FileType.hex);
 
 	}
 

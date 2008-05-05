@@ -22,13 +22,13 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
 
 /**
- * Storage independent container for the Fuse Byte values.
+ * Storage independent container for the Lockbit values.
  * <p>
  * This class has two modes. Depending on the {@link #fUseFile} flag, it will either read the fuse
- * values from a supplied file or immediate values stored in a {@link FuseByteValues} object. The
+ * values from a supplied file or immediate values stored in a {@link LockbitsValue} object. The
  * mode is selected by the user in the Properties user interface.
  * </p>
  * <p>
@@ -39,13 +39,13 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
  * @since 2.2
  * 
  */
-public class FuseBytes extends AbstractBytes {
+public class LockbitBytes extends AbstractBytes {
 
-	/** Maximum number of Fuse Bytes supported. */
-	public final static int	MAX_FUSEBYTES	= 3;
+	/** Maximum number of Lockbit Bytes supported. */
+	public final static int	MAX_LOCKBITBYTES	= 1;
 
 	/**
-	 * Create a new FuseBytes object and load the properties from the Preferences.
+	 * Create a new LockbitBytes object and load the properties from the Preferences.
 	 * <p>
 	 * If the given Preferences has no saved properties yet, the default values are used.
 	 * </p>
@@ -55,12 +55,12 @@ public class FuseBytes extends AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 */
-	public FuseBytes(Preferences prefs, AVRDudeProperties parent) {
+	public LockbitBytes(Preferences prefs, AVRDudeProperties parent) {
 		super(prefs, parent);
 	}
 
 	/**
-	 * Create a new FuseBytes object and copy from the given FuseByte object.
+	 * Create a new LockbitBytes object and copy from the given LockbitBytes object.
 	 * <p>
 	 * All values from the source are copied, except for the source Preferences and the Parent.
 	 * </p>
@@ -72,7 +72,7 @@ public class FuseBytes extends AbstractBytes {
 	 * @param source
 	 *            <code>FuseBytes</code> object to copy.
 	 */
-	public FuseBytes(Preferences prefs, AVRDudeProperties parent, FuseBytes source) {
+	public LockbitBytes(Preferences prefs, AVRDudeProperties parent, AbstractBytes source) {
 		super(prefs, parent, source);
 	}
 
@@ -83,7 +83,7 @@ public class FuseBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(String mcuid) {
-		return new FuseByteValues(mcuid);
+		return new LockbitsByteValues(mcuid);
 	}
 
 	/*
@@ -93,7 +93,7 @@ public class FuseBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {
-		return new FuseByteValues(source);
+		return new LockbitsByteValues(source);
 	}
 
 	/*
@@ -103,16 +103,11 @@ public class FuseBytes extends AbstractBytes {
 	 */
 	@Override
 	protected int getMaxBytes() {
-		return MAX_FUSEBYTES;
+		return MAX_LOCKBITBYTES;
 	}
 
 	/**
-	 * Get the list of avrdude arguments required to write all fuse bytes.
-	 * <p>
-	 * Note: This method does <strong>not</strong> set the "-u" flag to disable the safemode. It is
-	 * up to the caller to add this flag. If the "disable safemode" flag is not set, avrdude will
-	 * restore the previous fusebyte values after the new values have been written.
-	 * </p>
+	 * Get the list of avrdude arguments required to write the lockbit byte.
 	 * 
 	 * @return <code>List&lt;String&gt;</code> with avrdude action options.
 	 */
@@ -126,26 +121,22 @@ public class FuseBytes extends AbstractBytes {
 			return args;
 		}
 
-		int[] fusevalues = getValues();
-
 		if (getUseFile()) {
-			// Use a fuses file
-			// Read the fusevalues from the file.
+			// Use a lockbit file
+			// Read the locks from the file.
 
 			// TODO Not implemented yet
 		}
 
 		// The action factory will take of generating just the right number of
 		// actions for the MCU.
-		List<AVRDudeAction> allactions = AVRDudeActionFactory
-				.writeFuseBytes(getMCUId(), fusevalues);
+		List<AVRDudeAction> allactions = AVRDudeActionFactory.writeLockbitBytes(getMCUId(),
+				getValues());
 
 		for (AVRDudeAction action : allactions) {
 			args.add(action.getArgument());
 		}
 
 		return args;
-
 	}
-
 }

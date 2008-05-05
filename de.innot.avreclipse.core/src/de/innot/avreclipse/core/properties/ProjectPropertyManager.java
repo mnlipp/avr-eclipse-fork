@@ -19,10 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.cdt.core.model.CoreModel;
-import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
-import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -54,22 +52,23 @@ import de.innot.avreclipse.core.preferences.BuildConfigurationScope;
  * To modify the properties either the
  * {@link #getPropsForConfig(IConfiguration, boolean)} or the
  * {@link #getProjectProperties()} methods can be used to get the properties for
- * a
- * <code>IConfiguration</code< (regardless of the "per config" flag), respectively the project
- * properties.</p><p>
- * All modifications, including the current state of the "per config" flag are persisted with a call to {@link #save()}.
+ * a <code>IConfiguration</code> (regardless of the "per config" flag),
+ * respectively the project properties.
+ * </p>
+ * <p>
+ * All modifications, including the current state of the "per config" flag are
+ * persisted with a call to {@link #save()}.
  * </p>
  * 
  * 
  * @author Thomas Holland
  * @since 2.2
- *
+ * 
  */
 public class ProjectPropertyManager {
 
 	private static final String CLASSNAME = "avrtarget";
-	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/"
-			+ CLASSNAME;
+	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
 
 	public static final String KEY_PER_CONFIG = "perConfig";
 	private static final boolean DEFAULT_PER_CONFIG = false;
@@ -152,12 +151,8 @@ public class ProjectPropertyManager {
 	public AVRProjectProperties getActiveProperties() {
 		if (fPerConfig) {
 			// Get the active IConfiguration from our IProject
-			ICProjectDescription projdesc = CoreModel.getDefault()
-					.getProjectDescription(fProject, false);
-			ICConfigurationDescription cfgdesc = projdesc
-					.getActiveConfiguration();
-			IConfiguration buildcfg = ManagedBuildManager
-					.getConfigurationForDescription(cfgdesc);
+			IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(fProject);
+			IConfiguration buildcfg = bi.getDefaultConfiguration();
 			return getConfigurationProperties(buildcfg);
 		}
 
@@ -179,8 +174,7 @@ public class ProjectPropertyManager {
 	 *            requested.
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
-	public AVRProjectProperties getConfigurationProperties(
-			IConfiguration buildcfg) {
+	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg) {
 		return getConfigurationProperties(buildcfg, false, false);
 	}
 
@@ -209,24 +203,22 @@ public class ProjectPropertyManager {
 	 *            Return fresh properties, not from the cache.
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
-	public AVRProjectProperties getConfigurationProperties(
-			IConfiguration buildcfg, boolean force, boolean nocache) {
+	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg, boolean force,
+	        boolean nocache) {
 
 		// Test if the configuration belongs to this project
 		IProject cfgproj = (IProject) buildcfg.getOwner();
 
 		if (!fProject.equals(cfgproj)) {
-			throw new IllegalArgumentException("Configuration "
-					+ buildcfg.getId() + " does not belong to project "
-					+ fProject.getName());
+			throw new IllegalArgumentException("Configuration " + buildcfg.getId()
+			        + " does not belong to project " + fProject.getName());
 		}
 
 		if (fPerConfig || force) {
 			if (!nocache && fConfigProperties.containsKey(buildcfg.getId())) {
 				return fConfigProperties.get(buildcfg.getId());
 			}
-			BuildConfigurationScope scope = new BuildConfigurationScope(
-					buildcfg);
+			BuildConfigurationScope scope = new BuildConfigurationScope(buildcfg);
 
 			// Test if the node for the configuration already exists. If no, we
 			// create a new node by copying all values from the project settings
@@ -235,8 +227,7 @@ public class ProjectPropertyManager {
 			IEclipsePreferences cfgprefs = getConfigurationPreferences(buildcfg);
 			AVRProjectProperties newconfigprops;
 			if (copyproject) {
-				newconfigprops = new AVRProjectProperties(cfgprefs,
-						getProjectProperties());
+				newconfigprops = new AVRProjectProperties(cfgprefs, getProjectProperties());
 			} else {
 				newconfigprops = new AVRProjectProperties(cfgprefs);
 			}
@@ -256,8 +247,7 @@ public class ProjectPropertyManager {
 	 */
 	public AVRProjectProperties getProjectProperties() {
 		if (fProjectProps == null) {
-			fProjectProps = new AVRProjectProperties(
-					getProjectPreferences(fProject));
+			fProjectProps = new AVRProjectProperties(getProjectPreferences(fProject));
 		}
 		return fProjectProps;
 	}
@@ -284,8 +274,7 @@ public class ProjectPropertyManager {
 	 */
 	public void reload() {
 		IEclipsePreferences projectprefs = getProjectPreferences(fProject);
-		fPerConfig = projectprefs
-				.getBoolean(KEY_PER_CONFIG, DEFAULT_PER_CONFIG);
+		fPerConfig = projectprefs.getBoolean(KEY_PER_CONFIG, DEFAULT_PER_CONFIG);
 
 		if (fProjectProps != null) {
 			fProjectProps.loadData();
@@ -388,8 +377,7 @@ public class ProjectPropertyManager {
 		return scope.getNode(QUALIFIER);
 	}
 
-	private static IEclipsePreferences getConfigurationPreferences(
-			IConfiguration buildcfg) {
+	private static IEclipsePreferences getConfigurationPreferences(IConfiguration buildcfg) {
 		IScopeContext scope = new BuildConfigurationScope(buildcfg);
 		return scope.getNode(QUALIFIER);
 	}

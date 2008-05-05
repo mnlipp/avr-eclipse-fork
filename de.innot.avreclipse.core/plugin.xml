@@ -177,6 +177,7 @@
 -->
 	<extension
 		point="org.eclipse.cdt.ui.cPropertyTab">
+		
 		<!-- #### Target Hardware Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabTargetHardware"
@@ -184,6 +185,7 @@
 			name="Target Hardware"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
+
 		<!-- #### AVRDude/Programmer Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeProgrammer"
@@ -191,6 +193,7 @@
 			name="Programmer"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+
 		<!-- #### AVRDude/Flash + EEPROM Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFlashEEPROM"
@@ -198,19 +201,29 @@
 			name="Flash / EEPROM"
 			weight="002"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+
 		<!-- #### AVRDude/Fuses Tab #### -->
 		<tab
-			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFuses"
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFuseBytes"
 			icon=""
 			name="Fuses"
 			weight="003"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+
+		<!-- #### AVRDude/Lockbits Tab #### -->
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeLockbits"
+			icon=""
+			name="Lockbits"
+			weight="004"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+
 		<!-- #### AVRDude/Avanced Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeAdvanced"
 			icon=""
 			name="Advanced"
-			weight="004"
+			weight="005"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 

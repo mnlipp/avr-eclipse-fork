@@ -15,15 +15,18 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
-import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -40,17 +43,16 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.ui.progress.UIJob;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
-import de.innot.avreclipse.core.avrdude.FuseBytes;
-import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.GCC;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
-import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
  * This tab handles setting of all target hardware related properties.
@@ -61,39 +63,46 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
  */
 public class TabTargetHardware extends AbstractAVRPropertyTab {
 
-	private static final String LABEL_MCUTYPE = "MCU Type";
-	private static final String LABEL_FCPU = "MCU Clock Frequency";
-	private static final String TEXT_LOADBUTTON = "Load from Programmer";
+	private static final String		LABEL_MCUTYPE			= "MCU Type";
+	private static final String		LABEL_FCPU				= "MCU Clock Frequency";
+	private static final String		TEXT_LOADBUTTON			= "Load from MCU";
+	private static final String		TEXT_LOADBUTTON_BUSY	= "Loading...";
 
-	private final static String TITLE_AVRDUDEWARNING = "AVRDude Information";
-	private final static String TEXT_AVRDUDEWARNING = "No AVRDude Programmer Config set for the Project.\n"
-	        + "Set a Programmer Configuration in the AVRDude properties page.";
-
-	private final static String TITLE_FUSEBYTEWARNING = "Fuse Byte Conflict";
-	private final static String TEXT_FUSEBYTEWARNING = "Selected MCU is not compatible with the currently set fuse bytes.\n"
-	        + "Please check the fuse byte settings on the AVRDude Fuses tab.";
+	private final static String		TITLE_FUSEBYTEWARNING	= "{0} Conflict";
+	private final static String		TEXT_FUSEBYTEWARNING	= "Selected MCU is not compatible with the currently set {0}.\n"
+																	+ "Please check the {0} settings on the AVRDude {1}.";
+	private final static String[]	TITLEINSERT				= new String[] { "", "Fuse Byte",
+			"Lockbits", "Fuse Byte and Lockbits"			};
+	private final static String[]	TEXTINSERT				= new String[] { "", "fuse byte",
+			"lockbits", "fuse byte and lockbits"			};
+	private final static String[]	TABNAMEINSERT			= new String[] { "", "Fuse tab",
+			"Lockbits tab", "Fuse and Lockbit tabs"		};
 
 	/** List of common MCU frequencies (taken from mfile) */
-	private static final String[] FCPU_VALUES = { "1000000", "1843200", "2000000", "3686400",
-	        "4000000", "7372800", "8000000", "11059200", "14745600", "16000000", "18432000",
-	        "20000000" };
+	private static final String[]	FCPU_VALUES				= { "1000000", "1843200", "2000000",
+			"3686400", "4000000", "7372800", "8000000", "11059200", "14745600", "16000000",
+			"18432000", "20000000"							};
 
 	/** The Properties that this page works with */
-	private AVRProjectProperties fTargetProps;
+	private AVRProjectProperties	fTargetProps;
 
-	private Combo fMCUcombo;
-	private Composite fMCUWarningComposite;
+	private Combo					fMCUcombo;
+	private Button					fLoadButton;
+	private Composite				fMCUWarningComposite;
 
-	private Combo fFCPUcombo;
+	private Combo					fFCPUcombo;
 
-	private Set<String> fMCUids;
-	private String[] fMCUNames;
+	private Set<String>				fMCUids;
+	private String[]				fMCUNames;
 
-	private String fOldMCUid;
-	private String fOldFCPU;
+	private String					fOldMCUid;
+	private String					fOldFCPU;
 
-	private static final Image IMG_WARN = PlatformUI.getWorkbench().getSharedImages().getImage(
-	        ISharedImages.IMG_OBJS_WARN_TSK);
+	private static final Image		IMG_WARN				= PlatformUI
+																	.getWorkbench()
+																	.getSharedImages()
+																	.getImage(
+																			ISharedImages.IMG_OBJS_WARN_TSK);
 
 	/*
 	 * (non-Javadoc)
@@ -165,9 +174,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		});
 
 		// Load from Device Button
-		Button loadbutton = setupButton(parent, TEXT_LOADBUTTON, 1, SWT.NONE);
-		loadbutton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
-		loadbutton.addSelectionListener(new SelectionAdapter() {
+		fLoadButton = setupButton(parent, TEXT_LOADBUTTON, 1, SWT.NONE);
+		fLoadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		fLoadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				loadComboFromDevice();
@@ -310,8 +319,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	}
 
 	/**
-	 * Check if the given MCU is supported by avrdude and set visibility of the
-	 * MCU Warning Message accordingly.
+	 * Check if the given MCU is supported by avrdude and set visibility of the MCU Warning Message
+	 * accordingly.
 	 * 
 	 * @param mcuid
 	 *            The MCU id value to test
@@ -325,99 +334,146 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	}
 
 	/**
-	 * Check if the FuseBytes in the current properties are compatible with the
+	 * Check if the FuseBytes and Lockbits in the current properties are compatible with the
 	 * selected mcu. If not, a warning dialog is shown.
 	 */
 	private void checkFuseBytes(String mcuid) {
 		AVRDudeProperties avrdudeprops = fTargetProps.getAVRDudeProperties();
 
-		if (!avrdudeprops.getWriteFuses()) {
-			// Fuses are not written, so no need for a warning.
-			// The fuses tab will show a warning once the WriteFuses flag is
+		// State:
+		// 0x00 = neither fuses nor lockbits are written
+		// 0x01 = fuses not compatible
+		// 0x02 = lockbits not compatible
+		// 0x03 = both not compatible
+		// The state is used as an index to the String arrays with the texts.
+		int state = 0x00;
+
+		// Check fuse bytes
+		boolean fusewrite = avrdudeprops.getFuseBytes().getWrite();
+		if (fusewrite) {
+			boolean fusecompatible = avrdudeprops.getFuseBytes().isCompatibleWith(mcuid);
+			if (!fusecompatible) {
+				state |= 0x01;
+			}
+		}
+
+		// check lockbits
+		boolean lockwrite = avrdudeprops.getLockbitBytes().getWrite();
+		if (lockwrite) {
+			boolean lockcompatible = avrdudeprops.getLockbitBytes().isCompatibleWith(mcuid);
+			if (!lockcompatible) {
+				state |= 0x02;
+			}
+		}
+
+		if (!fusewrite && !lockwrite) {
+			// Neither Fuses nor Lockbits are written, so no need for a warning.
+			// The fuses tab respective lockbits tab will show a warning once the write flag is
 			// changed.
 			return;
 		}
 
-		FuseBytes fusebytes = avrdudeprops.getFuseBytes();
-
-		if (!(fusebytes.isCompatibleWith(mcuid))) {
-			MessageDialog.openWarning(fMCUcombo.getShell(), TITLE_FUSEBYTEWARNING,
-			        TEXT_FUSEBYTEWARNING);
+		if (state == 0) {
+			// both fuses and lockbits are compatible, so no need for a warning.
+			return;
 		}
+
+		// Now show the warning.
+		String title = MessageFormat.format(TITLE_FUSEBYTEWARNING, TITLEINSERT[state]);
+		String text = MessageFormat.format(TEXT_FUSEBYTEWARNING, TEXTINSERT[state],
+				TABNAMEINSERT[state]);
+		MessageDialog.openWarning(fMCUcombo.getShell(), title, text);
 	}
 
 	/**
-	 * Checks if the current target values are different from the original ones
-	 * and set the rebuild flag for the configuration / project if yes.
+	 * Checks if the current target values are different from the original ones and set the rebuild
+	 * flag for the configuration / project if yes.
 	 */
 	private void checkRebuildRequired() {
 		if (fOldMCUid != null) {
 			if (!(fTargetProps.getMCUId().equals(fOldMCUid))
-			        || !(fTargetProps.getFCPU().equals(fOldFCPU))) {
+					|| !(fTargetProps.getFCPU().equals(fOldFCPU))) {
 				setRebuildState(true);
 			}
 		}
 	}
 
 	/**
-	 * Load the actual MCU from the currently selected Programmer and set the
-	 * MCU combo accordingly.
+	 * Load the actual MCU from the currently selected Programmer and set the MCU combo accordingly.
 	 * <p>
-	 * This method shows a busy cursor or a progress dialog as required
+	 * This method will start a new Job to load the values and return immediately.
 	 * </p>
 	 */
 	private void loadComboFromDevice() {
-		ProgrammerConfig config = fTargetProps.getAVRDudeProperties().getProgrammer();
-		if (config == null) {
-			// TODO Display Dialog to select a Programmer
-			MessageDialog.openInformation(usercomp.getShell(), TITLE_AVRDUDEWARNING,
-			        TEXT_AVRDUDEWARNING);
-			return;
-		}
 
-		IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-		MCUFromDeviceRunner runner = new MCUFromDeviceRunner(config);
-		try {
-			progressService.busyCursorWhile(runner);
-		} catch (InvocationTargetException e) {
-			// This is an wrapper for an AVRDudeException
-			// Get the root Exception and display an Error Message
-			Throwable cause = e.getCause();
-			AVRDudeErrorDialog.openAVRDudeError(usercomp.getShell(), cause, config);
-			return;
-		} catch (InterruptedException e) {
-			// User has canceled - do nothing
-			return;
-		}
-		String mcuid = runner.getMCU();
-		if (mcuid == null) {
-			// TODO Open Error dialog
-			return;
-		}
+		// Disable the Load Button. It is re-enabled by the load job when it finishes.
+		fLoadButton.setEnabled(false);
+		fLoadButton.setText(TEXT_LOADBUTTON_BUSY);
 
-		fMCUcombo.select(fMCUcombo.indexOf(AVRMCUidConverter.id2name(mcuid)));
-		checkAVRDude(mcuid);
-	}
+		// The Job that does the actual loading.
+		Job readJob = new Job("Reading MCU Signature") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
 
-	private final class MCUFromDeviceRunner implements IRunnableWithProgress {
+				try {
+					monitor.beginTask("Starting AVRDude", 100);
 
-		private ProgrammerConfig fConfig;
-		private String fMCU;
+					String mcuid = AVRDude.getDefault().getAttachedMCU(
+							fTargetProps.getAVRDudeProperties().getProgrammer());
 
-		public MCUFromDeviceRunner(ProgrammerConfig config) {
-			fConfig = config;
-		}
+					fTargetProps.setMCUId(mcuid);
 
-		public void run(IProgressMonitor monitor) throws InvocationTargetException {
-			try {
-				fMCU = AVRDude.getDefault().getAttachedMCU(fConfig);
-			} catch (AVRDudeException e) {
-				throw new InvocationTargetException(e);
+					monitor.worked(95);
+
+					// and update the user interface
+					if (!fLoadButton.isDisposed()) {
+						fLoadButton.getDisplay().syncExec(new Runnable() {
+							public void run() {
+								updateData(fTargetProps);
+							}
+						});
+					}
+					monitor.worked(5);
+				} catch (AVRDudeException ade) {
+					// Show an Error message and exit
+					if (!fLoadButton.isDisposed()) {
+						UIJob messagejob = new AVRDudeErrorDialogJob(fLoadButton.getDisplay(), ade,
+								fTargetProps.getAVRDudeProperties().getProgrammerId());
+						messagejob.setPriority(Job.INTERACTIVE);
+						messagejob.schedule();
+						try {
+							messagejob.join(); // block until the dialog is closed.
+						} catch (InterruptedException e) {
+							// Don't care if the dialog is interrupted from outside.
+						}
+					}
+				} catch (SWTException swte) {
+					// The display has been disposed, so the user is not
+					// interested in the results from this job
+					return Status.CANCEL_STATUS;
+				} finally {
+					monitor.done();
+					// Enable the Load from MCU Button
+					if (!fLoadButton.isDisposed()) {
+						fLoadButton.getDisplay().syncExec(new Runnable() {
+							public void run() {
+								// Re-Enable the Button
+								fLoadButton.setEnabled(true);
+								fLoadButton.setText(TEXT_LOADBUTTON);
+							}
+						});
+					}
+				}
+
+				return Status.OK_STATUS;
 			}
-		}
+		};
 
-		public String getMCU() {
-			return fMCU;
-		}
+		// now set the Job properties and start it
+		readJob.setRule(new AVRDudeSchedulingRule(fTargetProps.getAVRDudeProperties()
+				.getProgrammer()));
+		readJob.setPriority(Job.SHORT);
+		readJob.setUser(true);
+		readJob.schedule();
 	}
 }

@@ -116,7 +116,9 @@ public class UploadProjectAction extends ActionDelegate {
 		} else {
 			return;
 		}
-		if (item == null) { return; }
+		if (item == null) {
+			return;
+		}
 		IProject project = null;
 
 		// See if the given selection is an IProject (directly or via IAdaptable
@@ -161,7 +163,9 @@ public class UploadProjectAction extends ActionDelegate {
 
 		// Check if the avrdude properties are valid.
 		// if not the checkProperties() method will display an error message box
-		if (!checkProperties(activecfg, targetprops)) { return; }
+		if (!checkProperties(activecfg, targetprops)) {
+			return;
+		}
 
 		// Everything is fine -> run avrdude
 		runAVRDude(activecfg, targetprops);
@@ -223,7 +227,8 @@ public class UploadProjectAction extends ActionDelegate {
 		for (String argument : actionlist) {
 			AVRDudeAction action = AVRDudeAction.getActionForArgument(argument);
 			String filename = action.getFilename();
-			if (filename == null) continue;
+			if (filename == null)
+				continue;
 			IPath rawfile = new Path(filename);
 			IPath unresolvedfile = rawfile;
 			IPath resolvedfile = rawfile;
@@ -249,7 +254,7 @@ public class UploadProjectAction extends ActionDelegate {
 		}
 
 		// Check that the fuses are valid (if they are to be uploaded)
-		if (props.getAVRDudeProperties().getWriteFuses()) {
+		if (props.getAVRDudeProperties().getFuseBytes().getWrite()) {
 			FuseBytes fusebytes = props.getAVRDudeProperties().getFuseBytes();
 			if (!fusebytes.isCompatibleWith(props.getMCUId())) {
 				String fusesmcuid = AVRMCUidConverter.id2name(fusebytes.getMCUId());

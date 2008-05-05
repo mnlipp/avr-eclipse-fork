@@ -4,9 +4,9 @@
 package de.innot.avreclipse.core.toolinfo.fuses;
 
 /**
- * {@link IDescriptionHolder} implementation for Lockbits.
+ * {@link IDescriptionHolder} implementation for Locks.
  * <p>
- * Objects of this class hold the {@link BitFieldDescription} objects for the Lockbits byte of a
+ * Objects of this class hold the {@link BitFieldDescription} objects for the Locks byte of a
  * single MCU.
  * </p>
  * <p>
@@ -46,7 +46,7 @@ public class LockbitsDescription extends FusesDescription {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer("Lockbits for " + getMCUId());
+		StringBuffer sb = new StringBuffer("Locks for " + getMCUId());
 		sb.append(" (" + getByteCount() + ") [");
 		for (int i = 0; i < getByteCount(); i++) {
 			sb.append("[ Byte " + i + " ");

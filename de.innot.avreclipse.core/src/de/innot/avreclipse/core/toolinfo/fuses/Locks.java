@@ -44,25 +44,25 @@ import de.innot.avreclipse.AVRPlugin;
  * @since 2.2
  *
  */
-public class Lockbits extends Fuses {
+public class Locks extends Fuses {
 
 	// paths to the default and instance properties files
 	private final static String	DEFAULTFOLDER	= "/properties/lockbitdesc";
 	private final static String	INSTANCEFOLDER	= "lockbitdesc";
 
-	private static Lockbits		fInstance		= null;
+	private static Locks		fInstance		= null;
 
 	/**
 	 * Get the default instance of the Fuses class
 	 */
-	public static Lockbits getDefault() {
+	public static Locks getDefault() {
 		if (fInstance == null)
-			fInstance = new Lockbits();
+			fInstance = new Locks();
 		return fInstance;
 	}
 
 	// protected constructor to prevent outside instantiation.
-	protected Lockbits() {
+	protected Locks() {
 		super();
 	}
 

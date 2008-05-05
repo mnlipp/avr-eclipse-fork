@@ -51,7 +51,9 @@ import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRDudePreferences;
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -333,14 +335,14 @@ public class AVRDude implements IMCUProvider {
 	 * @return <code>FuseByteValues</code> with the values and the MCU id of the attached MCU.
 	 * @throws AVRDudeException
 	 */
-	public FuseByteValues getFuseBytes(ProgrammerConfig config) throws AVRDudeException {
+	public ByteValues getFuseBytes(ProgrammerConfig config) throws AVRDudeException {
 
 		// First get the attached MCU
 		String mcuid = getAttachedMCU(config);
 
-		FuseByteValues values = new FuseByteValues(mcuid);
+		ByteValues values = new FuseByteValues(mcuid);
 
-		int fusebytecount = values.getFuseByteCount();
+		int fusebytecount = values.getByteCount();
 		List<String> args = new ArrayList<String>(config.getArguments());
 		args.add("-p" + getMCUInfo(mcuid));
 
@@ -370,6 +372,69 @@ public class AVRDude implements IMCUProvider {
 				values.setValue(i, value);
 				in.close();
 				// Delete the temporary file. If it failes (unlikely), well, there is not much we
+				// can do about it so we ignore it. Especially Windows users are used to a bazillion
+				// stale tempfiles in their temp directory anyway.
+				tmpfile.delete();
+			} catch (FileNotFoundException fnfe) {
+				throw new AVRDudeException(Reason.UNKNOWN, "Can't read temporary file", fnfe);
+			} catch (IOException ioe) {
+				throw new AVRDudeException(Reason.UNKNOWN, "Can't read temporary file", ioe);
+			}
+		}
+
+		return values;
+	}
+
+	/**
+	 * Return the lockbits of the device currently attached to the given Programmer.
+	 * <p>
+	 * The values are read by calling avdude with the "-U" option to read all available locks
+	 * (currently only one) and storing them in tempfiles in the system temp directory. These files
+	 * are read to get the values and deleted afterwards.
+	 * </p>
+	 * 
+	 * @param config
+	 *            <code>ProgrammerConfig</code> with the Programmer to query.
+	 * @return <code>LockbitsByteValues</code> with the values and the MCU id of the attached MCU.
+	 * @throws AVRDudeException
+	 */
+	public LockbitsByteValues getLockbits(ProgrammerConfig config) throws AVRDudeException {
+
+		// First get the attached MCU
+		String mcuid = getAttachedMCU(config);
+
+		LockbitsByteValues values = new LockbitsByteValues(mcuid);
+
+		int locksbytecount = values.getByteCount();
+		List<String> args = new ArrayList<String>(config.getArguments());
+		args.add("-p" + getMCUInfo(mcuid));
+
+		IPath tempdir = getTempDir();
+
+		for (int i = 0; i < locksbytecount; i++) {
+			String tmpfilename = tempdir.append("lock" + i + ".hex").toOSString();
+			AVRDudeAction action = AVRDudeActionFactory.readLockbitByte(mcuid, i, tmpfilename);
+			args.add(action.getArgument());
+		}
+
+		List<String> stdout = runCommand(args);
+		if (stdout == null) {
+			return null;
+		}
+
+		// get the temporary files, read and parse them and delete them afterwards
+
+		for (int i = 0; i < locksbytecount; i++) {
+			File tmpfile = tempdir.append("lock" + i + ".hex").toFile();
+
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(new FileReader(tmpfile));
+				String valueString = in.readLine();
+				int value = Integer.decode(valueString);
+				values.setValue(i, value);
+				in.close();
+				// Delete the temporary file. If it fails (unlikely), well, there is not much we
 				// can do about it so we ignore it. Especially Windows users are used to a bazillion
 				// stale tempfiles in their temp directory anyway.
 				tmpfile.delete();

@@ -15,7 +15,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -35,6 +34,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.FontMetrics;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -45,75 +45,158 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
-import de.innot.avreclipse.core.avrdude.FuseBytes;
+import de.innot.avreclipse.core.avrdude.AbstractBytes;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
-import de.innot.avreclipse.core.toolinfo.AVRDude;
-import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
- * The AVRDude Fuses Tab page.
+ * The base AVRDude Tab page for Fuses and Lockbits.
  * <p>
- * On this tab, the following properties are edited:
+ * The GUI for Fuse bytes and for Lockbits is the same and is handled in this class. The subclasses
+ * just supply a few basic informations, but do not need to do any user interface handling.
+ * </p>
+ * <p>
+ * Subclasses of this tab have three radio buttons:
  * <ul>
- * <li>Upload of the Fuses</li>
+ * <li>Do not upload anything</li>
+ * <li>Upload the byte values defined in a file</li>
+ * <li>Upload some immediate byte values</li>
  * </ul>
- * The Fuse byte values can either be entered directly, or a fuses file can be selected which
- * provides the fuse bytes.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  * 
  */
-public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
+public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab {
 
-	/** Max number of Fuse bytes */
-	private final static int		MAX_FUSES				= 3;
-
-	/** The name of the fuses for 1, 2 or 3 fusebytes */
-	private final static String[]	FUSENAMES				= { "Low", "High", "Ext." };
+	private final static int	LABEL_GROUPNAME			= 0;
+	private final static int	LABEL_NAME				= 1;
 
 	// The GUI texts
-	private final static String		GROUP_FUSES				= "Upload Fuse Bytes";
-	private final static String		TEXT_FUSES_NOUPLOAD		= "do not set fuses";
-	private final static String		TEXT_FUSES_FROMFILE		= "from fuses file";
-	private final static String		TEXT_FUSES_IMMEDIATE	= "use hex values";
+	private final static String	GROUP_NAME				= "Upload {0}";
+	private final static String	TEXT_NOUPLOAD			= "do not set {0}";
+	private final static String	TEXT_FROMFILE			= "from {0} file";
+	private final static String	TEXT_IMMEDIATE			= "direct hex value{0}";
 
-	private final static String		TEXT_READDEVICE			= "Load from MCU";
-	private final static String		TEXT_READDEVICE_BUSY	= "Loading...";
-	private final static String		TEXT_COPYFILE			= "Copy from file";
+	private final static String	TEXT_READDEVICE			= "Load from MCU";
+	private final static String	TEXT_READDEVICE_BUSY	= "Loading...";
+	private final static String	TEXT_COPYFILE			= "Copy from file";
+
+	private final static String	WARN_BYTESINCOMPATIBLE	= "These values are for an {0} MCU. This is not compatible with the {2} MCU setting [{1}].";
+
+	private static final Image	IMG_WARN				= PlatformUI
+																.getWorkbench()
+																.getSharedImages()
+																.getImage(
+																		ISharedImages.IMG_OBJS_WARN_TSK);
 
 	// The GUI widgets
-	private Button					fFusesNoUploadButton;
+	private Button				fNoUploadButton;
 
-	private Button					fFusesUploadFileButton;
-	private Text					fFusesFileText;
-	private Button					fFusesWorkplaceButton;
-	private Button					fFusesFilesystemButton;
-	private Button					fFusesVariableButton;
+	private Button				fUploadFileButton;
+	private Text				fFileText;
+	private Button				fWorkplaceButton;
+	private Button				fFilesystemButton;
+	private Button				fVariableButton;
+	private Composite			fFileWarning;
 
-	private Button					fFusesImmediateButton;
-	private Composite				fFusesBytesCompo;
-	private Button					fFusesReadButton;
-	private Button					fFusesCopyButton;
+	private Button				fImmediateButton;
+	private Composite			fBytesCompo;
+	private Button				fReadButton;
+	private Button				fCopyButton;
+	private Composite			fBytesWarning;
 
-	private final Composite[]		fFuseByteCompos			= new Composite[MAX_FUSES];
-	private final Text[]			fFuseValueTexts			= new Text[MAX_FUSES];
+	private Composite[]			fByteCompos;
+	private Text[]				fValueTexts;
 
-	/** Number of fuse bytes for the current MCU */
-	private int						fFuseCount				= 0;
+	/** Number of bytes for the current MCU handled on the page */
+	private int					fCount					= 0;
 
 	/** The Properties that this page works with */
-	private AVRDudeProperties		fTargetProps;
+	private AVRDudeProperties	fTargetProps;
 
-	/** The file extensions for image files. Used by the file selector. */
-	public final static String[]	IMAGE_EXTS				= new String[] { "*.fuses" };
+	/** The AbstractBytes property object this page works with */
+	private AbstractBytes		fBytes;
+
+	// The abstract hook methods for the subclasses
+
+	/**
+	 * Get an array of label strings.
+	 * <p>
+	 * Currently the returned array must contain two Strings. The first entry is used for the group
+	 * label ("Upload {0}") and the second entry is used in multiple places like ("from {0} file").
+	 * </p>
+	 * 
+	 * @return Array of <code>String</code>s with label strings.
+	 */
+	protected abstract String[] getLabels();
+
+	/**
+	 * Get the maximum number of byte value editor fields to generate.
+	 * 
+	 * @return 3 for the fuses page and 1 for the lockbits page.
+	 */
+	protected abstract int getMaxBytes();
+
+	/**
+	 * Get the actual number of bytes for the given MCU.
+	 * 
+	 * @param mcuid
+	 *            Target MCU id value.
+	 * @return 0-3 for the fuse page and 1 for the lockbits page.
+	 */
+	protected abstract int getByteCount(String mcuid);
+
+	/**
+	 * Load the ByteValues from the target MCU.
+	 * 
+	 * @param avrdudeprops
+	 *            The current properties, including the ProgrammerConfig needed by avrdude.
+	 * @return A <code>ByteValues</code> object with the bytes read from the MCU.
+	 * @throws AVRDudeException
+	 *             for any Exception thrown by avrdude
+	 */
+	protected abstract ByteValues getByteValues(AVRDudeProperties avrdudeprops)
+			throws AVRDudeException;
+
+	/**
+	 * Get the Label text for the n-th byte.
+	 * 
+	 * @param index
+	 *            0-2 for fuses, 0 for lockbits
+	 * @return <code>String</code> with the name of the byte at the index.
+	 */
+	protected abstract String getByteEditorLabel(int index);
+
+	/**
+	 * Get an array with file extensions.
+	 * <p>
+	 * This list is used by the "from FileSystem" file dialog to show only files with the
+	 * appropriate extension.
+	 * 
+	 * @return Array of <code>String</code>s with file extensions like ".fuses".
+	 */
+	protected abstract String[] getFileExtensions();
+
+	/**
+	 * Get the actual Byte properties this tab works with.
+	 * 
+	 * @param avrdudeprops
+	 *            Source properties
+	 * @return <code>FuseBytes</code> or <code>LockbitBytes</code> object extracted from the
+	 *         given <code>AVRDudeProperties</code>
+	 */
+	protected abstract AbstractBytes getByteProps(AVRDudeProperties avrdudeprops);
+
+	// The GUI stuff
 
 	/*
 	 * (non-Javadoc)
@@ -122,43 +205,49 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	 */
 	@Override
 	public void createControls(Composite parent) {
+
+		// init the arrays
+		int maxbytes = getMaxBytes();
+		fByteCompos = new Composite[maxbytes];
+		fValueTexts = new Text[maxbytes];
+
 		parent.setLayout(new GridLayout(1, false));
 
-		addFusesSection(parent);
+		addMainSection(parent);
 
 	}
 
 	/**
-	 * Add the fuses selection group.
+	 * Add the main selection group.
 	 * <p>
 	 * This group has three sections (with radio buttons):
 	 * <ul>
-	 * <li>Do not write fusebytes</li>
-	 * <li>Write fusebytes from a user selectable file</li>
-	 * <li>Write the fusebytes given</li>
+	 * <li>Do not write bytes</li>
+	 * <li>Write bytes from a user selectable file</li>
+	 * <li>Write the bytes given</li>
 	 * </ul>
 	 * </p>
 	 * 
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 */
-	private void addFusesSection(Composite parent) {
+	private void addMainSection(Composite parent) {
 
 		// Group Setup
 		Group group = new Group(parent, SWT.NONE);
-		group.setText(GROUP_FUSES);
+		group.setText(MessageFormat.format(GROUP_NAME, getLabels()[LABEL_GROUPNAME]));
 		group.setLayout(new GridLayout(4, false));
 		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
-		addFusesNoUploadSection(group);
+		addNoUploadSection(group);
 
-		addSeparator(group);
+		// addSeparator(group);
 
-		addFusesFromFileSection(group);
+		addFromFileSection(group);
 
-		addSeparator(group);
+		// addSeparator(group);
 
-		addFusesImmediateSection(group);
+		addImmediateSection(group);
 	}
 
 	/**
@@ -167,24 +256,28 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 */
-	private void addFusesNoUploadSection(Composite parent) {
+	private void addNoUploadSection(Composite parent) {
 
-		fFusesNoUploadButton = new Button(parent, SWT.RADIO);
-		fFusesNoUploadButton.setText(TEXT_FUSES_NOUPLOAD);
-		fFusesNoUploadButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 4, 1));
-		fFusesNoUploadButton.addSelectionListener(new SelectionAdapter() {
+		fNoUploadButton = new Button(parent, SWT.RADIO);
+		fNoUploadButton.setText(MessageFormat.format(TEXT_NOUPLOAD, getLabels()[LABEL_NAME]));
+		fNoUploadButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.FILL, false, false, 1, 1));
+		fNoUploadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// Set the properties
-				fTargetProps.setWriteFuses(false);
+				fBytes.setWrite(false);
 
-				// and disable the other contols
-				enableFusesFileGroup(false);
-				enableFusesByteGroup(false);
+				// and disable the other controls
+				enableFileGroup(false);
+				enableByteGroup(false);
 
 				updatePreview(fTargetProps);
 			}
 		});
+
+		// Dummy to fill up the next 3 columns of the gridlayout
+		Label dummy = new Label(parent, SWT.NONE);
+		dummy.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
 
 	}
 
@@ -198,28 +291,32 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 */
-	private void addFusesFromFileSection(Composite parent) {
+	private void addFromFileSection(Composite parent) {
 
-		fFusesUploadFileButton = new Button(parent, SWT.RADIO);
-		fFusesUploadFileButton.setText(TEXT_FUSES_FROMFILE);
-		fFusesUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-		fFusesUploadFileButton.addSelectionListener(new SelectionAdapter() {
+		// TODO remove this once files are supported.
+		if (true)
+			return;
+
+		fUploadFileButton = new Button(parent, SWT.RADIO);
+		fUploadFileButton.setText(MessageFormat.format(TEXT_FROMFILE, getLabels()[LABEL_NAME]));
+		fUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		fUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setWriteFuses(true);
-				fTargetProps.getFuseBytes().setUseFile(true);
-				enableFusesFileGroup(true);
-				enableFusesByteGroup(false);
+				fBytes.setWrite(true);
+				fBytes.setUseFile(true);
+				enableFileGroup(true);
+				enableByteGroup(false);
 				updatePreview(fTargetProps);
 			}
 		});
 
-		fFusesFileText = new Text(parent, SWT.BORDER);
-		fFusesFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
-		fFusesFileText.addModifyListener(new ModifyListener() {
+		fFileText = new Text(parent, SWT.BORDER);
+		fFileText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 3, 1));
+		fFileText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				String newpath = fFusesFileText.getText();
-				fTargetProps.getFuseBytes().setFusesFile(newpath);
+				String newpath = fFileText.getText();
+				fBytes.setFileName(newpath);
 				updatePreview(fTargetProps);
 			}
 		});
@@ -234,70 +331,71 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		Label dummy = new Label(compo, SWT.NONE); // Filler
 		dummy.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-		fFusesWorkplaceButton = setupWorkplaceButton(compo, fFusesFileText);
-		fFusesFilesystemButton = setupFilesystemButton(compo, fFusesFileText, IMAGE_EXTS);
-		fFusesVariableButton = setupVariableButton(compo, fFusesFileText);
+		fWorkplaceButton = setupWorkplaceButton(compo, fFileText);
+		fFilesystemButton = setupFilesystemButton(compo, fFileText, getFileExtensions());
+		fVariableButton = setupVariableButton(compo, fFileText);
 
 	}
 
 	/**
 	 * The "Upload from direct values" Section.
 	 * <p>
-	 * Contains controls to edit all fuse bytes directly and two buttons to read the fuse byte
-	 * values from the programmer and to copy the values from the fuses file.
+	 * Contains controls to edit all bytes directly and two buttons to read the byte values from the
+	 * programmer and to copy the values from the file.
 	 * </p>
 	 * 
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 */
-	private void addFusesImmediateSection(Composite parent) {
+	private void addImmediateSection(Composite parent) {
 
 		// add the radio button
-		fFusesImmediateButton = new Button(parent, SWT.RADIO);
-		fFusesImmediateButton.setText(TEXT_FUSES_IMMEDIATE);
+		fImmediateButton = new Button(parent, SWT.RADIO);
+		fImmediateButton
+				.setText(MessageFormat.format(TEXT_IMMEDIATE, getMaxBytes() > 1 ? "s" : ""));
 		GridData buttonGD = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
 		// This is somewhat arbitrarily and looks good on my setup.
 		// Your milage may vary.
 		buttonGD.verticalIndent = 4;
-		fFusesImmediateButton.setLayoutData(buttonGD);
-		fFusesImmediateButton.addSelectionListener(new SelectionAdapter() {
+		fImmediateButton.setLayoutData(buttonGD);
+		fImmediateButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				fTargetProps.setWriteFuses(true);
-				fTargetProps.getFuseBytes().setUseFile(false);
-				enableFusesFileGroup(false);
-				enableFusesByteGroup(true);
+				fBytes.setWrite(true);
+				fBytes.setUseFile(false);
+				enableFileGroup(false);
+				enableByteGroup(true);
 				updatePreview(fTargetProps);
 			}
 		});
 
 		// add the byte editor composites (wrapped in a composite)
-		fFusesBytesCompo = new Composite(parent, SWT.NONE);
+		fBytesCompo = new Composite(parent, SWT.NONE);
 		GridData bytesGD = new GridData(SWT.BEGINNING, SWT.FILL, false, false, 1, 1);
 
 		// Make the size of the byte edit fields somewhat dependent on the font
-		// size. I use 6 chars instead of the actual required 4, because 4 was
+		// size. I use 6 chars instead of the actual required 2, because 2 was
 		// just to small.
 		// Also a little vertical indent to get it aligned with the Button
 		// behind it (this again works for me and YMMV.
 		FontMetrics fm = getFontMetrics(parent);
-		bytesGD.widthHint = Dialog.convertWidthInCharsToPixels(fm, 6) * 3;
+		bytesGD.widthHint = Dialog.convertWidthInCharsToPixels(fm, 6) * getMaxBytes();
 		bytesGD.verticalIndent = 2;
-		fFusesBytesCompo.setLayoutData(bytesGD);
-		fFusesBytesCompo.setLayout(new FillLayout(SWT.HORIZONTAL));
+		fBytesCompo.setLayoutData(bytesGD);
+		fBytesCompo.setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		// Insert the byte editor compos
-		for (int i = 0; i < MAX_FUSES; i++) {
-			makeFuseByteEditComposite(fFusesBytesCompo, i);
+		for (int i = 0; i < getMaxBytes(); i++) {
+			makeByteEditComposite(fBytesCompo, i);
 		}
 
 		// add the read button
-		fFusesReadButton = new Button(parent, SWT.PUSH);
-		fFusesReadButton.setText(TEXT_READDEVICE);
-		fFusesReadButton.setBackground(parent.getBackground());
+		fReadButton = new Button(parent, SWT.PUSH);
+		fReadButton.setText(TEXT_READDEVICE);
+		fReadButton.setBackground(parent.getBackground());
 		GridData editbuttonGD = new GridData(SWT.FILL, SWT.TOP, false, false);
-		fFusesReadButton.setLayoutData(editbuttonGD);
-		fFusesReadButton.addSelectionListener(new SelectionAdapter() {
+		fReadButton.setLayoutData(editbuttonGD);
+		fReadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				readFuseBytesFromDevice();
@@ -305,19 +403,42 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		});
 
 		// add the copy button
-		fFusesCopyButton = new Button(parent, SWT.PUSH);
-		fFusesCopyButton.setText(TEXT_COPYFILE);
-		fFusesCopyButton.setBackground(parent.getBackground());
+		fCopyButton = new Button(parent, SWT.PUSH);
+		fCopyButton.setText(TEXT_COPYFILE);
+		fCopyButton.setBackground(parent.getBackground());
 		GridData copybuttonGD = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
-		fFusesCopyButton.setLayoutData(copybuttonGD);
+		fCopyButton.setLayoutData(copybuttonGD);
+
+		// TODO Remove this line once files are supported.
+		fCopyButton.setVisible(false);
+
+		// The Warning Composite
+		fBytesWarning = new Composite(parent, SWT.NONE);
+		fBytesWarning.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
+		GridLayout gl = new GridLayout(2, false);
+		gl.marginHeight = 0;
+		gl.marginWidth = 0;
+		gl.verticalSpacing = 0;
+		gl.horizontalSpacing = 0;
+		fBytesWarning.setLayout(gl);
+
+		Label warnicon = new Label(fBytesWarning, SWT.LEFT);
+		warnicon.setLayoutData(new GridData(GridData.BEGINNING));
+		warnicon.setImage(IMG_WARN);
+
+		Label warnmessage = new Label(fBytesWarning, SWT.LEFT);
+		warnmessage.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		warnmessage.setText(WARN_BYTESINCOMPATIBLE);
+
+		fBytesWarning.setVisible(true);
 
 	}
 
 	/**
-	 * Create an fuse byte "Editor" composite.
+	 * Create an byte "Editor" composite.
 	 * <p>
 	 * The editor consists of a Text control to enter the byte value and a Label below it with the
-	 * name of the fusebyte.
+	 * name of the byte.
 	 * </p>
 	 * <p>
 	 * The Text control will only accept (up to) 2 hex digits (converted to uppercase). The value is
@@ -332,17 +453,17 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 * @param index
-	 *            The fuse byte index for the editor.
+	 *            The byte index for the editor.
 	 * 
 	 * @return <code>Composite</code> with the editor.
 	 */
-	private Composite makeFuseByteEditComposite(Composite parent, int index) {
+	private Composite makeByteEditComposite(Composite parent, int index) {
 
 		FillLayout layout = new FillLayout(SWT.VERTICAL);
 
 		Composite compo = new Composite(parent, SWT.NONE);
 		compo.setLayout(layout);
-		fFuseByteCompos[index] = compo;
+		fByteCompos[index] = compo;
 
 		// Add the Text control
 		Text text = new Text(compo, SWT.BORDER | SWT.CENTER);
@@ -354,9 +475,9 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		text.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				// Get the Fuse byte number
+				// Get the byte number
 				Text source = (Text) e.widget;
-				int fusenumber = (Integer) source.getData();
+				int index = (Integer) source.getData();
 
 				// Get the new value...
 				int newvalue;
@@ -368,7 +489,7 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 				}
 
 				// ... and set the property
-				fTargetProps.getFuseBytes().setFuseValue(fusenumber, newvalue);
+				fBytes.setValue(index, newvalue);
 				updatePreview(fTargetProps);
 			}
 
@@ -399,31 +520,35 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 
 		// Store a reference to the Text control, so that the updateData()
 		// method can update the content when required.
-		fFuseValueTexts[index] = text;
+		fValueTexts[index] = text;
 
 		// Add the label
 		Label label = new Label(compo, SWT.CENTER);
-		label.setText(FUSENAMES[index]);
+		label.setText(getByteEditorLabel(index));
 		label.setSize(10, 0);
 
 		return compo;
 	}
 
 	/**
-	 * Enable / Disable the Fuses file selector Controls
+	 * Enable / Disable the file selector Controls
 	 * 
 	 * @param enabled
 	 *            <code>true</code> to enable, <code>false</code> to disable.
 	 */
-	private void enableFusesFileGroup(boolean enabled) {
-		fFusesFileText.setEnabled(enabled);
-		fFusesWorkplaceButton.setEnabled(enabled);
-		fFusesFilesystemButton.setEnabled(enabled);
-		fFusesVariableButton.setEnabled(enabled);
+	private void enableFileGroup(boolean enabled) {
+		// TODO remove this once files are supported.
+		if (true)
+			return;
+
+		fFileText.setEnabled(enabled);
+		fWorkplaceButton.setEnabled(enabled);
+		fFilesystemButton.setEnabled(enabled);
+		fVariableButton.setEnabled(enabled);
 	}
 
 	/**
-	 * Enable / Disable the Fuses Byte Editor Controls
+	 * Enable / Disable the Byte Editor Controls
 	 * <p>
 	 * When enabling, only those editors are enabled that are actually valid for the current MCU.
 	 * </p>
@@ -431,16 +556,16 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	 * @param enabled
 	 *            <code>true</code> to enable, <code>false</code> to disable.
 	 */
-	private void enableFusesByteGroup(boolean enabled) {
-		for (int i = 0; i < fFuseByteCompos.length; i++) {
-			if (i >= fFuseCount) {
-				setEnabled(fFuseByteCompos[i], false);
+	private void enableByteGroup(boolean enabled) {
+		for (int i = 0; i < fByteCompos.length; i++) {
+			if (i >= fCount) {
+				setEnabled(fByteCompos[i], false);
 			} else {
-				setEnabled(fFuseByteCompos[i], enabled);
+				setEnabled(fByteCompos[i], enabled);
 			}
 		}
-		fFusesReadButton.setEnabled(enabled);
-		fFusesCopyButton.setEnabled(enabled);
+		fReadButton.setEnabled(enabled);
+		// fCopyButton.setEnabled(enabled);
 	}
 
 	/*
@@ -460,15 +585,15 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		// Copy the currently selected values of this tab to the given, fresh
 		// Properties.
 		// The caller of this method will handle the actual saving
-		dstprops.setWriteFuses(fTargetProps.getWriteFuses());
 
 		// Copy the settings from the FuseBytes sub-properties
-		FuseBytes src = fTargetProps.getFuseBytes();
-		FuseBytes dst = dstprops.getFuseBytes();
+		AbstractBytes src = getByteProps(fTargetProps);
+		AbstractBytes dst = getByteProps(dstprops);
 
+		dst.setWrite(src.getWrite());
 		dst.setUseFile(src.getUseFile());
-		dst.setFusesFile(src.getFusesFile());
-		dst.setFuseValues(src.getFuseValuesFromObject());
+		dst.setFileName(src.getFileName());
+		dst.setValues(src.getValuesFromImmediate());
 	}
 
 	/*
@@ -479,16 +604,14 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	@Override
 	protected void performCopy(AVRDudeProperties srcprops) {
 
-		// Copy the settings from the AVRDudeProperties
-		fTargetProps.setWriteFuses(srcprops.getWriteFuses());
+		// Copy the settings from the AbstractBytes sub-properties
+		AbstractBytes src = getByteProps(srcprops);
+		AbstractBytes dst = getByteProps(fTargetProps);
 
-		// Copy the settings from the FuseBytes sub-properties
-		FuseBytes src = srcprops.getFuseBytes();
-		FuseBytes dst = fTargetProps.getFuseBytes();
-
+		dst.setWrite(src.getWrite());
 		dst.setUseFile(src.getUseFile());
-		dst.setFusesFile(src.getFusesFile());
-		dst.setFuseValues(src.getFuseValuesFromObject());
+		dst.setFileName(src.getFileName());
+		dst.setValues(src.getValuesFromImmediate());
 
 		updateData(fTargetProps);
 	}
@@ -502,57 +625,52 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	protected void updateData(AVRDudeProperties props) {
 
 		fTargetProps = props;
+		fBytes = getByteProps(props);
 
 		// Get the target MCU and its number of fusebytes
 		String mcuid = props.getParent().getMCUId();
-		fFuseCount = 0;
-		try {
-			fFuseCount = Fuses.getDefault().getFuseByteCount(mcuid);
-		} catch (IOException e) {
-			// Failed to get the fusebytecount, leave it a zero
-		}
+		fCount = getByteCount(mcuid);
 
-		// TODO: Test if Fusebytes are still valid and generate some warnings if
+		// TODO: Test if bytes are still valid and generate some warnings if
 		// not.
 
-		// Update the fuses group
-		FuseBytes src = fTargetProps.getFuseBytes();
+		// Update the radio buttons
 
 		// There are three possibilities:
-		// a) No upload wanted: WriteFuses == false
-		// b) Upload from file: WriteFuses == true && useFile == true
-		// c) Upload from immediate: WriteFuses == true && useFile == false
-		if (!fTargetProps.getWriteFuses()) {
+		// a) No upload wanted: Write == false
+		// b) Upload from file: Write == true && useFile == true
+		// c) Upload from immediate: Write == true && useFile == false
+		if (!fBytes.getWrite()) {
 			// a) No upload wanted
-			fFusesNoUploadButton.setSelection(true);
-			fFusesUploadFileButton.setSelection(false);
-			fFusesImmediateButton.setSelection(false);
-			enableFusesFileGroup(false);
-			enableFusesByteGroup(false);
+			fNoUploadButton.setSelection(true);
+			// fUploadFileButton.setSelection(false);
+			fImmediateButton.setSelection(false);
+			enableFileGroup(false);
+			enableByteGroup(false);
 		} else {
-			// write fuses
-			fFusesNoUploadButton.setSelection(false);
-			if (src.getUseFile()) {
-				// b) write fuses - use supplied file
-				fFusesUploadFileButton.setSelection(true);
-				fFusesImmediateButton.setSelection(false);
-				enableFusesFileGroup(true);
-				enableFusesByteGroup(false);
+			// write bytes
+			fNoUploadButton.setSelection(false);
+			if (fBytes.getUseFile()) {
+				// b) write bytes - use supplied file
+				// fUploadFileButton.setSelection(true);
+				fImmediateButton.setSelection(false);
+				enableFileGroup(true);
+				enableByteGroup(false);
 			} else {
-				// c) write flash - use immediate bytes
-				fFusesUploadFileButton.setSelection(false);
-				fFusesImmediateButton.setSelection(true);
-				enableFusesFileGroup(false);
-				enableFusesByteGroup(true);
+				// c) write bytes - use immediate bytes
+				// fUploadFileButton.setSelection(false);
+				fImmediateButton.setSelection(true);
+				enableFileGroup(false);
+				enableByteGroup(true);
 			}
 		}
 
 		// Set the text for the filename
-		fFusesFileText.setText(src.getFusesFile());
+		// fFileText.setText(src.getFileName());
 
 		// Set the immediate fuse values
-		int[] values = src.getFuseValues();
-		int count = Math.min(values.length, MAX_FUSES);
+		int[] values = fBytes.getValues();
+		int count = Math.min(values.length, getMaxBytes());
 
 		for (int i = 0; i < count; i++) {
 			String newvalue = "";
@@ -560,20 +678,20 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 			if (0 <= currvalue && currvalue <= 255) {
 				newvalue = Integer.toHexString(currvalue).toUpperCase();
 			}
-			fFuseValueTexts[i].setText(newvalue);
+			fValueTexts[i].setText(newvalue);
 		}
 	}
 
 	/**
-	 * Load the Fuse Bytes from the currently attached MCU.
+	 * Load the Bytes from the currently attached MCU.
 	 * <p>
 	 * This method will start a new Job to load the values and return immediately.
 	 * </p>
 	 */
 	private void readFuseBytesFromDevice() {
 		// Disable the Load Button. It is re-enabled by the load job when it finishes.
-		fFusesReadButton.setEnabled(false);
-		fFusesReadButton.setText(TEXT_READDEVICE_BUSY);
+		fReadButton.setEnabled(false);
+		fReadButton.setText(TEXT_READDEVICE_BUSY);
 
 		// The Job that does the actual loading.
 		Job readJob = new Job("Reading Fuse Bytes") {
@@ -583,32 +701,30 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 				try {
 					monitor.beginTask("Starting AVRDude", 100);
 
-					final FuseByteValues fusebytevalues = AVRDude.getDefault().getFuseBytes(
-							fTargetProps.getProgrammer());
+					final ByteValues bytevalues = getByteValues(fTargetProps);
 
 					monitor.worked(95);
 
 					// and update the user interface
-					if (!fFusesReadButton.isDisposed()) {
-						fFusesReadButton.getDisplay().syncExec(new Runnable() {
+					if (!fReadButton.isDisposed()) {
+						fReadButton.getDisplay().syncExec(new Runnable() {
 							public void run() {
 								// Check if the mcus match
 								String projectmcu = fTargetProps.getParent().getMCUId();
-								String newmcu = fusebytevalues.getMCUId();
+								String newmcu = bytevalues.getMCUId();
 								if (!projectmcu.equals(newmcu)) {
 									// No, they don't match. Ask the user what to do
 									// "Accept anyway" or "Cancel"
-									Dialog dialog = new MCUMismatchDialog(fFusesReadButton
-											.getShell(), newmcu, projectmcu);
+									Dialog dialog = new MCUMismatchDialog(fReadButton.getShell(),
+											newmcu, projectmcu);
 									int choice = dialog.open();
 									if (choice == 1) {
 										return;
 									}
 								}
-								// Clear the current fusebytes and transfer the new values
-								fTargetProps.getFuseBytes().setFuseValues(FuseBytes.EMPTY_FUSES);
-								fTargetProps.getFuseBytes().setFuseValues(
-										fusebytevalues.getValues());
+								// Clear the current bytes and transfer the new values
+								fBytes.clearValues();
+								fBytes.setValues(bytevalues.getValues());
 
 								updateData(fTargetProps);
 							}
@@ -617,9 +733,9 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 					monitor.worked(5);
 				} catch (AVRDudeException ade) {
 					// Show an Error message and exit
-					if (!fFusesReadButton.isDisposed()) {
-						UIJob messagejob = new AVRDudeErrorDialogJob(fFusesReadButton.getDisplay(),
-								ade, fTargetProps.getProgrammerId());
+					if (!fReadButton.isDisposed()) {
+						UIJob messagejob = new AVRDudeErrorDialogJob(fReadButton.getDisplay(), ade,
+								fTargetProps.getProgrammerId());
 						messagejob.setPriority(Job.INTERACTIVE);
 						messagejob.schedule();
 						try {
@@ -635,12 +751,12 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 				} finally {
 					monitor.done();
 					// Enable the Load from MCU Button
-					if (!fFusesReadButton.isDisposed()) {
-						fFusesReadButton.getDisplay().syncExec(new Runnable() {
+					if (!fReadButton.isDisposed()) {
+						fReadButton.getDisplay().syncExec(new Runnable() {
 							public void run() {
 								// Re-Enable the Button
-								fFusesReadButton.setEnabled(true);
-								fFusesReadButton.setText(TEXT_READDEVICE);
+								fReadButton.setEnabled(true);
+								fReadButton.setText(TEXT_READDEVICE);
 							}
 						});
 					}
@@ -674,10 +790,10 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 	}
 
 	/**
-	 * An small Warning dialog that will be shown when the MCU for the fusebytes does not match the
+	 * An small Warning dialog that will be shown when the MCU for the bytes does not match the
 	 * current Project / Configuration MCU.
 	 * <p>
-	 * In addition to a fixed warning message, this dialog sports two buttons to accept the fuse
+	 * In addition to a fixed warning message, this dialog sports two buttons to accept the byte
 	 * values, even if they don't match, or to cancel the changes.
 	 * </p>
 	 * <p>
@@ -705,17 +821,18 @@ public class TabAVRDudeFuses extends AbstractAVRDudePropertyTab {
 		 */
 		public MCUMismatchDialog(Shell shell, String newmcu, String projectmcu) {
 
-			super(shell, "AVRDude Fuses Warning", null, "", WARNING, new String[] { "Accept",
-					"Cancel" }, 0);
+			super(shell, "AVRDude Warning", null, "", WARNING, new String[] { "Accept", "Cancel" },
+					0);
 
 			String proptype = isPerConfig() ? "build configuration" : "project";
 
-			String source = "The fuse bytes values are valid for an {0} MCU.\n"
+			String source = "The {3} values are valid for an {0} MCU.\n"
 					+ "This MCU is not compatible with the current {2} MCU [{1}].\n\n"
 					+ "\"Accept\" to accept the new values anyway.\n"
 					+ "\"Cancel\" to discard the new values.";
 
-			this.message = MessageFormat.format(source, newmcu, projectmcu, proptype);
+			this.message = MessageFormat.format(source, newmcu, projectmcu, proptype,
+					getLabels()[LABEL_NAME]);
 		}
 	}
 

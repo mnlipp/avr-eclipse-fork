@@ -17,25 +17,25 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.IOException;
 
-import de.innot.avreclipse.core.avrdude.FuseBytes;
+import de.innot.avreclipse.core.avrdude.LockbitBytes;
 
 /**
- * Container for the fuse bytes.
+ * Container for the Lockbit byte(s).
+ * <p>
+ * While all current AVR MCUs only have one lockbit byte, this class could support multiple bytes in
+ * the future because it uses the same API as {@link FuseByteValues}.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  * 
  */
-public class FuseByteValues extends ByteValues {
+public class LockbitsByteValues extends ByteValues {
 
-	// Name of the fuse bytes in avrdude format
-	private final static String	FUSE	= "fuse";
-	private final static String	LFUSE	= "lfuse";
-	private final static String	HFUSE	= "hfuse";
-	private final static String	EFUSE	= "efuse";
+	private final static String	LOCK	= "lock";
 
 	/**
-	 * Create a new fuse byte values container for a given MCU.
+	 * Create a new lockbits byte value container for a given MCU.
 	 * <p>
 	 * The MCU parameter is stored but only used for reference. The actual number of bytes does not
 	 * depend on the MCU but is taken from the subclass via the {@link #getMaxBytes()} hook method.
@@ -44,21 +44,21 @@ public class FuseByteValues extends ByteValues {
 	 * @param mcuid
 	 *            <code>String</code> with a MCU id value.
 	 */
-	public FuseByteValues(String mcuid) {
+	public LockbitsByteValues(String mcuid) {
 		super(mcuid);
 	}
 
 	/**
 	 * Clone constructor.
 	 * <p>
-	 * Creates a new fuse byte values container and copies all values (and the MCU id) from the
+	 * Creates a new lockbits byte value container and copies all values (and the MCU id) from the
 	 * source.
 	 * </p>
 	 * 
 	 * @param source
 	 *            <code>ByteValues</code> object to clone.
 	 */
-	public FuseByteValues(ByteValues source) {
+	public LockbitsByteValues(ByteValues source) {
 		super(source);
 	}
 
@@ -69,7 +69,7 @@ public class FuseByteValues extends ByteValues {
 	 */
 	@Override
 	public int getMaxBytes() {
-		return FuseBytes.MAX_FUSEBYTES;
+		return LockbitBytes.MAX_LOCKBITBYTES;
 	}
 
 	/*
@@ -80,7 +80,7 @@ public class FuseByteValues extends ByteValues {
 	@Override
 	public int getByteCount() {
 		try {
-			return Fuses.getDefault().getByteCount(getMCUId());
+			return Locks.getDefault().getByteCount(getMCUId());
 		} catch (IOException e) {
 			// If you want to see the Exception use the Fuses class directly
 			return 0;
@@ -95,12 +95,8 @@ public class FuseByteValues extends ByteValues {
 	@Override
 	public int nameToIndex(String name) {
 		int index = -1;
-		if (FUSE.equals(name) || LFUSE.equals(name)) {
+		if (LOCK.equals(name)) {
 			index = 0;
-		} else if (HFUSE.equals(name)) {
-			index = 1;
-		} else if (EFUSE.equals(name)) {
-			index = 2;
 		}
 
 		return index;

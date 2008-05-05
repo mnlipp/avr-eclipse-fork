@@ -111,7 +111,7 @@ public class AVRProjectProperties {
 	public void setMCUId(String mcuid) {
 		if (!fMCUid.equals(mcuid)) {
 			fMCUid = mcuid;
-			fDirty = false;
+			fDirty = true;
 		}
 	}
 

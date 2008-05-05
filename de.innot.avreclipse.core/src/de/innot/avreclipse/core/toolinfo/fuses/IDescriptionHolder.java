@@ -63,7 +63,7 @@ public interface IDescriptionHolder {
 	 * if no default value has been defined in the part description files.
 	 * </p>
 	 * <p>
-	 * The default value for LockBits is always <code>0xff</code> (all bits set), which means no
+	 * The default value for LockbitBytes is always <code>0xff</code> (all bits set), which means no
 	 * locks.
 	 * </p>
 	 * 
