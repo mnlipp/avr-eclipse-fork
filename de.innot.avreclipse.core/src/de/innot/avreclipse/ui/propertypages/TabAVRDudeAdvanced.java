@@ -15,8 +15,12 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
@@ -29,8 +33,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.progress.UIJob;
 
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
+import de.innot.avreclipse.core.toolinfo.AVRDude;
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
  * The AVRDude Actions Tab page.
@@ -40,9 +49,8 @@ import de.innot.avreclipse.core.properties.AVRDudeProperties;
  * <li>The automatic verify check</li>
  * <li>The Signature check</li>
  * <li>Enable the no-Write / Simulation mode</li>
- * <li>Enable Flash memory erase cycle counter, incl. the non-property related
- * options to load / write the current cycle counter value to / from a connected
- * device</li>
+ * <li>Enable Flash memory erase cycle counter, incl. the non-property related options to load /
+ * write the current cycle counter value to / from a connected device</li>
  * </ul>
  * </p>
  * 
@@ -55,43 +63,47 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	// The GUI texts
 
 	// No verify group
-	private final static String GROUP_NOVERIFY = "Verify Check";
-	private final static String LABEL_NOVERIFY = "Disabling the automatic verify check will improve upload time at the risk of unnoticed upload errors.";
-	private final static String TEXT_NOVERIFY = "Disable automatic verify check";
+	private final static String	GROUP_NOVERIFY			= "Verify Check";
+	private final static String	LABEL_NOVERIFY			= "Disabling the automatic verify check will improve upload time at the risk of unnoticed upload errors.";
+	private final static String	TEXT_NOVERIFY			= "Disable automatic verify check";
 
 	// No Signature check group
-	private final static String GROUP_NOSIGCHECK = "Device Signature Check";
-	private final static String LABEL_NOSIGCHECK = "Enable this if the target MCU has a broken (erased or overwritten) device signature\n"
-	        + "but is otherwise operating normally.";
-	private final static String TEXT_NOSIGCHECK = "Disable device signature check";
+	private final static String	GROUP_NOSIGCHECK		= "Device Signature Check";
+	private final static String	LABEL_NOSIGCHECK		= "Enable this if the target MCU has a broken (erased or overwritten) device signature\n"
+																+ "but is otherwise operating normally.";
+	private final static String	TEXT_NOSIGCHECK			= "Disable device signature check";
 
 	// No write / simulation group
-	private final static String GROUP_NOWRITE = "Simulation Mode";
-	private final static String LABEL_NOWRITE = "Note: Even with this option set, AVRDude might still perform a chip erase.";
-	private final static String TEXT_NOWRITE = "Simulation mode (no data is actually written to the device)";
+	private final static String	GROUP_NOWRITE			= "Simulation Mode";
+	private final static String	LABEL_NOWRITE			= "Note: Even with this option set, AVRDude might still perform a chip erase.";
+	private final static String	TEXT_NOWRITE			= "Simulation mode (no data is actually written to the device)";
 
 	// Flash erase cycle counter check
-	private final static String GROUP_COUNTER = "Flash memory erase cycle counter";
-	private final static String LABEL_COUNTER = "Enable this to have avrdude count the number of flash erase cycles.\n"
-	        + "Note: the value is stored in the last four bytes of the EEPROM,\n"
-	        + "so do not enable this if your application needs the last four bytes of the EEPROM.";
-	private final static String TEXT_COUNTER = "Enable erase cycle counter";
-	private final static String TEXT_READBUTTON = "Read";
-	private final static String TEXT_WRITEBUTTON = "Write";
+	private final static String	GROUP_COUNTER			= "Flash memory erase cycle counter";
+	private final static String	LABEL_COUNTER			= "Enable this to have avrdude count the number of flash erase cycles.\n"
+																+ "Note: the value is stored in the last four bytes of the EEPROM,\n"
+																+ "so do not enable this if your application needs the last four bytes of the EEPROM.";
+	private final static String	TEXT_COUNTER			= "Enable erase cycle counter";
+	private final static String	TEXT_READBUTTON			= "Load from MCU";
+	private final static String	TEXT_READBUTTON_BUSY	= "Loading...";
+	private final static String	TEXT_WRITEBUTTON		= "Write to MCU";
+	private final static String	TEXT_WRITEBUTTON_BUSY	= "Writing...";
 
 	// The GUI widgets
-	private Button fNoVerifyButton;
+	private Button				fNoVerifyButton;
 
-	private Button fNoSigCheckButton;
+	private Button				fNoSigCheckButton;
 
-	private Button fNoWriteCheck;
+	private Button				fNoWriteCheck;
 
-	private Button fCounterCheck;
-	private Composite fCounterOptionsComposite;
-	private Text fCounterValue;
+	private Button				fCounterCheck;
+	private Composite			fCounterOptionsComposite;
+	private Text				fCounterValue;
+	private Button				fReadButton;
+	private Button				fWriteButton;
 
 	/** The Properties that this page works with */
-	private AVRDudeProperties fTargetProps;
+	private AVRDudeProperties	fTargetProps;
 
 	/*
 	 * (non-Javadoc)
@@ -166,10 +178,9 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	/**
 	 * Add the GUI section for the Flash memory cycle counter settings.
 	 * <p>
-	 * This section contains not only the actual checkbox, but also some
-	 * controls to read/write the current cycle counter. These controls are not
-	 * directly related to the properties, but it seems like a good idea to put
-	 * them here.
+	 * This section contains not only the actual checkbox, but also some controls to read/write the
+	 * current cycle counter. These controls are not directly related to the properties, but it
+	 * seems like a good idea to put them here.
 	 * </p>
 	 * 
 	 * @param parent
@@ -192,7 +203,8 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 
 		setupLabel(fCounterOptionsComposite, "Current Erase Cycle Counter", 1, SWT.NONE);
 
-		fCounterValue = setupText(fCounterOptionsComposite, 1, SWT.BORDER);
+		fCounterValue = new Text(fCounterOptionsComposite, SWT.BORDER | SWT.RIGHT);
+		fCounterValue.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		fCounterValue.setTextLimit(5); // Max. 65535
 		fCounterValue.addVerifyListener(new VerifyListener() {
 			// only allow digits as cycle counter values
@@ -205,9 +217,9 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		});
 
 		// Read Button
-		Button readButton = setupButton(fCounterOptionsComposite, TEXT_READBUTTON, 1, SWT.NONE);
-		readButton.setBackground(parent.getBackground());
-		readButton.addSelectionListener(new SelectionAdapter() {
+		fReadButton = setupButton(fCounterOptionsComposite, TEXT_READBUTTON, 1, SWT.NONE);
+		fReadButton.setBackground(parent.getBackground());
+		fReadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				readCycleCounter();
@@ -215,9 +227,9 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		});
 
 		// Write Button
-		Button writeButton = setupButton(fCounterOptionsComposite, TEXT_WRITEBUTTON, 1, SWT.NONE);
-		writeButton.setBackground(parent.getBackground());
-		writeButton.addSelectionListener(new SelectionAdapter() {
+		fWriteButton = setupButton(fCounterOptionsComposite, TEXT_WRITEBUTTON, 1, SWT.NONE);
+		fWriteButton.setBackground(parent.getBackground());
+		fWriteButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				writeCycleCounter();
@@ -330,60 +342,135 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 	}
 
 	/**
-	 * Enable / Disable the given composite.
-	 * <p>
-	 * This method will call setEnabled(value) for all children of the supplied
-	 * composite.
-	 * </p>
-	 * 
-	 * @param composite
-	 *            A <code>Composite</code> with some controls.
-	 * @param value
-	 *            <code>true</code> to enable, <code>false</code> to disable
-	 *            the given composite.
-	 */
-	private void setEnabled(Composite composite, boolean value) {
-		Control[] children = composite.getChildren();
-		for (Control child : children) {
-			child.setEnabled(value);
-		}
-	}
-
-	/**
 	 * Read the current cycles value from the currently attached device.
 	 * <p>
-	 * The actual read is done in a separate Thread to reduce the impact on the
-	 * GUI.
+	 * The actual read is done in a separate Thread to reduce the impact on the GUI.
 	 * </p>
 	 */
 	private void readCycleCounter() {
 
-		// TODO implement this
+		// Disable the Load Button. It is re-enabled by the load job when it finishes.
+		fReadButton.setEnabled(false);
+		fReadButton.setText(TEXT_READBUTTON_BUSY);
 
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
-		        null, "Read not implemented yet", MessageDialog.INFORMATION, new String[] { "OK" },
-		        0);
-		dlg.setBlockOnOpen(true);
-		dlg.open();
-		fCounterValue.setText("1234");
+		// The Job that does the actual loading.
+		Job readJob = new CycleJob(fReadButton, false, 0, TEXT_READBUTTON);
+
+		// now set the Job properties and start it
+		readJob.setRule(new AVRDudeSchedulingRule(fTargetProps.getProgrammer()));
+		readJob.setPriority(Job.SHORT);
+		readJob.setUser(true);
+		readJob.schedule();
 	}
 
 	/**
 	 * Write the selected cycles value to the currently attached device.
 	 * <p>
-	 * The actual load is done in a separate Thread to reduce the impact on the
-	 * GUI.
+	 * The actual load is done in a separate Thread to reduce the impact on the GUI.
 	 * </p>
 	 */
 	private void writeCycleCounter() {
 
-		// TODO implement this
+		// Disable the Load Button. It is re-enabled by the load job when it finishes.
+		fWriteButton.setEnabled(false);
+		fWriteButton.setText(TEXT_WRITEBUTTON_BUSY);
 
-		MessageDialog dlg = new MessageDialog(fCounterOptionsComposite.getShell(), "Information",
-		        null, "Write not implemented yet", MessageDialog.INFORMATION,
-		        new String[] { "OK" }, 0);
-		dlg.setBlockOnOpen(true);
-		dlg.open();
+		int newvalue = Integer.parseInt(fCounterValue.getText());
+
+		// 65534 is the largest value accepted (65535 (0xffff) is interpreted by avrdude as an unset
+		// cycle counter).
+		if (newvalue >= 0xfffe) {
+			newvalue = 0xfffe;
+		}
+
+		// The Job that does the actual loading.
+		Job readJob = new CycleJob(fWriteButton, true, newvalue, TEXT_WRITEBUTTON);
+
+		// now set the Job properties and start it
+		readJob.setRule(new AVRDudeSchedulingRule(fTargetProps.getProgrammer()));
+		readJob.setPriority(Job.SHORT);
+		readJob.setUser(true);
+		readJob.schedule();
 	}
 
+	private class CycleJob extends Job {
+
+		private final Button	fButton;
+		private final String	fButtonText;
+
+		private final boolean	fWrite;
+		private final int		fNewCounterValue;
+
+		public CycleJob(Button button, boolean write, int newcounter, String buttontext) {
+			super("Accessing Erase Cycle Counter");
+			fButton = button;
+			fWrite = write;
+			fNewCounterValue = newcounter;
+			fButtonText = buttontext;
+		}
+
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+
+			try {
+				monitor.beginTask("Starting AVRDude", 100);
+
+				final int loadedvalue;
+
+				if (fWrite) {
+					loadedvalue = AVRDude.getDefault().setEraseCycleCounter(
+							fTargetProps.getProgrammer(), fNewCounterValue);
+				} else {
+					loadedvalue = AVRDude.getDefault().getEraseCycleCounter(
+							fTargetProps.getProgrammer());
+				}
+
+				monitor.worked(95);
+
+				// and update the user interface
+				if (!fButton.isDisposed()) {
+					fButton.getDisplay().syncExec(new Runnable() {
+						public void run() {
+							if (loadedvalue >= 0) {
+								fCounterValue.setText(Integer.toString(loadedvalue));
+							} else
+								fCounterValue.setText("0");
+						}
+					});
+				}
+				monitor.worked(5);
+			} catch (AVRDudeException ade) {
+				// Show an Error message and exit
+				if (!fButton.isDisposed()) {
+					UIJob messagejob = new AVRDudeErrorDialogJob(fButton.getDisplay(), ade,
+							fTargetProps.getProgrammerId());
+					messagejob.setPriority(Job.INTERACTIVE);
+					messagejob.schedule();
+					try {
+						messagejob.join(); // block until the dialog is closed.
+					} catch (InterruptedException e) {
+						// Don't care if the dialog is interrupted from outside.
+					}
+				}
+			} catch (SWTException swte) {
+				// The display has been disposed, so the user is not
+				// interested in the results from this job
+				return Status.CANCEL_STATUS;
+			} finally {
+				monitor.done();
+				// Re-Enable the Button
+				if (!fButton.isDisposed()) {
+					fButton.getDisplay().syncExec(new Runnable() {
+						public void run() {
+							// Re-Enable the Button
+							fButton.setEnabled(true);
+							fButton.setText(fButtonText);
+						}
+					});
+				}
+			}
+
+			return Status.OK_STATUS;
+		}
+	};
 }
