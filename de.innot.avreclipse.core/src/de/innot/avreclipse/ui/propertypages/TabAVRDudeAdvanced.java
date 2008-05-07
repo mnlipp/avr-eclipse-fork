@@ -393,6 +393,9 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		readJob.schedule();
 	}
 
+	/**
+	 * Private class to read or write the erase cycle counter.
+	 */
 	private class CycleJob extends Job {
 
 		private final Button	fButton;
@@ -401,6 +404,20 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 		private final boolean	fWrite;
 		private final int		fNewCounterValue;
 
+		/**
+		 * @param button
+		 *            The button that was selected. Required to re-enable the button once the job
+		 *            has finished.
+		 * @param write
+		 *            <code>true</code> if the <code>newcounter</code> value will be written to
+		 *            the device. if <code>false</code> only the current MCU counter is read.
+		 * @param newcounter
+		 *            New erase cycle counter value (ignored if <code>write</code> is
+		 *            <code>false</code>.
+		 * @param buttontext
+		 *            The normal text for the source button. Required to restore the text once the
+		 *            job has finished.
+		 */
 		public CycleJob(Button button, boolean write, int newcounter, String buttontext) {
 			super("Accessing Erase Cycle Counter");
 			fButton = button;

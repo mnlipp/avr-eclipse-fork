@@ -449,6 +449,77 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
+	 * Return the current erase cycle counter of the device currently attached to the given
+	 * Programmer.
+	 * <p>
+	 * The value is read by calling avdude with the "-y" option.
+	 * </p>
+	 * 
+	 * @param config
+	 *            <code>ProgrammerConfig</code> with the Programmer to query.
+	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not
+	 *         set.
+	 * @throws AVRDudeException
+	 */
+	public int getEraseCycleCounter(ProgrammerConfig config) throws AVRDudeException {
+
+		// First get the attached MCU
+		String mcuid = getAttachedMCU(config);
+
+		List<String> args = new ArrayList<String>(config.getArguments());
+		args.add("-p" + getMCUInfo(mcuid));
+
+		List<String> stdout = runCommand(args);
+		if (stdout == null) {
+			return -1;
+		}
+
+		// Parse the output and look for a line "avrdude: current erase-rewrite cycle count is xx"
+		Pattern mcuPat = Pattern.compile(".*erase-rewrite cycle count.*?([0-9]+).*");
+		Matcher m;
+
+		for (String line : stdout) {
+			m = mcuPat.matcher(line);
+			if (!m.matches()) {
+				continue;
+			}
+			// pattern matched. Get the cycle count and return it as an int
+			return Integer.parseInt(m.group(1));
+		}
+		// Cycle count not found. This probably means that no cycle count has been set yet
+		return -1;
+	}
+
+	/**
+	 * Set the erase cycle counter of the device currently attached to the given Programmer.
+	 * <p>
+	 * The value is set by calling avdude with the "-Y xxxx" option. The method returns the new
+	 * value as read from the MCU as a crosscheck that the value has been written.
+	 * </p>
+	 * 
+	 * @param config
+	 *            <code>ProgrammerConfig</code> with the Programmer to query.
+	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not
+	 *         set.
+	 * @throws AVRDudeException
+	 */
+	public int setEraseCycleCounter(ProgrammerConfig config, int newcounter)
+			throws AVRDudeException {
+
+		// First get the attached MCU
+		String mcuid = getAttachedMCU(config);
+
+		List<String> args = new ArrayList<String>(config.getArguments());
+		args.add("-p" + getMCUInfo(mcuid));
+		args.add("-Y" + (newcounter & 0xffff));
+
+		runCommand(args);
+
+		// return the current value of the device as a crosscheck.
+		return getEraseCycleCounter(config);
+	}
+
+	/**
 	 * Internal method to read the config file with the given path and split it into lines.
 	 * 
 	 * @param path
