@@ -3,7 +3,10 @@
  */
 package de.innot.avreclipse.core.toolinfo.fuses;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.util.Set;
@@ -20,7 +23,7 @@ import org.junit.Test;
  */
 public class TestFuses {
 
-	private static Fuses fFuses;
+	private static Fuses	fFuses;
 
 	/**
 	 * @throws java.lang.Exception
@@ -52,8 +55,7 @@ public class TestFuses {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.fuses.Fuses#getMCUList()}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.Fuses#getMCUList()}.
 	 */
 	@Test
 	public void testGetMCUList() {
@@ -81,7 +83,7 @@ public class TestFuses {
 
 		// Test MCUs without Fusebytes
 		assertEquals("hasMCU(\"at89s52\")", false, fFuses.hasMCU("at89s52"));
-		
+
 		// Test a few failures
 		assertEquals("hasMCU(\"foobar\")", false, fFuses.hasMCU("foobar"));
 		assertEquals("hasMCU(\"\")", false, fFuses.hasMCU(""));
@@ -91,29 +93,30 @@ public class TestFuses {
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.toolinfo.fuses.Fuses#getFusesDescription(java.lang.String)}.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	@Test
 	public void testGetFusesDescription() throws IOException {
 		// get a few Descriptions and test that they returned good values
-		FusesDescription test = fFuses.getFusesDescription("atmega16");
+		IDescriptionHolder test = fFuses.getDescription("atmega16");
 		assertNotNull("getFusesDescription(\"atmega16\") returned null", test);
-		
-		test = fFuses.getFusesDescription("at90s1200");
+
+		test = fFuses.getDescription("at90s1200");
 		assertNotNull("getFusesDescription(\"at90s1200\") returned null", test);
-		
+
 		// Test a no fuse MCU. This should return null
-		test = fFuses.getFusesDescription("at89s51");
+		test = fFuses.getDescription("at89s51");
 		assertNull("getFusesDescription(\"at89s51\") did not return null", test);
-		
+
 		// Test a non-Existing MCU. This should return null
-		test = fFuses.getFusesDescription("foobar");
+		test = fFuses.getDescription("foobar");
 		assertNull("getFusesDescription(\"foobar\") did not return null", test);
-		
-		test = fFuses.getFusesDescription("");
+
+		test = fFuses.getDescription("");
 		assertNull("getFusesDescription(\"\") did not return null", test);
 
-		test = fFuses.getFusesDescription(null);
+		test = fFuses.getDescription(null);
 		assertNull("getFusesDescription(null) did not return null", test);
 
 	}
@@ -121,37 +124,37 @@ public class TestFuses {
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.toolinfo.fuses.Fuses#getFuseByteCount(java.lang.String)}.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	@Test
 	public void testGetFuseByteCount() throws IOException {
-		
+
 		// Test a 3 fuse bytes MCU
-		int count = fFuses.getFuseByteCount("at90pwm2");
+		int count = fFuses.getByteCount("at90pwm2");
 		assertEquals("getFuseByteCount(\"at90pwm2\")", 3, count);
-		
+
 		// Test a 2 fuse bytes MCU
-		count = fFuses.getFuseByteCount("atmega323");
+		count = fFuses.getByteCount("atmega323");
 		assertEquals("getFuseByteCount(\"atmega323\")", 2, count);
 
 		// Test a 1 fuse bytes MCU
-		count = fFuses.getFuseByteCount("attiny12");
+		count = fFuses.getByteCount("attiny12");
 		assertEquals("getFuseByteCount(\"attiny12\")", 1, count);
-		
+
 		// Test a 0 fuse bytes MCU
-		count = fFuses.getFuseByteCount("at86rf401");
+		count = fFuses.getByteCount("at86rf401");
 		assertEquals("getFuseByteCount(\"at86rf401\")", -1, count);
-		
+
 		// Test invalid MCU names
-		count = fFuses.getFuseByteCount("foobar");
+		count = fFuses.getByteCount("foobar");
 		assertEquals("getFuseByteCount(\"foobar\")", -1, count);
 
-		count = fFuses.getFuseByteCount("");
+		count = fFuses.getByteCount("");
 		assertEquals("getFuseByteCount(\"\")", -1, count);
-		
-		count = fFuses.getFuseByteCount(null);
-		assertEquals("getFuseByteCount(null)", -1, count);
 
+		count = fFuses.getByteCount(null);
+		assertEquals("getFuseByteCount(null)", -1, count);
 
 	}
 

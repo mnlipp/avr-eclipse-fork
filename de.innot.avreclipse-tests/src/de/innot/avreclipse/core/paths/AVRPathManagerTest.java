@@ -27,7 +27,7 @@ public class AVRPathManagerTest {
 
 		// Get all supported enum values
 		AVRPath[] allpaths = AVRPath.values();
-		assertTrue(allpaths.length > 5);
+		assertTrue(allpaths.length > 4);
 
 		for (AVRPath current : allpaths) {
 			assertTrue(current.getName().length() > 1);
@@ -73,8 +73,7 @@ public class AVRPathManagerTest {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.paths.AVRPathProvider.isValid}.
+	 * Test method for {@link de.innot.avreclipse.core.paths.AVRPathProvider.isValid}.
 	 */
 	@Test
 	public void testIsValid() {
@@ -94,8 +93,7 @@ public class AVRPathManagerTest {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.paths.AVRPathProvider.setPath}.
+	 * Test method for {@link de.innot.avreclipse.core.paths.AVRPathProvider.setPath}.
 	 */
 	@Test
 	public void testSetPath() {
@@ -126,8 +124,7 @@ public class AVRPathManagerTest {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.paths.AVRPathProvider.clone}.
+	 * Test method for {@link de.innot.avreclipse.core.paths.AVRPathProvider.clone}.
 	 */
 	@Test
 	public void testClone() {
