@@ -16,7 +16,9 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.wizards;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPage;
@@ -107,7 +109,16 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 
 		// Get the list of supported MCU id's from the compiler
 		// The list is then converted into an array of MCU names
-		fMCUids = GCC.getDefault().getMCUList();
+		try {
+			fMCUids = GCC.getDefault().getMCUList();
+		} catch (IOException e) {
+			// Could not start avr-gcc. Pop an Error Dialog and continue with an empty list
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not execute avr-gcc. Please check the AVR paths in the preferences.", e);
+			ErrorDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+					"AVR-GCC Execution fault", null, status);
+			fMCUids = new HashSet<String>();
+		}
 		String[] allmcuids = fMCUids.toArray(new String[fMCUids.size()]);
 		fMCUNames = new String[fMCUids.size()];
 		for (int i = 0; i < allmcuids.length; i++) {

@@ -50,32 +50,33 @@ import de.innot.avreclipse.devicedescription.IProviderChangeListener;
 /**
  * Provides DeviceDescription Objects based on parsing the <avr/io.h> file.
  * <p>
- * As the information in the include/avr folder is static, the class should be
- * accessed with the static method {@link #getDefault()}.
+ * As the information in the include/avr folder is static, the class should be accessed with the
+ * static method {@link #getDefault()}.
  * </p>
  * <p>
- * <b>Note:</b> The Registers defined in <avr/io.h>, namely the SREG and
- * SP(L|H) are not included, as parsing io.h would require an understanding of
- * <code>#ifdef</code>, which the simple parser in this class has not.
+ * <b>Note:</b> The Registers defined in <avr/io.h>, namely the SREG and SP(L|H) are not included,
+ * as parsing io.h would require an understanding of <code>#ifdef</code>, which the simple parser
+ * in this class has not.
  * </p>
  * 
  * @author Thomas Holland
  * @author Manuel Stahl
  */
 public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvider,
-        IPropertyChangeListener {
+		IPropertyChangeListener {
 
-	private static AVRiohDeviceDescriptionProvider instance = null;
+	private static AVRiohDeviceDescriptionProvider	instance			= null;
 
-	private Map<String, String> fMCUNamesMap = null;
-	private Map<String, DeviceDescription> fCache = null;
+	private Map<String, String>						fMCUNamesMap		= null;
+	private Map<String, DeviceDescription>			fCache				= null;
 
-	private String fInternalErrorMsg = null;
+	private String									fInternalErrorMsg	= null;
 
-	private List<IProviderChangeListener> fChangeListeners = new ArrayList<IProviderChangeListener>(
-	        0);
+	private final List<IProviderChangeListener>		fChangeListeners	= new ArrayList<IProviderChangeListener>(
+																				0);
 
-	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRINCLUDE);
+	private final IPathProvider						fPathProvider		= new AVRPathProvider(
+																				AVRPath.AVRINCLUDE);
 
 	/**
 	 * Get an instance of this DeviceModelProvider.
@@ -87,11 +88,11 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	}
 
 	/**
-	 * private default constructor, so the class can only be accessed via the
-	 * singleton getDefault() method.
+	 * private default constructor, so the class can only be accessed via the singleton getDefault()
+	 * method.
 	 * 
-	 * The Constructor will register a Preference change listener to be informed
-	 * about any changes to the <avr/io.h> path preference value.
+	 * The Constructor will register a Preference change listener to be informed about any changes
+	 * to the <avr/io.h> path preference value.
 	 */
 	private AVRiohDeviceDescriptionProvider() {
 		// Add ourself as a listener to Path Preference change events
@@ -123,7 +124,11 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
-		return getMCUList().contains(mcuid);
+		Set<String> mcus = getMCUList();
+		if (mcus != null) {
+			return getMCUList().contains(mcuid);
+		}
+		return false;
 	}
 
 	/*
@@ -149,9 +154,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	 * 
 	 * @param name
 	 *            String with a MCU id
-	 * @return <code>IDeviceDescription</code> or <code>null</code> if the
-	 *         give MCU id is not known or an error has occured reading the
-	 *         files.
+	 * @return <code>IDeviceDescription</code> or <code>null</code> if the give MCU id is not
+	 *         known or an error has occured reading the files.
 	 */
 	public IDeviceDescription getDeviceDescription(String name) {
 		if (name == null)
@@ -212,8 +216,8 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	}
 
 	/**
-	 * Initialize the list of fMCUNamesMap by opening the <avr/io.h> file and
-	 * parsing it for all defined MCUs.
+	 * Initialize the list of fMCUNamesMap by opening the <avr/io.h> file and parsing it for all
+	 * defined MCUs.
 	 * 
 	 * throws IOException if there was an error opening or reading the file.
 	 */
@@ -269,7 +273,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			in = new BufferedReader(new FileReader(hfile));
 		} catch (FileNotFoundException fnfe) {
 			fInternalErrorMsg = "Cannot open source header file \"" + hfile.getAbsolutePath()
-			        + "\".";
+					+ "\".";
 			throw fnfe;
 		}
 
@@ -279,9 +283,9 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		Pattern ivecPatNew = Pattern.compile("^#define ([A-Z0-9_]+_vect)\\s+_VECTOR\\((\\d+)\\).*");
 		Pattern ivecPatOld = Pattern.compile("^#define (SIG_[A-Z0-9_]+)\\s+_VECTOR\\((\\d+)\\).*");
 		Pattern portPat = Pattern
-		        .compile("^#define ((?:PORT|PIN|DDR)[A-Z])\\s+_SFR_IO(\\d+)\\s*\\((0[xX].*)\\).*");
+				.compile("^#define ((?:PORT|PIN|DDR)[A-Z])\\s+_SFR_IO(\\d+)\\s*\\((0[xX].*)\\).*");
 		Pattern regPat = Pattern
-		        .compile("^#define ([A-Z0-9]+)\\s+_SFR_(IO|MEM)(\\d+)\\s*\\((0[xX].*)\\).*");
+				.compile("^#define ([A-Z0-9]+)\\s+_SFR_(IO|MEM)(\\d+)\\s*\\((0[xX].*)\\).*");
 
 		Matcher m;
 
@@ -412,7 +416,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 			}
 		} catch (IOException ioe) {
 			fInternalErrorMsg = "Cannot read source header file \"" + hfile.getAbsolutePath()
-			        + "\".";
+					+ "\".";
 			throw ioe;
 		}
 		in.close();
@@ -431,8 +435,7 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 	}
 
 	/**
-	 * Retrieves the path to the include/avr directory from the Plugin
-	 * preferences.
+	 * Retrieves the path to the include/avr directory from the Plugin preferences.
 	 * 
 	 * @return String containing the path
 	 */

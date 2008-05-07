@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +47,12 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object inputElement) {
-		Set<String> devicesset = fDMprovider.getMCUList();
+		Set<String> devicesset = null;
+		try {
+			devicesset = fDMprovider.getMCUList();
+		} catch (IOException e) {
+			// do nothing. deviceset remains at null which causes the method to fail gracefully.
+		}
 		if (devicesset == null) {
 			// if the list is null, an internal Provider Error has occurred.
 			String[] empty = { "" };

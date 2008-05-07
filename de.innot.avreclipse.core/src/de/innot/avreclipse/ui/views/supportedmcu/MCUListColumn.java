@@ -15,6 +15,8 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.supportedmcu;
 
+import java.io.IOException;
+
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -35,10 +37,9 @@ import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvid
 /**
  * This enum contains all columns to be shown in the MCUListView.
  * <p>
- * This is the interface between the GUI and the IMCUProviders. Each column in
- * this enum knows how to get a IMCUProvider ({@link #getMCUProvider()}),
- * knows how to set up a given TableViewerColumn for display ({@link #initColumn()})
- * and has a User visible column name.
+ * This is the interface between the GUI and the IMCUProviders. Each column in this enum knows how
+ * to get a IMCUProvider ({@link #getMCUProvider()}), knows how to set up a given
+ * TableViewerColumn for display ({@link #initColumn()}) and has a User visible column name.
  * </p>
  * 
  * @author Thomas Holland
@@ -48,11 +49,10 @@ import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvid
 public enum MCUListColumn {
 
 	/**
-	 * The names column represents the {@link MCUNames} and the
-	 * {@link Datasheets} IMCUProviders.
+	 * The names column represents the {@link MCUNames} and the {@link Datasheets} IMCUProviders.
 	 * <p>
-	 * It will show all known MCU names and also shows those with a datasheet
-	 * URL available as clickable links.
+	 * It will show all known MCU names and also shows those with a datasheet URL available as
+	 * clickable links.
 	 * </p>
 	 */
 	NAMES(MCUNames.getDefault()) {
@@ -64,7 +64,7 @@ public enum MCUListColumn {
 		@Override
 		protected ColumnWeightData initColumn(TableViewerColumn column) {
 			URLColumnLabelProvider labelprovider = new URLColumnLabelProvider(fMCUProvider,
-			        Datasheets.getDefault());
+					Datasheets.getDefault());
 			fLabelProvider = labelprovider;
 			column.setLabelProvider(fLabelProvider);
 			return new ColumnWeightData(20, 60);
@@ -81,7 +81,12 @@ public enum MCUListColumn {
 	AVRGCC(GCC.getDefault()) {
 		@Override
 		protected String getName() {
-			return GCC.getDefault().getNameAndVersion();
+			try {
+				return GCC.getDefault().getNameAndVersion();
+			} catch (IOException e) {
+				// avr-gcc could not be startedk
+				return "avr-gcc not found";
+			}
 		}
 
 		@Override
@@ -92,8 +97,7 @@ public enum MCUListColumn {
 		}
 	},
 	/**
-	 * Column with all MCUs supported in the &lt;avr/io.h&gt; header file, shown
-	 * as Yes/No images.
+	 * Column with all MCUs supported in the &lt;avr/io.h&gt; header file, shown as Yes/No images.
 	 */
 	AVRINCLUDE(AVRiohDeviceDescriptionProvider.getDefault()) {
 		@Override
@@ -118,7 +122,7 @@ public enum MCUListColumn {
 			try {
 				return AVRDude.getDefault().getNameAndVersion();
 			} catch (AVRDudeException e) {
-				return "AVRDude not available";
+				return "AVRDude not found";
 			}
 		}
 
@@ -146,12 +150,10 @@ public enum MCUListColumn {
 		}
 	},
 	/**
-	 * Column with all MCUs supported by AVR Studio (which have a Part
-	 * Description File).
+	 * Column with all MCUs supported by AVR Studio (which have a Part Description File).
 	 * <p>
-	 * This currently uses the {@link Signatures} provider, so it has the same
-	 * info as the {@link #SIGNATURE} column, just a different graphical
-	 * pesentation (Yes/No images).
+	 * This currently uses the {@link Signatures} provider, so it has the same info as the
+	 * {@link #SIGNATURE} column, just a different graphical pesentation (Yes/No images).
 	 * </p>
 	 */
 	AVRSTUDIO(Signatures.getDefault()) {
@@ -183,8 +185,8 @@ public enum MCUListColumn {
 		}
 	},
 	/**
-	 * the filler column is here, so that the other columns do not get stretched
-	 * out over the the whole width, but kept together.
+	 * the filler column is here, so that the other columns do not get stretched out over the the
+	 * whole width, but kept together.
 	 */
 	FILLER(null) {
 		@Override
@@ -200,26 +202,26 @@ public enum MCUListColumn {
 	};
 
 	/**
-	 * TableViewer this MCU column is associated with. Required for the
-	 * URLColumnLabelProvider to hook its TableEditors to the table.
+	 * TableViewer this MCU column is associated with. Required for the URLColumnLabelProvider to
+	 * hook its TableEditors to the table.
 	 */
-	protected TableViewer fTableViewer;
+	protected TableViewer			fTableViewer;
 
 	/**
-	 * TableViewerColumn this MCU column is associated with. Required for the
-	 * URLColumnLabelProvider to hook its TableEditors to the table.
+	 * TableViewerColumn this MCU column is associated with. Required for the URLColumnLabelProvider
+	 * to hook its TableEditors to the table.
 	 */
-	protected TableViewerColumn fViewerColumn;
+	protected TableViewerColumn		fViewerColumn;
 
 	/** The ColumnLabelProvider of this MCU column */
-	protected ColumnLabelProvider fLabelProvider;
+	protected ColumnLabelProvider	fLabelProvider;
 
 	/** The referenced IMCUProvider of the MCU column */
-	protected IMCUProvider fMCUProvider;
+	protected IMCUProvider			fMCUProvider;
 
 	/**
-	 * The constructor is called from the enum values and sets the user visible
-	 * column name and the underlying provider.
+	 * The constructor is called from the enum values and sets the user visible column name and the
+	 * underlying provider.
 	 * 
 	 * @param name
 	 * @param provider
@@ -231,9 +233,9 @@ public enum MCUListColumn {
 	/**
 	 * Add this MCU column to the given TableViewer.
 	 * <p>
-	 * A new <code>TableViewerColumn</code> is created, initialized and added
-	 * to the TableViewer. Also a <code>ColumnWeightData</code> for the new
-	 * column is added to the given <code>TableColumnLayout</code>.
+	 * A new <code>TableViewerColumn</code> is created, initialized and added to the TableViewer.
+	 * Also a <code>ColumnWeightData</code> for the new column is added to the given
+	 * <code>TableColumnLayout</code>.
 	 * </p>
 	 * 
 	 * @param tableviewer
@@ -266,13 +268,11 @@ public enum MCUListColumn {
 	/**
 	 * Update the Column.
 	 * <p>
-	 * This needs to be called after the table has been filled with data (after
-	 * the <code>TableViewer.setInput()</code>) method, and after each
-	 * content change.
+	 * This needs to be called after the table has been filled with data (after the
+	 * <code>TableViewer.setInput()</code>) method, and after each content change.
 	 * </p>
 	 * <p>
-	 * This method is required to do some magic stuff with a TableViewer, like
-	 * showing Hyperlinks.
+	 * This method is required to do some magic stuff with a TableViewer, like showing Hyperlinks.
 	 * </p>
 	 */
 	public void updateColumn() {
@@ -280,8 +280,8 @@ public enum MCUListColumn {
 	}
 
 	/**
-	 * Update the given columnn as required. Used by the {@link #NAMES} column
-	 * to hook the URLs to the table.
+	 * Update the given columnn as required. Used by the {@link #NAMES} column to hook the URLs to
+	 * the table.
 	 * 
 	 * @param tableviewer
 	 * @param column
@@ -294,15 +294,13 @@ public enum MCUListColumn {
 	/**
 	 * Initialize the given column as required.
 	 * <p>
-	 * This includes setting a ColumnLabelProvider for the Column and returning
-	 * a {@link ColumnWeightData} object with the desired dimensions of the
-	 * column.
+	 * This includes setting a ColumnLabelProvider for the Column and returning a
+	 * {@link ColumnWeightData} object with the desired dimensions of the column.
 	 * </p>
 	 * 
 	 * @param column
 	 *            <code>TableViewerColumn</code> to adjust
-	 * @return <code>ColumnWeightData</code> with the desired weight and
-	 *         minimum pixel size.
+	 * @return <code>ColumnWeightData</code> with the desired weight and minimum pixel size.
 	 */
 	protected abstract ColumnWeightData initColumn(TableViewerColumn column);
 
@@ -314,8 +312,8 @@ public enum MCUListColumn {
 	protected abstract String getName();
 
 	/**
-	 * A ColumnLabelProvider that always returns empty Strings as Labels. Used
-	 * by the {@ MCUListColumn#FILLER} column.
+	 * A ColumnLabelProvider that always returns empty Strings as Labels. Used by the
+	 * {@ MCUListColumn#FILLER} column.
 	 */
 	private static class NullColumnLabelProvider extends ColumnLabelProvider {
 

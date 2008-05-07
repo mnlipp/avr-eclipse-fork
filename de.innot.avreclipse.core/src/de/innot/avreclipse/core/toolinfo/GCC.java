@@ -26,10 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 
-import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.PluginIDs;
 import de.innot.avreclipse.core.IMCUProvider;
 import de.innot.avreclipse.core.paths.AVRPath;
@@ -38,8 +35,7 @@ import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
- * This class provides some information about the used gcc compiler in the
- * toolchain.
+ * This class provides some information about the used gcc compiler in the toolchain.
  * <p>
  * It can return a list of all supported target mcus.
  * </p>
@@ -49,15 +45,15 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  */
 public class GCC extends BaseToolInfo implements IMCUProvider {
 
-	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
+	private static final String	TOOL_ID			= PluginIDs.PLUGIN_TOOLCHAIN_TOOL_COMPILER;
 
-	private static GCC instance = null;
+	private static GCC			instance		= null;
 
-	private Map<String, String> fMCUmap = null;
+	private Map<String, String>	fMCUmap			= null;
 
-	private IPath fCurrentPath = null;
+	private IPath				fCurrentPath	= null;
 
-	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRGCC);
+	private final IPathProvider	fPathProvider	= new AVRPathProvider(AVRPath.AVRGCC);
 
 	/**
 	 * Get an instance of this Tool.
@@ -90,8 +86,12 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
 	public String getMCUInfo(String mcuid) {
-		Map<String, String> internalmap = loadMCUList();
-		return internalmap.get(mcuid);
+		try {
+			Map<String, String> internalmap = loadMCUList();
+			return internalmap.get(mcuid);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	/*
@@ -99,7 +99,7 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
-	public Set<String> getMCUList() {
+	public Set<String> getMCUList() throws IOException {
 		Map<String, String> internalmap = loadMCUList();
 		Set<String> idlist = internalmap.keySet();
 		return new HashSet<String>(idlist);
@@ -111,14 +111,18 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
-		Map<String, String> internalmap = loadMCUList();
-		return internalmap.containsKey(mcuid);
+		try {
+			Map<String, String> internalmap = loadMCUList();
+			return internalmap.containsKey(mcuid);
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	/**
 	 * @return Map &lt;mcu id, UI name&gt; of all supported MCUs
 	 */
-	private Map<String, String> loadMCUList() {
+	private Map<String, String> loadMCUList() throws IOException {
 
 		if (!getToolPath().equals(fCurrentPath)) {
 			// toolpath has changed, reload the list
@@ -179,13 +183,15 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 	/**
 	 * Get the command name and the current version of GCC.
 	 * <p>
-	 * The name comes from the buildDefinition. The version is gathered by
-	 * executing with the "-v" option and parsing the output.
+	 * The name comes from the buildDefinition. The version is gathered by executing with the "-v"
+	 * option and parsing the output.
 	 * </p>
 	 * 
 	 * @return <code>String</code> with the command name and version
+	 * @throws IOException
+	 *             if the avr-gcc command could not be executed.
 	 */
-	public String getNameAndVersion() {
+	public String getNameAndVersion() throws IOException {
 
 		// Execute avr-gcc with the "-v" option and parse the
 		// output
@@ -208,25 +214,26 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		// could not read the version from the output, probably the regex has a
 		// mistake. Return a reasonable default.
-		return  getCommandName()+ "?.?";
+		return getCommandName() + "?.?";
 	}
 
 	/**
 	 * Runs the GCC with the given arguments.
 	 * <p>
-	 * The Output of stdout and stderr are merged and returned in a
-	 * <code>List&lt;String&gt;</code>.
+	 * The Output of stdout and stderr are merged and returned in a <code>List&lt;String&gt;</code>.
 	 * </p>
 	 * <p>
-	 * If the command fails to execute an entry is written to the log and
-	 * <code>null</code> is returned
+	 * If the command fails to execute an entry is written to the log and <code>null</code> is
+	 * returned
 	 * 
 	 * @param arguments
 	 *            Zero or more arguments for gcc
-	 * @return A list of all output lines, or <code>null</code> if the command
-	 *         could not be launched.
+	 * @throws IOException
+	 *             if the command could not be executed
+	 * @return A list of all output lines, or <code>null</code> if the command could not be
+	 *         launched.
 	 */
-	private List<String> runCommand(String... arguments) {
+	private List<String> runCommand(String... arguments) throws IOException {
 
 		String command = getToolPath().toOSString();
 		List<String> arglist = new ArrayList<String>(1);
@@ -236,15 +243,7 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		ExternalCommandLauncher gcc = new ExternalCommandLauncher(command, arglist);
 		gcc.redirectErrorStream(true);
-		try {
-			gcc.launch();
-		} catch (IOException e) {
-			// Something didn't work while running the external command
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-			        + command, e);
-			AVRPlugin.getDefault().log(status);
-			return null;
-		}
+		gcc.launch();
 
 		List<String> stdout = gcc.getStdOut();
 

@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.supportedmcu;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,8 +30,8 @@ import de.innot.avreclipse.core.IMCUProvider;
 /**
  * Content Provider for the MCUListView.
  * <p>
- * As there is no real model to build on,
- * this Content Provider also acts as a model for the MCUListView.
+ * As there is no real model to build on, this Content Provider also acts as a model for the
+ * MCUListView.
  * </p>
  * 
  * @author Thomas Holland
@@ -39,7 +40,7 @@ import de.innot.avreclipse.core.IMCUProvider;
 public class SupportedContentProvider implements IStructuredContentProvider {
 
 	/** List of all known MCU id values */
-	private List<String> fMasterMCUList = null;
+	private List<String>	fMasterMCUList	= null;
 
 	/*
 	 * (non-Javadoc)
@@ -96,8 +97,8 @@ public class SupportedContentProvider implements IStructuredContentProvider {
 	}
 
 	/**
-	 * Merges the supported MCU lists from all providers into one masterlist,
-	 * which has all MCU ID values supported by at least one provider
+	 * Merges the supported MCU lists from all providers into one masterlist, which has all MCU ID
+	 * values supported by at least one provider
 	 * 
 	 * @param providers
 	 *            A <code>Set</code> with all IMCUProviders to query
@@ -110,7 +111,14 @@ public class SupportedContentProvider implements IStructuredContentProvider {
 
 		for (IMCUProvider provider : providers) {
 			if (provider != null) {
-				masterlist.addAll(provider.getMCUList());
+				try {
+					Set<String> mcus = provider.getMCUList();
+					if (mcus != null)
+						masterlist.addAll(mcus);
+				} catch (IOException e) {
+					// providers that throw an exception (probably because a tool is not found) are
+					// ignored.
+				}
 			}
 		}
 		return masterlist;

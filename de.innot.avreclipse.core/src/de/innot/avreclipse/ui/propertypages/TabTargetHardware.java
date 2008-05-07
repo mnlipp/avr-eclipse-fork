@@ -15,8 +15,10 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,6 +26,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -45,6 +48,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
@@ -121,7 +125,18 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		// updataData() method to reload the list of supported mcus every time
 		// the paths change. The list is added to the combo in addMCUSection().
 		if (fMCUids == null) {
-			fMCUids = GCC.getDefault().getMCUList();
+			try {
+				fMCUids = GCC.getDefault().getMCUList();
+			} catch (IOException e) {
+				// Could not start avr-gcc. Pop an Error Dialog and continue with an empty list
+				IStatus status = new Status(
+						IStatus.ERROR,
+						AVRPlugin.PLUGIN_ID,
+						"Could not execute avr-gcc. Please check the AVR paths in the preferences.",
+						e);
+				ErrorDialog.openError(usercomp.getShell(), "AVR-GCC Execution fault", null, status);
+				fMCUids = new HashSet<String>();
+			}
 			String[] allmcuids = fMCUids.toArray(new String[fMCUids.size()]);
 			fMCUNames = new String[fMCUids.size()];
 			for (int i = 0; i < allmcuids.length; i++) {

@@ -15,13 +15,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.core;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
  * Methods for accessing MCU id values for a tool that has a list of supported MCUs.
  * <p>
- * This interface is used by the Supported MCU View to get a list of all MCU id values
- * the implementor supports.
+ * This interface is used by the Supported MCU View to get a list of all MCU id values the
+ * implementor supports.
  * </p>
  * 
  * @author Thomas Holland
@@ -35,15 +36,15 @@ public interface IMCUProvider {
 	 * 
 	 * @return <code>Set&lt;String&gt;</code> with the supported MCU id values
 	 */
-	public Set<String> getMCUList();
+	public Set<String> getMCUList() throws IOException;
 
 	/**
 	 * Test if the implementor supports the given MCU id.
 	 * 
 	 * @param mcuid
 	 *            String with a MCU id
-	 * @return <code>true</code> if the implementor supports this id,
-	 *         <code>false</code> otherwise.
+	 * @return <code>true</code> if the implementor supports this id, <code>false</code>
+	 *         otherwise.
 	 */
 	public boolean hasMCU(String mcuid);
 
@@ -52,9 +53,8 @@ public interface IMCUProvider {
 	 * 
 	 * @param mcuid
 	 *            String with a MCU id
-	 * @return <code>String</code> with some information about the MCU or
-	 *         <code>null</code> if no information is available or the MCU id
-	 *         is unknown.
+	 * @return <code>String</code> with some information about the MCU or <code>null</code> if
+	 *         no information is available or the MCU id is unknown.
 	 */
 	public String getMCUInfo(String mcuid);
 

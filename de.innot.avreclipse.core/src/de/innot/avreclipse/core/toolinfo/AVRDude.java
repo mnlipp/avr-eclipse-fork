@@ -173,14 +173,14 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
-	public Set<String> getMCUList() {
+	public Set<String> getMCUList() throws IOException {
 		Map<String, String> internalmap;
 		try {
 			internalmap = loadMCUList();
 		} catch (AVRDudeException e) {
 			// Something went wrong when avrdude was called. The exception has
-			// already been logged, so just return an empty list.
-			return new HashSet<String>();
+			// already been logged, but we wrap the Exception in an IOException
+			throw new IOException("Could not start avrdude", e);
 		}
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
@@ -811,10 +811,8 @@ public class AVRDude implements IMCUProvider {
 				avrdude.launch(new SubProgressMonitor(monitor, 80));
 			} catch (IOException e) {
 				// Something didn't work while running the external command
-				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
-						+ command, e);
-				AVRPlugin.getDefault().log(status);
-				throw new AVRDudeException(e);
+				throw new AVRDudeException(Reason.NO_AVRDUDE_FOUND,
+						"Cannot run AVRDude executable. Please check the AVR path preferences.", e);
 			}
 
 			// Test if avrdude was aborted

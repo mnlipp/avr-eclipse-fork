@@ -17,7 +17,6 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -285,8 +284,7 @@ public class Fuses implements IMCUProvider {
 		// Test if a file with the right name is in the location
 		File file = location.append(filename).toFile();
 		if (!file.canRead()) {
-			throw new FileNotFoundException(file.toString()
-					+ " can not be found or is not readable");
+			return null;
 		}
 
 		// OK, file exist. De-serialize it

@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.views.avrdevice;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,25 +87,25 @@ import de.innot.avreclipse.devicedescription.avrio.AVRiohDeviceDescriptionProvid
 public class AVRDeviceView extends ViewPart {
 
 	// The parent Composite of this Viewer
-	private Composite fViewParent;
+	private Composite						fViewParent;
 
-	private Composite fTop;
-	private ComboViewer fCombo;
+	private Composite						fTop;
+	private ComboViewer						fCombo;
 
-	private Composite fSourcesComposite;
-	private List<Label> fSourcesLabels = new ArrayList<Label>(0);
-	private List<Text> fSourcesTexts = new ArrayList<Text>(0);
+	private Composite						fSourcesComposite;
+	private final List<Label>				fSourcesLabels	= new ArrayList<Label>(0);
+	private final List<Text>				fSourcesTexts	= new ArrayList<Text>(0);
 
-	private CTabFolder fTabFolder;
-	private List<CTabItem> fTabs = new ArrayList<CTabItem>(0);
-	private Map<String, List<TreeColumn>> fTreeColumns;
+	private CTabFolder						fTabFolder;
+	private final List<CTabItem>			fTabs			= new ArrayList<CTabItem>(0);
+	private Map<String, List<TreeColumn>>	fTreeColumns;
 
-	private IMemento fMemento;
+	private IMemento						fMemento;
 
-	private IDeviceDescriptionProvider dmprovider = null;
+	private IDeviceDescriptionProvider		dmprovider		= null;
 
-	private IProviderChangeListener fProviderChangeListener;
-	private ISelectionListener fWorkbenchSelectionListener;
+	private IProviderChangeListener			fProviderChangeListener;
+	private ISelectionListener				fWorkbenchSelectionListener;
 
 	/**
 	 * The constructor.
@@ -199,7 +200,7 @@ public class AVRDeviceView extends ViewPart {
 
 		// Activate the Workbench selection listener
 		getSite().getWorkbenchWindow().getSelectionService().addPostSelectionListener(
-		        fWorkbenchSelectionListener);
+				fWorkbenchSelectionListener);
 
 	}
 
@@ -228,20 +229,19 @@ public class AVRDeviceView extends ViewPart {
 		// remove the listeners from their objects
 		dmprovider.removeProviderChangeListener(fProviderChangeListener);
 		getSite().getWorkbenchWindow().getSelectionService().removePostSelectionListener(
-		        fWorkbenchSelectionListener);
+				fWorkbenchSelectionListener);
 		super.dispose();
 	}
 
 	/**
 	 * Update the controls which make up the sources composite.
 	 * <p>
-	 * The sources are shown in a "breadcrumb" fashion, with a ">>" between the
-	 * names of the source files.
+	 * The sources are shown in a "breadcrumb" fashion, with a ">>" between the names of the source
+	 * files.
 	 * </p>
 	 * <p>
-	 * This will handle arbitrary numbers of sources. While this is not really
-	 * required today with maximum two sources, it is ready in case the
-	 * structure of the include files is changed.</p
+	 * This will handle arbitrary numbers of sources. While this is not really required today with
+	 * maximum two sources, it is ready in case the structure of the include files is changed.</p
 	 */
 	private void updateSourcelist(Composite parent, IDeviceDescription device) {
 
@@ -318,8 +318,7 @@ public class AVRDeviceView extends ViewPart {
 	 * <code>CTabItem.getData()</code> method.
 	 * </p>
 	 * <p>
-	 * If a new tab has the same name as the previously selected tab, it will be
-	 * selected as well
+	 * If a new tab has the same name as the previously selected tab, it will be selected as well
 	 * </p>
 	 */
 	private void updateTabs(CTabFolder parent, IDeviceDescription device) {
@@ -391,8 +390,7 @@ public class AVRDeviceView extends ViewPart {
 	/**
 	 * Create a new TreeViewer for the given Category.
 	 * 
-	 * It is up to the caller to dispose the <code>TreeViewer</code> when it
-	 * is no longer needed.
+	 * It is up to the caller to dispose the <code>TreeViewer</code> when it is no longer needed.
 	 * 
 	 * @return A newly created TreeViewer.
 	 */
@@ -415,10 +413,9 @@ public class AVRDeviceView extends ViewPart {
 	/**
 	 * Updates a TreeViewer to a new Category.
 	 * <p>
-	 * If the Category with this name does not yet exist the required
-	 * <code>TreeColumns</code> will be created and initialized to their
-	 * default values. If a Category with this name has already existed (even
-	 * from a previous device>, then the <code>TreeColumns</code> will be
+	 * If the Category with this name does not yet exist the required <code>TreeColumns</code>
+	 * will be created and initialized to their default values. If a Category with this name has
+	 * already existed (even from a previous device>, then the <code>TreeColumns</code> will be
 	 * reused. Therefore any changes by the user are preserved.
 	 * </p>
 	 * 
@@ -501,7 +498,7 @@ public class AVRDeviceView extends ViewPart {
 
 		public void selectionChanged(SelectionChangedEvent event) {
 			String devicename = (String) ((StructuredSelection) event.getSelection())
-			        .getFirstElement();
+					.getFirstElement();
 			devicename = AVRMCUidConverter.name2id(devicename);
 			if (fMemento != null) {
 				// persist the selected mcu
@@ -539,11 +536,11 @@ public class AVRDeviceView extends ViewPart {
 	 * 
 	 * Three events are handled:
 	 * <ul>
-	 * <li><code>MouseEnter</code>: Change background color to show the user
-	 * that this widget can be clicked on.</li>
+	 * <li><code>MouseEnter</code>: Change background color to show the user that this widget
+	 * can be clicked on.</li>
 	 * <li><code>MouseExit</code>: Restore the background color.</li>
-	 * <li><code>MouseUp</code>: Open the sourcefile associated with the
-	 * selected widget in an Editor.</li>
+	 * <li><code>MouseUp</code>: Open the sourcefile associated with the selected widget in an
+	 * Editor.</li>
 	 * </ul>
 	 */
 	private class SourceSelectionMouseHandler implements Listener {
@@ -551,38 +548,38 @@ public class AVRDeviceView extends ViewPart {
 		public void handleEvent(Event event) {
 			Text txt = (Text) event.widget;
 			switch (event.type) {
-			case SWT.MouseEnter:
-				// change background color to some lighter color
-				txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-				break;
-			case SWT.MouseExit:
-				// change background color back to normal
-				txt.setBackground(txt.getParent().getBackground());
-				break;
-			case SWT.MouseUp:
-				// Open the selected source file
-				// get the basepath from the AVRiohDeviceDescriptionProvider,
-				// append the content of the selected text widget, get a
-				// IFileStore for this file and open an Editor for this
-				// file in the active Workbench page.
-				// No error checking as this file should exist
-				IPath srcfile = dmprovider.getBasePath();
-				srcfile = srcfile.append(txt.getText());
-				IFileStore fileStore = EFS.getLocalFileSystem().getStore(srcfile);
-				if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
-					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					        .getActivePage();
-					try {
-						IDE.openEditorOnFileStore(page, fileStore);
-						// TODO: if any row in the treeview has been selected,
-						// try to scroll the Editor to the associated
-						// definition.
-					} catch (PartInitException e) {
-						// what can cause this?
-						e.printStackTrace();
+				case SWT.MouseEnter:
+					// change background color to some lighter color
+					txt.setBackground(txt.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+					break;
+				case SWT.MouseExit:
+					// change background color back to normal
+					txt.setBackground(txt.getParent().getBackground());
+					break;
+				case SWT.MouseUp:
+					// Open the selected source file
+					// get the basepath from the AVRiohDeviceDescriptionProvider,
+					// append the content of the selected text widget, get a
+					// IFileStore for this file and open an Editor for this
+					// file in the active Workbench page.
+					// No error checking as this file should exist
+					IPath srcfile = dmprovider.getBasePath();
+					srcfile = srcfile.append(txt.getText());
+					IFileStore fileStore = EFS.getLocalFileSystem().getStore(srcfile);
+					if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
+						IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+								.getActivePage();
+						try {
+							IDE.openEditorOnFileStore(page, fileStore);
+							// TODO: if any row in the treeview has been selected,
+							// try to scroll the Editor to the associated
+							// definition.
+						} catch (PartInitException e) {
+							// what can cause this?
+							e.printStackTrace();
+						}
 					}
-				}
-				break;
+					break;
 			} // switch
 		} // handleevent
 	}
@@ -590,9 +587,8 @@ public class AVRDeviceView extends ViewPart {
 	/**
 	 * Handle Provider Change Events.
 	 * <p>
-	 * This is called from the current DeviceDescriptionProvider whenever its
-	 * internal data has changed. For example, when the user changes the path to
-	 * the source data.
+	 * This is called from the current DeviceDescriptionProvider whenever its internal data has
+	 * changed. For example, when the user changes the path to the source data.
 	 * </p>
 	 */
 	private class ProviderChangeListener implements IProviderChangeListener {
@@ -611,10 +607,9 @@ public class AVRDeviceView extends ViewPart {
 	/**
 	 * Handle Selection Change Events.
 	 * <p>
-	 * This is called by the workbench selection services to inform this viewer,
-	 * that something has been selected on the workbench. If something with an
-	 * AVR MCU type has been selected (Project), then the viewer will show the
-	 * description of the associated mcu.
+	 * This is called by the workbench selection services to inform this viewer, that something has
+	 * been selected on the workbench. If something with an AVR MCU type has been selected
+	 * (Project), then the viewer will show the description of the associated mcu.
 	 * </p>
 	 */
 	private class WorkbenchSelectionListener implements ISelectionListener {
@@ -636,6 +631,10 @@ public class AVRDeviceView extends ViewPart {
 
 						monitor.beginTask("Selection Change", 3);
 						Set<String> devicelist = dmprovider.getMCUList();
+						if (devicelist == null) {
+							// The provider has no mcus -> return immediately
+							return Status.OK_STATUS;
+						}
 						monitor.worked(1);
 
 						// see if the selection is something that has an avr mcu
@@ -671,7 +670,7 @@ public class AVRDeviceView extends ViewPart {
 							// Thread, which handles the rest of the change.
 							// (Only if the control still exists)
 							final IStructuredSelection newselection = new StructuredSelection(
-							        AVRMCUidConverter.id2name(newid));
+									AVRMCUidConverter.id2name(newid));
 							if ((fViewParent != null) && (!fViewParent.isDisposed())) {
 								fViewParent.getDisplay().asyncExec(new Runnable() {
 									public void run() {
@@ -683,6 +682,9 @@ public class AVRDeviceView extends ViewPart {
 							}
 						}
 						monitor.worked(1);
+					} catch (IOException e) {
+						// could not get a MCU list from the provider
+						// nothing to be done about this but to fail silently.
 					} finally {
 						monitor.done();
 					}
@@ -697,18 +699,15 @@ public class AVRDeviceView extends ViewPart {
 		/**
 		 * Get the mcu id from the given structured selection.
 		 * <p>
-		 * If the first element of the selection is an AVR project, the mcu type
-		 * is taken from the properties of the active build configuration.
+		 * If the first element of the selection is an AVR project, the mcu type is taken from the
+		 * properties of the active build configuration.
 		 * </p>
 		 * <p>
-		 * If the selection did not contain a valid mcu type <code>null</code>
-		 * is returned
+		 * If the selection did not contain a valid mcu type <code>null</code> is returned
 		 * 
 		 * @param selection
-		 *            <code>IStructuredSelection</code> from the Eclipse
-		 *            Selection Services
-		 * @return String with the mcu id or
-		 *         <code>null</null> if no mcu id was found.
+		 *            <code>IStructuredSelection</code> from the Eclipse Selection Services
+		 * @return String with the mcu id or <code>null</null> if no mcu id was found.
 		 */
 		private String getMCUId(IStructuredSelection selection) {
 
@@ -734,7 +733,8 @@ public class AVRDeviceView extends ViewPart {
 						// This is an AVR Project
 						// Get the AVR properties for the active build
 						// configuration and fetch the mcu id from it.
-						ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
+						ProjectPropertyManager projprops = ProjectPropertyManager
+								.getPropertyManager(project);
 						AVRProjectProperties props = projprops.getActiveProperties();
 						return props.getMCUId();
 					}
