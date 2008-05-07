@@ -682,8 +682,11 @@ public class AVRDude implements IMCUProvider {
 	public String getNameAndVersion() throws AVRDudeException {
 
 		// Execute avrdude with the "-v" option and parse the
-		// output
-		List<String> stdout = runCommand("-v");
+		// output.
+		// Just "-v" will have avrdude complain about a missing programmer => AVRDudeException.
+		// So we supply a dummy (but existing) programmer. AVRDude will now complain about the
+		// missing part, but we can ignore this because we got what we wanted: the version number.
+		List<String> stdout = runCommand("-v", "-cstk500v2");
 		if (stdout == null) {
 			// Return default name on failures
 			return getCommandName() + " n/a";
