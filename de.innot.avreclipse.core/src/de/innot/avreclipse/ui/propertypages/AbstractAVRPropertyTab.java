@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
@@ -39,17 +40,15 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 /**
  * Abstract parent class for all AVR Property tabs.
  * <p>
- * This class is an interface between <code>ICPropertyTab</code>, which works
- * on ICResourceDescriptions, and the {@link AVRProjectProperties} where all AVR
- * specific settings are stored, either per project or - at user discretion -
- * per build configuration.
+ * This class is an interface between <code>ICPropertyTab</code>, which works on
+ * ICResourceDescriptions, and the {@link AVRProjectProperties} where all AVR specific settings are
+ * stored, either per project or - at user discretion - per build configuration.
  * </p>
  * <p>
- * {@link #performApply(AVRProjectProperties)} and
- * {@link #updateData(AVRProjectProperties)} are almost identical to the methods
- * in <code>ICPropertyTab</code>, while <code>performDefaults()</code> is
- * replaced by {@link #performCopy(AVRProjectProperties)}, which enables this
- * class to send different default properties to the implementor.
+ * {@link #performApply(AVRProjectProperties)} and {@link #updateData(AVRProjectProperties)} are
+ * almost identical to the methods in <code>ICPropertyTab</code>, while
+ * <code>performDefaults()</code> is replaced by {@link #performCopy(AVRProjectProperties)},
+ * which enables this class to send different default properties to the implementor.
  * </p>
  * 
  * @author Thomas Holland
@@ -59,19 +58,19 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 
 	/**
-	 * special Tab message to indicate that the given Properties should be
-	 * copied. This is very similar to {@link ICPropertyTab#DEFAULTS} message.
+	 * special Tab message to indicate that the given Properties should be copied. This is very
+	 * similar to {@link ICPropertyTab#DEFAULTS} message.
 	 */
-	public final static int COPY = 200;
+	public final static int	COPY	= 200;
 
 	/**
 	 * Action for an Apply event.
 	 * <p>
-	 * The implementation must copy the values relevant to the current page to
-	 * the given destination properties.
+	 * The implementation must copy the values relevant to the current page to the given destination
+	 * properties.
 	 * </p>
-	 * The given properties are fresh, unmodified props from the properties
-	 * storage. They will be saved once this method returns.
+	 * The given properties are fresh, unmodified props from the properties storage. They will be
+	 * saved once this method returns.
 	 * </p>
 	 * 
 	 * @param dstprops
@@ -82,18 +81,17 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Action for a Copy event.
 	 * <p>
-	 * The implementation must copy the values relevant to the current page from
-	 * the given source properties.
+	 * The implementation must copy the values relevant to the current page from the given source
+	 * properties.
 	 * </p>
 	 * <p>
-	 * This method is called with either the default properties or with the
-	 * project properties, depending on whether the "Defaults" or the "Copy from
-	 * Project" Button has been clicked by the user.
+	 * This method is called with either the default properties or with the project properties,
+	 * depending on whether the "Defaults" or the "Copy from Project" Button has been clicked by the
+	 * user.
 	 * </p>
 	 * <p>
-	 * It is up to the implementor to call
-	 * {@link #updateData(AVRProjectProperties)} to update the representation
-	 * after the copy has taken place.
+	 * It is up to the implementor to call {@link #updateData(AVRProjectProperties)} to update the
+	 * representation after the copy has taken place.
 	 * </p>
 	 * 
 	 * @param srcprops
@@ -104,14 +102,13 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Update the tab to the values of the given properties.
 	 * <p>
-	 * This method is called whenever a different build configuration is
-	 * selected by the user or the "per Config Settings" flag has changed. The
-	 * props parameter has the properties for the configuration / project.
+	 * This method is called whenever a different build configuration is selected by the user or the
+	 * "per Config Settings" flag has changed. The props parameter has the properties for the
+	 * configuration / project.
 	 * </p>
 	 * <p>
-	 * Implementing classes should update their controls to the values of the
-	 * properties and can must make all future modifications directly to the
-	 * given properties.
+	 * Implementing classes should update their controls to the values of the properties and can
+	 * must make all future modifications directly to the given properties.
 	 * </p>
 	 * 
 	 * @param props
@@ -122,14 +119,14 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Action for a defaults event.
 	 * <p>
-	 * This is called in addition to {@link #performCopy(AVRProjectProperties)},
-	 * so that subclasses can override to add any special handling for the
-	 * defaults case, which does not apply to the copy event. E.g. the main page
-	 * overrides this to reset the list of available programmers.
+	 * This is called in addition to {@link #performCopy(AVRProjectProperties)}, so that subclasses
+	 * can override to add any special handling for the defaults case, which does not apply to the
+	 * copy event. E.g. the main page overrides this to reset the list of available programmers.
 	 * </p>
 	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performDefaults()
 	 */
+	@Override
 	protected void performDefaults() {
 		// Subclasse
 	};
@@ -137,8 +134,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#handleTabEvent(int,
-	 *      java.lang.Object)
+	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#handleTabEvent(int, java.lang.Object)
 	 */
 	@Override
 	public void handleTabEvent(int kind, Object data) {
@@ -162,21 +158,21 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		// updateData() is used to pass a valid AVRProjectProperties to the
 		// subclass and might not have been called when the handler is executed.
 		switch (kind) {
-		case COPY:
-			updateData(getResDesc());
-			AVRProjectProperties projectprops = (AVRProjectProperties) data;
-			performCopy(projectprops);
-			break;
-		case ICPropertyTab.DEFAULTS:
-			updateData(getResDesc());
-			AVRProjectProperties defaultprops = ProjectPropertyManager.getDefaultProperties();
-			performDefaults();
-			performCopy(defaultprops);
-			break;
-		default:
-			// All other messages (APPLY, DISPOSE etc.) are handled by the
-			// superclass.
-			super.handleTabEvent(kind, data);
+			case COPY:
+				updateData(getResDesc());
+				AVRProjectProperties projectprops = (AVRProjectProperties) data;
+				performCopy(projectprops);
+				break;
+			case ICPropertyTab.DEFAULTS:
+				updateData(getResDesc());
+				AVRProjectProperties defaultprops = ProjectPropertyManager.getDefaultProperties();
+				performDefaults();
+				performCopy(defaultprops);
+				break;
+			default:
+				// All other messages (APPLY, DISPOSE etc.) are handled by the
+				// superclass.
+				super.handleTabEvent(kind, data);
 		}
 	}
 
@@ -239,11 +235,10 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	};
 
 	/**
-	 * Sets the rebuild flag for the current configuration or the complete
-	 * project.
+	 * Sets the rebuild flag for the current configuration or the complete project.
 	 * <p>
-	 * Passing <code>false</code> is not recommended, as it might prevent
-	 * necessary rebuilds caused by changes outside of the AVR property world.
+	 * Passing <code>false</code> is not recommended, as it might prevent necessary rebuilds
+	 * caused by changes outside of the AVR property world.
 	 * </p>
 	 * 
 	 * @param rebuild
@@ -265,8 +260,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Convenience method to add a separator bar to the composite.
 	 * <p>
-	 * The parent composite must have a <code>GridLayout</code>. The
-	 * separator bar will span all columns of the parent grid layout.
+	 * The parent composite must have a <code>GridLayout</code>. The separator bar will span all
+	 * columns of the parent grid layout.
 	 * </p>
 	 * 
 	 * @param parent
@@ -285,8 +280,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Returns the value of the "per config" flag for this project.
 	 * 
-	 * @return <code>true</code> if each build configuration has its own
-	 *         properties.
+	 * @return <code>true</code> if each build configuration has its own properties.
 	 */
 	protected boolean isPerConfig() {
 		if (page instanceof AbstractAVRPage) {
@@ -299,13 +293,12 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Create and return a "Workplace" browse Button.
 	 * <p>
-	 * Clicking the Button will open a Workplace file selector Dialog and the
-	 * result is copied to the supplied <code>Text</code> Control.
+	 * Clicking the Button will open a Workplace file selector Dialog and the result is copied to
+	 * the supplied <code>Text</code> Control.
 	 * </p>
 	 * 
 	 * @param parent
-	 *            Parent <code>Composite</code>, which needs to have
-	 *            <code>GridLayout</code>
+	 *            Parent <code>Composite</code>, which needs to have <code>GridLayout</code>
 	 * @param text
 	 *            Target <code>Text</code> Control
 	 * @return <code>Button</code> Control with the created Button.
@@ -332,18 +325,17 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Create and return a "Filesystem" browse Button.
 	 * <p>
-	 * Clicking the Button will open a file selector Dialog and the result is
-	 * copied to the supplied <code>Text</code> Control.
+	 * Clicking the Button will open a file selector Dialog and the result is copied to the supplied
+	 * <code>Text</code> Control.
 	 * </p>
 	 * 
 	 * @param parent
-	 *            Parent <code>Composite</code>, which needs to have
-	 *            <code>GridLayout</code>
+	 *            Parent <code>Composite</code>, which needs to have <code>GridLayout</code>
 	 * @param text
 	 *            Target <code>Text</code> Control
 	 * @param exts
-	 *            <code>String[]</code> with all valid file extensions. Files
-	 *            with other extensions will be filtered.
+	 *            <code>String[]</code> with all valid file extensions. Files with other
+	 *            extensions will be filtered.
 	 * @return <code>Button</code> Control with the created Button.
 	 */
 	protected Button setupFilesystemButton(Composite parent, final Text text, String[] exts) {
@@ -357,7 +349,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
-				String[] exts = (String[])event.widget.getData();
+				String[] exts = (String[]) event.widget.getData();
 				String location = getFileSystemFileDialog(text.getShell(), EMPTY_STR, exts);
 				if (location != null) {
 					text.setText(location);
@@ -370,14 +362,12 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Create and return a "Variable" browse Button.
 	 * <p>
-	 * Clicking the Button will open a variable selector Dialog and the result
-	 * is inserted into the supplied <code>Text</code> Control at the current
-	 * cursor position.
+	 * Clicking the Button will open a variable selector Dialog and the result is inserted into the
+	 * supplied <code>Text</code> Control at the current cursor position.
 	 * </p>
 	 * 
 	 * @param parent
-	 *            Parent <code>Composite</code>, which needs to have
-	 *            <code>GridLayout</code>
+	 *            Parent <code>Composite</code>, which needs to have <code>GridLayout</code>
 	 * @param text
 	 *            Target <code>Text</code> Control
 	 * @return <code>Button</code> Control with the created Button.
@@ -402,18 +392,17 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	}
 
 	/**
-	 * Open a FileSystem Dialog and return the selected file as a
-	 * <code>String</code>.
+	 * Open a FileSystem Dialog and return the selected file as a <code>String</code>.
 	 * 
 	 * @param shell
 	 *            Shell in which to open the Dialog
 	 * @param text
 	 *            Root file name
 	 * @param exts
-	 *            <code>String[]</code> with all valid file extensions. Files
-	 *            with other extensions will be filtered.
-	 * @return <code>String</code> with the selected filename or <cod>null</code>
-	 *         if the user has cancelled or an error occured.
+	 *            <code>String[]</code> with all valid file extensions. Files with other
+	 *            extensions will be filtered.
+	 * @return <code>String</code> with the selected filename or <cod>null</code> if the user has
+	 *         cancelled or an error occured.
 	 */
 	public static String getFileSystemFileDialog(Shell shell, String text, String[] exts) {
 
@@ -427,6 +416,21 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		dialog.setFilterExtensions(exts);
 		dialog.setText(FILESYSTEM_FILE_DIALOG_TITLE);
 		return dialog.open();
+	}
+
+	/**
+	 * Enable / Disable the given Composite.
+	 * 
+	 * @param compo
+	 *            A <code>Composite</code> with some controls.
+	 * @param value
+	 *            <code>true</code> to enable, <code>false</code> to disable the given group.
+	 */
+	protected void setEnabled(Composite compo, boolean value) {
+		Control[] children = compo.getChildren();
+		for (Control child : children) {
+			child.setEnabled(value);
+		}
 	}
 
 }

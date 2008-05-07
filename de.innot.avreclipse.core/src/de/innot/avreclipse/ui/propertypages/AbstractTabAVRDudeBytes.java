@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -54,6 +53,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.avrdude.AbstractBytes;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
@@ -90,7 +90,14 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String	TEXT_READDEVICE_BUSY	= "Loading...";
 	private final static String	TEXT_COPYFILE			= "Copy from file";
 
-	private final static String	WARN_BYTESINCOMPATIBLE	= "These values are for an {0} MCU. This is not compatible with the {2} MCU setting [{1}].";
+	private final static String	WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
+																+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
+	private final static String	WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
+																+ "This is not compatible with the {2} MCU setting [{1}].";
+	private final static String	WARN_BUTTON_ACCEPT		= "Accept anyway";
+	private final static String	WARN_BUTTON_CONVERT		= "Convert";
+	private final static String	WARN_FROMPROJECT		= "project";
+	private final static String	WARN_FROMCONFIG			= "build configuration";
 
 	private static final Image	IMG_WARN				= PlatformUI
 																.getWorkbench()
@@ -106,16 +113,19 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private Button				fWorkplaceButton;
 	private Button				fFilesystemButton;
 	private Button				fVariableButton;
-	private Composite			fFileWarning;
 
 	private Button				fImmediateButton;
 	private Composite			fBytesCompo;
 	private Button				fReadButton;
 	private Button				fCopyButton;
-	private Composite			fBytesWarning;
 
 	private Composite[]			fByteCompos;
 	private Text[]				fValueTexts;
+
+	private Composite			fWarningCompo;
+	private Label				fWarningLabel;
+	private Button				fAcceptButton;
+	private Button				fConvertButton;
 
 	/** Number of bytes for the current MCU handled on the page */
 	private int					fCount					= 0;
@@ -248,6 +258,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// addSeparator(group);
 
 		addImmediateSection(group);
+
+		addWarningSection(group);
 	}
 
 	/**
@@ -272,6 +284,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableByteGroup(false);
 
 				updatePreview(fTargetProps);
+
+				// If the warning was active it is now made invisible
+				checkValid();
 			}
 		});
 
@@ -308,6 +323,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(true);
 				enableByteGroup(false);
 				updatePreview(fTargetProps);
+				// Check if the file is compatible and display a warning if required
+				checkValid();
 			}
 		});
 
@@ -366,6 +383,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(false);
 				enableByteGroup(true);
 				updatePreview(fTargetProps);
+
+				// Check if the byte values are compatible and display a warning if required
+				checkValid();
 			}
 		});
 
@@ -412,25 +432,43 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// TODO Remove this line once files are supported.
 		fCopyButton.setVisible(false);
 
+	}
+
+	private void addWarningSection(Composite parent) {
+
 		// The Warning Composite
-		fBytesWarning = new Composite(parent, SWT.NONE);
-		fBytesWarning.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
-		GridLayout gl = new GridLayout(2, false);
+		fWarningCompo = new Composite(parent, SWT.NONE);
+		fWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
+		GridLayout gl = new GridLayout(4, false);
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
 		gl.verticalSpacing = 0;
 		gl.horizontalSpacing = 0;
-		fBytesWarning.setLayout(gl);
+		fWarningCompo.setLayout(gl);
 
-		Label warnicon = new Label(fBytesWarning, SWT.LEFT);
-		warnicon.setLayoutData(new GridData(GridData.BEGINNING));
+		Label warnicon = new Label(fWarningCompo, SWT.LEFT);
+		warnicon.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 		warnicon.setImage(IMG_WARN);
 
-		Label warnmessage = new Label(fBytesWarning, SWT.LEFT);
-		warnmessage.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		warnmessage.setText(WARN_BYTESINCOMPATIBLE);
+		fWarningLabel = new Label(fWarningCompo, SWT.LEFT);
+		fWarningLabel.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		fWarningLabel.setText(WARN_FILEINCOMPATIBLE);
 
-		fBytesWarning.setVisible(true);
+		fAcceptButton = new Button(fWarningCompo, SWT.PUSH);
+		fAcceptButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+		fAcceptButton.setText(WARN_BUTTON_ACCEPT);
+		fAcceptButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// Set the MCU of the current bytes to the MCU of the project / build configuration
+				String mcuid = fTargetProps.getParent().getMCUId();
+				fBytes.setMCUId(mcuid);
+				checkValid();
+				updatePreview(fTargetProps);
+			}
+		});
+
+		fWarningCompo.setVisible(false);
 
 	}
 
@@ -568,6 +606,35 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// fCopyButton.setEnabled(enabled);
 	}
 
+	private void checkValid() {
+
+		if (!fBytes.getWrite()) {
+			// No write - no warning
+			fWarningCompo.setVisible(false);
+			return;
+		}
+
+		if (fBytes.isCompatibleWith(fTargetProps.getParent().getMCUId())) {
+			// Compatible - no warning
+			fWarningCompo.setVisible(false);
+			return;
+		}
+
+		String valuesmcu = AVRMCUidConverter.id2name(fBytes.getMCUId());
+		String projectmcu = AVRMCUidConverter.id2name(fTargetProps.getParent().getMCUId());
+
+		String message = MessageFormat.format(fBytes.getUseFile() ? WARN_FILEINCOMPATIBLE
+				: WARN_BYTESINCOMPATIBLE, valuesmcu, projectmcu, isPerConfig() ? WARN_FROMCONFIG
+				: WARN_FROMPROJECT);
+
+		fWarningLabel.setText(message);
+
+		// Hide the accept button if a file is selected
+		fAcceptButton.setVisible(!fBytes.getUseFile());
+
+		fWarningCompo.setVisible(true);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -680,6 +747,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 			fValueTexts[i].setText(newvalue);
 		}
+
+		// Check if the values are valid and show a warning (if required)
+		checkValid();
 	}
 
 	/**
@@ -726,6 +796,11 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 								fBytes.clearValues();
 								fBytes.setValues(bytevalues.getValues());
 
+								// if the attached mcu differs from the project mcu the user got a
+								// warning, where he chose to accept the values. So we set the mcu
+								// for the values to the one from the project.
+								fBytes.setMCUId(projectmcu);
+
 								updateData(fTargetProps);
 							}
 						});
@@ -771,22 +846,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		readJob.setPriority(Job.SHORT);
 		readJob.setUser(true);
 		readJob.schedule();
-	}
-
-	/**
-	 * Enable / Disable a Composite and all of its children.
-	 * 
-	 * @param compo
-	 *            A <code>Composite</code> with some controls.
-	 * @param enabled
-	 *            <code>true</code> to enable, <code>false</code> to disable the given group.
-	 */
-	private void setEnabled(Composite compo, boolean enabled) {
-		compo.setEnabled(enabled);
-		Control[] children = compo.getChildren();
-		for (Control child : children) {
-			child.setEnabled(enabled);
-		}
 	}
 
 	/**
