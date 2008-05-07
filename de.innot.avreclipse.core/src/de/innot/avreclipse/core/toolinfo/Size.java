@@ -32,8 +32,7 @@ import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 
 /**
- * This class provides some information about the used size tool in the
- * toolchain.
+ * This class provides some information about the used size tool in the toolchain.
  * 
  * It can return a list of all supported format options.
  * 
@@ -43,13 +42,13 @@ import de.innot.avreclipse.core.paths.IPathProvider;
  */
 public class Size extends BaseToolInfo {
 
-	private static final String TOOL_ID = PluginIDs.PLUGIN_TOOLCHAIN_TOOL_SIZE;
+	private static final String	TOOL_ID			= PluginIDs.PLUGIN_TOOLCHAIN_TOOL_SIZE;
 
-	private Map<String, String> fOptionsMap = null;
+	private Map<String, String>	fOptionsMap		= null;
 
-	private static Size instance = null;
+	private static Size			instance		= null;
 
-	private IPathProvider fPathProvider = new AVRPathProvider(AVRPath.AVRGCC);
+	private final IPathProvider	fPathProvider	= new AVRPathProvider(AVRPath.AVRGCC);
 
 	/**
 	 * Get an instance of this Tool.
@@ -105,14 +104,15 @@ public class Size extends BaseToolInfo {
 		// At least in winAVR avr-size -h will print to the error stream!
 		size.redirectErrorStream(true);
 		try {
-	        size.launch();
-        } catch (IOException e) {
-        	// Something didn't work while running the external command
-        	IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "+command, e);
-        	AVRPlugin.getDefault().log(status);
-        	return fOptionsMap;
-        }
-		
+			size.launch();
+		} catch (IOException e) {
+			// Something didn't work while running the external command
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not start "
+					+ command, e);
+			AVRPlugin.getDefault().log(status);
+			return fOptionsMap;
+		}
+
 		List<String> stdout = size.getStdOut();
 
 		for (String line : stdout) {
@@ -157,8 +157,17 @@ public class Size extends BaseToolInfo {
 		}
 
 		// unknown option
-		// TODO: log a message telling the user to report this
-		// new option for inclusion into the list above
+		// log a message telling the user to report this new option for inclusion into the list
+		// above (as if anyone would actually read the log)
+		IStatus status = new Status(
+				IStatus.INFO,
+				AVRPlugin.PLUGIN_ID,
+				"Size encountered an unknown option for avr-size ["
+						+ option
+						+ "]. Please report this to the AVR Eclipse plugin maintainer to include this option in future versions of the plugin.",
+				null);
+		AVRPlugin.getDefault().log(status);
+
 		return option;
 	}
 }

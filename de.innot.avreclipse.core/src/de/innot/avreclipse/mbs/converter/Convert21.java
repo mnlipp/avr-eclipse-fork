@@ -17,8 +17,11 @@ import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.natures.AVRProjectNature;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
@@ -29,16 +32,16 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
  */
 public class Convert21 {
 
-	private final static String OLD_AVRTARGET_ID = "avrtarget";
+	private final static String				OLD_AVRTARGET_ID	= "avrtarget";
 
-	private static ProjectPropertyManager fProjProps = null;
+	private static ProjectPropertyManager	fProjProps			= null;
 
 	public static IBuildObject convert(IBuildObject buildObj, String fromId) {
 
 		IManagedProject mproj = (IManagedProject) buildObj;
 
 		// get the project property store
-		
+
 		fProjProps = ProjectPropertyManager.getPropertyManager((IProject) mproj.getOwner());
 
 		// go through all configurations of the selected Project and
@@ -66,11 +69,12 @@ public class Convert21 {
 
 			// Save the new project properties
 			try {
-	            fProjProps.save();
-            } catch (BackingStoreException e) {
-	            // TODO Auto-generated catch block
-	            e.printStackTrace();
-            }
+				fProjProps.save();
+			} catch (BackingStoreException e) {
+				// TODO Auto-generated catch block
+				// I will fix this once the converter gets a little GUI
+				e.printStackTrace();
+			}
 		}
 
 		// Add AVR Nature to the project
@@ -78,8 +82,11 @@ public class Convert21 {
 		try {
 			AVRProjectNature.addAVRNature(project);
 		} catch (CoreException ce) {
-			// TODO: log Exception
-			ce.printStackTrace();
+			// TODO: Once a converter GUI is implemented change this to an error dialog.
+			// addAVRNature() should not cause an Exception, but just in case we log it.
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not add AVR nature to project [" + project.toString() + "]", ce);
+			AVRPlugin.getDefault().log(status);
 		}
 		return buildObj;
 	}
@@ -93,7 +100,7 @@ public class Convert21 {
 		// Get the Project Properties for the given Configuration
 		AVRProjectProperties props = fProjProps.getConfigurationProperties(buildcfg, true, false);
 		boolean changeperconfig = false;
-		
+
 		// we need to use reflections to call the private method
 		// "getOptionsList" because getOptions filters all invalid
 		// options, which are just the ones we need for removal
@@ -108,15 +115,15 @@ public class Convert21 {
 			}
 		} catch (SecurityException e) {
 			return;
-        } catch (NoSuchMethodException e) {
+		} catch (NoSuchMethodException e) {
 			return;
-        } catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			return;
-        } catch (IllegalAccessException e) {
+		} catch (IllegalAccessException e) {
 			return;
-        } catch (InvocationTargetException e) {
+		} catch (InvocationTargetException e) {
 			return;
-        }
+		}
 
 		Object[] allopts = optionlist.toArray();
 		// Step thru all options and remove the deprecated ones
@@ -166,7 +173,7 @@ public class Convert21 {
 			}
 
 		} // for options
-		
+
 		if (changeperconfig) {
 			fProjProps.setPerConfig(true);
 		}

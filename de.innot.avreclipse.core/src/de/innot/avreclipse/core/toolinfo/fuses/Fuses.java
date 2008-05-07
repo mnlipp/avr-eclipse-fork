@@ -17,6 +17,7 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -157,7 +158,7 @@ public class Fuses implements IMCUProvider {
 	 * This is a convenience method (almost) equivalent to
 	 * 
 	 * <pre>
-	 * getFusesDescription(mcuid).getFuseByteCount();
+	 * getDescription(mcuid).getByteCount();
 	 * </pre>
 	 * 
 	 * </p>
@@ -271,17 +272,21 @@ public class Fuses implements IMCUProvider {
 	 * @param location
 	 *            <code>IPath</code> to a folder containing the serialized description holder
 	 *            objects.
+	 * @throws IOException
+	 *             when the description file is not readable or of the wrong type (e.g. different
+	 *             class version)
 	 * @return
 	 */
-	private IDescriptionHolder getDescriptionFromLocation(String mcuid, IPath location) {
+	private IDescriptionHolder getDescriptionFromLocation(String mcuid, IPath location)
+			throws IOException {
 
 		String filename = mcuid + DESCRIPTION_EXTENSION;
 
 		// Test if a file with the right name is in the location
 		File file = location.append(filename).toFile();
 		if (!file.canRead()) {
-			// File does not exist or can't be accessed.
-			return null;
+			throw new FileNotFoundException(file.toString()
+					+ " can not be found or is not readable");
 		}
 
 		// OK, file exist. De-serialize it
@@ -293,10 +298,9 @@ public class Fuses implements IMCUProvider {
 			in = new ObjectInputStream(fis);
 			newdesc = (FusesDescription) in.readObject();
 			in.close();
-		} catch (IOException ex) {
-			ex.printStackTrace();
 		} catch (ClassNotFoundException ex) {
-			ex.printStackTrace();
+			throw new IOException("File [" + file.toString()
+					+ "] contains invalid data (wrong class version)", ex);
 		}
 
 		return newdesc;

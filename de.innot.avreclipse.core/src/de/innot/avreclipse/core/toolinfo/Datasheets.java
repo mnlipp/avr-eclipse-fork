@@ -28,14 +28,12 @@ import de.innot.avreclipse.core.preferences.DatasheetPreferences;
  * <p>
  * This class has two main functions:
  * <ol>
- * <li>It maps the {@link DatasheetPreferences} to the {@link IMCUProvider}
- * Interface.</li>
+ * <li>It maps the {@link DatasheetPreferences} to the {@link IMCUProvider} Interface.</li>
  * <li>It manages the access to the actual Datasheet files.</li>
  * </ol>
- * Datasheets can be accessed with the
- * {@link #getFile(String, IProgressMonitor)} method. This method will
- * download the file from the URL stored in the preferences, and store it in a
- * cache for later access.
+ * Datasheets can be accessed with the {@link #getFile(String, IProgressMonitor)} method. This
+ * method will download the file from the URL stored in the preferences, and store it in a cache for
+ * later access.
  * </p>
  * 
  * @author Thomas Holland
@@ -44,9 +42,9 @@ import de.innot.avreclipse.core.preferences.DatasheetPreferences;
  */
 public class Datasheets implements IMCUProvider {
 
-	private static Datasheets fInstance = null;
+	private static Datasheets	fInstance			= null;
 
-	private IPreferenceStore fPreferenceStore = null;
+	private IPreferenceStore	fPreferenceStore	= null;
 
 	/**
 	 * Get the default instance of the Datasheets class

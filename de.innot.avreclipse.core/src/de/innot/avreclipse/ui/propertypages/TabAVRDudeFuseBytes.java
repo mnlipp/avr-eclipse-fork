@@ -50,7 +50,7 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	private final static String[]	LABELS		= new String[] { "Fuse Bytes", "fuse bytes" };
 
 	/** The file extensions for fuses files. Used by the file selector. */
-	public final static String[]	FUSES_EXTS	= new String[] { "*.fuses" };
+	private final static String[]	FUSES_EXTS	= new String[] { "*.fuses" };
 
 	/*
 	 * (non-Javadoc)

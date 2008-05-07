@@ -28,12 +28,10 @@ import de.innot.avreclipse.core.toolinfo.Signatures;
 /**
  * Signature reader.
  * <p>
- * This Class will take a PartDescriptionFile Document and read the MCU
- * signature from it.
+ * This Class will take a PartDescriptionFile Document and read the MCU signature from it.
  * </p>
  * <p>
- * The Signature is taken from the three Elements "ADDR000", "ADDR001" and
- * "ADDR002"
+ * The Signature is taken from the three Elements "ADDR000", "ADDR001" and "ADDR002"
  * </p>
  * 
  * @author Thomas Holland
@@ -43,10 +41,10 @@ import de.innot.avreclipse.core.toolinfo.Signatures;
 public class SignatureReader extends BaseReader {
 
 	/** ADDR00x Element prefix */
-	private final static String ADDR00x = "ADDR00";
+	private final static String		ADDR00x		= "ADDR00";
 
 	/** Signatures manager instance. */
-	private static final Signatures fSignatures = Signatures.getDefault();
+	private static final Signatures	fSignatures	= Signatures.getDefault();
 
 	/*
 	 * (non-Javadoc)
@@ -62,6 +60,7 @@ public class SignatureReader extends BaseReader {
 	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse(org.w3c.dom.Document)
 	 */
+	@Override
 	public void parse(Document document) {
 
 		// Get the signature from the three <ADDR000> to <ADDR002> elements and
@@ -93,7 +92,7 @@ public class SignatureReader extends BaseReader {
 			// Can't write to the instance property storage.
 			// Log an error message.
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-			        "Can't write signatures.properties file", e);
+					"Can't write signatures.properties file", e);
 			AVRPlugin.getDefault().log(status);
 		}
 	}
@@ -101,9 +100,9 @@ public class SignatureReader extends BaseReader {
 	/**
 	 * Add the signature to the signature properties.
 	 * <p>
-	 * This method can be overridden to store the signature to somewhere else.
-	 * The default is to call {@link Signatures#addSignature(String, String)} to
-	 * add it to the plugin instance properties.
+	 * This method can be overridden to store the signature to somewhere else. The default is to
+	 * call {@link Signatures#addSignature(String, String)} to add it to the plugin instance
+	 * properties.
 	 * </p>
 	 * 
 	 * @param mcuid

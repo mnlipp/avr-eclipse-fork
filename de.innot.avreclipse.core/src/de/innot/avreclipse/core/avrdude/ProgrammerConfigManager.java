@@ -41,16 +41,15 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
  * <li>delete configs: {@link #deleteConfig(ProgrammerConfig)}</li>
  * </p>
  * <p>
- * The manager also has methods to get a list of all available programmers and
- * their names: {@link #getAllConfigIDs()} and {@link #getAllConfigNames()}.
+ * The manager also has methods to get a list of all available programmers and their names:
+ * {@link #getAllConfigIDs()} and {@link #getAllConfigNames()}.
  * </p>
  * <p>
- * To improve access times all retreived configs are stored in an internal
- * cache.
+ * To improve access times all retreived configs are stored in an internal cache.
  * </p>
  * <p>
- * This class implements the singleton pattern and can be accessed with the
- * static {@link #getDefault()} method.
+ * This class implements the singleton pattern and can be accessed with the static
+ * {@link #getDefault()} method.
  * </p>
  * 
  * @author Thomas Holland
@@ -60,36 +59,34 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 public class ProgrammerConfigManager {
 
 	/**
-	 * The prefix for programmer configuration id values. This is appended with
-	 * a running number to get the real id.
+	 * The prefix for programmer configuration id values. This is appended with a running number to
+	 * get the real id.
 	 */
-	private final static String CONFIG_PREFIX = "programmerconfig.";
+	private final static String					CONFIG_PREFIX	= "programmerconfig.";
 
 	/** Static singleton instance */
-	private static ProgrammerConfigManager fInstance = null;
+	private static ProgrammerConfigManager		fInstance		= null;
 
 	/** Cache of all Configs that have been used in this session */
-	private Map<String, ProgrammerConfig> fConfigsCache;
+	private final Map<String, ProgrammerConfig>	fConfigsCache;
 
 	/**
-	 * List of all IDs that have been given out for new configs, but have not
-	 * yet been saved. Used to avoid duplicate IDs, even when
-	 * {@link #createNewConfig()} gets called multiple times.
+	 * List of all IDs that have been given out for new configs, but have not yet been saved. Used
+	 * to avoid duplicate IDs, even when {@link #createNewConfig()} gets called multiple times.
 	 */
-	private List<String> fPendingIds;
+	private final List<String>					fPendingIds;
 
 	/**
 	 * The preferences this manager works on.
 	 * 
 	 * @see AVRDudePreferences#getConfigPreferences()
 	 */
-	private IEclipsePreferences fPreferences;
+	private final IEclipsePreferences			fPreferences;
 
 	/**
 	 * Gets the session <code>ProgrammerConfigManager</code>.
 	 * 
-	 * @return <code>ProgrammerConfigManager</code> for the current Eclipse
-	 *         session.
+	 * @return <code>ProgrammerConfigManager</code> for the current Eclipse session.
 	 */
 	public static ProgrammerConfigManager getDefault() {
 		if (fInstance == null) {
@@ -109,13 +106,12 @@ public class ProgrammerConfigManager {
 	/**
 	 * Create a new ProgrammerConfig.
 	 * <p>
-	 * The returned ProgrammerConfig is filled with some default values. It is
-	 * not created in the preference store.
+	 * The returned ProgrammerConfig is filled with some default values. It is not created in the
+	 * preference store.
 	 * </p>
 	 * <p>
-	 * Call {@link #saveConfig(ProgrammerConfig)} with the returned config to
-	 * persist any modifications and to add the newly created config to the list
-	 * of all existing configs.
+	 * Call {@link #saveConfig(ProgrammerConfig)} with the returned config to persist any
+	 * modifications and to add the newly created config to the list of all existing configs.
 	 * </p>
 	 * 
 	 * @return A new <code>ProgrammerConfig</code>
@@ -151,22 +147,20 @@ public class ProgrammerConfigManager {
 	/**
 	 * Get the {@link ProgrammerConfig} with the given ID.
 	 * <p>
-	 * If the config has been requested before, a reference to the config in the
-	 * internal cache is returned. All modifications to the returned config will
-	 * affect the config in the cache.
+	 * If the config has been requested before, a reference to the config in the internal cache is
+	 * returned. All modifications to the returned config will affect the config in the cache.
 	 * </p>
 	 * <p>
-	 * While these changes are only persisted when saveConfig() is called, it is
-	 * usually better to use the {@link #getConfigEditable(ProgrammerConfig)}
-	 * call to get a safely modifiable config.
+	 * While these changes are only persisted when saveConfig() is called, it is usually better to
+	 * use the {@link #getConfigEditable(ProgrammerConfig)} call to get a safely modifiable config.
 	 * </p>
 	 * 
 	 * @see #getConfigEditable(ProgrammerConfig)
 	 * 
 	 * @param id
 	 *            <code>String</code> with an ID value.
-	 * @return The requested <code>ProgrammerConfig</code> or
-	 *         <code>null</code> if no config with the given ID exists.
+	 * @return The requested <code>ProgrammerConfig</code> or <code>null</code> if no config
+	 *         with the given ID exists.
 	 */
 	public ProgrammerConfig getConfig(String id) {
 
@@ -208,15 +202,13 @@ public class ProgrammerConfigManager {
 	/**
 	 * Return an safely modifiable copy of the given config.
 	 * <p>
-	 * The returned config is not backed by the cache, so any modifications will
-	 * not be visible until the
-	 * {@link #saveConfig(ProgrammerConfig) method is called with the returned config.<p>
+	 * The returned config is not backed by the cache, so any modifications will not be visible
+	 * until the {@link #saveConfig(ProgrammerConfig) method is called with the returned config.<p>
 	 * </p>
 	 * 
 	 * @param sourceconfig
 	 *            Source <code>ProgrammerConfig</code> to clone.
-	 * @return New <code>ProgrammerConfig</code> with the same properties as
-	 *         the source config.
+	 * @return New <code>ProgrammerConfig</code> with the same properties as the source config.
 	 */
 	public ProgrammerConfig getConfigEditable(ProgrammerConfig sourceconfig) {
 
@@ -227,13 +219,12 @@ public class ProgrammerConfigManager {
 	}
 
 	/**
-	 * Test if the given ID is valid, i.e. a <code>ProgrammerConfig</code>
-	 * with the given ID exists in the Preferences.
+	 * Test if the given ID is valid, i.e. a <code>ProgrammerConfig</code> with the given ID
+	 * exists in the Preferences.
 	 * 
 	 * @param id
 	 *            <code>String</code> with the ID value to test
-	 * @return <code>true</code> if a config with the given ID exists in the
-	 *         Preferences.
+	 * @return <code>true</code> if a config with the given ID exists in the Preferences.
 	 */
 	public boolean isValidId(String id) {
 		// Test the cache first (quicker)
@@ -259,9 +250,8 @@ public class ProgrammerConfigManager {
 	/**
 	 * Deletes the given configuration from the preference storage area.
 	 * <p>
-	 * Note: This Object is still valid and further calls to
-	 * {@link #saveConfig(ProgrammerConfig)} will add this configuration back to
-	 * the preference storage.
+	 * Note: This Object is still valid and further calls to {@link #saveConfig(ProgrammerConfig)}
+	 * will add this configuration back to the preference storage.
 	 * </p>
 	 * 
 	 * @throws BackingStoreException
@@ -288,16 +278,14 @@ public class ProgrammerConfigManager {
 	/**
 	 * Save the given Configuration to the persistent storage.
 	 * <p>
-	 * Only {@link ProgrammerConfig} objects obtained with the
-	 * {@link #getConfigEditable(String)} method should be passed to this
-	 * method, however this is currently not enforced.
+	 * Only {@link ProgrammerConfig} objects obtained with the {@link #getConfigEditable(String)}
+	 * method should be passed to this method, however this is currently not enforced.
 	 * </p>
 	 * 
 	 * @param config
 	 *            <code>ProgrammerConfig</code> to be saved.
 	 * @throws BackingStoreException
-	 *             If this configuration cannot be written to the preference
-	 *             storage area.
+	 *             If this configuration cannot be written to the preference storage area.
 	 */
 	public void saveConfig(ProgrammerConfig config) throws BackingStoreException {
 
@@ -319,17 +307,15 @@ public class ProgrammerConfigManager {
 	}
 
 	/**
-	 * Gets a list of all Programmer configuration ID values currently in the
-	 * preferences.
+	 * Gets a list of all Programmer configuration ID values currently in the preferences.
 	 * 
-	 * @return <code>Set&lt;String&gt;</code> with all configuration id
-	 *         values.
+	 * @return <code>Set&lt;String&gt;</code> with all configuration id values.
 	 */
 	public Set<String> getAllConfigIDs() {
 		// All Programmer Configurations are children of the rootnode in the
 		// preferences. So fetch all children and add them to a Set.
 		Set<String> allconfigs = new HashSet<String>();
-		String[] confignames = new String[0];
+		String[] confignames;
 
 		try {
 			confignames = fPreferences.childrenNames();
@@ -348,8 +334,7 @@ public class ProgrammerConfigManager {
 	}
 
 	/**
-	 * Get a list of all programmer configuration names currently in the
-	 * preferences.
+	 * Get a list of all programmer configuration names currently in the preferences.
 	 * <p>
 	 * The list is returned as a mapping of id values to config names.
 	 * </p>
@@ -397,7 +382,7 @@ public class ProgrammerConfigManager {
 		// to the Preferences)
 		// 
 		Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-		        "Can't access the list of avrdude configuration preferences", bse);
+				"Can't access the list of avrdude configuration preferences", bse);
 		AVRPlugin.getDefault().log(status);
 	}
 }

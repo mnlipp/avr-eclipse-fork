@@ -25,6 +25,9 @@ import org.eclipse.cdt.managedbuilder.ui.wizards.MBSCustomPageManager;
 import org.eclipse.cdt.ui.wizards.CDTCommonProjectWizard;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -37,8 +40,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.natures.AVRProjectNature;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
@@ -49,13 +54,12 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * New Project Wizard Page to set the default target MCU and its frequency.
  * 
  * <p>
- * This Page takes the possible target MCU types and its default as well as the
- * target MCU frequency default directly from the winAVR toolchain as defined in
- * the <code>plugin.xml</code>.
+ * This Page takes the possible target MCU types and its default as well as the target MCU frequency
+ * default directly from the winAVR toolchain as defined in the <code>plugin.xml</code>.
  * </p>
  * <p>
- * If changed, the new type and MCU frequency are written back to the winAVR
- * toolchain as current value and as default value for this project.
+ * If changed, the new type and MCU frequency are written back to the winAVR toolchain as current
+ * value and as default value for this project.
  * </p>
  * 
  * @author Manuel Stahl (thymythos@web.de)
@@ -64,30 +68,29 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  */
 public class MCUselectPage extends MBSCustomPage implements Runnable {
 
-	private final static String PAGE_ID = "de.innot.avreclipse.mcuselectpage";
-	private final static String PROPERTY_MCU_NAME = "mcuname";
-	private final static String PROPERTY_MCU_FREQ = "mcufreq";
+	private final static String			PAGE_ID				= "de.innot.avreclipse.mcuselectpage";
+	private final static String			PROPERTY_MCU_NAME	= "mcuname";
+	private final static String			PROPERTY_MCU_FREQ	= "mcufreq";
 
-	private Composite top;
+	private Composite					top;
 
-	private Set<String> fMCUids = null;
-	private String[] fMCUNames = null;
+	private Set<String>					fMCUids				= null;
+	private String[]					fMCUNames			= null;
 
-	private String fDefaultMCUName = null;
-	private String fDefaultFCPU = null;
+	private String						fDefaultMCUName		= null;
+	private String						fDefaultFCPU		= null;
 
 	// GUI Widgets
-	private Combo comboMCUtype;
-	private Text textMCUfreq;
-	
-	private AVRProjectProperties fProperties;
+	private Combo						comboMCUtype;
+	private Text						textMCUfreq;
+
+	private final AVRProjectProperties	fProperties;
 
 	/**
 	 * Constructor for the Wizard Page.
 	 * 
 	 * <p>
-	 * Gets the list of supported MCUs from the compiler and sets the default
-	 * values.
+	 * Gets the list of supported MCUs from the compiler and sets the default values.
 	 * </p>
 	 * 
 	 */
@@ -99,7 +102,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		// values to the run() method.
 
 		this.pageID = PAGE_ID;
-		
+
 		fProperties = ProjectPropertyManager.getDefaultProperties();
 
 		// Get the list of supported MCU id's from the compiler
@@ -107,7 +110,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		fMCUids = GCC.getDefault().getMCUList();
 		String[] allmcuids = fMCUids.toArray(new String[fMCUids.size()]);
 		fMCUNames = new String[fMCUids.size()];
-		for(int i=0; i< allmcuids.length; i++) {
+		for (int i = 0; i < allmcuids.length; i++) {
 			fMCUNames[i] = AVRMCUidConverter.id2name(allmcuids[i]);
 		}
 		Arrays.sort(fMCUNames);
@@ -117,10 +120,8 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		fDefaultFCPU = fProperties.getFCPU();
 
 		// Set the default values as page properties
-		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_NAME,
-				fDefaultMCUName);
-		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ,
-				fDefaultFCPU);
+		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_NAME, fDefaultMCUName);
+		MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ, fDefaultFCPU);
 	}
 
 	/*
@@ -156,8 +157,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		comboMCUtype.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				String value = comboMCUtype.getText();
-				MBSCustomPageManager.addPageProperty(PAGE_ID,
-						PROPERTY_MCU_NAME, value);
+				MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_NAME, value);
 			}
 		});
 		comboMCUtype.setItems(fMCUNames);
@@ -174,8 +174,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		textMCUfreq.addListener(SWT.FocusOut, new Listener() {
 			public void handleEvent(Event e) {
 				String value = textMCUfreq.getText();
-				MBSCustomPageManager.addPageProperty(PAGE_ID,
-						PROPERTY_MCU_FREQ, value);
+				MBSCustomPageManager.addPageProperty(PAGE_ID, PROPERTY_MCU_FREQ, value);
 			}
 		});
 		// filter non-digits from the input
@@ -313,9 +312,9 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 	/**
 	 * Operation for the MCUSelectPage.
 	 * 
-	 * This is called when the finish button of the new Project Wizard has been
-	 * pressed. It will get the new Project and set the project options as
-	 * selected by the user (or to the default values).
+	 * This is called when the finish button of the new Project Wizard has been pressed. It will get
+	 * the new Project and set the project options as selected by the user (or to the default
+	 * values).
 	 * 
 	 */
 	public void run() {
@@ -324,41 +323,42 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		// configuration(s) with their toolchains have been set up.
 
 		// Is there a more elegant way to get to the Project?
-		MBSCustomPageData pagedata = MBSCustomPageManager
-				.getPageData(this.pageID);
-		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata
-				.getWizardPage().getWizard();
+		MBSCustomPageData pagedata = MBSCustomPageManager.getPageData(this.pageID);
+		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata.getWizardPage().getWizard();
 		IProject project = wizz.getLastProject();
 
 		ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
 		AVRProjectProperties props = projprops.getProjectProperties();
-		
+
 		// Set the Project properties according to the selected values
 
 		// Get the id of the selected MCU and store it
-		String mcuname = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
-				PROPERTY_MCU_NAME);
+		String mcuname = (String) MBSCustomPageManager.getPageProperty(PAGE_ID, PROPERTY_MCU_NAME);
 		String mcuid = AVRMCUidConverter.name2id(mcuname);
 		props.setMCUId(mcuid);
 
 		// Set the F_CPU and store it
-		String fcpu = (String) MBSCustomPageManager.getPageProperty(PAGE_ID,
-				PROPERTY_MCU_FREQ);
+		String fcpu = (String) MBSCustomPageManager.getPageProperty(PAGE_ID, PROPERTY_MCU_FREQ);
 		props.setFCPU(fcpu);
 
 		try {
 			projprops.save();
 		} catch (BackingStoreException e) {
-			// TODO Pop up error dialog
-			e.printStackTrace();
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not write project properties to the preferences.", e);
+
+			ErrorDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+					"AVR Project Wizard Error", null, status);
 		}
 
 		// Add the AVR Nature to the project
 		try {
 			AVRProjectNature.addAVRNature(project);
 		} catch (CoreException ce) {
-			// TODO: log exception
-			ce.printStackTrace();
+			// addAVRNature() should not cause an Exception, but just in case we log it.
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not add AVR nature to project [" + project.toString() + "]", ce);
+			AVRPlugin.getDefault().log(status);
 		}
 
 	}

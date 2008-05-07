@@ -37,27 +37,25 @@ import de.innot.avreclipse.core.preferences.BuildConfigurationScope;
 /**
  * Container for the Project Properties of an AVR Project.
  * <p>
- * This class maintains the global project settings (which currently is only the
- * "per config" flag) and a list of {@link AVRProjectProperties} objects which
- * contain all other project properties which can be either global for the
- * project or for each build configuration.
+ * This class maintains the global project settings (which currently is only the "per config" flag)
+ * and a list of {@link AVRProjectProperties} objects which contain all other project properties
+ * which can be either global for the project or for each build configuration.
  * </p>
  * <p>
  * For read access instantiate this class for a project and call
- * {@link #getConfigurationProperties(IConfiguration)}. This method will return
- * either the properties for the given <code>IConfiguration</code> or the
- * project properties if the "per config" flag has not been set (by the user).
+ * {@link #getConfigurationProperties(IConfiguration)}. This method will return either the
+ * properties for the given <code>IConfiguration</code> or the project properties if the "per
+ * config" flag has not been set (by the user).
  * </p>
  * <p>
- * To modify the properties either the
- * {@link #getPropsForConfig(IConfiguration, boolean)} or the
- * {@link #getProjectProperties()} methods can be used to get the properties for
- * a <code>IConfiguration</code> (regardless of the "per config" flag),
- * respectively the project properties.
+ * To modify the properties either the {@link #getPropsForConfig(IConfiguration, boolean)} or the
+ * {@link #getProjectProperties()} methods can be used to get the properties for a
+ * <code>IConfiguration</code> (regardless of the "per config" flag), respectively the project
+ * properties.
  * </p>
  * <p>
- * All modifications, including the current state of the "per config" flag are
- * persisted with a call to {@link #save()}.
+ * All modifications, including the current state of the "per config" flag are persisted with a call
+ * to {@link #save()}.
  * </p>
  * 
  * 
@@ -67,13 +65,15 @@ import de.innot.avreclipse.core.preferences.BuildConfigurationScope;
  */
 public class ProjectPropertyManager {
 
-	private static final String CLASSNAME = "avrtarget";
-	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
+	private static final String								CLASSNAME			= "avrtarget";
+	private static final String								QUALIFIER			= AVRPlugin.PLUGIN_ID
+																						+ "/"
+																						+ CLASSNAME;
 
-	public static final String KEY_PER_CONFIG = "perConfig";
-	private static final boolean DEFAULT_PER_CONFIG = false;
+	public static final String								KEY_PER_CONFIG		= "perConfig";
+	private static final boolean							DEFAULT_PER_CONFIG	= false;
 
-	private static Map<IProject, ProjectPropertyManager> fsProjectMap = new HashMap<IProject, ProjectPropertyManager>();
+	private static Map<IProject, ProjectPropertyManager>	fsProjectMap		= new HashMap<IProject, ProjectPropertyManager>();
 
 	public static ProjectPropertyManager getPropertyManager(IProject project) {
 		if (fsProjectMap.containsKey(project)) {
@@ -88,20 +88,20 @@ public class ProjectPropertyManager {
 	}
 
 	/**
-	 * "per config" flag. If <code>true</code>, the project uses separate
-	 * properties for each build configuration.
+	 * "per config" flag. If <code>true</code>, the project uses separate properties for each
+	 * build configuration.
 	 * 
 	 */
-	private boolean fPerConfig;
+	private boolean									fPerConfig;
 
 	/** The project this description is for */
-	private final IProject fProject;
+	private final IProject							fProject;
 
 	/** Map of properties elements for each build configuration */
-	private final Map<String, AVRProjectProperties> fConfigProperties = new HashMap<String, AVRProjectProperties>();
+	private final Map<String, AVRProjectProperties>	fConfigProperties	= new HashMap<String, AVRProjectProperties>();
 
 	/** Global project properties (used when "per config" flag is false = default */
-	private AVRProjectProperties fProjectProps;
+	private AVRProjectProperties					fProjectProps;
 
 	/**
 	 * Instantiate Properties Description Object for the given Project.
@@ -119,10 +119,9 @@ public class ProjectPropertyManager {
 	/**
 	 * Set the "per config" flag.
 	 * <p>
-	 * If set to <code>true</code> the project will use separate properties
-	 * for each build configuration of the project. If set to <code>false</code>
-	 * (the default value), only the global project properties will be used for
-	 * all build configurations.
+	 * If set to <code>true</code> the project will use separate properties for each build
+	 * configuration of the project. If set to <code>false</code> (the default value), only the
+	 * global project properties will be used for all build configurations.
 	 * </p>
 	 * 
 	 * @param flag
@@ -139,11 +138,11 @@ public class ProjectPropertyManager {
 	}
 
 	/**
-	 * Get the Properties for the active build configuration or the global
-	 * project properties if the "per config" flag is false.
+	 * Get the Properties for the active build configuration or the global project properties if the
+	 * "per config" flag is false.
 	 * <p>
-	 * if no properties for the active configuration exists the global project
-	 * properties are used as a fallback.
+	 * if no properties for the active configuration exists the global project properties are used
+	 * as a fallback.
 	 * </p>
 	 * 
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
@@ -162,16 +161,15 @@ public class ProjectPropertyManager {
 	}
 
 	/**
-	 * Get the properties for the given <code>IConfiguration</code> or the
-	 * global project properties if the "per config" flag is false.
+	 * Get the properties for the given <code>IConfiguration</code> or the global project
+	 * properties if the "per config" flag is false.
 	 * <p>
-	 * if no properties for the given configuration exists the global project
-	 * properties are used as a fallback.
+	 * if no properties for the given configuration exists the global project properties are used as
+	 * a fallback.
 	 * </p>
 	 * 
 	 * @param buildcfg
-	 *            <code>IConfiguration</code> for which the properties are
-	 *            requested.
+	 *            <code>IConfiguration</code> for which the properties are requested.
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
 	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg) {
@@ -181,22 +179,19 @@ public class ProjectPropertyManager {
 	/**
 	 * Get the properties for the given <code>IConfiguration</code>.
 	 * <p>
-	 * The force flag determines whether the "per config" flag is taken into
-	 * account.
+	 * The force flag determines whether the "per config" flag is taken into account.
 	 * <ul>
-	 * <li>force = <code>true</code>: Return the properties for the build
-	 * configuration, regardless of the "per config" flag.</li>
-	 * <li>force = <code>false</code>: Return the global project properties
-	 * if the "per config" flag is also <code>false</code>.</li>
+	 * <li>force = <code>true</code>: Return the properties for the build configuration,
+	 * regardless of the "per config" flag.</li>
+	 * <li>force = <code>false</code>: Return the global project properties if the "per config"
+	 * flag is also <code>false</code>.</li>
 	 * </ul>
 	 * <p>
-	 * If no properties for the given build configuration exist, the project
-	 * settings are copied.
+	 * If no properties for the given build configuration exist, the project settings are copied.
 	 * </p>
 	 * 
 	 * @param buildcfg
-	 *            <code>IConfiguration</code> for which the properties are
-	 *            requested.
+	 *            <code>IConfiguration</code> for which the properties are requested.
 	 * @param force
 	 *            Set to <code>true</code> to disregard the "per config" flag.
 	 * @param nocache
@@ -204,14 +199,14 @@ public class ProjectPropertyManager {
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
 	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg, boolean force,
-	        boolean nocache) {
+			boolean nocache) {
 
 		// Test if the configuration belongs to this project
 		IProject cfgproj = (IProject) buildcfg.getOwner();
 
 		if (!fProject.equals(cfgproj)) {
 			throw new IllegalArgumentException("Configuration " + buildcfg.getId()
-			        + " does not belong to project " + fProject.getName());
+					+ " does not belong to project " + fProject.getName());
 		}
 
 		if (fPerConfig || force) {
@@ -255,9 +250,9 @@ public class ProjectPropertyManager {
 	/**
 	 * Get the default properties.
 	 * <p>
-	 * Unlike the other get???Properties() methods, the properties returned by
-	 * this call are not backed with a storage. Calls to save() will have no
-	 * effect. It should only be used to extract the default values.
+	 * Unlike the other get???Properties() methods, the properties returned by this call are not
+	 * backed with a storage. Calls to save() will have no effect. It should only be used to extract
+	 * the default values.
 	 * </p>
 	 * 
 	 * @return
@@ -288,14 +283,13 @@ public class ProjectPropertyManager {
 	/**
 	 * Save all modified properties.
 	 * <p>
-	 * This will save the current "per config" flag, the global project
-	 * properties (if they have been requested) and the properties for all build
-	 * configurations that have been requested.
+	 * This will save the current "per config" flag, the global project properties (if they have
+	 * been requested) and the properties for all build configurations that have been requested.
 	 * </p>
 	 * <p>
-	 * Also this method will synchronize our properties with the currently
-	 * existing build configurations. If build configurations have been removed,
-	 * this method will remove any associated properties.
+	 * Also this method will synchronize our properties with the currently existing build
+	 * configurations. If build configurations have been removed, this method will remove any
+	 * associated properties.
 	 * </p>
 	 * 
 	 * @throws BackingStoreException
@@ -331,10 +325,10 @@ public class ProjectPropertyManager {
 	}
 
 	/**
-	 * Remove all configuration properties for which the referenced build
-	 * configuration does not exist anymore.
+	 * Remove all configuration properties for which the referenced build configuration does not
+	 * exist anymore.
 	 */
-	public void sync(List<String> allcfgids) {
+	public void sync(List<String> allcfgids) throws BackingStoreException {
 		// TODO This method does not work yet.
 		// Calling it will cause some exceptions later on for reasons unknown.
 		// For now do nothing
@@ -344,27 +338,22 @@ public class ProjectPropertyManager {
 
 		// get list of all our configuration properties
 		IEclipsePreferences projprops = getProjectPreferences(fProject);
-		try {
-			String[] allcfgprops = projprops.childrenNames();
-			for (String cfgname : allcfgprops) {
-				// nodes not starting with "de.innot.avreclipse" cannot be
-				// configuration property nodes
-				if (!cfgname.startsWith("de.innot.avreclipse")) {
-					break;
-				}
-				if (!allcfgids.contains(cfgname)) {
-					// The configuration does not exist anymore
-					// remove the node from the preferences
-					Preferences removenode = projprops.node(cfgname);
-					removenode.removeNode();
-					projprops.flush();
-				}
-			}
-		} catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
+		String[] allcfgprops = projprops.childrenNames();
+		for (String cfgname : allcfgprops) {
+			// nodes not starting with "de.innot.avreclipse" cannot be
+			// configuration property nodes
+			if (!cfgname.startsWith("de.innot.avreclipse")) {
+				break;
+			}
+			if (!allcfgids.contains(cfgname)) {
+				// The configuration does not exist anymore
+				// remove the node from the preferences
+				Preferences removenode = projprops.node(cfgname);
+				removenode.removeNode();
+				projprops.flush();
+			}
+		}
 	}
 
 	private static IEclipsePreferences getDefaultPreferences() {

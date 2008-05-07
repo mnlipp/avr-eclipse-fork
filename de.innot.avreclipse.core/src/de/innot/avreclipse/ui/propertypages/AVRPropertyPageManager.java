@@ -24,26 +24,29 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.ui.newui.CDTPropertyManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Widget;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
 /**
  * Manages the list of {@link AbstractAVRPage} for a property dialog.
  * <p>
- * This manager keeps track of all open property pages. Each page registers
- * itself by calling the {@link #getPropertyManager(PropertyPage, IProject)}
- * method.
+ * This manager keeps track of all open property pages. Each page registers itself by calling the
+ * {@link #getPropertyManager(PropertyPage, IProject)} method.
  * </p>
  * <p>
- * All data and all methods are static. This is no problem, because the property
- * dialog is modal, so only one property dialog = one session can be open at a
- * time.
+ * All data and all methods are static. This is no problem, because the property dialog is modal, so
+ * only one property dialog = one session can be open at a time.
  * </p>
  * <p>
  * This class is very similar to and supplements the
@@ -58,25 +61,24 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 public class AVRPropertyPageManager {
 
 	/** List of all open Property Pages */
-	private static List<PropertyPage> fPages = new ArrayList<PropertyPage>();
+	private static List<PropertyPage>		fPages	= new ArrayList<PropertyPage>();
 
 	/** The Project for which the properties are edited */
-	private static IProject fProject;
+	private static IProject					fProject;
 
 	/** The Project Property Manager for the current project */
-	private static ProjectPropertyManager fProperties;
+	private static ProjectPropertyManager	fProperties;
 
 	/**
-	 * Gets the the {@link ProjectPropertyManager} for the project and registers
-	 * the given page in the list of property pages.
+	 * Gets the the {@link ProjectPropertyManager} for the project and registers the given page in
+	 * the list of property pages.
 	 * <p>
-	 * On the first call to this method for a new or a different project, a new
-	 * session is initiated.
+	 * On the first call to this method for a new or a different project, a new session is
+	 * initiated.
 	 * </p>
 	 * 
 	 * @param page
-	 *            <code>AbstractAVRPropertyPage</code> to register in this
-	 *            manager.
+	 *            <code>AbstractAVRPropertyPage</code> to register in this manager.
 	 * @param project
 	 *            The current project.
 	 * @return The <code>ProjectPropertyManager</code> for the given project.
@@ -111,12 +113,11 @@ public class AVRPropertyPageManager {
 	}
 
 	/**
-	 * Save all modifications to the properties to the properties storage and
-	 * remove the page from the manager.
+	 * Save all modifications to the properties to the properties storage and remove the page from
+	 * the manager.
 	 * <p>
-	 * Also the list of "per config" properties is synchronized with the list of
-	 * existing build configurations, so AVR properties for deleted build
-	 * configurations will be deleted as well.
+	 * Also the list of "per config" properties is synchronized with the list of existing build
+	 * configurations, so AVR properties for deleted build configurations will be deleted as well.
 	 * </p>
 	 * 
 	 * @param page
@@ -127,25 +128,28 @@ public class AVRPropertyPageManager {
 	public static void performOK(PropertyPage page, ICConfigurationDescription[] allconfigs) {
 		try {
 			fProperties.save();
-		} catch (BackingStoreException e) {
-			// TODO Throw an Exception to the UI code to display an error
-			// message.
-			e.printStackTrace();
-		}
 
-		if (allconfigs != null) {
-			// Convert the given array of ConfigurationDescriptions into a list
-			// of
-			// configuration id values and call the
-			// ProjectPropertyManager.sync() method to
-			// remove configuration properties for deleted build configurations.
-			List<String> allcfgids = new ArrayList<String>(allconfigs.length);
-			for (ICConfigurationDescription cfgd : allconfigs) {
-				IConfiguration cfg = ManagedBuildManager.getConfigurationForDescription(cfgd);
-				allcfgids.add(cfg.getId());
+			if (allconfigs != null) {
+				// Convert the given array of ConfigurationDescriptions into a list of configuration
+				// id
+				// values and call the ProjectPropertyManager.sync() method to remove configuration
+				// properties for deleted build configurations.
+				List<String> allcfgids = new ArrayList<String>(allconfigs.length);
+				for (ICConfigurationDescription cfgd : allconfigs) {
+					IConfiguration cfg = ManagedBuildManager.getConfigurationForDescription(cfgd);
+					allcfgids.add(cfg.getId());
+				}
+
+				fProperties.sync(allcfgids);
 			}
+		} catch (BackingStoreException e) {
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not write project properties to the preferences.", e);
 
-			fProperties.sync(allcfgids);
+			ErrorDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+					"AVR Properties Error", null, status);
+			// We continue, even if the props could not be saved, because we still need to remove
+			// the page.
 		}
 
 		removePage(page);
@@ -166,8 +170,7 @@ public class AVRPropertyPageManager {
 	/**
 	 * Remove the given <code>AbstractAVRPage</code> from the manager.
 	 * <p>
-	 * Once the last page has been removed from this manager, the current
-	 * session is closed.
+	 * Once the last page has been removed from this manager, the current session is closed.
 	 * </p>
 	 * 
 	 * @param page
@@ -219,8 +222,7 @@ public class AVRPropertyPageManager {
 	 * 
 	 * @param resdesc
 	 *            An <code>ICResourceDescription</code>
-	 * @return <code>IConfiguration</code> associated with the given
-	 *         Description.
+	 * @return <code>IConfiguration</code> associated with the given Description.
 	 */
 	private static IConfiguration getConfigFromConfigDesc(ICResourceDescription resdesc) {
 		ICConfigurationDescription cfgDes = resdesc.getConfiguration();
@@ -231,21 +233,22 @@ public class AVRPropertyPageManager {
 	/**
 	 * Listener to remove disposed pages from the manager.
 	 */
-	private static DisposeListener fDisposeListener = new DisposeListener() {
-		public void widgetDisposed(DisposeEvent e) {
-			Widget w = e.widget;
-			for (PropertyPage page : fPages) {
-				if (page.getControl().equals(w)) {
-					fPages.remove(page);
-					break;
-				}
-			}
+	private static DisposeListener	fDisposeListener	= new DisposeListener() {
+															public void widgetDisposed(
+																	DisposeEvent e) {
+																Widget w = e.widget;
+																for (PropertyPage page : fPages) {
+																	if (page.getControl().equals(w)) {
+																		fPages.remove(page);
+																		break;
+																	}
+																}
 
-			if (fPages.size() == 0) {
-				// all pages have been disposed
-				fProperties = null;
-				fProject = null;
-			}
-		}
-	};
+																if (fPages.size() == 0) {
+																	// all pages have been disposed
+																	fProperties = null;
+																	fProject = null;
+																}
+															}
+														};
 }

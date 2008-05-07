@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.AVRPlugin;
@@ -30,13 +31,13 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
+import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
- * Extends {@link AbstractAVRPropertyTab} to manage the list of
- * {@link ProgrammerConfig} objects.
+ * Extends {@link AbstractAVRPropertyTab} to manage the list of {@link ProgrammerConfig} objects.
  * <p>
- * All Tabs requiring direct access to avrdude should extend this class to get a
- * valid ProgrammerConfig to pass to the {@link AVRDude} action methods.
+ * All Tabs requiring direct access to avrdude should extend this class to get a valid
+ * ProgrammerConfig to pass to the {@link AVRDude} action methods.
  * </p>
  * 
  * @author Thomas Holland
@@ -45,15 +46,17 @@ import de.innot.avreclipse.core.properties.AVRProjectProperties;
 public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab {
 
 	/** The list of all new or edited {@link ProgrammerConfig} objects */
-	private Map<String, ProgrammerConfig> fModifiedProgCfgs = new HashMap<String, ProgrammerConfig>();
+	private final Map<String, ProgrammerConfig>		fModifiedProgCfgs	= new HashMap<String, ProgrammerConfig>();
 
 	/** The list of all current Programmer Config Ids */
-	private Map<String, String> fProgCfgIDs = new HashMap<String, String>();
+	private Map<String, String>						fProgCfgIDs			= new HashMap<String, String>();
 
-	protected final static ProgrammerConfigManager fCfgManager = ProgrammerConfigManager
-			.getDefault();
+	protected final static ProgrammerConfigManager	fCfgManager			= ProgrammerConfigManager
+																				.getDefault();
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.properties.AVRProjectProperties)
 	 */
 	@Override
@@ -63,9 +66,9 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		performApply(avrdudeprops);
 
 	}
-	
+
 	abstract protected void performApply(AVRDudeProperties dstprops);
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -73,17 +76,17 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 */
 	@Override
 	protected void performCopy(AVRProjectProperties src) {
-		
+
 		// Get the AVRDude Properties and pass it to the subclass
 		AVRDudeProperties avrdudeprops = src.getAVRDudeProperties();
 		performCopy(avrdudeprops);
-		
+
 		// Update the avrdude command preview.
 		updatePreview(avrdudeprops);
 	}
 
 	abstract protected void performCopy(AVRDudeProperties srcprops);
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -98,7 +101,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		// Update the avrdude command preview.
 		updatePreview(props.getAVRDudeProperties());
 	}
-	
+
 	abstract protected void updateData(AVRDudeProperties avrdudeprops);
 
 	/*
@@ -134,8 +137,8 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 * 
 	 * @param name
 	 *            <code>String</code> with the name
-	 * @return <code>String</code> with the associated ID or <code>null</code>
-	 *         if the name does not exist.
+	 * @return <code>String</code> with the associated ID or <code>null</code> if the name does
+	 *         not exist.
 	 */
 	protected String getProgrammerConfigId(String name) {
 
@@ -155,8 +158,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 * 
 	 * @param id
 	 *            <code>String</code> with the ID
-	 * @return <code>String</code> with the name or <code>null</code> if the
-	 *         ID does not exist.
+	 * @return <code>String</code> with the name or <code>null</code> if the ID does not exist.
 	 */
 	protected String getProgrammerConfigName(String id) {
 		return fProgCfgIDs.get(id);
@@ -165,17 +167,16 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/**
 	 * Get the {@link ProgrammerConfig} with the given ID.
 	 * <p>
-	 * This method will first check if a config with the ID is already in the
-	 * new&amp;modified config list. If not, the call is passed on to the config
-	 * manager.
+	 * This method will first check if a config with the ID is already in the new&amp;modified
+	 * config list. If not, the call is passed on to the config manager.
 	 * </p>
 	 * 
 	 * @see ProgrammerConfigManager#getConfig(String)
 	 * 
 	 * @param configid
 	 *            <code>String</code> with an ID value
-	 * @return The requested <code>ProgrammerConfig</code> or
-	 *         <code>null</code> if no config with the given ID exists.
+	 * @return The requested <code>ProgrammerConfig</code> or <code>null</code> if no config
+	 *         with the given ID exists.
 	 */
 	protected ProgrammerConfig getProgrammerConfig(String configid) {
 		if (fModifiedProgCfgs.containsKey(configid)) {
@@ -189,8 +190,8 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/**
 	 * Reload the list of all ProgrammerConfigs from the preference store.
 	 * <p>
-	 * This will clear any added / modified configs, so only call this to init
-	 * the GUI or to restore the defaults.
+	 * This will clear any added / modified configs, so only call this to init the GUI or to restore
+	 * the defaults.
 	 * </p>
 	 * <p>
 	 * Interested extending classes are informed about the new list via the
@@ -217,16 +218,14 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		// inform the interested superclasses about the new list.
 		// The selection index is set at -1 to indicate that no entry in
 		// particualar should be selected.
-		doProgConfigsChanged(allCfgNames
-				.toArray(new String[allCfgNames.size()]), -1);
+		doProgConfigsChanged(allCfgNames.toArray(new String[allCfgNames.size()]), -1);
 	}
 
 	/**
-	 * Add a new / modified {@link ProgrammerConfig} to the list of modified
-	 * configs.
+	 * Add a new / modified {@link ProgrammerConfig} to the list of modified configs.
 	 * <p>
-	 * The given config is <strong>not</strong> saved to the preferences until
-	 * the Apply or OK buttons are clicked by the user
+	 * The given config is <strong>not</strong> saved to the preferences until the Apply or OK
+	 * buttons are clicked by the user
 	 * </p>
 	 * 
 	 * @param newconfig
@@ -248,8 +247,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		int newindex = allnames.indexOf(configname);
 
 		// Inform any interested extending classes about the change
-		doProgConfigsChanged(allnames.toArray(new String[fProgCfgIDs.size()]),
-				newindex);
+		doProgConfigsChanged(allnames.toArray(new String[fProgCfgIDs.size()]), newindex);
 
 		return;
 	}
@@ -257,16 +255,15 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/**
 	 * List of ProgrammerConfigs has changed.
 	 * <p>
-	 * This is a hook for extending classes to be notified if the list of all
-	 * available ProgrammerConfigs has changed.
+	 * This is a hook for extending classes to be notified if the list of all available
+	 * ProgrammerConfigs has changed.
 	 * </p>
 	 * 
 	 * @param configs
-	 *            Array of <code>String</code> with the names of all available
-	 *            configs.
+	 *            Array of <code>String</code> with the names of all available configs.
 	 * @param selectedindex
-	 *            <code>int</code> with the index of the config that caused
-	 *            the list to be reloaded.
+	 *            <code>int</code> with the index of the config that caused the list to be
+	 *            reloaded.
 	 */
 	protected void doProgConfigsChanged(String[] configs, int selectedindex) {
 	};
@@ -274,8 +271,8 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/**
 	 * Save all ProgrammerConfigs that have been added or edited on this Tab.
 	 * <p>
-	 * In case of Exceptions writing to the preferences, a status message is
-	 * written to the system log.
+	 * In case of Exceptions writing to the preferences, a status message is written to the system
+	 * log.
 	 * </p>
 	 */
 	protected void saveProgrammerConfigs() {
@@ -285,13 +282,13 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 			try {
 				fCfgManager.saveConfig(cfg);
 			} catch (BackingStoreException e) {
-				// TODO: Should the user be informed? For now just log an Error
-				IStatus status = new Status(
-						Status.ERROR,
-						AVRPlugin.PLUGIN_ID,
-						"Can't save Programmer Configuration to Preference storage area",
-						e);
+				// Inform the user that the save failed.
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+						"Can't save Programmer Configuration [" + cfg.getName()
+								+ "] to the preference storage area", e);
 				AVRPlugin.getDefault().log(status);
+				ErrorDialog.openError(super.usercomp.getShell(), "AVR Properties Error", null,
+						status);
 			}
 		}
 		fModifiedProgCfgs.clear();
@@ -300,17 +297,15 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	/**
 	 * Check if the given ProgrammerConfig ID is valid, i.e. exists.
 	 * <p>
-	 * This method checks the internal list of modified configs first, and if no
-	 * config with the ID is in this list, pass the question onto the
-	 * <code>ProgrammerConfigManager</code>.
+	 * This method checks the internal list of modified configs first, and if no config with the ID
+	 * is in this list, pass the question onto the <code>ProgrammerConfigManager</code>.
 	 * </p>
 	 * 
 	 * @see ProgrammerConfigManager#isValidId(String)
 	 * 
 	 * @param id
 	 *            The ID value
-	 * @return <code>true</code> if the id exists, <code>false</code>
-	 *         otherwise.
+	 * @return <code>true</code> if the id exists, <code>false</code> otherwise.
 	 */
 	protected boolean isValidId(String id) {
 		// Check the list of modified configs
@@ -334,8 +329,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 * </p>
 	 * 
 	 * @param props
-	 *            The <code>AVRProjectProperties</code> for which to display
-	 *            the preview
+	 *            The <code>AVRProjectProperties</code> for which to display the preview
 	 */
 	protected void updatePreview(AVRDudeProperties props) {
 

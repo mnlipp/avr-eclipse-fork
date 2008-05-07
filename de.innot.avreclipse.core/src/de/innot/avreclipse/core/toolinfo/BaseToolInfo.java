@@ -13,12 +13,11 @@ import org.eclipse.core.runtime.IPath;
  */
 public abstract class BaseToolInfo {
 
-	private String fCommandName = null;
-	
+	private String	fCommandName	= null;
+
 	protected BaseToolInfo(String toolid) {
 		// First: Get the command name from the toolchain
-		ITool tool = ManagedBuildManager
-        	.getExtensionTool(toolid);
+		ITool tool = ManagedBuildManager.getExtensionTool(toolid);
 		if (tool != null) {
 			fCommandName = tool.getToolCommand();
 			if (fCommandName.startsWith("-")) {
@@ -35,11 +34,11 @@ public abstract class BaseToolInfo {
 	 * @see de.innot.avreclipse.core.toolinfo.IToolInfo#getToolPath()
 	 */
 	public IPath getToolPath() {
-		// TODO Auto-generated method stub
+		// Base implementation. Override as necessary.
 		return null;
 	}
-	
-	public String getCommandName(){
+
+	public String getCommandName() {
 		return fCommandName;
 	}
 }

@@ -67,8 +67,8 @@ public class LockbitsReader extends AbstractFusesReader {
 	 */
 	@Override
 	protected IPath getStoragePath() {
-		// TODO Auto-generated method stub
-		return null;
+		// The default is to get the folder from the {@link Locks} class.
+		return Locks.getDefault().getInstanceStorageLocation();
 	}
 
 	/*

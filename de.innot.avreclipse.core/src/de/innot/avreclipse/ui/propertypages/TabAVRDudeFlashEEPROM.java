@@ -48,9 +48,8 @@ import de.innot.avreclipse.core.properties.AVRDudeProperties;
  * <li>Upload of a Flash image</li>
  * <li>Upload of a EEPROM imagey</li>
  * </ul>
- * The hex image files are either taken from the current Build Configuration
- * (this is internally handled as an empty filename), or from a user selectable
- * image file.
+ * The hex image files are either taken from the current Build Configuration (this is internally
+ * handled as an empty filename), or from a user selectable image file.
  * </p>
  * 
  * @author Thomas Holland
@@ -60,38 +59,39 @@ import de.innot.avreclipse.core.properties.AVRDudeProperties;
 public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 
 	// The GUI texts
-	private final static String GROUP_FLASH = "Upload Flash Memory Image";
-	private final static String TEXT_FLASH_NOUPLOAD = "do not upload flash memory image";
-	private final static String TEXT_FLASH_FROMCONFIG = "from build";
-	private final static String TEXT_FLASH_FROMFILE = "from Flash memory image file:";
+	private final static String		GROUP_FLASH				= "Upload Flash Memory Image";
+	private final static String		TEXT_FLASH_NOUPLOAD		= "do not upload flash memory image";
+	private final static String		TEXT_FLASH_FROMCONFIG	= "from build";
+	private final static String		TEXT_FLASH_FROMFILE		= "from Flash memory image file:";
 
-	private final static String GROUP_EEPROM = "Upload EEPROM Image";
-	private final static String TEXT_EEPROM_NOUPLOAD = "do not upload eeprom image";
-	private final static String TEXT_EEPROM_FROMCONFIG = "from build";
-	private final static String TEXT_EEPROM_FROMFILE = "from EEPROM image file:";
+	private final static String		GROUP_EEPROM			= "Upload EEPROM Image";
+	private final static String		TEXT_EEPROM_NOUPLOAD	= "do not upload eeprom image";
+	private final static String		TEXT_EEPROM_FROMCONFIG	= "from build";
+	private final static String		TEXT_EEPROM_FROMFILE	= "from EEPROM image file:";
 
 	// The GUI widgets
-	private Button fFlashNoUploadButton;
-	private Button fFlashUploadConfigButton;
-	private Button fFlashUploadFileButton;
-	private Text fFlashFileText;
-	private Button fFlashWorkplaceButton;
-	private Button fFlashFilesystemButton;
-	private Button fFlashVariableButton;
+	private Button					fFlashNoUploadButton;
+	private Button					fFlashUploadConfigButton;
+	private Button					fFlashUploadFileButton;
+	private Text					fFlashFileText;
+	private Button					fFlashWorkplaceButton;
+	private Button					fFlashFilesystemButton;
+	private Button					fFlashVariableButton;
 
-	private Button fEEPROMNoUploadButton;
-	private Button fEEPROMUploadConfigButton;
-	private Button fEEPROMUploadFileButton;
-	private Text fEEPROMFileText;
-	private Button fEEPROMWorkplaceButton;
-	private Button fEEPROMFilesystemButton;
-	private Button fEEPROMVariableButton;
+	private Button					fEEPROMNoUploadButton;
+	private Button					fEEPROMUploadConfigButton;
+	private Button					fEEPROMUploadFileButton;
+	private Text					fEEPROMFileText;
+	private Button					fEEPROMWorkplaceButton;
+	private Button					fEEPROMFilesystemButton;
+	private Button					fEEPROMVariableButton;
 
 	/** The Properties that this page works with */
-	private AVRDudeProperties fTargetProps;
+	private AVRDudeProperties		fTargetProps;
 
 	/** The file extensions for image files. Used by the file selector. */
-	public final static String[] IMAGE_EXTS = new String[] { "*.hex", "*.eep", "*.bin", "*.srec" };
+	private final static String[]	IMAGE_EXTS				= new String[] { "*.hex", "*.eep",
+			"*.bin", "*.srec"								};
 
 	/*
 	 * (non-Javadoc)
@@ -117,9 +117,8 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * <li>Upload the file generated in the build configuration</li>
 	 * <li>Upload a user selectable file.</li>
 	 * </ul>
-	 * The last option has a Text control to enter a filename and three buttons
-	 * to select the filename from the workplace, the filesystem or from a build
-	 * variable.
+	 * The last option has a Text control to enter a filename and three buttons to select the
+	 * filename from the workplace, the filesystem or from a build variable.
 	 * </p>
 	 * 
 	 * @param parent
@@ -150,7 +149,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		fFlashUploadConfigButton = new Button(group, SWT.RADIO);
 		fFlashUploadConfigButton.setText(TEXT_FLASH_FROMCONFIG);
 		fFlashUploadConfigButton
-		        .setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fFlashUploadConfigButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -210,8 +209,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * Enable / Disable the Flash file selector Controls
 	 * 
 	 * @param enabled
-	 *            <code>true</code> to enable them, <code>false</code> to
-	 *            disable.
+	 *            <code>true</code> to enable them, <code>false</code> to disable.
 	 */
 	private void enableFlashFileGroup(boolean enabled) {
 		fFlashFileText.setEnabled(enabled);
@@ -229,9 +227,8 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * <li>Upload the file generated in the build configuration</li>
 	 * <li>Upload a user selectable file.</li>
 	 * </ul>
-	 * The last option has a Text control to enter a filename and three buttons
-	 * to select the filename from the workplace, the filesystem or from a build
-	 * variable.
+	 * The last option has a Text control to enter a filename and three buttons to select the
+	 * filename from the workplace, the filesystem or from a build variable.
 	 * </p>
 	 * 
 	 * @param parent
@@ -262,7 +259,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		fEEPROMUploadConfigButton = new Button(group, SWT.RADIO);
 		fEEPROMUploadConfigButton.setText(TEXT_EEPROM_FROMCONFIG);
 		fEEPROMUploadConfigButton
-		        .setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		fEEPROMUploadConfigButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -322,8 +319,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	 * Enable / Disable the EEPROM file selector Controls
 	 * 
 	 * @param enabled
-	 *            <code>true</code> to enable them, <code>false</code> to
-	 *            disable.
+	 *            <code>true</code> to enable them, <code>false</code> to disable.
 	 */
 	private void enableEEPROMFileGroup(boolean enabled) {
 		fEEPROMFileText.setEnabled(enabled);
@@ -457,17 +453,16 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 	}
 
 	/**
-	 * Set the value of the given toolchain option to <code>true</code>, if
-	 * the "avrdude" option is <code>true</code>.
+	 * Set the value of the given toolchain option to <code>true</code>, if the "avrdude" option
+	 * is <code>true</code>.
 	 * <p>
-	 * If the "per Config" flasg is set for the project, only the current config
-	 * is modified. If "per config" is not set, then all known build
-	 * configurations of the project have the specified toolchain option set.
+	 * If the "per Config" flasg is set for the project, only the current config is modified. If
+	 * "per config" is not set, then all known build configurations of the project have the
+	 * specified toolchain option set.
 	 * </p>
 	 * <p>
-	 * This is supposed to be a convenience for the user, as we assume that if
-	 * he wants to upload an image to the MCU, than he also wants the image file
-	 * to be created during the build.
+	 * This is supposed to be a convenience for the user, as we assume that if he wants to upload an
+	 * image to the MCU, than he also wants the image file to be created during the build.
 	 * </p>
 	 * 
 	 * @param optionid
@@ -488,20 +483,19 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			ICConfigurationDescription[] allconfigdesc = page.getCfgsEditable();
 			for (ICConfigurationDescription cfgdesc : allconfigdesc) {
 				IConfiguration buildcfg = ManagedBuildManager
-				        .getConfigurationForDescription(cfgdesc);
+						.getConfigurationForDescription(cfgdesc);
 				setBuildConfigGenerateFlag(buildcfg, optionid);
 			}
 		}
 	}
 
 	/**
-	 * Set the value of a toolchain option of the given build configuration to
-	 * <code>true</code>, if the "avrdude" option is <code>true</code>.
+	 * Set the value of a toolchain option of the given build configuration to <code>true</code>,
+	 * if the "avrdude" option is <code>true</code>.
 	 * <p>
 	 * 
 	 * @param buildcfg
-	 *            <code>IConfiguration</code> for which the option value is to
-	 *            be set.
+	 *            <code>IConfiguration</code> for which the option value is to be set.
 	 * @param optionid
 	 *            <code>String</code> with the id of the boolean option.
 	 */
@@ -513,7 +507,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 		// The requested option will only be set to true, if the avrdude option
 		// is true as well.
 		IOption avrdudeoption = toolchain
-		        .getOptionBySuperClassId("de.innot.avreclipse.toolchain.options.toolchain.avrdude");
+				.getOptionBySuperClassId("de.innot.avreclipse.toolchain.options.toolchain.avrdude");
 
 		IOption option = toolchain.getOptionBySuperClassId(optionid);
 
@@ -523,7 +517,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			}
 		} catch (BuildException e) {
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-			        "Internal Error: Toolchain Option " + optionid + " is not of type Boolean", e);
+					"Internal Error: Toolchain Option " + optionid + " is not of type Boolean", e);
 			AVRPlugin.getDefault().log(status);
 		}
 	}

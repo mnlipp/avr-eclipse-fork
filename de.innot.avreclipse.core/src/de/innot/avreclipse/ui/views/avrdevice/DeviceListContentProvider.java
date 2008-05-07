@@ -28,7 +28,7 @@ import de.innot.avreclipse.devicedescription.IDeviceDescriptionProvider;
 
 public class DeviceListContentProvider implements IStructuredContentProvider {
 
-	private IDeviceDescriptionProvider fDMprovider = null;
+	private IDeviceDescriptionProvider	fDMprovider	= null;
 
 	/*
 	 * (non-Javadoc)
@@ -37,26 +37,28 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 *      java.lang.Object, java.lang.Object)
 	 */
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		fDMprovider = (IDeviceDescriptionProvider)newInput;
+		fDMprovider = (IDeviceDescriptionProvider) newInput;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object inputElement) {
 		Set<String> devicesset = fDMprovider.getMCUList();
 		if (devicesset == null) {
 			// if the list is null, an internal Provider Error has occurred.
-			String[] empty = {""};
+			String[] empty = { "" };
 			return empty;
 		}
-		
+
 		// Convert to an List so that it can be sorted
-		List<String>devices = new ArrayList<String>(devicesset);
+		List<String> devices = new ArrayList<String>(devicesset);
 		Collections.sort(devices);
 		// Convert the IDs to names
 		String[] nameslist = new String[devices.size()];
-		int i= 0;
+		int i = 0;
 		for (String deviceid : devices) {
 			nameslist[i] = AVRMCUidConverter.id2name(deviceid);
 			i++;
@@ -70,8 +72,7 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 	 * @see org.eclipse.jface.viewers.IContentProvider#dispose()
 	 */
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		// Nothing to dispose
 	}
 
 }

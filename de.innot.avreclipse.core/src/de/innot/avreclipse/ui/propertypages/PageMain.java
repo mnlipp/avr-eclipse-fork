@@ -15,12 +15,17 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.osgi.service.prefs.BackingStoreException;
+
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * This is the Main AVR Property Page.
@@ -33,9 +38,9 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class PageMain extends AbstractAVRPage {
 
-	private static final String TEXT_PERCONFIG = "Enable individual settings for Build Configurations";
+	private static final String	TEXT_PERCONFIG	= "Enable individual settings for Build Configurations";
 
-	private Button fPerConfigButton;
+	private Button				fPerConfigButton;
 
 	/*
 	 * (non-Javadoc)
@@ -73,7 +78,10 @@ public class PageMain extends AbstractAVRPage {
 		try {
 			fPropertiesManager.savePerConfigFlag();
 		} catch (BackingStoreException e) {
-			// TODO Pop an error dialog
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not write \"per config\" flag to the preferences.", e);
+
+			ErrorDialog.openError(this.getShell(), "AVR Main Properties Error", null, status);
 			e.printStackTrace();
 		}
 

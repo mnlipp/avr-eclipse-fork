@@ -21,17 +21,20 @@ import java.util.Map;
 
 import org.eclipse.cdt.utils.WindowsRegistry;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.paths.AVRPath;
 
 /**
  * Gets the actual system paths to the winAVR and AVR Tools applications.
  * 
- * The paths are taken from the Windows registry. As the values are fairly
- * static they are cached to avoid expensive registry lookups.
+ * The paths are taken from the Windows registry. As the values are fairly static they are cached to
+ * avoid expensive registry lookups.
  * 
  * The cache can be cleared with the {@link #clear()} method
  * 
@@ -40,15 +43,15 @@ import de.innot.avreclipse.core.paths.AVRPath;
  */
 public class SystemPathsWin32 {
 
-	private static SystemPathsWin32 fInstance = null;
+	private static SystemPathsWin32	fInstance		= null;
 
-	private static ILock lock = Job.getJobManager().newLock();
+	private static ILock			lock			= Job.getJobManager().newLock();
 
-	private Map<AVRPath, IPath> fPathCache = null;
-	private IPath fWinAVRPath = null;
-	private IPath fAVRToolsPath = null;
+	private Map<AVRPath, IPath>		fPathCache		= null;
+	private IPath					fWinAVRPath		= null;
+	private IPath					fAVRToolsPath	= null;
 
-	private final static IPath fEmptyPath = new Path("");
+	private final static IPath		fEmptyPath		= new Path("");
 
 	public static SystemPathsWin32 getDefault() {
 		if (fInstance == null) {
@@ -106,23 +109,32 @@ public class SystemPathsWin32 {
 	private IPath internalGetPath(AVRPath avrpath) {
 
 		switch (avrpath) {
-		case AVRGCC:
-			return getWinAVRPath("bin");
-		case AVRINCLUDE:
-			return getWinAVRPath("avr/include");
-		case AVRDUDE:
-			return getWinAVRPath("bin");
-		case MAKE:
-			return getWinAVRPath("utils/bin");
-		case PDFPATH:
-			IPath basepath = getAVRToolsPath();
-			if (basepath.isEmpty()) {
-				return basepath;
-			}
-			return basepath.append("Partdescriptionfiles");
-		default:
-			// TODO: log something
-			return null;
+			case AVRGCC:
+				return getWinAVRPath("bin");
+			case AVRINCLUDE:
+				return getWinAVRPath("avr/include");
+			case AVRDUDE:
+				return getWinAVRPath("bin");
+			case MAKE:
+				return getWinAVRPath("utils/bin");
+			case PDFPATH:
+				IPath basepath = getAVRToolsPath();
+				if (basepath.isEmpty()) {
+					return basepath;
+				}
+				return basepath.append("Partdescriptionfiles");
+			default:
+				// If we end up here the AVRPath Enum has new entries not yet covered.
+				// Log this as an internal error and ignore otherwise
+				IStatus status = new Status(
+						IStatus.WARNING,
+						AVRPlugin.PLUGIN_ID,
+						"Internal problem! AVRPath with value ["
+								+ avrpath.toString()
+								+ "] is not covered. Please report to the AVR Eclipse plugin maintainer.",
+						null);
+				AVRPlugin.getDefault().log(status);
+				return null;
 		}
 	}
 
@@ -160,7 +172,7 @@ public class SystemPathsWin32 {
 
 		if (winavrkey != null) {
 			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue("SOFTWARE\\WinAVR",
-			        winavrkey);
+					winavrkey);
 			if (winavr != null) {
 				fWinAVRPath = new Path(winavr);
 			}
@@ -170,8 +182,7 @@ public class SystemPathsWin32 {
 	}
 
 	/**
-	 * Get the path to the Atmel AVR Tools base directory from the Windows
-	 * registry.
+	 * Get the path to the Atmel AVR Tools base directory from the Windows registry.
 	 * 
 	 * @return IPath with the current path to the AVR Tools base directory
 	 */
@@ -183,7 +194,7 @@ public class SystemPathsWin32 {
 
 		fAVRToolsPath = fEmptyPath;
 		String avrtools = WindowsRegistry.getRegistry().getLocalMachineValue(
-		        "SOFTWARE\\Atmel\\AVRTools", "AVRToolsPath");
+				"SOFTWARE\\Atmel\\AVRTools", "AVRToolsPath");
 		if (avrtools != null) {
 			fAVRToolsPath = new Path(avrtools);
 		}

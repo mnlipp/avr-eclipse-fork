@@ -24,7 +24,7 @@ import de.innot.avreclipse.devicedescription.IEntry;
 
 public class DeviceModelContentProvider implements ITreeContentProvider {
 
-	private ICategory fCategory = null;
+	private ICategory	fCategory	= null;
 
 	/*
 	 * (non-Javadoc)
@@ -36,11 +36,9 @@ public class DeviceModelContentProvider implements ITreeContentProvider {
 		fCategory = (ICategory) newInput;
 	}
 
-
 	public Object[] getElements(Object inputElement) {
 		return fCategory.getChildren().toArray();
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -78,9 +76,7 @@ public class DeviceModelContentProvider implements ITreeContentProvider {
 	 * @see org.eclipse.jface.viewers.IContentProvider#dispose()
 	 */
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		// Nothing to dispose.
 	}
-
 
 }

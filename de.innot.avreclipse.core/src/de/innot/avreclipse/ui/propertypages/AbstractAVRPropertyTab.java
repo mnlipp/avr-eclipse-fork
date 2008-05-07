@@ -19,6 +19,9 @@ import org.eclipse.cdt.core.settings.model.ICResourceDescription;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.ui.properties.AbstractCBuildPropertyTab;
 import org.eclipse.cdt.ui.newui.ICPropertyTab;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -34,6 +37,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 
@@ -201,7 +205,10 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		try {
 			freshprops.save();
 		} catch (BackingStoreException e) {
-			// TODO Open a error dialog that the value could not be saved
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not write to the preferences.", e);
+
+			ErrorDialog.openError(super.usercomp.getShell(), "AVR Properties Error", null, status);
 			e.printStackTrace();
 		}
 	}

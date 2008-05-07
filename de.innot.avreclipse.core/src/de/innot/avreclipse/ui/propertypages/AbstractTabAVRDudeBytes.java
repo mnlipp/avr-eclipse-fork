@@ -95,6 +95,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String	WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
 																+ "This is not compatible with the {2} MCU setting [{1}].";
 	private final static String	WARN_BUTTON_ACCEPT		= "Accept anyway";
+	@SuppressWarnings("unused")
 	private final static String	WARN_BUTTON_CONVERT		= "Convert";
 	private final static String	WARN_FROMPROJECT		= "project";
 	private final static String	WARN_FROMCONFIG			= "build configuration";
@@ -125,6 +126,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private Composite			fWarningCompo;
 	private Label				fWarningLabel;
 	private Button				fAcceptButton;
+	@SuppressWarnings("unused")
 	private Button				fConvertButton;
 
 	/** Number of bytes for the current MCU handled on the page */
@@ -507,7 +509,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		Text text = new Text(compo, SWT.BORDER | SWT.CENTER);
 		text.setTextLimit(2);
 		text.setSize(10, 20);
-		text.setData(new Integer(index));
+		text.setData(Integer.valueOf(index));
 
 		// Add a modification listener to set the fuse byte
 		text.addModifyListener(new ModifyListener() {
@@ -697,9 +699,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// Get the target MCU and its number of fusebytes
 		String mcuid = props.getParent().getMCUId();
 		fCount = getByteCount(mcuid);
-
-		// TODO: Test if bytes are still valid and generate some warnings if
-		// not.
 
 		// Update the radio buttons
 

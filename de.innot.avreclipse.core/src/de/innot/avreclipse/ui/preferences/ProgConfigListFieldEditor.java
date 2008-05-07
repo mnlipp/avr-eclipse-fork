@@ -20,6 +20,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.window.Window;
@@ -39,24 +42,23 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 
 /**
  * A special Field Editor to edit the list of AVRDude programmer configurations.
  * <p>
- * This editor has a Table of all Programmer Configurations, which can be
- * edited, removed and added.
+ * This editor has a Table of all Programmer Configurations, which can be edited, removed and added.
  * </p>
  * <p>
- * It does not work on a PreferenceStore, because the list of all configurations
- * can only be gathered directly from the Preferences. It does however support
- * the Apply, Cancel and partially the Defaults actions of a
- * FieldEditorPreferencePage.
+ * It does not work on a PreferenceStore, because the list of all configurations can only be
+ * gathered directly from the Preferences. It does however support the Apply, Cancel and partially
+ * the Defaults actions of a FieldEditorPreferencePage.
  * </p>
  * <p>
- * All modifications of programmer configurations are only persisted when the OK
- * or Apply actions occur.
+ * All modifications of programmer configurations are only persisted when the OK or Apply actions
+ * occur.
  * </p>
  * 
  * @author Thomas Holland
@@ -66,30 +68,28 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 public class ProgConfigListFieldEditor extends FieldEditor {
 
 	/** The Table Control */
-	private Table fTableControl;
+	private Table							fTableControl;
 
 	/** The button box Composite containing the Add, Remove and Edit buttons */
-	private Composite fButtonComposite;
+	private Composite						fButtonComposite;
 
 	// The GUI Widgets
-	private Button fAddButton;
-	private Button fRemoveButton;
-	private Button fEditButton;
+	private Button							fAddButton;
+	private Button							fRemoveButton;
+	private Button							fEditButton;
 
 	/**
-	 * The list of removed configurations. They will be removed in the
-	 * {@link #doStore()} method
+	 * The list of removed configurations. They will be removed in the {@link #doStore()} method
 	 */
-	private List<ProgrammerConfig> fRemovedConfigs;
+	private List<ProgrammerConfig>			fRemovedConfigs;
 
-	private ProgrammerConfigManager fCfgManager = ProgrammerConfigManager
-			.getDefault();
+	private final ProgrammerConfigManager	fCfgManager	= ProgrammerConfigManager.getDefault();
 
 	/**
 	 * Creates a AVRDude Programmers Configuration List field editor.
 	 * <p>
-	 * Because this field editor does not work on a PreferenceStore, it does not
-	 * need to be passed to the constructor.
+	 * Because this field editor does not work on a PreferenceStore, it does not need to be passed
+	 * to the constructor.
 	 * </p>
 	 * 
 	 * @param labelText
@@ -154,8 +154,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 				if (!configid.isEmpty()) {
 					ProgrammerConfig config = fCfgManager.getConfig(configid);
 					TableItem item = new TableItem(fTableControl, SWT.NONE);
-					item.setText(new String[] { config.getName(),
-							config.getDescription() });
+					item.setText(new String[] { config.getName(), config.getDescription() });
 					item.setData(config);
 				}
 			}
@@ -196,8 +195,12 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 			try {
 				fCfgManager.saveConfig(config);
 			} catch (BackingStoreException e) {
-				// TODO Pop up message that some configs could not be saved
-				e.printStackTrace();
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+						"Can't save Programmer Configuration [" + config.getName()
+								+ "] to the preference storage area", e);
+				AVRPlugin.getDefault().log(status);
+				ErrorDialog.openError(fTableControl.getShell(), "Programmer Configuration Error",
+						null, status);
 			}
 		}
 
@@ -206,8 +209,12 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 			try {
 				fCfgManager.deleteConfig(config);
 			} catch (BackingStoreException e) {
-				// TODO Pop up message that some configs could not be deleted
-				e.printStackTrace();
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+						"Can't delete Programmer Configuration [" + config.getName()
+								+ "] from the preference storage area", e);
+				AVRPlugin.getDefault().log(status);
+				ErrorDialog.openError(fTableControl.getShell(), "Programmer Configuration Error",
+						null, status);
 			}
 		}
 		fRemovedConfigs.clear();
@@ -247,8 +254,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		if (fTableControl == null) {
 			// Create the Table control, add two columns (name and description)
 			// and set up the required listeners
-			fTableControl = new Table(parent, SWT.BORDER | SWT.SINGLE
-					| SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
+			fTableControl = new Table(parent, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION
+					| SWT.V_SCROLL | SWT.H_SCROLL);
 			fTableControl.setFont(parent.getFont());
 			fTableControl.setLinesVisible(true);
 			fTableControl.setHeaderVisible(true);
@@ -293,8 +300,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	}
 
 	/**
-	 * Returns this field editor's button box containing the Add, Remove and
-	 * Edit buttons.
+	 * Returns this field editor's button box containing the Add, Remove and Edit buttons.
 	 * 
 	 * @param parent
 	 *            the parent control
@@ -354,10 +360,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		button.setText(label);
 		button.setFont(parent.getFont());
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
-		int widthHint = convertHorizontalDLUsToPixels(button,
-				IDialogConstants.BUTTON_WIDTH);
-		data.widthHint = Math.max(widthHint, button.computeSize(SWT.DEFAULT,
-				SWT.DEFAULT, true).x);
+		int widthHint = convertHorizontalDLUsToPixels(button, IDialogConstants.BUTTON_WIDTH);
+		data.widthHint = Math.max(widthHint, button.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
 		button.setLayoutData(data);
 		button.addSelectionListener(new SelectionAdapter() {
 			/*
@@ -383,8 +387,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	/**
 	 * Enable / Disable Buttons as required.
 	 * <p>
-	 * The Remove and Edit Buttons are only enabled, when an item is selected in
-	 * the Table.
+	 * The Remove and Edit Buttons are only enabled, when an item is selected in the Table.
 	 * </p>
 	 * <p>
 	 * Called after each change of the Table.
@@ -404,8 +407,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 	/**
 	 * Remove the selected configuration.
 	 * <p>
-	 * The config is stored in the <code>fRemovedConfigs</code> list. All
-	 * removed are only physically removed in the {@link #doStore()} method.
+	 * The config is stored in the <code>fRemovedConfigs</code> list. All removed are only
+	 * physically removed in the {@link #doStore()} method.
 	 * </p>
 	 * <p>
 	 * Called when the remove button has been clicked.
@@ -462,8 +465,8 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		// Open the Config Editor.
 		// If the OK Button was selected, the modified Config is fetched from
 		// the Dialog and the relevant TableItem is updated.
-		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fTableControl
-				.getShell(), config, allconfigs);
+		AVRDudeConfigEditor dialog = new AVRDudeConfigEditor(fTableControl.getShell(), config,
+				allconfigs);
 		if (dialog.open() == Window.OK) {
 			// OK Button selected:
 			ProgrammerConfig newconfig = dialog.getResult();
@@ -474,8 +477,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 
 			// Change the TableItem
 			if (ti != null) {
-				ti.setText(new String[] { newconfig.getName(),
-						newconfig.getDescription() });
+				ti.setText(new String[] { newconfig.getName(), newconfig.getDescription() });
 				ti.setData(newconfig);
 			}
 			selectionChanged();

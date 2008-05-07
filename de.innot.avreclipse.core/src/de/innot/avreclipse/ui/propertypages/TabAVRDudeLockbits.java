@@ -44,7 +44,7 @@ public class TabAVRDudeLockbits extends AbstractTabAVRDudeBytes {
 	private final static String[]	LABELS			= new String[] { "Lockbits", "lockbits" };
 
 	/** The file extensions for lockbits files. Used by the file selector. */
-	public final static String[]	LOCKBITS_EXTS	= new String[] { "*.locks" };
+	private final static String[]	LOCKBITS_EXTS	= new String[] { "*.locks" };
 
 	/*
 	 * (non-Javadoc)
