@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -37,13 +38,12 @@ import de.innot.avreclipse.core.IMCUProvider;
 /**
  * This class handles the list of known MCU signatures.
  * <p>
- * Each AVR MCU is identified by a 3-byte signature. This class handles the
- * mappings between the MCU id and its signature.
+ * Each AVR MCU is identified by a 3-byte signature. This class handles the mappings between the MCU
+ * id and its signature.
  * </p>
  * <p>
  * <ul>
- * <li>To get the Signature for a known MCU Id use
- * {@link #getSignature(String)}</li>
+ * <li>To get the Signature for a known MCU Id use {@link #getSignature(String)}</li>
  * <li>To get the MCU ID for a known Signature use {@link #getMCU(String)}</li>
  * </ul>
  * </p>
@@ -51,12 +51,10 @@ import de.innot.avreclipse.core.IMCUProvider;
  * The signatures are stored as Strings with a format of "0x123456" (C style hex format)
  * </p>
  * <p>
- * This class loads a default list of signatures from the signatures.properties
- * file, which is located in the properties folder of the core plugin.
- * Additional / overriding signatures can be added with the
- * {@link #addSignature(String, String)} method. With a call to
- * {@link #storeSignatures()} these additional signatures are persisted in the
- * instance state area (<code>.metadata/.plugins/de.innot.avreclipse.core/signatures.properties</core>)
+ * This class loads a default list of signatures from the signatures.properties file, which is
+ * located in the properties folder of the core plugin. Additional / overriding signatures can be
+ * added with the {@link #addSignature(String, String)} method. With a call to
+ * {@link #storeSignatures()} these additional signatures are persisted in the instance state area (<code>.metadata/.plugins/de.innot.avreclipse.core/signatures.properties</core>)
  * and reloaded at the next start.
  * </p>
  * @author Thomas Holland
@@ -66,13 +64,13 @@ import de.innot.avreclipse.core.IMCUProvider;
 public class Signatures implements IMCUProvider {
 
 	// paths to the default and instance properties files
-	private final static IPath DEFAULTPROPSFILE = new Path("properties/signature.properties");
-	private final static IPath INSTANCEPROPSFILE = new Path("signatures.properties");
+	private final static IPath	DEFAULTPROPSFILE	= new Path("properties/signature.properties");
+	private final static IPath	INSTANCEPROPSFILE	= new Path("signatures.properties");
 
 	// properties are stored as key=mcuid, value=signature
-	private Properties fProps = new Properties();
+	private Properties			fProps				= new Properties();
 
-	private static Signatures fInstance = null;
+	private static Signatures	fInstance			= null;
 
 	/**
 	 * Get the default instance of the Signatures class
@@ -102,8 +100,8 @@ public class Signatures implements IMCUProvider {
 			// this should not happen because the signatures.properties is
 			// part of the plugin and always there.
 			AVRPlugin.getDefault().log(
-			        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-			                "Can't find signatures.properties", e));
+					new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+							"Can't find signatures.properties", e));
 			return;
 		}
 
@@ -117,8 +115,8 @@ public class Signatures implements IMCUProvider {
 				is.close();
 			} catch (IOException e) {
 				AVRPlugin.getDefault().log(
-				        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				                "Can't read instance signatures.properties", e));
+						new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+								"Can't read instance signatures.properties", e));
 				// continue anyway without the instance signatures
 			}
 		}
@@ -129,8 +127,8 @@ public class Signatures implements IMCUProvider {
 	 * 
 	 * @param mcuid
 	 *            String with a MCU id
-	 * @return String with the MCU signature in hex ("0x123456") or
-	 *         <code>null</code> if the given MCU id is unknown.
+	 * @return String with the MCU signature in hex ("0x123456") or <code>null</code> if the given
+	 *         MCU id is unknown.
 	 */
 	public String getSignature(String mcuid) {
 		return fProps.getProperty(mcuid);
@@ -141,8 +139,8 @@ public class Signatures implements IMCUProvider {
 	 * 
 	 * @param signature
 	 *            String with a signature in hex ("0x123456")
-	 * @return String with the corresponding MCU id or * <code>null</code> if
-	 *         the given signature is unknown.
+	 * @return String with the corresponding MCU id or * <code>null</code> if the given signature
+	 *         is unknown.
 	 */
 	public String getMCU(String signature) {
 		// iterate over all mcuids to find the one with the given signature
@@ -181,10 +179,12 @@ public class Signatures implements IMCUProvider {
 	/**
 	 * Stores the signature properties in the Eclipse instance storage area.
 	 * <p>
-	 * The generated properties file only contains additional signatures not in
-	 * the default list.</p>
+	 * The generated properties file only contains additional signatures not in the default list.
+	 * </p>
 	 * <p>
-	 * @throws IOException for any error writing the properties file
+	 * 
+	 * @throws IOException
+	 *             for any error writing the properties file
 	 */
 	public void storeSignatures() throws IOException {
 		File propsfile = getInstanceSignatureProperties();
@@ -203,7 +203,7 @@ public class Signatures implements IMCUProvider {
 	//
 	// Methods of the IMCUProvider Interface
 	//
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -221,8 +221,18 @@ public class Signatures implements IMCUProvider {
 	public Set<String> getMCUList() {
 		// Return all keys of the underlying properties (the mcuids)
 		// as a List
-		Set<String> keyset = fProps.stringPropertyNames();
-		return new HashSet<String>(keyset);
+		// I used "fProps.stringPropertyNames() first, but that is a JDK 1.6 method and we still
+		// want to run on 1.5
+		Enumeration<?> keyset = fProps.propertyNames();
+		Set<String> mcuset = new HashSet<String>();
+		while (keyset.hasMoreElements()) {
+			Object name = keyset.nextElement();
+			if (name != null && name instanceof String) {
+				mcuset.add((String) name);
+			}
+		}
+
+		return mcuset;
 	}
 
 	/*
@@ -235,13 +245,11 @@ public class Signatures implements IMCUProvider {
 		return sig != null ? true : false;
 	}
 
-	
 	/**
 	 * @return File pointing to the instance signature properties file
 	 */
 	private File getInstanceSignatureProperties() {
-		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(
-		        INSTANCEPROPSFILE);
+		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(INSTANCEPROPSFILE);
 		return propslocation.toFile();
 
 	}
