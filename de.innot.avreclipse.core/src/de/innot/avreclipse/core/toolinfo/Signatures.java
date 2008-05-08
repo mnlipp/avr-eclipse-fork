@@ -146,10 +146,14 @@ public class Signatures implements IMCUProvider {
 		// iterate over all mcuids to find the one with the given signature
 		// I do not use a reverse lookup map because this method will not be
 		// called often and a reverse map would add code complexity.
-		Set<String> keyset = fProps.stringPropertyNames();
-		for (String mcuid : keyset) {
-			if (fProps.getProperty(mcuid).equalsIgnoreCase(signature)) {
-				return mcuid;
+		Enumeration<?> keyset = fProps.propertyNames();
+		while (keyset.hasMoreElements()) {
+			Object mcukey = keyset.nextElement();
+			if (mcukey != null && mcukey instanceof String) {
+				String mcuid = (String) mcukey;
+				if (fProps.getProperty(mcuid).equalsIgnoreCase(signature)) {
+					return mcuid;
+				}
 			}
 		}
 		return null;
