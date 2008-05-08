@@ -29,7 +29,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.MessageConsole;
@@ -73,11 +72,8 @@ public class ExternalCommandLauncher {
 
 	private MessageConsole			fConsole			= null;
 
-	private final static Color		COLOR_STDOUT		= PlatformUI.getWorkbench().getDisplay()
-																.getSystemColor(
-																		SWT.COLOR_DARK_GREEN);
-	private final static Color		COLOR_STDERR		= PlatformUI.getWorkbench().getDisplay()
-																.getSystemColor(SWT.COLOR_DARK_RED);
+	private final static int		COLOR_STDOUT		= SWT.COLOR_DARK_GREEN;
+	private final static int		COLOR_STDERR		= SWT.COLOR_DARK_RED;
 
 	/**
 	 * A runnable class that will read a Stream until EOF, storing each line in a List and also
@@ -256,8 +252,10 @@ public class ExternalCommandLauncher {
 			if (display != null && !display.isDisposed()) {
 				display.syncExec(new Runnable() {
 					public void run() {
-						stdoutConsoleStream.setColor(COLOR_STDOUT);
-						stderrConsoleStream.setColor(COLOR_STDERR);
+						stdoutConsoleStream.setColor(PlatformUI.getWorkbench().getDisplay()
+								.getSystemColor(COLOR_STDOUT));
+						stderrConsoleStream.setColor(PlatformUI.getWorkbench().getDisplay()
+								.getSystemColor(COLOR_STDERR));
 					}
 				});
 			}
@@ -337,9 +335,12 @@ public class ExternalCommandLauncher {
 			return -1;
 		} finally {
 			monitor.done();
-			if (defaultConsoleStream != null) defaultConsoleStream.close();
-			if (stdoutConsoleStream != null) stdoutConsoleStream.close();
-			if (stderrConsoleStream != null) stderrConsoleStream.close();
+			if (defaultConsoleStream != null)
+				defaultConsoleStream.close();
+			if (stdoutConsoleStream != null)
+				stdoutConsoleStream.close();
+			if (stderrConsoleStream != null)
+				stderrConsoleStream.close();
 		}
 		// if we make it to here, the process has run without any Exceptions
 		return process.exitValue();
@@ -451,7 +452,8 @@ public class ExternalCommandLauncher {
 	 * @return String enclosed in quotes and with inner quotes escaped.
 	 */
 	private String winQuote(String s) {
-		if (!needsQuoting(s)) return s;
+		if (!needsQuoting(s))
+			return s;
 		s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
 		s = s.replaceAll("([\\\\]*)\\z", "$1$1");
 		return "\"" + s + "\"";
