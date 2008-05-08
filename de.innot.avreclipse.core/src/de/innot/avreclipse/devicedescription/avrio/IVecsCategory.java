@@ -15,7 +15,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.devicedescription.avrio;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,26 +32,25 @@ import de.innot.avreclipse.devicedescription.IEntry;
 public class IVecsCategory extends BaseEntry implements ICategory {
 
 	// The indices for Register Entry column fields
-	final static int IDX_NAME = 0;
-	final static int IDX_SIGNAME = 1;
-	final static int IDX_DESCRIPTION = 2;
-	final static int IDX_VECTOR = 3;
+	final static int			IDX_NAME		= 0;
+	final static int			IDX_SIGNAME		= 1;
+	final static int			IDX_DESCRIPTION	= 2;
+	final static int			IDX_VECTOR		= 3;
 
 	// The labels for Register Entry column data fields
-	final static String STR_NAME = "Name";
-	final static String STR_SIGNAME = "Old Name";
-	final static String STR_DESCRIPTION = "Description";
-	final static String STR_VECTOR = "Vector";
+	final static String			STR_NAME		= "Name";
+	final static String			STR_SIGNAME		= "Old Name";
+	final static String			STR_DESCRIPTION	= "Description";
+	final static String			STR_VECTOR		= "Vector";
 
-	final static String[] fLabels = { STR_NAME, STR_SIGNAME, STR_DESCRIPTION,
-			STR_VECTOR };
-	final static int[] fDefaultWidths = { 20, 20, 35, 7 };
+	final static String[]		fLabels			= { STR_NAME, STR_SIGNAME, STR_DESCRIPTION,
+			STR_VECTOR							};
+	final static int[]			fDefaultWidths	= { 20, 20, 35, 7 };
 
-	public final static String CATEGORY_NAME = "Interrupts";
+	public final static String	CATEGORY_NAME	= "Interrupts";
 
 	/**
-	 * Instantiate a new IVecsCategory. The name is fixed to
-	 * {@value #CATEGORY_NAME}
+	 * Instantiate a new IVecsCategory. The name is fixed to {@value #CATEGORY_NAME}
 	 */
 	public IVecsCategory() {
 		super.setName(CATEGORY_NAME);
@@ -71,11 +69,15 @@ public class IVecsCategory extends BaseEntry implements ICategory {
 	}
 
 	public String[] getColumnLabels() {
-		return Arrays.copyOf(fLabels, fLabels.length);
+		String[] labels = new String[fLabels.length];
+		System.arraycopy(fLabels, 0, labels, 0, fLabels.length);
+		return labels;
 	}
 
 	public int[] getColumnDefaultWidths() {
-		return Arrays.copyOf(fDefaultWidths, fDefaultWidths.length);
+		int[] widths = new int[fDefaultWidths.length];
+		System.arraycopy(fDefaultWidths, 0, widths, 0, fDefaultWidths.length);
+		return widths;
 	}
 
 	@Override
