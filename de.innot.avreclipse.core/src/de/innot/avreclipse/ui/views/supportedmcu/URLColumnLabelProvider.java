@@ -67,67 +67,72 @@ import de.innot.avreclipse.util.URLDownloadManager;
 /**
  * This is an extended ColumnLabelProvider that handles URL hyperlinks.
  * <p>
- * This Class needs two {@link IMCUProvider}s, one for the Label text and one
- * for the URL. As implemented in the View these are {@link MCUNames} and
- * {@link Datasheets} respectively.
+ * This Class needs two {@link IMCUProvider}s, one for the Label text and one for the URL. As
+ * implemented in the View these are {@link MCUNames} and {@link Datasheets} respectively.
  * </p>
  * <p>
- * As TableViewers do not support custom controls or actually anything
- * clickable, this class is implemented by adding TableEditors on top of the
- * TableItems in this Column. The
- * {@link #updateColumn(TableViewer, TableViewerColumn)} method needs to be called
- * to set up the TableEditors. This method may only be called after the table
- * has been filled with values (after the TableViewer.setInput(model)) method
- * has been called.
+ * As TableViewers do not support custom controls or actually anything clickable, this class is
+ * implemented by adding TableEditors on top of the TableItems in this Column. The
+ * {@link #updateColumn(TableViewer, TableViewerColumn)} method needs to be called to set up the
+ * TableEditors. This method may only be called after the table has been filled with values (after
+ * the TableViewer.setInput(model)) method has been called.
  * </p>
  * <p>
- * The TableEditors are not used as Editors, but contain an Hyperlink control
- * each, which can be clicked to download and open the URL from the given
- * linkprovider.
+ * The TableEditors are not used as Editors, but contain an Hyperlink control each, which can be
+ * clicked to download and open the URL from the given linkprovider.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  */
 public class URLColumnLabelProvider extends ColumnLabelProvider implements
-        ISelectionChangedListener {
+		ISelectionChangedListener {
 
 	/** The MCUProvider that provides the text to be shown in the cell */
-	private IMCUProvider fNameProvider;
+	private final IMCUProvider					fNameProvider;
 
 	/** The IMCUProvider that provides the url to be opene */
-	private IMCUProvider fLinkProvider;
+	private final IMCUProvider					fLinkProvider;
 
-	private TableViewer fTableViewer;
+	private TableViewer							fTableViewer;
 
 	/** The last TableEditor selected. Required to de-select */
-	private TableEditor fLastEditor;
+	private TableEditor							fLastEditor;
 
 	/**
-	 * List of all TableEditors of this column. Required to update the
-	 * TableEditors manually on a {@link SelectionChangedEvent}
+	 * List of all TableEditors of this column. Required to update the TableEditors manually on a
+	 * {@link SelectionChangedEvent}
 	 */
-	private Map<TableItem, TableEditor> fTableEditors = new HashMap<TableItem, TableEditor>();
+	private final Map<TableItem, TableEditor>	fTableEditors			= new HashMap<TableItem, TableEditor>();
 
 	/** The text color for links not yet downloaded. Value: SWT.COLOR_DARK_BLUE */
-	private static Color LINK_COLOR = PlatformUI.getWorkbench().getDisplay().getSystemColor(
-	        SWT.COLOR_DARK_BLUE);
+	private static Color						LINK_COLOR				= PlatformUI
+																				.getWorkbench()
+																				.getDisplay()
+																				.getSystemColor(
+																						SWT.COLOR_DARK_BLUE);
 
 	/** The text color for links already in the cache. Value: SWT.COLOR_MAGETA */
-	private static Color LINK_IN_CACHE_COLOR = PlatformUI.getWorkbench().getDisplay()
-	        .getSystemColor(SWT.COLOR_MAGENTA);
+	private static Color						LINK_IN_CACHE_COLOR		= PlatformUI
+																				.getWorkbench()
+																				.getDisplay()
+																				.getSystemColor(
+																						SWT.COLOR_MAGENTA);
 
 	/** The text color for malformed links. Value: SWT.COLOR_RED */
-	private static Color LINK_MALFORMED_COLOR = PlatformUI.getWorkbench().getDisplay()
-	        .getSystemColor(SWT.COLOR_RED);
+	private static Color						LINK_MALFORMED_COLOR	= PlatformUI
+																				.getWorkbench()
+																				.getDisplay()
+																				.getSystemColor(
+																						SWT.COLOR_RED);
 
 	/**
 	 * @param nameprovider
-	 *            The <code>IMCUProvider</code> that returns a User readable
-	 *            name for a given MCU id
+	 *            The <code>IMCUProvider</code> that returns a User readable name for a given MCU
+	 *            id
 	 * @param linkProvider
-	 *            The <code>IMCUProvider</code> that returns the URL (as
-	 *            <code>String</code>) for the datasheet for the given MCU id
+	 *            The <code>IMCUProvider</code> that returns the URL (as <code>String</code>)
+	 *            for the datasheet for the given MCU id
 	 */
 	public URLColumnLabelProvider(IMCUProvider nameprovider, IMCUProvider linkProvider) {
 		fNameProvider = nameprovider;
@@ -161,25 +166,24 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 		// Not sure if this is really necessary, as this ColumnLabelProvider
 		// will only be disposed when the whole View (incl. the TableViewer) is
 		// closed.
-		fTableViewer.removeSelectionChangedListener(this);
+		if (fTableViewer != null)
+			fTableViewer.removeSelectionChangedListener(this);
 	}
 
 	/**
 	 * Set up this column for URL table cells.
 	 * <p>
-	 * This needs to be called <strong>after</strong> the table has been filled
-	 * with rows. It will add Hyperlink Widgets on top of all cells in the
-	 * column, that actually contain URLs. This is done via TableEditors for
-	 * those cells.
+	 * This needs to be called <strong>after</strong> the table has been filled with rows. It will
+	 * add Hyperlink Widgets on top of all cells in the column, that actually contain URLs. This is
+	 * done via TableEditors for those cells.
 	 * </p>
 	 * <p>
 	 * This also adds itself as <code>SelectionChangeListener</code> and as
 	 * <code>FocusListener</code> to the given TableViewer.
 	 * </p>
 	 * <p>
-	 * Both parameters need to refer to the same column as this
-	 * ColumnLabelProvider. Passing other TableViewers or TableViewerColumns
-	 * will result in undefined results.
+	 * Both parameters need to refer to the same column as this ColumnLabelProvider. Passing other
+	 * TableViewers or TableViewerColumns will result in undefined results.
 	 * </p>
 	 * 
 	 * @param tableviewer
@@ -236,7 +240,7 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 					link.setUnderlined(false);
 					link.setData(LINK_MALFORMED_COLOR);
 					link.setToolTipText("Malformed Datasheet URL: "
-					        + fLinkProvider.getMCUInfo(mcuid));
+							+ fLinkProvider.getMCUInfo(mcuid));
 				}
 
 				// The HyperlinkListener is taking care of opening the URL when
@@ -277,7 +281,6 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 				setEditorColors(editor, false, false);
 			}
 
-		
 		}
 		// Sometimes the TableEditors are a bit off when opening the viewer.
 		// Re-layout the TableEditors in the background
@@ -291,7 +294,9 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 		// whenever the focus changes for the Table
 		fTableViewer.getTable().addFocusListener(new FocusListener() {
 
-			/* (non-Javadoc)
+			/*
+			 * (non-Javadoc)
+			 * 
 			 * @see org.eclipse.swt.events.FocusListener#focusGained(org.eclipse.swt.events.FocusEvent)
 			 */
 			public void focusGained(FocusEvent e) {
@@ -309,7 +314,9 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 				}
 			}
 
-			/* (non-Javadoc)
+			/*
+			 * (non-Javadoc)
+			 * 
 			 * @see org.eclipse.swt.events.FocusListener#focusLost(org.eclipse.swt.events.FocusEvent)
 			 */
 			public void focusLost(FocusEvent e) {
@@ -333,8 +340,8 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 	/**
 	 * Sets the colors of a Hyperlink control (via the associated TableEditor).
 	 * <p>
-	 * A (Windows) SWT Table Cell can have three color states. These three
-	 * states are covered in this method:
+	 * A (Windows) SWT Table Cell can have three color states. These three states are covered in
+	 * this method:
 	 * </p>
 	 * <ul>
 	 * <li>
@@ -363,11 +370,10 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 	 * @param editor
 	 *            TableEdior to set the colors for.
 	 * @param isselected
-	 *            <code>true</code> if the editor is in a currently selected
-	 *            table row.
+	 *            <code>true</code> if the editor is in a currently selected table row.
 	 * @param hasfocus
-	 *            <code>true</code> if the table has the focus. Not required
-	 *            if isselected is <code>false</code>
+	 *            <code>true</code> if the table has the focus. Not required if isselected is
+	 *            <code>false</code>
 	 */
 	private void setEditorColors(TableEditor editor, boolean isselected, boolean hasfocus) {
 		final Color background, foreground;
@@ -463,33 +469,31 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 	}
 
 	/**
-	 * A small Runnable that will call {@link TableEditor#layout()} on all
-	 * TableEditors of the column
+	 * A small Runnable that will call {@link TableEditor#layout()} on all TableEditors of the
+	 * column
 	 */
-	private Runnable updateEditors = new Runnable() {
-		public void run() {
-			Collection<TableEditor> alleditors = fTableEditors.values();
-			for (TableEditor e : alleditors) {
-				e.layout();
-			}
-		}
-	};
+	private final Runnable	updateEditors	= new Runnable() {
+												public void run() {
+													Collection<TableEditor> alleditors = fTableEditors
+															.values();
+													for (TableEditor e : alleditors) {
+														e.layout();
+													}
+												}
+											};
 
 	/**
 	 * Load and Display the given URL.
 	 * <p>
-	 * The File from the URL is first downloaded via the
-	 * {@link URLDownloadManager} and then opened using the default Editor
-	 * registered for this filetype.
+	 * The File from the URL is first downloaded via the {@link URLDownloadManager} and then opened
+	 * using the default Editor registered for this filetype.
 	 * </p>
 	 * <p>
-	 * The download and the opening of the file is done in a Job, so this method
-	 * returns immediatly.
+	 * The download and the opening of the file is done in a Job, so this method returns immediatly.
 	 * </p>
 	 * <p>
-	 * If a download of the same URL is still in progress, this method does
-	 * nothing to avoid multiple parallel downloads of the same file by nervous
-	 * users. </p
+	 * If a download of the same URL is still in progress, this method does nothing to avoid
+	 * multiple parallel downloads of the same file by nervous users. </p
 	 * 
 	 * @param urlstring
 	 *            A String with an URL.
@@ -517,13 +521,13 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 
 					// Download the file and...
 					final File file = URLDownloadManager.download(url, new SubProgressMonitor(
-					        monitor, 95));
+							monitor, 95));
 
 					// ...open the file in an editor.
 					monitor.subTask("Opening Editor for " + file.getName());
 					if (display == null || display.isDisposed()) {
 						return new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-						        "Cannot open Editor: no Display found", null);
+								"Cannot open Editor: no Display found", null);
 					}
 					openFileInEditor(file);
 
@@ -537,16 +541,16 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 							Shell shell = display.getActiveShell();
 							String title = "Download Failed";
 							String message = "The requested file could not be downloaded\nFile:  "
-							        + url.getPath() + "\nHost:  " + url.getHost();
+									+ url.getPath() + "\nHost:  " + url.getHost();
 							String reason = exc.getMessage();
-							MultiStatus status = new MultiStatus(AVRPlugin.PLUGIN_ID, 0,
-							        reason, null);
+							MultiStatus status = new MultiStatus(AVRPlugin.PLUGIN_ID, 0, reason,
+									null);
 							Throwable cause = exc.getCause();
 							// in case there are multiple root causes
 							// (unlikely, but who knows?)
 							while (cause != null) {
-								status.add(new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-								        cause.getClass().getSimpleName(), cause));
+								status.add(new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, cause
+										.getClass().getSimpleName(), cause));
 								cause = cause.getCause();
 							}
 
@@ -590,12 +594,12 @@ public class URLColumnLabelProvider extends ColumnLabelProvider implements
 				IFileStore fileStore = EFS.getLocalFileSystem().getStore(new Path(file.toString()));
 				if (!fileStore.fetchInfo().isDirectory() && fileStore.fetchInfo().exists()) {
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-					        .getActivePage();
+							.getActivePage();
 					try {
 						IDE.openEditorOnFileStore(page, fileStore);
 					} catch (PartInitException e) {
 						IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-						        "Could not open " + file.toString(), e);
+								"Could not open " + file.toString(), e);
 						Shell shell = display.getActiveShell();
 						String title = "Can't open File";
 						String message = "The File " + file.toString() + " could not be opened";
