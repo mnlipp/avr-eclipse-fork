@@ -343,7 +343,15 @@ public class ExternalCommandLauncher {
 				stderrConsoleStream.close();
 		}
 		// if we make it to here, the process has run without any Exceptions
-		return process.exitValue();
+		// Wait for the process to finish and then get the return value.
+		try {
+			process.waitFor();
+			return process.exitValue();
+		} catch (InterruptedException e) {
+			// If the process was interrupted by an external source we won't do anything but return
+			// an error value. (the return value is unused anyway throughout the plugin.
+			return -1;
+		}
 	}
 
 	/**
