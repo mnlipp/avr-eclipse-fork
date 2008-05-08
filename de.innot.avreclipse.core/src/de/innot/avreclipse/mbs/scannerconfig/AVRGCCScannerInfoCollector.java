@@ -35,14 +35,13 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
  * {@link GCCSpecsRunSIProvider} compiler arguments.
  * </p>
  * <p>
- * With this the ScannerInfoProvider will get the correct #defines for the
- * selected AVR Target. The MCU info is gathered from the project (not the build
- * configuration)
+ * With this the ScannerInfoProvider will get the correct #defines for the selected AVR Target. The
+ * MCU info is gathered from the project (not the build configuration)
  * </p>
  * 
  */
 public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
-        IScannerInfoCollector3, IManagedScannerInfoCollector {
+		IScannerInfoCollector3, IManagedScannerInfoCollector {
 
 	/*
 	 * (non-Javadoc)
@@ -65,7 +64,7 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 		if (getDefinedSymbols().size() == 0) {
 			// no symbols defined: this probably means
 			// that the call is coming from createProject and
-			// that the MCUType has not been set. 
+			// that the MCUType has not been set.
 			// return gracefully without adding the -mmcu option
 			return null;
 		}
@@ -75,14 +74,14 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 		ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
 		AVRProjectProperties props = projprops.getActiveProperties();
 		String targetmcu = props.getMCUId();
-		if ((targetmcu != null) && (!targetmcu.isEmpty())) {
+		if ((targetmcu != null) && (targetmcu.length() > 0)) {
 			rv.add("-mmcu=" + targetmcu);
 		}
 		String fcpu = props.getFCPU();
 		if ((fcpu != null) && (!fcpu.isEmpty())) {
 			rv.add("-DF_CPU=" + fcpu + "UL");
 		}
-		
+
 		return rv;
 	}
 

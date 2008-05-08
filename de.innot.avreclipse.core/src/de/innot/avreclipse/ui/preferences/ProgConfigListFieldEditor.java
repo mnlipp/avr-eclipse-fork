@@ -151,7 +151,7 @@ public class ProgConfigListFieldEditor extends FieldEditor {
 		if (fTableControl != null) {
 			Set<String> allconfigids = fCfgManager.getAllConfigIDs();
 			for (String configid : allconfigids) {
-				if (!configid.isEmpty()) {
+				if (configid.length() > 0) {
 					ProgrammerConfig config = fCfgManager.getConfig(configid);
 					TableItem item = new TableItem(fTableControl, SWT.NONE);
 					item.setText(new String[] { config.getName(), config.getDescription() });
