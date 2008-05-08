@@ -299,7 +299,11 @@ public class UploadProjectAction extends ActionDelegate {
 		ProgrammerConfig programmer = avrdudeprops.getProgrammer();
 		fProgrammerId = programmer.getId();
 
-		Job uploadjob = new UploadJob(optionargs, actionargs);
+		// Set the working directory to the CWD of the active build config, so that
+		// relative paths are resolved correctly.
+		IPath cwdunresolved = buildcfg.getBuildData().getBuilderCWD();
+		IPath cwd = new Path(BuildMacro.resolveMacros(buildcfg, cwdunresolved.toString()));
+		Job uploadjob = new UploadJob(optionargs, actionargs, cwd);
 
 		uploadjob.setRule(new AVRDudeSchedulingRule(programmer));
 		uploadjob.setPriority(Job.LONG);
@@ -317,11 +321,14 @@ public class UploadProjectAction extends ActionDelegate {
 
 		private final List<String>	fOptions;
 		private final List<String>	fActions;
+		private final IPath			fCwd;
 
-		public UploadJob(List<String> options, List<String> actions) {
+		public UploadJob(List<String> options, List<String> actions, IPath cwd) {
 			super("AVRDude Upload");
 			fOptions = options;
 			fActions = actions;
+			fCwd = cwd;
+
 		}
 
 		@Override
@@ -360,7 +367,7 @@ public class UploadProjectAction extends ActionDelegate {
 					fOptions.set(lastindex, actionoption);
 
 					// Now avrdude can be started.
-					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true);
+					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd);
 
 				}
 			} catch (AVRDudeException ade) {

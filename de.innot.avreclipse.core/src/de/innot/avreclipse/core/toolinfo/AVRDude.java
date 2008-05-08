@@ -750,7 +750,7 @@ public class AVRDude implements IMCUProvider {
 	 *             when avrdude cannot be started or when avrdude returned an error errors.
 	 */
 	public List<String> runCommand(List<String> arglist) throws AVRDudeException {
-		return runCommand(arglist, new NullProgressMonitor(), false);
+		return runCommand(arglist, new NullProgressMonitor(), false, null);
 	}
 
 	/**
@@ -772,13 +772,17 @@ public class AVRDude implements IMCUProvider {
 	 * @param forceconsole
 	 *            If <code>true</code> all output is copied to the console, regardless of the "use
 	 *            console" flag.
+	 * @param cwd
+	 *            <code>IPath</code> with a current working directory or <code>null</code> to
+	 *            use the default working directory (usually the one defined with the system
+	 *            property <code>user.dir</code).
 	 * @return A list of all output lines, or <code>null</code> if the command could not be
 	 *         launched.
 	 * @throws AVRDudeException
 	 *             when avrdude cannot be started or when avrdude returned an error errors.
 	 */
 	public List<String> runCommand(List<String> arglist, IProgressMonitor monitor,
-			boolean forceconsole) throws AVRDudeException {
+			boolean forceconsole, IPath cwd) throws AVRDudeException {
 
 		try {
 			monitor.beginTask("Running avrdude", 100);
@@ -795,7 +799,7 @@ public class AVRDude implements IMCUProvider {
 			}
 
 			// Set up the External Command
-			ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist);
+			ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist, cwd);
 			avrdude.redirectErrorStream(true);
 
 			// Set the Console (if requested by the user in the preferences)

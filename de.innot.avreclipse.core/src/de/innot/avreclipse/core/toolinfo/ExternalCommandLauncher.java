@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -166,6 +167,24 @@ public class ExternalCommandLauncher {
 	 *            arguments
 	 */
 	public ExternalCommandLauncher(String command, List<String> arguments) {
+		this(command, arguments, null);
+	}
+
+	/**
+	 * Creates a new ExternalCommandLauncher for the given command and a list of arguments and a
+	 * working directory.
+	 * 
+	 * @param command
+	 *            <code>String</code> with the command
+	 * @param arguments
+	 *            <code>List&lt;String&gt;</code> with all arguments or <code>null</code> if no
+	 *            arguments
+	 * @param cwd
+	 *            <code>IPath</code> with a current working directory or <code>null</code> to
+	 *            use the default working directory (usually the one defined with the system
+	 *            property <code>user.dir</code).
+	 */
+	public ExternalCommandLauncher(String command, List<String> arguments, IPath cwd) {
 		Assert.isNotNull(command);
 		fRunLock = this;
 		// make a new list suitable for ProcessBuilder, where
@@ -184,6 +203,9 @@ public class ExternalCommandLauncher {
 			commandlist.addAll(arguments);
 		}
 		fProcessBuilder = new ProcessBuilder(commandlist);
+		if (cwd != null) {
+			fProcessBuilder.directory(cwd.toFile());
+		}
 	}
 
 	/**
