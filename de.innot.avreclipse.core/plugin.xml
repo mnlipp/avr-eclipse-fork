@@ -181,7 +181,7 @@
 		<!-- #### Target Hardware Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabTargetHardware"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Target Hardware"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageTargetHardware"/>
@@ -189,7 +189,7 @@
 		<!-- #### AVRDude/Programmer Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeProgrammer"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Programmer"
 			weight="001"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
@@ -197,7 +197,7 @@
 		<!-- #### AVRDude/Flash + EEPROM Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFlashEEPROM"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Flash / EEPROM"
 			weight="002"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
@@ -205,7 +205,7 @@
 		<!-- #### AVRDude/Fuses Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeFuseBytes"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Fuses"
 			weight="003"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
@@ -213,7 +213,7 @@
 		<!-- #### AVRDude/Lockbits Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeLockbits"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Lockbits"
 			weight="004"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
@@ -221,7 +221,7 @@
 		<!-- #### AVRDude/Avanced Tab #### -->
 		<tab
 			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeAdvanced"
-			icon=""
+			icon="icons/viewer16/dummy.png"
 			name="Advanced"
 			weight="005"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
@@ -2012,7 +2012,7 @@
 				buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release">
 				<toolChain id="de.innot.avreclipse.toolchain.winavr.app.release"
 					superClass="de.innot.avreclipse.toolchain.winavr.base" 
-					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output" > 
+					secondaryOutputs="de.innot.avreclipse.tool.objdump.output;de.innot.avreclipse.tool.objcopy.flash.output;de.innot.avreclipse.tool.objcopy.eeprom.output;de.innot.avreclipse.tool.size.output;de.innot.avreclipse.tool.avrdude.output" > 
 
 					<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.release"
 						defaultValue="true"
