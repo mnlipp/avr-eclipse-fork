@@ -155,7 +155,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
 		FontMetrics fm = getFontMetrics(parent);
-		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 14);
+		gd.widthHint = Dialog.convertWidthInCharsToPixels(fm, 20);
 
 		// MCU Selection Combo
 		setupLabel(parent, LABEL_MCUTYPE, 1, SWT.NONE);
