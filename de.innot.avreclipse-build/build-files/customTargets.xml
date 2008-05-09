@@ -91,13 +91,20 @@
 		<fail unless="version.qualifier" message="Property version.qualifier must be set" />
 	
 		<echo message="Updating versions in feature and plugin manifests. Full version: ${version.full}, qualifier: ${version.qualifier}"/>
-		<!-- make sure to select the test feature file as well -->
-		<replace dir="${buildDirectory}/features">
-			<include name="**/feature.xml"/>
-			<!-- adding the greater than on the right side is only a dirty trick to replace only the feature version -->
-			<replacefilter token="version=&quot;0.0.0&quot;>" value="version=&quot;${version.full}&quot;>" />
-			<replacefilter token="qualifier" value="${version.qualifier}" />
-		</replace>
+		<replaceregexp
+            match="(&lt;feature[^&gt;]*version=)&quot;0.0.0&quot;"
+            replace="\1&quot;${version.full}&quot;"
+			byline="false"
+			flags="s">
+			  <fileset dir="${buildDirectory}/features" includes="**/feature.xml"/>
+		</replaceregexp>
+		<replaceregexp
+            match="(&lt;feature[^&gt;]*version=&quot;.*)qualifier&quot;"
+            replace="\1${version.qualifier}&quot;"
+			byline="false"
+			flags="s">
+			  <fileset dir="${buildDirectory}/features" includes="**/feature.xml"/>
+		</replaceregexp>
 		<!-- in a manual build started with export from the feature.xml, there is no
 			need to replace the versions in the plugin.xml files if they are set to 0.0.0,
 			but here it needs to be -->
@@ -149,7 +156,12 @@
 	<!-- ===================================================================== -->
 	<target name="prePackage">
 	</target>
+	
 	<target name="postPackage">
+		<!-- copy build results for rcp build -->
+		<copy todir="${buildResultsDirectory}" flatten="true">
+			<fileset dir="${buildDirectory}" includes="${buildType}-**/*.zip" />
+		</copy>
 	</target>
 
 	<!-- ===================================================================== -->

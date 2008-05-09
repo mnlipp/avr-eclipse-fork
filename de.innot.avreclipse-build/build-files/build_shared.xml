@@ -22,6 +22,8 @@
 		 sets property archive.location to the archive path in download cache.
 	 -->
 	<target name="-set.archive.location" if="pluginbuilder.is.server">
+		<!-- set default, useful for server where pluginbuilder.eclipse.url.default can be specified in build_local.properties --> 
+		<property name="pluginbuilder.eclipse.url" value="${pluginbuilder.eclipse.url.default}"/>
 		<condition property="archive.url" value="${feature.url}" else="${pluginbuilder.eclipse.url}">
 				<isset property="feature.url"/>
 		</condition>
@@ -57,12 +59,12 @@
 	</target>
 	
 	<target name="-get.features" if="pluginbuilder.is.server" >
-		<property name="pluginbuilder.feature.urls" value=""/>
+		<property name="pluginbuilder.feature.urls" value="${pluginbuilder.feature.urls.default}"/>
 		<foreach list="${pluginbuilder.feature.urls}" param="feature.url" delimiter="," target="-get.archive" inheritall="true"/>
 	</target>
 	
 	<target name="-unpack.features" if="pluginbuilder.is.server">
-		<property name="pluginbuilder.feature.urls" value=""/>
+		<property name="pluginbuilder.feature.urls" value="${pluginbuilder.feature.urls.default}"/>
 		<foreach list="${pluginbuilder.feature.urls}" param="feature.url" delimiter="," target="-unpack.feature" inheritall="true"/>
 	</target>
 	

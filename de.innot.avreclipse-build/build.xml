@@ -7,7 +7,6 @@
 	
 	<property file="build_local.properties" />
 	<property name="eclipse.installation.dir" value="${eclipseDir}"/>
-	<property name="eclipse.local.tar.non.server" value="${test.eclipse.zip}"/>
 	<import file="build-files/build_shared.xml"/>
 	
 	<target name="-properties">		
@@ -77,26 +76,24 @@
 		</condition>
 		<antcall target="-build.internal">
 			<param name="buildfile" value="${regularbuildfile}"/>
-			<param name="buildProperties" value="${buildHome}/build-files/build.properties"/>
 	    </antcall>
 		<!-- build rcp omitting fetch -->
-		<property name="varargs" value="-DskipFetch=true"/>
+		<property name="buildSystemProperty.skipFetch" value="true"/>
 		<antcall target="-build.rcp.internal"/>
 	</target>
 	
 	<target name="-build.rcp.internal" unless="no.rcp.build">
+		<property prefix="buildSystemProperty." file="${buildHome}/build-files/build_rcp.properties"/>
 		<antcall target="-checkProductProperty"/>
 		<antcall target="-build.internal"> 
 			<param name="buildfile" value="${productbuildfile}"/>
-			<param name="buildProperties" value="${buildHome}/build-files/build_rcp.properties"/>
 		</antcall>
 	</target>
 
 	<target name="-checkProductProperty">
-		<property file="${buildHome}/build-files/build_rcp.properties"/>
 		<condition property="isProductSet">
 			<and>
-				<isset property="product"/>
+				<isset property="buildSystemProperty.product"/>
 				<not><equals arg1="${product}" arg2=""/></not>
 			</and>
 		</condition>
@@ -110,9 +107,9 @@
 
 	<target name="-build.internal">
 		<property name="buildResultsDirectory" value="${buildDirectory}/results" />
-		<property name="varargs" value="-Ddummy=dummy"/>
+		
 		<java classname="org.eclipse.equinox.launcher.Main" fork="true" 
-			failonerror="false" errorproperty="build.stderr">
+			failonerror="true" errorproperty="build.stderr">
 			<arg value="-ws" />
 			<arg value="${ws}" />
 			<arg value="-os" />
@@ -138,14 +135,18 @@
 			<jvmarg value="-Dversion.qualifier=${version.qualifier}${buildTypePresentation}"/>
 			<jvmarg value="-DbuildType=${buildType}"/>
 			<jvmarg value="-DfetchTag=${fetchTag}"/>
-			<jvmarg value="-DbuildProperties=${buildProperties}"/>
-			<jvmarg value="${varargs}"/>
-	
-		 <jvmarg value="-Dtest.eclipse.zip=${test.eclipse.zip}"/>
+			<jvmarg value="-DbuildProperties=${buildHome}/build-files/build.properties"/>
 
 			<classpath>
 				<pathelement location="${equinoxjar}" />
 			</classpath>
+			
+			<syspropertyset>
+				<propertyset>
+					<propertyref prefix="buildSystemProperty"/>
+					<mapper type="glob" from="buildSystemProperty.*" to="*"/>
+				</propertyset>
+			</syspropertyset>
 		</java>
 		
 		<!-- save stderr for scrutinizing later -->
@@ -166,9 +167,10 @@
 	
 	<target name="main-cc"
 			description="This target is suited to be run from cruisecontrol. The property 'label' is expected to be set from cruisecontrol.">
+		<!-- Note that pluginbuilder also provides an EclipseLabelIncrementer which creates Eclipse version labels.
+			see http://www.pluginbuilder.org/faq.html -->
 		<property name="version.full" value="${label}"/> 
-		<!-- TODO: extract qualifier correctly from label -->
-		<property name="version.qualifier" value="${label}"/>		
+		<SetRegex input="${label}" match=".+\..+\..+\.(.*)" property="version.qualifier" value="\1" />
 		<antcall target="-build"/>
 	</target>
 	
