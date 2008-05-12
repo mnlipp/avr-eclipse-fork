@@ -70,6 +70,7 @@
 	<extension point="org.eclipse.ui.popupMenus">
 		<objectContribution
 			objectClass="org.eclipse.core.resources.IProject"
+			adaptable="true"
 			id="de.innot.avreclipse.menu.popup.avr">
 			<menu label="AVR" id="de.innot.avreclipse.menu.popup.avr">
 				<separator name="upload"></separator>
