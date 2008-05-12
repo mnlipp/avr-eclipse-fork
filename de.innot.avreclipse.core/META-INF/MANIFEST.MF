@@ -70,13 +70,18 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.core.resources,
    org.eclipse.cdt.make.core.scannerconfig,
    org.eclipse.cdt.make.internal.core.scannerconfig2",
- de.innot.avreclipse.ui.actions;uses:="org.eclipse.jface.action,org.eclipse.ui.actions,org.eclipse.jface.viewers",
+ de.innot.avreclipse.ui.actions;
+  uses:="org.eclipse.jface.action,
+   org.eclipse.ui,
+   org.eclipse.ui.actions,
+   org.eclipse.jface.viewers",
  de.innot.avreclipse.ui.dialogs;
   uses:="org.eclipse.core.runtime,
    de.innot.avreclipse.core.avrdude,
    org.eclipse.swt.widgets,
    org.eclipse.jface.dialogs,
    org.eclipse.ui.progress",
+ de.innot.avreclipse.ui.editors,
  de.innot.avreclipse.ui.preferences;
   uses:="org.eclipse.jface.preference,
    de.innot.avreclipse.core.paths,

@@ -62,6 +62,67 @@
 		</initializer>
 	</extension>
 
+
+<!--
+####################################################################################### 
+#    AVR Plugin Commands                                                              # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.commands">
+		<category
+			name="AVR"
+			description="AVR Plugin commands"
+			id="de.innot.avreclipse.commands" />
+		<command
+			name="Upload Project"
+			description="Upload selected project to the target device"
+			categoryId="de.innot.avreclipse.commands"
+			id="de.innot.avreclipse.commands.uploadproject" />
+	</extension>
+
+<!--
+####################################################################################### 
+#    Key Bindings                                                                     # 
+####################################################################################### 
+-->
+	<extension point= "org.eclipse.ui.bindings">
+		<key sequence="M1+M3+U"
+			commandId="de.innot.avreclipse.commands.uploadproject"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.contexts.window" />
+	</extension>
+
+
+<!--
+####################################################################################### 
+#    Action Sets (Toolbar & Main Menu)                                                # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.actionSets">
+		<actionSet
+			label="AVRDUDE Action Set"
+			visible="true"
+			id="de.innot.avreclipse.actionset.avrdude">
+			<menu
+				label="A&amp;VR"
+				id="de.innot.avreclipse.targetmenu">
+				<separator
+					name="mainGroup">
+				</separator>
+			</menu>
+			<action
+				toolbarPath="mainGroup"
+				label="&amp;Upload Project to Target Device"
+				tooltip="Upload current project to Atmel target MCU."
+				definitionId="de.innot.avreclipse.commands.uploadproject"
+				class="de.innot.avreclipse.ui.actions.UploadProjectAction"
+				icon="icons/avrdl-small.gif"
+				menubarPath="de.innot.avreclipse.targetmenu/mainGroup"
+				id="de.innot.avreclipse.actions.AvrUL">
+			</action>
+		</actionSet>
+	</extension>
+
 <!--
 ####################################################################################### 
 #    Popup Menues (Context Menues)                                                    # 
@@ -78,7 +139,7 @@
 			<action
 				class="de.innot.avreclipse.ui.actions.UploadProjectAction"
 				enablesFor="1" id="de.innot.avreclipse.actions.projectupload"
-				label="Upload Project to Device"
+				label="Upload Project to Target Device"
 				menubarPath="de.innot.avreclipse.menu.popup.avr/upload">
 			</action>
 			<visibility>

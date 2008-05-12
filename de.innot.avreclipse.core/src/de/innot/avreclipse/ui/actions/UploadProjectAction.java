@@ -39,6 +39,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 import org.eclipse.ui.console.MessageConsole;
@@ -63,7 +65,7 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
  * @since 2.2
  * 
  */
-public class UploadProjectAction extends ActionDelegate {
+public class UploadProjectAction extends ActionDelegate implements IWorkbenchWindowActionDelegate {
 
 	private final static String	TITLE_UPLOAD		= "AVRDude Upload";
 
@@ -74,7 +76,7 @@ public class UploadProjectAction extends ActionDelegate {
 
 	private final static String	MSG_NOPROGRAMMER	= "No Programmer has been set for the {0}.\n\n"
 															+ "Please select a Programmer in the project properties\n"
-															+ "(Properties -> AVRDude -> Programmer";
+															+ "(Properties -> AVRDude -> Programmer)";
 
 	private final static String	MSG_WRONGMCU		= "AVRDude does not support the project target MCU [{0}]\n\n"
 															+ "Please select a different target MCU if you want to use AVRDude.\n"
@@ -398,6 +400,16 @@ public class UploadProjectAction extends ActionDelegate {
 	 */
 	private Shell getShell() {
 		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#init(org.eclipse.ui.IWorkbenchWindow)
+	 */
+	public void init(IWorkbenchWindow window) {
+		// TODO Auto-generated method stub
+
 	}
 
 }
