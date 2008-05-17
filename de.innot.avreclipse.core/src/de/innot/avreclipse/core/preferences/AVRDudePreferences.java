@@ -39,21 +39,22 @@ import de.innot.avreclipse.AVRPlugin;
  */
 public class AVRDudePreferences {
 
-	private static final String CLASSNAME = "avrdude";
-	private static final String QUALIFIER = AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
-	private static final String CONFIGQUALIFIER = QUALIFIER + "/configs/";
+	private static final String		CLASSNAME				= "avrdude";
+	private static final String		QUALIFIER				= AVRPlugin.PLUGIN_ID + "/" + CLASSNAME;
+	private static final String		CONFIGQUALIFIER			= QUALIFIER + "/configs/";
 
-	private static IPreferenceStore fInstanceStore = null;
+	private static IPreferenceStore	fInstanceStore			= null;
 
 	/** Set <code>true</code> to use a custom configuration file */
-	public static final String KEY_USECUSTOMCONFIG = "customconfigfile";
-	public static final boolean DEFAULT_USECUSTOMCONFIG = false;
+	public static final String		KEY_USECUSTOMCONFIG		= "customconfigfile";
+	public static final boolean		DEFAULT_USECUSTOMCONFIG	= false;
 
 	/** Path to a custom avrdude.conf configuration file */
-	public static final String KEY_CONFIGFILE = "avrdudeconf";
-	
-	public static final String KEY_USECONSOLE = "avrdudeUseConsole";
-	public static final boolean DEFAULT_USECONSOLE = true;
+	public static final String		KEY_CONFIGFILE			= "avrdudeconf";
+
+	public static final String		KEY_USECONSOLE			= "avrdudeUseConsole";
+	public static final boolean		DEFAULT_USECONSOLE		= false;
+
 	/**
 	 * Gets the instance AVRDude preferences.
 	 * 
@@ -73,8 +74,7 @@ public class AVRDudePreferences {
 	}
 
 	/**
-	 * Gets the instance root node Preferences for all Programmer
-	 * Configurations.
+	 * Gets the instance root node Preferences for all Programmer Configurations.
 	 * 
 	 * @return
 	 */
@@ -87,8 +87,7 @@ public class AVRDudePreferences {
 	/**
 	 * Saves a changed PreferencesStore.
 	 * <p>
-	 * This has to be called to make any changes to the given PreferenceStore
-	 * persistent.
+	 * This has to be called to make any changes to the given PreferenceStore persistent.
 	 * </p>
 	 * 
 	 * @param store
@@ -113,8 +112,7 @@ public class AVRDudePreferences {
 	/**
 	 * Initialize the default AVRDude preference values.
 	 * 
-	 * This is called from
-	 * {@link de.innot.avreclipse.core.preferences.PreferenceInitializer}.
+	 * This is called from {@link de.innot.avreclipse.core.preferences.PreferenceInitializer}.
 	 * Clients are not supposed to call this method.
 	 */
 	public static void initializeDefaultPreferences() {
