@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IPath;
@@ -18,12 +19,12 @@ import org.junit.Test;
 
 /**
  * @author U043192
- *
+ * 
  */
 public class TestGCC {
 
-	private GCC tool = null;
-	
+	private GCC	tool	= null;
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -52,7 +53,7 @@ public class TestGCC {
 		File gccfile = gccpath.toFile();
 		if (isWindows()) {
 			// append .exe
-			String windowsname = gccfile.getPath() +".exe";
+			String windowsname = gccfile.getPath() + ".exe";
 			gccfile = new File(windowsname);
 		}
 		assertTrue("Toolpath does not point to an executable file", gccfile.canRead());
@@ -60,12 +61,14 @@ public class TestGCC {
 
 	/**
 	 * Test method for {@link de.innot.avreclipse.core.toolinfo.GCC#getToolInfo(java.lang.String)}.
+	 * 
+	 * @throws IOException
 	 */
 	@Test
-	public void testGetMCUList() {
+	public void testGetMCUList() throws IOException {
 		Set<String> mcus = tool.getMCUList();
 		assertNotNull(mcus);
-		assertTrue(mcus.size()>5); // at least a few micros should be in the list
+		assertTrue(mcus.size() > 5); // at least a few micros should be in the list
 		assertTrue(mcus.contains("atmega16"));
 		assertFalse(mcus.contains("avr1"));
 		assertFalse(mcus.contains(""));
@@ -78,7 +81,5 @@ public class TestGCC {
 	private static boolean isWindows() {
 		return (Platform.getOS().equals(Platform.OS_WIN32));
 	}
-
-
 
 }

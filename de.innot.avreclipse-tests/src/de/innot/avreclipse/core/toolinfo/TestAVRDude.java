@@ -8,6 +8,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IPath;
@@ -23,7 +24,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
  */
 public class TestAVRDude {
 
-	private AVRDude tool = null;
+	private AVRDude	tool	= null;
 
 	/**
 	 * @throws java.lang.Exception
@@ -34,8 +35,7 @@ public class TestAVRDude {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.AVRDude#getToolPath()}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.AVRDude#getToolPath()}.
 	 */
 	@Test
 	public void testGetToolPath() {
@@ -53,13 +53,15 @@ public class TestAVRDude {
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.toolinfo.AVRDude#getToolInfo(java.lang.String)}.
+	 * 
+	 * @throws IOException
 	 */
 	@Test
-	public void testGetMCUList() {
+	public void testGetMCUList() throws IOException {
 		Set<String> mcus = tool.getMCUList();
 		assertNotNull(mcus);
 		assertTrue(mcus.size() > 5); // at least a few micros should be in
-										// the list
+		// the list
 		assertTrue(mcus.contains("atmega16"));
 		assertFalse(mcus.contains("m16"));
 		assertFalse(mcus.contains(""));
@@ -67,16 +69,16 @@ public class TestAVRDude {
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.AVRDude#getProgrammersList()}.
-	 * @throws AVRDudeException 
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.AVRDude#getProgrammersList()}.
+	 * 
+	 * @throws AVRDudeException
 	 */
 	@Test
 	public void testGetProgrammersList() throws AVRDudeException {
 		Set<String> programmers = tool.getProgrammersList();
 		assertNotNull(programmers);
 		assertTrue(programmers.size() > 5); // at least a few programmers should
-											// be in the list
+		// be in the list
 		assertTrue(programmers.contains("stk500")); // default entry for the plugin
 		assertTrue(programmers.contains("avrisp")); // last entry
 		assertTrue(programmers.contains("c2n232i")); // first entry
