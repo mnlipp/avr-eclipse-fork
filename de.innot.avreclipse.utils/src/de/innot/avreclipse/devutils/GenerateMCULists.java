@@ -35,13 +35,15 @@ import org.w3c.dom.Document;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.PartDescriptionFilesReader;
+import de.innot.avreclipse.core.toolinfo.fuses.FusesReader;
+import de.innot.avreclipse.core.toolinfo.fuses.LockbitsReader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader;
 
 /**
- * This is a simple Eclipse Application to read all Atmel part description
- * files, parse them and store the extracted properties.
+ * This is a simple Eclipse Application to read all Atmel part description files, parse them and
+ * store the extracted properties.
  * 
  * @author Thomas Holland
  * @since 2.2
@@ -49,7 +51,7 @@ import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader;
  */
 public class GenerateMCULists implements IApplication {
 
-	private final IPath DATASHEETPROPSPATH = new Path("properties/datasheet.properties");
+	private final IPath	DATASHEETPROPSPATH	= new Path("properties/datasheet.properties");
 
 	/*
 	 * (non-Javadoc)
@@ -60,6 +62,8 @@ public class GenerateMCULists implements IApplication {
 
 		// Build a list of partdescriptionfiles readers
 		List<IPDFreader> readers = new ArrayList<IPDFreader>();
+		readers.add(new MyFusesReader());
+		readers.add(new MyLockbitsReader());
 		readers.add(new MySignatureReader());
 		readers.add(new MyDatasheetReader());
 
@@ -81,22 +85,78 @@ public class GenerateMCULists implements IApplication {
 	}
 
 	/**
+	 * Modified {@link FusesReader}.
+	 * <p>
+	 * The only modifications is a different storage location (The storage area of this plugin as
+	 * opposed to the storage area of the core plugin.
+	 * </p>
+	 * The generated files can be copied to the <code>properties/fusedesc</code> Folder of the
+	 * core plugin.
+	 * </p>
+	 */
+	private class MyFusesReader extends FusesReader {
+
+		private final static String	DESCRIPTION_FOLDER	= "fusedesc";
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader#getStoragePath()
+		 */
+		@Override
+		protected IPath getStoragePath() {
+			IPath statelocation = Activator.getDefault().getStateLocation();
+			IPath descriptionlocation = statelocation.append(DESCRIPTION_FOLDER);
+
+			return descriptionlocation;
+		}
+
+	}
+
+	/**
+	 * Modified {@link LockbitsReader}.
+	 * <p>
+	 * The only modifications is a different storage location (The storage area of this plugin as
+	 * opposed to the storage area of the core plugin.
+	 * </p>
+	 * The generated files can be copied to the <code>properties/lockbitsdesc</code> Folder of the
+	 * core plugin.
+	 * </p>
+	 */
+	private class MyLockbitsReader extends LockbitsReader {
+
+		private final static String	DESCRIPTION_FOLDER	= "lockbitdesc";
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader#getStoragePath()
+		 */
+		@Override
+		protected IPath getStoragePath() {
+			IPath statelocation = Activator.getDefault().getStateLocation();
+			IPath descriptionlocation = statelocation.append(DESCRIPTION_FOLDER);
+
+			return descriptionlocation;
+		}
+
+	}
+
+	/**
 	 * Modified {@link SignatureReader}.
 	 * <p>
-	 * Instead of interacting with the <code>Signatures</code> class, this
-	 * modified reader will store all signatures in a new properties file
-	 * "signature.properties", located in the state storage area of this
-	 * application plugin.
+	 * Instead of interacting with the <code>Signatures</code> class, this modified reader will
+	 * store all signatures in a new properties file "signature.properties", located in the state
+	 * storage area of this application plugin.
 	 * </p>
 	 * <p>
-	 * The generated file can be copied to the <code>properties</code> folder
-	 * of the core plugin.
+	 * The generated file can be copied to the <code>properties</code> folder of the core plugin.
 	 * </p>
 	 * 
 	 */
 	private class MySignatureReader extends SignatureReader {
 
-		private Properties fSignatureProperties;
+		private final Properties	fSignatureProperties;
 
 		public MySignatureReader() {
 			fSignatureProperties = new Properties();
@@ -135,14 +195,13 @@ public class GenerateMCULists implements IApplication {
 	/**
 	 * Internal class to handle the Datasheet properties.
 	 * <p>
-	 * The previous list of datasheet URLs is loaded, any new MCU id values in
-	 * the part description files are added (with an empty datasheet URL) and
-	 * then the whole list is written back.
+	 * The previous list of datasheet URLs is loaded, any new MCU id values in the part description
+	 * files are added (with an empty datasheet URL) and then the whole list is written back.
 	 * </p>
 	 */
 	private class MyDatasheetReader extends BaseReader {
 
-		private Properties fDatasheetProps;
+		private Properties	fDatasheetProps;
 
 		/*
 		 * (non-Javadoc)
@@ -163,8 +222,8 @@ public class GenerateMCULists implements IApplication {
 				// this should not happen because the signatures.properties is
 				// part of the plugin and always there.
 				AVRPlugin.getDefault().log(
-				        new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				                "Can't find signatures.properties", e));
+						new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+								"Can't find signatures.properties", e));
 			}
 
 			fDatasheetProps = oldDatasheetProps;
