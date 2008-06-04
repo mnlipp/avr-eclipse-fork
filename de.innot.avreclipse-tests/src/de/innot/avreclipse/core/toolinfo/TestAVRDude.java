@@ -82,6 +82,8 @@ public class TestAVRDude {
 		assertTrue(programmers.contains("stk500")); // default entry for the plugin
 		assertTrue(programmers.contains("avrisp")); // last entry
 		assertTrue(programmers.contains("c2n232i")); // first entry
+		assertTrue(programmers.contains("pony-stk200")); // Bug 1984307
+		assertTrue(programmers.contains("dragon_isp")); // Bug 1984307
 		assertFalse(programmers.contains(null));
 	}
 
