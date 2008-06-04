@@ -651,7 +651,7 @@ public class AVRDude implements IMCUProvider {
 		// " id = description [pathtoavrdude.conf:line]"
 		// The following pattern splits this into the four groups:
 		// id / description / path / line
-		Pattern mcuPat = Pattern.compile("\\s*(\\w+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
+		Pattern mcuPat = Pattern.compile("\\s*(\\S+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
 		Matcher m;
 
 		for (String line : stdout) {
