@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Using the AVR Supported MCU View</title>
+<link href="../book.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>Using the AVR Supported MCUs View</h1>
+<p>The AVR Supported MCUs view is an information tool. It shows information about the MCUs supported by the currently active toolchain. This can be used for new projects to select a MCU that is compatible with all tools. Also this view allows access to the processor datasheets.</p>
+<p>To open the view select <strong>Window &gt; Show view... &gt; other...</strong></p>
+<p>Select <strong>AVR Supported MCUs </strong>under the the <strong>AVR</strong> entry and click OK.</p>
+<p>The view is now shown:</p>
+<p><img src="images/task_supported_mcus_view.png" alt="AVR Supported MCUs view"></p>
+<p>&nbsp;</p>
+<p>This view shows a list of all MCUs known to the plugin and whether or not they</p>
+<ul>
+  <li>are supported by the different tools of the active toolchain (<strong>avr-gcc</strong> and <strong>avrdude</strong> columns)</li>
+  <li>are included in the Atmel <em>Part Description Files</em> (<strong>AVR Studio</strong> column)</li>
+  <li>have fuse and/or lockbit definitions (<strong>Fuses</strong> column)</li>
+</ul>
+<p>The <strong>Signature</strong> column is just for info because there was still some space left in the table. It could be checked to see which MCUs are hardware compatible (like the at90usb1286 and<br>
+  at90usb1287, which have the same signature 0x1E9782)<br>
+</p>
+<p>Those MCUs for which datasheets links are known to the plugin<a href="http://www.atmel.com/dyn/products/datasheets.asp?family_id=607"></a> are displayed as hyperlinks. Clicking on them will download and open the datasheet. This list is currently static and will only be updated together with new versions of the plugin. Future versions of the plugin may include an editor to add other links.</p>
+<div class="categoryrelated">Related Concepts</div>
+<div class="copyright">&copy; 2008 Thomas Holland</div>
+</body>
+</html>
