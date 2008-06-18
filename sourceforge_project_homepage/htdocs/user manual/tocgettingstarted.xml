@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Getting Started" link_to="toc.xml#gettingstarted"> 
+	<topic label="Creating an AVR project"  href="gettingstarted/gs_newproj.html"> 
+		<topic label="Create a sample AVR C File" href="gettingstarted/gs_newproj_cfile.html" /> 
+		<topic label="Building an AVR project" href="gettingstarted/gs_newproj_buildproject.html"></topic>
+		<topic label="Changing the Configuration" href="gettingstarted/gs_newproj_changeconfig.html"></topic>
+		<topic label="Customizing a Configuration" href="gettingstarted/gs_newproj_customizeconfig.html"></topic>
+	</topic>
+	<topic label="Upload a project to the target device with avrdude" href="gettingstarted/gs_avrdude.html">
+		<topic label="Requirements" href="gettingstarted/gs_avrdude_requirements.html"></topic>
+		<topic label="Selecting a Programmer" href="gettingstarted/gs_avrdude_programmer.html"></topic>
+		<topic label="Configuring the Project" href="gettingstarted/gs_avrdude_configure_project.html"></topic>
+		<topic label="Starting the Upload" href="gettingstarted/gs_avrdude_upload.html"></topic>
+	</topic>
+</toc>

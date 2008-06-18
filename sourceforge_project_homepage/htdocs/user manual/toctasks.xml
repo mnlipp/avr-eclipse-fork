@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Tasks" link_to="toc.xml#tasks"> 
+	<topic label="AVR path preferences" href="tasks/task_path_preferences.html" />
+	<topic label="Change Target Hardware"  href="tasks/task_change_target.html" /> 
+	<topic label="Add / Remove AVR specific Tools from the Toolchain" href="tasks/task_change_toolchaintools.html" />
+	<topic label="Using the AVR Device Explorer View" href="tasks/task_show_avrviewer.html" />
+	<topic label="Using the AVR Supported MCUs View" href="tasks/task_show_supported_mcu_viewer.html" />
+	<topic label="Update AVR Projects from older plugin versions" href="tasks/task_update_project.html" />
+	<topic label="Automatically save open files before build" href="tasks/task_autosave.html" />
+</toc>
