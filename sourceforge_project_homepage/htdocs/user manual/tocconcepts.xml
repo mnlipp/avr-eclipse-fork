@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Concepts" link_to="toc.xml#concepts">
+
+  <topic label="Toolchain Overview"  href="concepts/toolchain.html"> </topic>
+
+  <topic label="AVR Device Explorer View Data Sources" href="concepts/avrviewerdatasources.html">
+	  <topic label="&lt;avr/io.h&gt; Datasource" href="concepts/avrviewer_avrioh.html" />
+  </topic>
+
+  <topic label="Plugin path management"  href="concepts/avr_path_management.html"> </topic>
+
+  <topic label="Build Configurations"  href="concepts/concept_build_configuration.html"> </topic>
+
+</toc>
