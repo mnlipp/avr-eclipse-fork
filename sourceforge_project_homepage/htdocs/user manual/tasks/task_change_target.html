@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Change AVR Target Hardware</title>
+<link href="../book.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>Change AVR Target Hardware</h1>
+<p>For each project or optionally each build configuration the toolchain maintains two options for the target processor hardware - the processor type and its clock speed. The processor type is passed as a command line option to all tools requiring the processor type. The clock speed is only passed onto the compiler as a <span class="userinput">#define F_CPU xxxxxxxx</span>UL. Its up to the application to do anything with this value, e.g. adjust its internal timings.</p>
+<p>&nbsp;</p>
+<p>The options can be changed via the project properties. </p>
+<p> To change the target processor select the project properties and expand<strong> AVR Target Hardware</strong>.</p>
+<p><img src="images/task_targethardware_1.png" alt="" ></p>
+<p>&nbsp;</p>
+<p>If an avrdude programmer has been set for the project (or build configuration), the <strong>Load from MCU</strong> button will start avrdude and query the programmer for the MCU currently attached to the programmer.</p>
+<p>&nbsp;</p>
+<p>The list of MCUs is generated dynamically and is based on the currently installed <em>avr-gcc</em> compiler. If you do not find the required MCU in the list you can try to update the avr-gcc toolchain.</p>
+<p>Not all MCUs supported by avr-gcc are also supported by avrdude. The plugin will show a warning if the selected MCU is not supported by the currently active avrdude executable.</p>
+<p><img src="images/task_targethardware_2.png" alt="avrdude warning" width="343" height="56"></p>
+<p>In this case you can still use Eclipse to write the application, but you cannot use Eclipse to upload the project to the target MCU. Some  tool other than avrdude will be needed to do the upload, e.g. AVR Studio. The <a href="task_show_supported_mcu_viewer.html">AVR Supported MCUs</a> view can be used to check what MCUs are supported by avrdude and AVR Studio.</p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="task_change_toolchaintools.html">Add / Remove AVR specific Tools from the Toolchain</a>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
+</body>
+</html>

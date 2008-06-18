@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Add / Remove AVR specific Tools from the Toolchain</title>
+<link href="../book.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>Add / Remove AVR specific Tools from the Toolchain</h1>
+<p>The AVR Plugin has a few useful tools added to the standard GCC Toolchain. These are currently:</p>
+<ul>
+  <li>Create Flash Image</li>
+  <li>Create EEPROM Image</li>
+  <li>Create Extended Listing</li>
+  <li>Print Size</li>
+  <li>Run AVRDude</li>
+</ul>
+<p>Not all of these tools make sense for all configurations, e.g. if a simulator is used for debugging, it is usually not required to build the image files, as most simulators will accept the ELF file that is always created by the linker. Or if your application does not put any static data into the eeprom of the target, it is not necessary to create a eeprom image (which - depending on the avr-gcc toolchain version - will fail anyway).</p>
+<p>If you do want to change the tools in a configuration, you can either use the standard CDT way via <br>
+  <strong>Project</strong> -&gt; <strong>Properties</strong> -&gt; <strong>C/C++ Build</strong> -&gt; <strong>Tool chain editor</strong> -&gt; select tools.</p>
+<p>As a convenience the additional AVR plugin tools can also be selected / deselected on the Tool Settings page. To do this select the project properties, expand <strong>C/C++ Build</strong> and select the <strong>Tool Settings</strong> tab. Then select the <strong>Additional Tools in Toolchain</strong> item and change the settings as required.</p>
+<p><img src="images/task_toolchaintools_1.png" alt="Toolchain Tools" width="885" height="586"></p>
+<p><strong>Note</strong>: Newly selected tools are not  visible in the <strong>Tool settings</strong> view until the dialog window has been closed and reopened again.</p>
+<p>&nbsp;</p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="task_change_target.html">Change Target Hardware</a>
+<div class="categoryrelated">Related Concepts</div>
+<a href="../concepts/toolchain.html">AVR Eclipse Toolchain</a>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
+</body>
+</html>

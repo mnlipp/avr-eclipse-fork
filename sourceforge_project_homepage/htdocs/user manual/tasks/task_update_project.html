@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Update AVR projects</title>
+<link href="../book.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>Update AVR projects</h1>
+<p>Sometimes it is necessary to break compatibility with projects created with previous versions of the plugin. This is done to include / upgrade features or to fix bugs.</p>
+<p>The plugin has a project update converter to update projects created with previous versions of the plugin. Projects not converted usually do not build  anymore.</p>
+<p class="Note"><strong>Note</strong>: Before updating a project, especially with a beta version of this Plugin, you might want to make a backup of your project.<br>
+  While none of your source files are touched by the upgrade, your carefully selected toolchain options could be affected.
+  </p>
+
+<table border="0" cellspacing="1" cellpadding="3">
+  <tr valign="top">
+    <td>To upgrade old projects right click on the project<br>
+    and select <em class="UILabel">Convert To...</em> from the context menu.</td>
+    <td><img src="images/convert1.png" alt="Select Convert To"></td>
+  </tr>
+</table>
+<p>If the project has been created with a previous version and is updateable to the current version, the following dialog is shown:</p>
+<p><img src="images/convert2.png" alt="Converter Dialog Box" ></p>
+<p>Select <em class="UILabel">Update to AVR Eclipse x.x</em> and click <span class="guibutton">OK</span></p>
+<p>The Eclipse internal informations about the project are then updated. Note that there is no visible changes other that the project builds again.<br>
+Calling the converter multiple times for a project is possible and does not cause any harm.</p>
+<p>&nbsp;</p>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
+</body>
+</html>
