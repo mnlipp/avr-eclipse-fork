@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Building the AVR Project</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Customizing the Configuration</h1>
+<p>In the <a href="gs_newproj_changeconfig.html">previous step</a> we have build the project in the Release configuration. The build process generated an error, because it tried to make an .eep file with the eeprom data which our sample project does not have. With the next steps we will modify the Release configuration and tell it that we do not have eeprom data with our project. Some other configuration options will also be shown.</p>
+<ol>
+  <li>
+    <p>Right Click on the <strong>AVRtest</strong> project and select <strong>Properties</strong><br>
+      <br>
+    </p>
+  </li>
+  <li>Expand the <strong>C/C++ Build</strong> item and click on Settings<br>
+    <br>
+  </li>
+  <li>Select <strong>Release</strong> from the configurations<br>
+    <br>
+    <img src="images/gs_customize_1.png" alt=""><br>
+    <br>
+    <table width="516" border="0" cellpadding="3" cellspacing="1">
+      <tr>
+        <td width="217" valign="top"><img src="images/gs_customize_2.png" alt=""></td>
+        <td width="624" valign="top">Under the <strong>Tool Settings</strong> tab all active tools of the current configuration and some general options are shown</td>
+      </tr>
+    </table>
+    <br>
+    <br>
+    <br>
+    <br>
+  </li>
+  <li>Select <strong>Additional Tools in Toolchain</strong>.<br>
+    <br>
+  </li>
+  <li>On the right side deselect <strong>Generate HEX file for EEPROM</strong> and <strong>Generate Extended Listing</strong><br>
+    <br>
+    <img src="images/gs_customize_3.png"alt=""><br>
+    <br>
+    This removes these two tools from the selected configuration<br>
+    <br>
+  </li>
+  <li>Click <strong>OK</strong><br>
+    <br>
+  </li>
+  <li>Right click on the <em>Release</em> folder and select <strong>Delete</strong><br>
+    <br>
+    This removes all generated files from the previous build<br>
+    <br>
+  </li>
+  <li>Right click on the Project and select <strong>Build Project</strong><br>
+    <br>
+    The project is again build in the release configuration and this time the build process does not try to create an .eep file, so no more error messages are generated. Also no .lss file is created.<br>
+    <br>
+  </li>
+</ol>
+<p>The deselected tools can be selected again at any time. Please note that any newly selected tools in the toolchain will not immediatly show up in the list of tools. You need to close and reopen the properties dialog page to see the modified toolchain.</p>
+<p>&nbsp;</p>
+<p>This completes the <em>Create and build a new project</em> tutorial. You can now start hacking on your project or continue with the next tutorial: <b><a href="gs_avrdude_requirements.html">Upload a project to the target device with avrdude</a></b>.</p>
+<p>
+  <!-- 
+<p> <a href="" style="text-decoration: none"> <img border="0" src="../images/ngnext.gif" width="16" height="16" alt=""></a> <b><a href="cdt_w_build.htm"> Next: Customizing a Configuration</a></b> </p> 
+-->
+</p>
+<p align="left"> <a href="gs_newproj_changeconfig.html"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_newproj_changeconfig.html">Back: Changing the configuration</a></b> </p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="../tasks/task_change_toolchaintools.html">Add / Remove AVR specific Tools from the Toolchain</a>
+<div class="categoryrelated">Related Concepts</div>
+<a href="../concepts/concept_build_configuration.html">Build Configurations</a>
+<p class="copyright">&copy; 2007, 2008 Thomas Holland</p>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Creating a sample AVR C File</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Creating a sample AVR C File</h1>
+<p>Once a project has been created you can start adding C source files to it. For this tutorial we add a very simple programm, that actually does nothing, but is compatible with all AVR series processors. </p>
+<p>To create the file:</p>
+<ol>
+  <li>In the <b>Project Explorer</b> view, right-click the <b>AVRtest</b> project 
+    folder, and select <b>New &gt; Source File</b>.<br>
+    <br>
+  </li>
+  <li>In the <b>Source File</b> field, type <b>main.c</b>.<br>
+    <br>
+  </li>
+  <li>Click <b>Finish</b>.<br>
+    <br>
+  </li>
+  <li>Type the code in the editor. (or copy and paste it from here)
+    <br>
+    <br>
+    <table border="1">
+      <tr>
+        <td><pre>
+int main(void)
+{
+    while (1)
+    {
+        __asm__ volatile(&quot;nop&quot;);		// so the endless loop isn't optimized away
+    }
+
+    return (1);	// should never happen
+}
+</pre></td>
+      </tr>
+    </table>
+    <p class="Code"></p>
+  </li>
+  <li>Click <b>File &gt; 
+    Save</b>.</li>
+</ol>
+<p>The file is now ready for building.</p>
+<p> <a href="gs_newproj_buildproject.html" style="text-decoration: none"> <img src="../images/ngnext.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_newproj_buildproject.html">Next: Building your Project</a> </b> </p>
+<p align="left"><a href="gs_newproj.html" style="text-decoration: none"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_newproj.html">Back: Creating your project</a></b></p>
+<p class="copyright">&copy; 2007, 2008 Thomas Holland</p>
+</body>
+</html>

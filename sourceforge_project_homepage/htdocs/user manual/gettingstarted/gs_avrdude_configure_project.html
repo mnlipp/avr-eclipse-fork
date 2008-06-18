@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Configuring the Project</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Configuring the Project</h1>
+<p>Once you have set up a programmer you can use it to upload a project to your target device. To do this you have to tell the plugin what you want to upload - a flash memory image, an eeprom memory image and/or the fuse bytes and lock bits.</p>
+<p>This is done on the project properties dialog. Right click on your project and select <strong>Properties</strong> from the context menu. Then select <strong>AVR</strong> &gt; <strong>AVRDude</strong>:</p>
+<p><img src="images/gs_avrdude_properties1.png" alt="AVRDude Project Properties" width="886" height="587"></p>
+<p>&nbsp;</p>
+<p>On this first tab check that the <strong>Programmer configuration</strong> shows the programmer you have defined in the previous step. If you have more than one programmer configured you can choose the one to use for the project here.</p>
+<p>&nbsp;</p>
+<p>Next click on the <strong>Flash/EEPROM</strong> tab and in the <strong>Upload Flash Memory Image</strong> group select <strong>from build</strong>:</p>
+<p><img src="images/gs_avrdude_properties2.png" alt="Flash/EEPROM properties" width="660" height="306"></p>
+<p>&nbsp;</p>
+<p>Now, once the project is build and the flash memory image is generated, it can be uploaded to the target. </p>
+<p>For this tutorial we will not upload an EEPROM image nor set the fuse and lock bits, so they  should be set to <strong>do not upload eeprom image</strong>, <strong>do not set fuse bytes</strong> and <strong>do not set lockbits </strong>(which is the default).</p>
+<p><img src="images/gs_avrdude_properties3.png" alt="No Fuses, no locks" width="460" height="142"></p>
+<p>&nbsp;</p>
+<p>Finally, you should check that the required memory image file is actually generated in the build.</p>
+<p>With the properties still open select <strong>C/C++ Build</strong> &gt; <strong>Settings</strong> &gt; <strong>Additional Tools in Toolchain</strong> and check that <strong>Generate HEX file for Flash memory</strong> is checked for the build configuration you are using (&quot;Debug&quot; in the example screenshot)</p>
+<p>.<img src="images/gs_avrdude_properties4.png" alt="Generate HEX file property" width="784" height="306"></p>
+<p>On this dialog page you could also tick <strong>AVRDude</strong> to have the plugin start an upload to the target device every time you build the project. Leave this unchecked for this tutorial.</p>
+<p>Once you have set all properties you can click on <strong>OK</strong> to save all changes and close the project properties dialog.</p>
+<p>&nbsp;</p>
+<p>Finally check that the MCU selected for the project is the same as the one connected to your programmer. If they do not match avrdude will refuse to programm the MCU.</p>
+<p>Again with the project properties still open select the <strong>AVR</strong> &gt; <strong>Target Hardware</strong> page and check that the correct MCU is selected:</p>
+<p><img src="images/gs_avrdude_target_hardware.png" alt="Target Hardware" width="712" height="330"></p>
+<p>&nbsp;</p>
+<p>If you are not sure what type of target MCU is  connected to your programmer you can click on the <strong>Load from MCU</strong> button. </p>
+<p>With the programmer correctly configured, connected, and powered up the plugin will start avrdude to determine the actual MCU (or show an error message if any of the prerequisites is not met).</p>
+<p>&nbsp;</p>
+<p><a href="gs_avrdude_upload.html" style="text-decoration: none"> <img src="../images/ngnext.gif" alt="Next" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_avrdude_upload.html"> Next: Starting the Upload</a></b></p>
+<!-- 
+<p> <a href="" style="text-decoration: none"> <img border="0" src="../images/ngnext.gif" width="16" height="16" alt=""></a> <b><a href="cdt_w_build.htm"> Next: Customizing a Configuration</a></b> </p> 
+-->
+<p align="left"> <a href="gs_avrdude_programmer.html"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_avrdude_programmer.html">Back: Selecting a Programmer</a></b></p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="../tasks/task_change_toolchaintools.html">Add / Remove AVR specific Tools from the Toolchain</a>
+<p align="left">&nbsp;</p>
+<p class="copyright">&copy; 2008 Thomas Holland</p>
+</body>
+</html>

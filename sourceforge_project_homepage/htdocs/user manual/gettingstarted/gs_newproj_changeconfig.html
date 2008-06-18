@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Building the AVR Project</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Changing the Configuration</h1>
+<p>In the <a href="gs_newproj_buildproject.html">previous step</a> we have build the project in the default Debug configuration. While the generated elf file can be run on a simulation (which is what you normally  want for debugging your application), by default no files which can be downloaded onto an actual AVR device have been generated. </p>
+<p>So in this step of the tutorial we will build the project with the Release configuration, which by default will create the necessary files for the real hardware.</p>
+
+<ol>
+  <li>
+    <p>Right Click on the AVRtest Project and select the <strong>Release</strong> Build Configuration</p>
+    <br>
+    <img src="images/gs_build_3.png" alt=""><br>
+    <br>
+  </li>
+  <li>Right click on the <strong>AVRtest</strong> Project in the Project Explorer and select <strong>Build Project</strong>.<br>
+    <br>
+    The project is now build with the Release configuration. The log of the build process is shown in the Console View and should look something like this:<br>
+    <br>
+      <pre class="codeblock">
+**** Build of configuration Release for project AVRtest ****
+
+make all 
+Building file: ../main.c
+Invoking: AVR Compiler
+avr-gcc -Wall -Os -fpack-struct -fshort-enums -funsigned-char -funsigned-bitfields -mmcu=atmega16 
+ -DF_CPU=1000000UL -MMD -MP -MF&quot;main.d&quot; -MT&quot;main.d&quot; -c -o&quot;main.o&quot; &quot;../main.c&quot;
+Finished building: ../main.c
+ 
+Building target: AVRtest.elf
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,AVRtest.map -mmcu=atmega16 -o&quot;AVRtest.elf&quot;  ./main.o   
+Finished building target: AVRtest.elf
+ 
+Invoking: AVR Create Extended Listing
+avr-objdump -h -S AVRtest.elf  &gt;&quot;AVRtest.lss&quot;
+Finished building: AVRtest.lss
+ 
+Create Flash image (ihex format)
+avr-objcopy -R .eeprom -O ihex AVRtest.elf  &quot;AVRtest.hex&quot;
+Finished building: AVRtest.hex
+ 
+Create eeprom image (ihex format)
+avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex AVRtest.elf  &quot;AVRtest.eep&quot;
+Finished building: AVRtest.eep
+ 
+Invoking: Print Size
+avr-size --format=avr --mcu=atmega16 AVRtest.elf
+AVR Memory Usage
+----------------
+Device: atmega16
+
+Program:     152 bytes (0.9% Full)
+(.text + .data + .bootloader)
+
+Data:          0 bytes (0.0% Full)
+(.data + .bss + .noinit)
+
+
+Finished building: sizedummy
+ 
+</pre>
+    <strong><br>
+    Note</strong>: The format option --format=avr for the <em>AVR Print Size</em> tool is not available on all platforms.<br>
+    <br>
+  </li>
+  <li>Again, a new folder Release has appeared in your project.<br>
+    <br>
+    <table width="90%" border="0">
+      <tr>
+        <td valign="top">The <strong>Release</strong> folder has all the same generated files as the Debug folder, with one additional file:<br>
+          <br>
+          <ul>
+            <li><strong>AVRtest.hex</strong>: A hex dump file suitable for downloading to the flash memory of an AVR device.</li>
+          </ul>
+          <p>The (virtual) folder <strong>Binaries</strong> contains a second link to the generated elf file in the <strong>Release</strong> folder.</p>
+          <p>&nbsp;</p>
+          <p>If the programm had contained data for the eeprom memory of the AVR device, one more file would have been created:</p>
+          <p><br>
+          </p>
+          <ul>
+            <li><strong>AVRtest.eep</strong>: A hex dump file suitable for downloading to the eeprom memory of an AVR device.</li>
+          </ul>
+          <p>But as the our very simple main.c file did not have eeprom data, no .eep file was generated, instead a error message was generated during the make process. See the next step of this tutorial on how to get rid of the error message.</p>
+          <p></p></td>
+        <td><img src="images/gs_build_4.png" border="1" alt=""></td>
+      </tr>
+    </table>
+    <br>
+    <br>
+  </li>
+</ol>
+<p> <a href="gs_newproj_customizeconfig.html" style="text-decoration: none"> <img src="../images/ngnext.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_newproj_customizeconfig.html"> Next: Customizing a Configuration</a></b> </p>
+<p align="left"> <a href="gs_newproj_buildproject.html"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_newproj_buildproject.html">Back: Building the Project</a></b> </p>
+<div class="categoryrelated">Related Concepts</div>
+<p align="left"><a href="../concepts/concept_build_configuration.html">Build Configurations</a></p>
+<p class="copyright">&copy; 2007, 2008 Thomas Holland</p>
+</body>
+</html>

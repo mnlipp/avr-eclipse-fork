@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Selecting a Programmer</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Selecting a Programmer</h1>
+<p>Before using avrdude to upload something you need to tell the plugin what kind of programmer you will use. </p>
+<p>This is done via the Eclipse preferences (<strong>Window</strong> &gt; <strong>Preferences...</strong> &gt; <strong>AVR</strong> &gt; <strong>AVRDude</strong>):</p>
+<p><img src="images/gs_avrdude_programmer1.png" alt="AVRDude Preferences" width="639" height="399"></p>
+<br>
+<p>When started for the first time, the list of programmer configurations is empty. Click on <strong>Add...</strong> to create a new programmer configuration:</p>
+<p><img src="images/gs_avrdude_programmer_editor1.png" alt="AVRDude Programmer Editor" width="725" height="534"></p>
+<p>&nbsp;</p>
+<p>First give the programmer an unique name like &quot;My AVR Programmer&quot; and add an optional description like &quot;Connected to the default port COM1&quot;</p>
+<p>Then select the type of device you have from the list of <strong>Programmer Hardware</strong>.</p>
+<p>If your programmer is not on the list you can try to select a compatible device or update to a newer version of avrdude that might support your device (the list shown in the plugin is generated dynamically by asking the currently active avrdude about all devices it knows)</p>
+<p>If your device is not connected to the default port (usually COM1 or LPT1), you need to supply a port name in the <strong>Override default port</strong> field. Some USB devices, like the &quot;Atmel AVR ISP mkII&quot; require that you put &quot;USB&quot; here, because otherwise avrdude will try to use the default serial port. (see the <a href="http://www.nongnu.org/avrdude/user-manual/avrdude_4.html#SEC4">options description</a> section in the avrdude manual under &quot;-p&quot; for more information).</p>
+<p>The other options (<strong>Override default Baudrate</strong>, <strong>/Reset Line</strong> and <strong>Vcc Lines</strong>) should only be changed if required and after consulting the avrdude manual..</p>
+<p>Now click on <strong>OK</strong> and your new programmer configuration should show up in the list of Programmer Configurations.</p>
+<p>Click <strong>OK</strong> again and you are ready to use the programmer.</p>
+<p>&nbsp;</p>
+<p><a href="gs_avrdude_configure_project.html" style="text-decoration: none"><img src="../images/ngnext.gif" alt="Next" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_avrdude_configure_project.html"> Next: Configuring the Project</a></b></p>
+<!-- 
+<p> <a href="" style="text-decoration: none"> <img border="0" src="../images/ngnext.gif" width="16" height="16" alt=""></a> <b><a href="cdt_w_build.htm"> Next: Customizing a Configuration</a></b> </p> 
+-->
+<p align="left"> <a href="gs_avrdude_requirements.html"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_avrdude_requirements.html">Back: AVRDude Requirements</a></b> </p>
+<div class="categoryrelated">Related Tasks</div>
+<p align="left">&nbsp;</p>
+<p class="copyright">&copy; 2008 Thomas Holland</p>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Starting the Upload</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Starting the Upload</h1>
+<p>Before you can upload the project to your target hardware the project needs to be build to generate the flash image file.</p>
+<p>Right click on the project and select <strong>Build Project</strong>. If you do not have the <strong>Build Project</strong> entry in the project context menu you probably have autobuild switched on. See <a href="gs_newproj_buildproject.html">here</a> on how to switch the autobuild feature off.</p>
+<p>You should see something like this</p>
+<pre class="codeblock">Create Flash image (ihex format)
+avr-objcopy -R .eeprom -O ihex AVRtest.elf  &quot;AVRtest.hex&quot;
+Finished building: AVRtest.hex</pre>
+<p>in your output to indicate that the flash image file has been successfully created.</p>
+<p>&nbsp;</p>
+<p>Now you are set to start the upload. For your convenience the plugin has four different methods to start the upload, but they all act the same. Probably the easiest way is to select your project (single left click) and then use the upload toolbar button:</p>
+<p><img src="../other/images/WhatsNew2.2_avrdude_upload_via_toolbar.png" alt="upload toolbar button" width="546" height="64"></p>
+<p>Other methods are the via the main menu <strong>AVR</strong> &gt; <strong>Upload Project to Target Device</strong> entry (which will also show you the current key shortcut for your platform), or via the project context menu (right click on the project &gt; <strong>AVR</strong> &gt; <strong>Upload Project to Target Device</strong>)</p>
+<p>&nbsp;</p>
+<p>The upload is started...</p>
+<p><img src="images/gs_avrdude_upload_progress.png" alt="Upload Progress" width="450" height="196"></p>
+<p>&nbsp;</p>
+<p>and the output from avrdude is logged in the console view</p>
+<p></p>
+<div class="codeblock">
+  <pre>Launching F:\WinAVR\bin\avrdude -pm8515 -cstk500v2 -y -u -Uflash:w:AVRtest.hex:a 
+Output:</pre>
+  <pre style="color:#009900">
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.02s<br>
+
+avrdude: Device signature = 0x1e9306
+avrdude: NOTE: FLASH memory has been specified, an erase cycle will be performed
+To disable this feature, specify the -D option.
+avrdude: erasing chip
+avrdude: reading input file &quot;AVRtest.hex&quot;
+avrdude: input file AVRtest.hex auto detected as Intel Hex
+avrdude: writing flash (104 bytes):
+
+Writing | ################################################## | 100% 0.03s
+
+avrdude: 104 bytes of flash written
+avrdude: verifying flash memory against AVRtest.hex:
+avrdude: load data flash data from input file AVRtest.hex:
+avrdude: input file AVRtest.hex auto detected as Intel Hex
+avrdude: input file AVRtest.hex contains 104 bytes
+avrdude: reading on-chip flash data:
+
+Reading | ################################################## | 100% 0.02s
+
+avrdude: verifying ...
+avrdude: 104 bytes of flash verified
+
+avrdude done.  Thank you.</pre>
+  <pre>
+avrdude finished</pre>
+</div>
+<p>&nbsp;</p>
+<p>If the output looks something like the above your project has been successfully uploaded to the target MCU. If not - and you did not get a meaningful error message from the plugin - you should check  the <a href="http://www.nongnu.org/avrdude/user-manual/avrdude.html">avrdude manual</a> for troubleshooting.</p>
+<p>&nbsp;</p>
+<p>This completes the <em>Upload a project to the target device with avrdude</em> tutorial. </p>
+<p><br>
+</p>
+<!-- 
+<p> <a href="" style="text-decoration: none"> <img border="0" src="../images/ngnext.gif" width="16" height="16" alt=""></a> <b><a href="cdt_w_build.htm"> Next: Customizing a Configuration</a></b> </p> 
+-->
+<p align="left"> <a href="gs_avrdude_configure_project.html"> <img src="../images/ngback.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <b><a href="gs_avrdude_configure_project.html">Back: Configuring the Project</a></b> </p>
+<div class="categoryrelated"></div>
+<p class="copyright">&copy; 2007,2008 Thomas Holland</p>
+</body>
+</html>

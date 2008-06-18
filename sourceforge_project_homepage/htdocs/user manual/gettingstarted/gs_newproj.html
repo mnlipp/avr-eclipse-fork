@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+<meta http-equiv="content-language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Creating your project</title>
+<link href="../book.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<h1>Creating a project</h1>
+<p>The following steps will create a new Project for AVR Cross Target development.</p>
+<p>To create a project for the AVR Target:</p>
+<ol>
+  <li>Select <b>File &gt; New &gt; Project</b>.
+    <p><br>
+  </p>
+  </li>
+  <li>In the new Project Wizard select the type of project to create. For this tutorial, expand the <b>C</b> folder and select <b>C Project</b>. <br>
+    <p><br>
+      The <b>C Project</b> wizard opens:<br>
+      <br>
+      <img src="images/gs_proj_wizard_1.png" alt="New C Project Wizard Page"><br>
+      <br>
+      The AVR Plugin provides two new project types:<br>
+    </p>
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
+      <tr>
+        <td><strong>AVR Cross Target Application</strong></td>
+        <td>Project suitable for applications that can be loaded onto an AVR device.</td>
+      </tr>
+      <tr>
+        <td><strong>AVR Cross Target Static Library</strong></td>
+        <td>Project suitable for building a static library of commonly used functions, which can be linked into applications</td>
+      </tr>
+    </table>
+        <br>
+        Some other project types such as <strong>Executable</strong> may show up, depending on wich other toolchains have been installed.<br>
+    <br>
+  </li>
+  <li>
+    <p>For this tutorial we will build an application so select <strong>AVR Cross Target Application</strong><br>
+      <br>
+    </p>
+  </li>
+  <li>
+    <p>Enter a project name (e.g. &quot;AVRtest&quot;) into the <strong>Project name</strong> field.<br>
+      <br>
+    </p>
+  </li>
+  <li>
+    <p>Click <strong>Next &gt;</strong><br>
+    </p>
+    <p><br>
+      Now the automatic build configurations can be selected. <br>
+      <br>
+      <img src="images/gs_proj_wizard_2.png" width="497" height="419" alt=""><br>
+      <br>
+      A Configuration is a collection of options and settings for building the project. The AVR Plugin has two default configurations:<br>
+    </p>
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
+      <tr>
+        <td><strong>Debug</strong></td>
+        <td>Settings suitable for debugging the application in a simulator.</td>
+      </tr>
+      <tr>
+        <td><strong>Release</strong></td>
+        <td>Settings suitable for generating the hex dump files which can be downloaded to the actual device.</td>
+      </tr>
+    </table>
+    <br>
+    Other configurations can be created, either at this point via the Advanced settings... button or anytime later once the project has been created. The configurations can be used to apply specific options to the project. For example, to build the same sources for different target MCUs or different target hardware clocks create multiple new configurations, e.g. &quot;ATmega16_1Mhz&quot; and &quot;ATmega32_4Mhz&quot;, and configure each with the required settings. <br>
+    <p> The options and settings for each configuration can be changed with the <strong>Advanced settings...</strong> button or, once the project has been created, via the project properties. <br>
+    </p>
+    How to select the different configurations for a build will be <a href="gs_newproj_changeconfig.html">shown later</a> in this tutorial.<br>
+  </li>
+  <li>Click  <strong>Next &gt;</strong>.<br>
+    <br>
+    On the next page the target processor and its target clock frequency can be selected.<br>
+    <br>
+    <img src="images/gs_proj_wizard_3.png" width="499" height="231" alt=""><br>
+    <br>
+    Two items specific to the AVR processors can be changed.
+    <table width="90%" border="1" cellpadding="3" cellspacing="1">
+      <tr>
+        <td><strong>MCU Type</strong></td>
+        <td>Select the target processor for your project out of the list of selected processor types. This setting is used by some tools of the toolchain to generate the correct code for the target processor.</td>
+      </tr>
+      <tr>
+        <td><strong>MCU Frequency</strong></td>
+        <td>Select the target clock frequency for your project. This is just passed on to the compiler as a #define F_CPU
+        &lt;MCU Frequency&gt;
+        , which programms requiring exact timing can use for their internal timing calculations.</td>
+      </tr>
+    </table>
+    The values for MCU type and MCU frequency can later be changed via the project properties.<br>
+    <br>
+    For now we leave the defaults and<br>
+    <br>
+  </li>
+  <li>Click <strong>Finish</strong><br>
+    <br>
+    If a message box prompts you to change perspectives, click <b>Yes</b>.</li>
+</ol>
+<table width="90%" border="0" cellpadding="3" cellspacing="1">
+  <tr>
+    <td valign="top">Your new project displays in the C/C++ Projects view, and in
+  the Navigator view. Your project is empty because you have not yet created
+  files for your project. You can now start writing the code for your first
+  program.</td>
+    <td><img src="images/gs_proj_wizard_4.png" width="278" height="145" alt=""></td>
+  </tr>
+</table>
+<p><b>Tip:</b> You can view and modify the properties of your
+   project by right-clicking on the project in the Project Explorer
+view and clicking Properties (or press Alt+Enter with the project selected).</p>
+<p><a style="text-decoration: none" href="gs_newproj_cfile.html"><img
+src="../images/ngnext.gif" alt="" width="16" height="16" border="0" align="absmiddle"></a> <a href="gs_newproj_cfile.html"><b> Next: Creating a sample AVR C File</b></a></p>
+<div class="categoryrelated">Related Tasks</div>
+<a href="../tasks/task_change_target.html">Change AVR Target Hardware</a>
+<p align="left"></p>
+<p>&nbsp;</p>
+<p class="copyright">&copy; 2007,2008 Thomas Holland</p>
+</body>
+</html>
