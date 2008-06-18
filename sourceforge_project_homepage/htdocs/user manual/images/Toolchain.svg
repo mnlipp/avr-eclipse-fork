@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Generiert durch Microsoft Visio 11.0, SVG Export, v1.0 Toolchain.svg Page-1 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="8.26772in"
+		height="11.6929in" viewBox="0 0 595.276 841.89" xml:space="preserve" color-interpolation-filters="sRGB" class="st12">
+	<v:documentProperties v:langID="1031" v:viewMarkup="false"/>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#f8f8f8;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st2 {fill:#e8eef7;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st3 {fill:#000000;font-family:Arial;font-size:0.666664em}
+		.st4 {font-size:1em}
+		.st5 {fill:#ffccff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st6 {marker-end:url(#mrkr4-45);stroke:#4677bf;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st7 {fill:#4677bf;fill-opacity:1;stroke:#4677bf;stroke-opacity:1;stroke-width:0.08695652173913}
+		.st8 {fill:#ccffcc;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st9 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st10 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.72}
+		.st11 {fill:#dde2cd;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st12 {fill:none;fill-rule:evenodd;font-size:12;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Markers">
+		<g id="lend4">
+			<path d="M 2 1 L 0 0 L 2 -1 L 2 1 " style="stroke:none"/>
+		</g>
+		<marker id="mrkr4-45" class="st7" v:arrowType="4" v:arrowSize="2" v:setback="23" refX="-23" orient="auto"
+				markerUnits="strokeWidth">
+			<use xlink:href="#lend4" transform="scale(-11.5,-11.5) "/>
+		</marker>
+	</defs>
+	<g v:mID="0" v:index="1" v:groupContext="foregroundPage">
+		<v:userDefs>
+			<v:ud v:nameU="SchemeName" v:val="VT4(Default)"/>
+		</v:userDefs>
+		<title>Page-1</title>
+		<v:pageProperties v:drawingScale="0.0393701" v:pageScale="0.0393701" v:drawingUnits="24" v:shadowOffsetX="8.50394"
+				v:shadowOffsetY="-8.50394"/>
+		<v:layer v:name="Flussdiagramm" v:index="0"/>
+		<v:layer v:name="Verbinder" v:index="1"/>
+		<g id="shape34-1" v:mID="34" v:groupContext="shape" transform="translate(56.6929,-538.583)">
+			<title>Tabelle.34</title>
+			<rect x="0" y="805.039" width="340.157" height="36.8504" rx="11.3386" ry="11.3386" class="st1"/>
+		</g>
+		<g id="shape40-3" v:mID="40" v:groupContext="shape" transform="translate(58.1102,-411.024)">
+			<title>Tabelle.40</title>
+			<rect x="0" y="720" width="338.74" height="121.89" rx="11.3386" ry="11.3386" class="st1"/>
+		</g>
+		<g id="shape1-5" v:mID="1" v:groupContext="shape" v:layerMember="0" transform="translate(191.339,-586.772)">
+			<title>Process</title>
+			<desc>Linker (avr-ln)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="24.53" y="818.23" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Linker<v:lf/><tspan
+						x="22.76" dy="1.2em" class="st4">(</tspan>avr-ln)</text>		</g>
+		<g id="shape2-9" v:mID="2" v:groupContext="shape" v:layerMember="0" transform="translate(191.339,-545.669)">
+			<title>Card</title>
+			<desc>project.elf</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="831.969" width="56.7" height="19.8425"/>
+			<path d="M0 841.89 L70.87 841.89 L70.87 822.05 L14.17 822.05 L0 831.97 L0 841.89 Z" class="st5"/>
+			<text x="18.09" y="834.37" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>project.elf</text>		</g>
+		<g id="shape3-12" v:mID="3" v:groupContext="shape" v:layerMember="0" transform="translate(70.8661,-456.378)">
+			<title>Prozess.3</title>
+			<desc>Generate Hex for Flash Mem (avr-objcopy)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="10.52" y="813.43" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Generate Hex <v:lf/><tspan
+						x="9.86" dy="1.2em" class="st4">for Flash Mem<v:newlineChar/></tspan><tspan x="12.08" dy="1.2em"
+						class="st4">(</tspan>avr-objcopy)</text>		</g>
+		<g id="shape4-17" v:mID="4" v:groupContext="shape" v:layerMember="0" transform="translate(148.819,-456.378)">
+			<title>Prozess.4</title>
+			<desc>Generate Hex for EEPROM (avr-objcopy)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="10.52" y="813.43" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Generate Hex<v:lf/><tspan
+						x="12.31" dy="1.2em" class="st4">for EEPROM<v:newlineChar/></tspan><tspan x="12.08" dy="1.2em" class="st4">(</tspan>avr-objcopy)</text>		</g>
+		<g id="shape5-22" v:mID="5" v:groupContext="shape" v:layerMember="0" transform="translate(233.858,-456.378)">
+			<title>Prozess.5</title>
+			<desc>Create Extended Listing (avr-objdump)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="5.41" y="813.43" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Create Extended<v:lf/><tspan
+						x="23.86" dy="1.2em" class="st4">Listing<v:newlineChar/></tspan><tspan x="10.53" dy="1.2em" class="st4">(</tspan>avr-objdump)</text>		</g>
+		<g id="shape6-27" v:mID="6" v:groupContext="shape" v:layerMember="0" transform="translate(311.811,-456.378)">
+			<title>Prozess.6</title>
+			<desc>Print Size (avr-size)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="18.31" y="813.43" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Print Size<v:lf/><v:newlineChar/><tspan
+						x="18.76" dy="2.4em" class="st4">(</tspan>avr-size)</text>		</g>
+		<g id="shape7-31" v:mID="7" v:groupContext="shape" v:layerMember="0" transform="translate(75.8268,-422.362)">
+			<title>Karte.7</title>
+			<desc>project.hex</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="30.4724" cy="831.969" width="46.78" height="19.8425"/>
+			<path d="M0 841.89 L60.94 841.89 L60.94 822.05 L14.17 822.05 L0 831.97 L0 841.89 Z" class="st5"/>
+			<text x="10.9" y="834.37" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>project.hex</text>		</g>
+		<g id="shape8-34" v:mID="8" v:groupContext="shape" v:layerMember="0" transform="translate(153.78,-422.362)">
+			<title>Card.8</title>
+			<desc>project.eep</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="30.4724" cy="831.969" width="46.78" height="19.8425"/>
+			<path d="M0 841.89 L60.94 841.89 L60.94 822.05 L14.17 822.05 L0 831.97 L0 841.89 Z" class="st5"/>
+			<text x="10.67" y="834.37" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>project.eep</text>		</g>
+		<g id="shape9-37" v:mID="9" v:groupContext="shape" v:layerMember="0" transform="translate(238.819,-422.362)">
+			<title>Card.9</title>
+			<desc>project.lss</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="30.4724" cy="831.969" width="46.78" height="19.8425"/>
+			<path d="M0 841.89 L60.94 841.89 L60.94 822.05 L14.17 822.05 L0 831.97 L0 841.89 Z" class="st5"/>
+			<text x="12.46" y="834.37" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>project.lss</text>		</g>
+		<g id="shape14-40" v:mID="14" v:groupContext="shape" transform="translate(99.2126,-456.378)">
+			<title>Dynamischer Verbinder.14</title>
+			<path d="M7.09 841.89 L7.09 850.54" class="st6"/>
+		</g>
+		<g id="shape15-46" v:mID="15" v:groupContext="shape" transform="translate(177.165,-456.378)">
+			<title>Dynamischer Verbinder.15</title>
+			<path d="M7.09 841.89 L7.09 850.54" class="st6"/>
+		</g>
+		<g id="shape16-51" v:mID="16" v:groupContext="shape" transform="translate(276.378,-456.378)">
+			<title>Dynamischer Verbinder.16</title>
+			<path d="M-7.09 841.89 L-7.09 850.54" class="st6"/>
+		</g>
+		<g id="shape17-56" v:mID="17" v:groupContext="shape" transform="translate(219.685,-586.772)">
+			<title>Dynamischer Verbinder.17</title>
+			<path d="M7.09 841.89 L7.09 857.63" class="st6"/>
+		</g>
+		<g id="shape18-61" v:mID="18" v:groupContext="shape" v:layerMember="0" transform="translate(93.5433,-759.685)">
+			<title>Document</title>
+			<desc>C source files.c</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="815.315" width="70.87" height="31.8898"/>
+			<path d="M0 836.57 L0 799.37 L70.87 799.37 L70.87 836.57 A32.185 32.185 -180 0 0 35.43 836.57 A32.185 32.185 0 0 1 0
+						 836.57 Z" class="st8"/>
+			<text x="8.08" y="817.72" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>C source files.c</text>		</g>
+		<g id="shape19-64" v:mID="19" v:groupContext="shape" v:layerMember="0" transform="translate(93.5433,-694.488)">
+			<title>Dokument.19</title>
+			<desc>Assembler source files.s</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="815.315" width="70.87" height="31.8898"/>
+			<path d="M0 836.57 L0 799.37 L70.87 799.37 L70.87 836.57 A32.185 32.185 -180 0 0 35.43 836.57 A32.185 32.185 0 0 1 0
+						 836.57 Z" class="st8"/>
+			<text x="3.41" y="812.91" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Assembler source <tspan
+						x="25.2" dy="1.2em" class="st4">files</tspan>.s</text>		</g>
+		<g id="shape20-68" v:mID="20" v:groupContext="shape" v:layerMember="0" transform="translate(191.339,-694.488)">
+			<title>Prozess.20</title>
+			<desc>Assembler (avr-as)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="16.53" y="818.23" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Assembler<v:newlineChar/><tspan
+						x="21.65" dy="1.2em" class="st4">(</tspan>avr-as)</text>		</g>
+		<g id="shape21-72" v:mID="21" v:groupContext="shape" v:layerMember="0" transform="translate(191.339,-759.685)">
+			<title>Prozess.21</title>
+			<desc>C Compiler (avr-gcc)</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="35.4331" cy="820.63" width="70.87" height="42.5197"/>
+			<rect x="0" y="799.37" width="70.8661" height="42.5197" class="st2"/>
+			<text x="15.42" y="818.23" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>C Compiler<v:newlineChar/><tspan
+						x="19.65" dy="1.2em" class="st4">(</tspan>avr-gcc)</text>		</g>
+		<g id="shape22-76" v:mID="22" v:groupContext="shape" transform="translate(164.409,-773.858)">
+			<title>Dynamischer Verbinder.22</title>
+			<path d="M0 834.8 L21.41 834.8" class="st6"/>
+		</g>
+		<g id="shape23-81" v:mID="23" v:groupContext="shape" transform="translate(164.409,-708.661)">
+			<title>Dynamischer Verbinder.23</title>
+			<path d="M0 834.8 L21.41 834.8" class="st6"/>
+		</g>
+		<g id="group26-86" transform="translate(-464.598,95.3845) rotate(-90)" v:mID="26" v:groupContext="group" v:layerMember="0">
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<title>Annotation</title>
+			<g id="shape27-87" v:mID="27" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-829.416,831.449) rotate(-96.6544)">
+				<title>Tabelle.27</title>
+				<path d="M42.81 841.89 L0 841.89" class="st9"/>
+			</g>
+			<g id="shape28-90" v:mID="28" v:groupContext="shape" v:layerMember="0" transform="translate(841.89,733.89) rotate(90)">
+				<title>Tabelle.28</title>
+				<desc>Calls Assembler internally</desc>
+				<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+				<v:textRect cx="54" cy="835.088" width="108" height="13.6036"/>
+				<path d="M0 828.29 L0 841.89" class="st9"/>
+				<text x="7.98" y="837.49" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Calls Assembler internally</text>			</g>
+		</g>
+		<g id="group25-94" transform="translate(191.339,-649.134)" v:mID="25" v:groupContext="group">
+			<title>Tabelle.25</title>
+			<g id="shape24-95" v:mID="24" v:groupContext="shape" v:layerMember="0" transform="translate(5.66929,0)">
+				<title>Card.24</title>
+				<desc>object files.o</desc>
+				<v:custProps>
+					<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+					<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+					<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+				</v:custProps>
+				<v:userDefs>
+					<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+					<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+				</v:userDefs>
+				<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+				<v:textRect cx="35.4331" cy="831.26" width="56.7" height="21.2598"/>
+				<path d="M0 841.89 L70.87 841.89 L70.87 820.63 L14.17 820.63 L0 831.26 L0 841.89 Z" class="st5"/>
+				<text x="13.2" y="833.66" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>object files.o</text>			</g>
+			<g id="shape29-98" v:mID="29" v:groupContext="shape" v:layerMember="0" transform="translate(2.83465,-2.83465)">
+				<title>Karte.29</title>
+				<desc>object files.o</desc>
+				<v:custProps>
+					<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+					<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+					<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+				</v:custProps>
+				<v:userDefs>
+					<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+					<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+				</v:userDefs>
+				<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+				<v:textRect cx="35.4331" cy="831.26" width="56.7" height="21.2598"/>
+				<path d="M0 841.89 L70.87 841.89 L70.87 820.63 L14.17 820.63 L0 831.26 L0 841.89 Z" class="st5"/>
+				<text x="13.2" y="833.66" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>object files.o</text>			</g>
+			<g id="shape30-101" v:mID="30" v:groupContext="shape" v:layerMember="0" transform="translate(1.19904E-014,-6.37795)">
+				<title>Card.30</title>
+				<desc>object files.o</desc>
+				<v:custProps>
+					<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+					<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+					<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+				</v:custProps>
+				<v:userDefs>
+					<v:ud v:nameU="AntiScale" v:val="VT0(1):26"/>
+					<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+				</v:userDefs>
+				<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+				<v:textRect cx="35.4331" cy="831.26" width="56.7" height="21.2598"/>
+				<path d="M0 841.89 L70.87 841.89 L70.87 820.63 L14.17 820.63 L0 831.26 L0 841.89 Z" class="st5"/>
+				<text x="13.2" y="833.66" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>object files.o</text>			</g>
+		</g>
+		<g id="shape32-104" v:mID="32" v:groupContext="shape" transform="translate(219.685,-694.488)">
+			<title>Dynamischer Verbinder.32</title>
+			<path d="M7.09 841.89 L7.09 854.09" class="st6"/>
+		</g>
+		<g id="shape33-109" v:mID="33" v:groupContext="shape" transform="translate(219.685,-655.512)">
+			<title>Dynamischer Verbinder.33</title>
+			<path d="M7.09 841.89 L7.09 862.59" class="st6"/>
+		</g>
+		<g id="shape35-114" v:mID="35" v:groupContext="shape" transform="translate(70.8661,-520.157)">
+			<title>Tabelle.35</title>
+			<desc>Secondary Targets</desc>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="42.5197" cy="834.803" width="85.04" height="14.1732"/>
+			<rect x="0" y="827.717" width="85.0394" height="14.1732" class="st10"/>
+			<text x="2" y="837.2" class="st3" v:langID="1031"><v:paragraph/><v:tabList/>Secondary Targets</text>		</g>
+		<g id="shape10-117" v:mID="10" v:groupContext="shape" transform="translate(226.772,-545.669)">
+			<title>Dynamic connector</title>
+			<path d="M0 841.89 L0 870.24 L-120.47 870.24 L-120.47 883.14" class="st6"/>
+		</g>
+		<g id="shape11-122" v:mID="11" v:groupContext="shape" transform="translate(226.772,-545.669)">
+			<title>Dynamischer Verbinder.11</title>
+			<path d="M0 841.89 L0 870.24 L-42.52 870.24 L-42.52 883.14" class="st6"/>
+		</g>
+		<g id="shape12-127" v:mID="12" v:groupContext="shape" transform="translate(226.772,-545.669)">
+			<title>Dynamischer Verbinder.12</title>
+			<path d="M0 841.89 L0 870.24 L42.52 870.24 L42.52 883.14" class="st6"/>
+		</g>
+		<g id="shape13-132" v:mID="13" v:groupContext="shape" transform="translate(226.772,-545.669)">
+			<title>Dynamischer Verbinder.13</title>
+			<path d="M0 841.89 L0 870.24 L120.47 870.24 L120.47 883.14" class="st6"/>
+		</g>
+		<g id="shape36-137" v:mID="36" v:groupContext="shape" transform="translate(300.472,1119.69) rotate(180)">
+			<title>45 degree single</title>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<path d="M0 833.39 L8.5 824.88 L8.5 830.49 L31.18 830.49 L31.18 836.28 L8.5 836.28 L8.5 841.89 L0 833.39 Z"
+					class="st11"/>
+		</g>
+		<g id="shape37-139" v:mID="37" v:groupContext="shape" transform="translate(291.969,-545.669)">
+			<title>Tabelle.37</title>
+			<desc>Simulation / Debugger e.g simulavr</desc>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="55.2756" cy="831.969" width="110.56" height="19.8425"/>
+			<rect x="0" y="822.047" width="110.551" height="19.8425" class="st10"/>
+			<text x="15.7" y="829.57" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Simulation / Debugger<v:newlineChar/><tspan
+						x="33.71" dy="1.2em" class="st4">e</tspan>.g simulavr</text>		</g>
+		<g id="shape39-143" v:mID="39" v:groupContext="shape" transform="translate(69.4488,-561.969)">
+			<title>Tabelle.39</title>
+			<desc>Build Artifact (Primary Target)</desc>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="63.0709" cy="834.803" width="126.15" height="14.1732"/>
+			<rect x="0" y="827.717" width="126.142" height="14.1732" class="st10"/>
+			<text x="2" y="837.2" class="st3" v:langID="1031"><v:paragraph/><v:tabList/>Build Artifact (Primary Target)</text>		</g>
+		<g id="shape38-146" v:mID="38" v:groupContext="shape" v:layerMember="0" transform="translate(93.5433,-651.402)">
+			<title>Dokument.38</title>
+			<desc>Header files.h</desc>
+			<v:custProps>
+				<v:cp v:nameU="Cost" v:lbl="Kosten" v:type="7" v:format="@" v:langID="1031"/>
+				<v:cp v:nameU="Duration" v:lbl="Dauer" v:type="2" v:langID="1031"/>
+				<v:cp v:nameU="Resources" v:lbl="Ressourcen" v:langID="1031"/>
+			</v:custProps>
+			<v:userDefs>
+				<v:ud v:nameU="visVersion" v:val="VT0(11):26"/>
+			</v:userDefs>
+			<v:textBlock v:margins="rect(2,2,2,2)" v:tabSpace="42.5197"/>
+			<v:textRect cx="28.3465" cy="823.819" width="56.7" height="21.685"/>
+			<path d="M0 838.28 L0 812.98 L56.69 812.98 L56.69 838.28 A29.5977 29.5977 -180 0 0 28.35 838.28 A29.5977 29.5977 0 0
+						 1 -0 838.28 Z" class="st8"/>
+			<text x="3.67" y="826.22" class="st3" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Header files.h</text>		</g>
+		<g id="shape41-149" v:mID="41" v:groupContext="shape" transform="translate(86.4567,-665.858)">
+			<title>Dynamischer Verbinder.41</title>
+			<path d="M7.09 841.89 L-14.17 841.89 L-14.17 792 L1.57 792" class="st6"/>
+		</g>
+		<g id="shape42-154" v:mID="42" v:groupContext="shape" transform="translate(86.4567,-665.858)">
+			<title>Dynamischer Verbinder.42</title>
+			<path d="M7.09 841.89 L-14.17 841.89 L-14.17 726.8 L1.57 726.8" class="st6"/>
+		</g>
+		<g id="shape31-159" v:mID="31" v:groupContext="shape" transform="translate(219.685,-759.685)">
+			<title>Dynamischer Verbinder.31</title>
+			<path d="M7.09 841.89 L7.09 859.05" class="st6"/>
+		</g>
+	</g>
+</svg>
