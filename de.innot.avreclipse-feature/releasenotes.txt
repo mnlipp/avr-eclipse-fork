@@ -8,6 +8,55 @@
 $Id$
 
 ================================================================================
+Version 2.2.0 release date: 18 June 2008
+
+This is a major release with some new features.
+
+1. What's new
+
+	* Support for avrdude.
+	  The plugin now supports avrdude to upload projects to a target device.
+	  See the "Upload a project..." tutorial in the Getting Started section of the user 
+	  documentation on how to use avrdude to upload projects.
+	  
+	* New "AVR Supported MCUs" View
+	  A new view has been added to show all target MCUs supported by the plugin and the external
+	  tools used by the plugin.
+	  The view can be open via Window > Show View > Other... > AVR > AVR Supported MCUs
+	  
+	* AVR target hardware properties (and avrdude properties) can now be set for each build
+	  configuration (like in 2.0, but unlike 2.1)
+	  
+	* Some improvements "under the hood" and some bugfixes. See the changelog for details.
+
+2. Information
+
+2.1. System Requirements
+
+   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
+    * CDT 4.0.x (Eclipse 3.3) 
+   
+   older versions of the JRE or of Eclipse / CDT are not supported.
+   CDT 5.0 (Eclipse 3.4 - Ganymede) has not yet been tested and may or may not work.
+   
+   It has been tested with
+   	- Windows XP + winAVR 20071221 / 20070525
+   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
+   	
+   	It should run on all platforms meeting the system requirements.
+
+2.2 Known issues
+
+	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
+	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
+	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
+
+================================================================================
+Version 2.1.1 release date: 25 March 2008
+
+This release fixes two bugs. See the Changelog.txt for details.
+
+================================================================================
 Version 2.1.0 release date: 10 February 2008
 
 This is an intermediate release with both bug fixes and new features.
@@ -55,24 +104,4 @@ release.
 
 	* Numerous improvements "under the hood" and some bugfixes. See the changelog for details.
 	
-2. Information
-
-2.1. System Requirements
-
-   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
-    * CDT 4.0.x (Eclipse 3.3)
-   
-   older versions of the JRE or of Eclipse / CDT are not supported
-   
-   It has been tested with
-   	- Windows XP + winAVR 20071221 / 20070525
-   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
-   	
-   	It should run on all platforms meeting the system requirements.
-
-2.2 Known issues
-
-	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
-	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
-	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
 
