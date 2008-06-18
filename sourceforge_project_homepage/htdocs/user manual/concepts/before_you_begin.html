@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Language" content="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Before you begin</title>
+	<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>Before you begin</h1>
+<p>If you have used previous versions of the AVR Eclipse Plugin you may need to update your projects. See <a href="../tasks/task_update_project.html">Update AVR Project</a> on how to do this.</p>
+<h2>Requirements</h2>
+<h3>Eclipse</h3>
+<p>The AVR Eclipse Plugin requires Eclipse 3.3 (Europa) and CDT 4.0.</p>
+<p>The plugin should work with Eclipse 3.4 (Ganymede) and CDT 5.0, but this has not yet been tested.</p>
+<p>If you do not have these required versions go to the eclipse.org <a href="http://www.eclipse.org/downloads/" target="_blank">downloads page</a> to download the required versions. The <strong>Eclipse IDE for C/C++ Developers</strong> download package contains a suitable Eclipse version to use the AVR Eclipse Plugin.</p>
+<h3>AVR-GCC Toolchain</h3>
+<p>The AVR Plugin is based on the AVR-GCC toolchain for AVR cross target development. But like the CDT Plugin for Eclipse itself, this AVR Plugin does not include a toolchain, it has to be installed separatly before this plugin can be used.</p>
+<p>If you don't have an AVR-GCC toolchain installed see  below on how to acquire it.</p>
+<h4>Windows</h4>
+<p><a href="http://sourceforge.net/projects/winavr/" target="_blank">Download</a> and install <a href="http://winavr.sourceforge.net/" target="_blank">winAVR</a>, which includes the AVR-GCC toolchain together with some other useful tools for programming the AVR processor series</p>
+<h4>Linux</h4>
+<p>Most Linux distributions have an AVR-GCC toolchain. It may not, however, be installed by default.
+For instructions about installing AVR-GCC for Linux, see the instructions for your particular distribution.</p>
+<p>Usually multiple packages need to be installed. Here an exemplary list for the Ubuntu distribution:</p>
+<div style="margin-left:5%">
+  <table border="1" cellpadding="3" cellspacing="1">
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/gcc-avr" target="_blank">gcc-avr</a> </td>
+      <td>Compiler &amp; Assembler</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/binutils-avr" target="_blank">binutils-avr</a> </td>
+      <td>Linker and some other useful tools</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/devel/gdb-avr" target="_blank">gdb-avr</a></td>
+      <td>Debugger for AVR Targets</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/otherosfs/avr-libc" target="_blank">avr-libc</a></td>
+      <td>The standard C library for the AVR series, including the required include files</td>
+    </tr>
+    <tr>
+      <td><a href="http://packages.ubuntu.com/gutsy/electronics/avrdude" target="_blank">avrdude</a></td>
+      <td>Programm to upload applications onto a AVR device</td>
+    </tr>
+  </table>
+</div>
+<p>&nbsp;</p>
+<p>Please note that most distributions include out-of-date toolchains without the latest patches. See the <a href="http://avr-eclipse.wiki.sourceforge.net/The+AVR-GCC+Toolchain" target="_blank">AVR Eclipse Plugin wiki</a> on how to get an up-to-date toolchain.<br>
+</p>
+<h4>Other Platforms</h4>
+<p>As the AVR-GCC toolchain is open source, chances are that it is either available for your platform or can be adapted to it.</p>
+<p>&nbsp;</p>
+<div class="copyright">&copy; 2007,2008 Thomas Holland</div>
+</body>
+
+</html>

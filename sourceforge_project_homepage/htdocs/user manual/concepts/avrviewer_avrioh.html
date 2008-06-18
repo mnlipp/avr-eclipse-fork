@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Language" content="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>AVR Device Explorer View &lt;avr/io.h&gt;Data Source</title>
+	<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+
+<body>
+
+<h1>AVR Device Explorer View  &lt;avr/io.h&gt; Data Source</h1>
+
+<p>The AVR Device Explorer View can use the &lt;avr/io.h&gt; header file and its associated, processor specific header files as a data source. These header files are part of the <a href="http://www.nongnu.org/avr-libc/" target="_blank">AVR libc</a> package. </p>
+<p>The header files are not a perfect, not even a good souce for information, as only some processor specific header files contain descriptive comments. But on the plus side, the information they provide is (almost) exactly the same as the compiler sees.</p>
+<p>The viewer parses the header files to extract as much information as possible. As the viewer needs the source file comments, it does not use the gcc preprocessor. This means that any conditional code in the header files is ignored which might cause some inaccuracies. If in doubt, use the source link to open the source header file and check the source yourself.</p>
+<p>The header files are parsed as follows:</p>
+<ol>
+  <li>The &lt;avr/io.h&gt; file is read and for all lines looking like this:
+    <pre> #elif defined (__PROCESSORNAME__)
+ #  include &lt;avr/ioProcesorName.h&gt;</pre>
+  the PROCESSORNAME is added to the list of known processors and the include file is read and parsed.<br>
+  <br>
+  </li>
+  <li>The required processor specific from step 1 are parsed for the following patterns:<br>
+    <br>
+    <table border="1" cellpadding="3" cellspacing="1">
+      <tr>
+        <td valign="top" nowrap><pre>#include &lt;avr/io?????.h&gt;</pre></td>
+        <td valign="top">The file is included in the parsing process</td>
+      </tr>
+      <tr>
+        <td valign="top" nowrap><pre>/* EEPROM Address Register */<br>#define EEAR      _SFR_IO16(0x1E)<br>#define EEARL     _SFR_IO8(0x1E)<br>#define EEARH     _SFR_IO8(0x1F)</pre></td>
+        <td valign="top">Register entries.<br>
+          All three entries will have the same description as given in the comment above it.</td>
+      </tr>
+      <tr>
+        <td valign="top" nowrap><pre>/* Data Direction Register, Port F */
+#define DDRF      _SFR_MEM8(0x61)</pre></td>
+        <td valign="top">Port register. <br>
+        All registers whose name start with PIN?, PORT? or DDR? are assigned as ports.</td>
+      </tr>
+      <tr>
+        <td valign="top" nowrap><pre>/* External Interrupt Request 0 */
+#define INT0_vect      _VECTOR(1)
+#define SIG_INTERRUPT0 _VECTOR(1)</pre></td>
+        <td valign="top">Interrupt. <br>
+          This example has both the old and the new style interrupt names. <br>
+        Some newer processor header files only have the new name, while some header files for older AVR processors only have the old names.</td>
+      </tr>
+    </table>
+    <br>
+  Any descriptive comment use used for all entries immediatly following it up to the first empty line.</li>
+</ol>
+<div class="categoryrelated">Related Concepts</div>
+  <a href="avrviewerdatasources.html">AVR Device Explorer View Data Sources</a>
+<div class="categoryrelated">Related Tasks</div>
+<a href="../tasks/task_show_avrviewer.html">Using the AVR Device Explorer View</a>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
+</body>
+
+</html>

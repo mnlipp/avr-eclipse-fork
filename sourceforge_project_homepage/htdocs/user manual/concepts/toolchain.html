@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>AVR Eclipse Toolchain</title>
+<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+<body>
+<h1>AVR Eclipse Toolchain </h1>
+<p>Whenever
+  the project is build, a makefile is generated and executed, which implements
+  the following process (for an AVR application): </p>
+<p><img src="images/toolchain.png" alt=""></p>
+<ol>
+  <li>The build process starts by executing the user supplied <strong>prebuild</strong> script/executable,
+    where the user can define additional tasks that need to be run before the
+    actual build process starts.<br>
+    <br>
+  </li>
+  <li>Then all source files are compiled and</li>
+  <li>stored as Object files (*.o)<br>
+    <br>
+  </li>
+  <li>The <strong>Linker</strong> takes all Object files and linkes them together in one file <br>
+    <br>
+  </li>
+  <li>The ELF  file contains the binary code and data as well as
+    debugging and other internal information. Most AVR simulators can take
+    a file in this format to run and debug the application.<br>
+    <br>
+  </li>
+  <li>Once the ELF file has been created, a user supplied <strong>Postbuild</strong> script/executable
+    is called.<br>
+    Calling the postbuild script at this point, before the secondary targets
+    have been build, is a limitation of the CDT plugin.<br>
+    <br>
+  </li>
+  <li>With the ELF file as input the <strong>Secondary Targets</strong> create some optional <br>
+    <div>
+      <table border="1" cellpadding="3" cellspacing="1">
+        <tr>
+          <td valign="top" nowrap><strong>*.hex</strong></td>
+          <td>A hex dump file for downloading to an AVR processor flash
+            memory </td>
+        </tr>
+        <tr>
+          <td valign="top" nowrap><strong>*.eep</strong></td>
+          <td>A  hex dump file for downloading to an AVR processor EEPROM</td>
+        </tr>
+        <tr>
+          <td valign="top" nowrap><strong>*.lss</strong></td>
+          <td>An  extended listing with the source data intermixed with
+            the generated assembler code</td>
+        </tr>
+        <tr>
+          <td valign="top" nowrap>Print size </td>
+          <td>prints the size of the generated application to the
+            console.<br>
+            Due to the internal design of CDT this &quot;outputs&quot; a pseudotarget called
+            &quot;sizedummy&quot;, as without an output CDT would not include the avr-size
+            command in the toolchain. </td>
+        </tr>
+      </table>
+    </div>
+    <br>
+  </li>
+</ol>
+<p>All generated files (colored pink in the flowchart above), including the makefile, are stored in a folder with the name of the current configuration (e.g. &quot;Debug&quot; or &quot;Release&quot;).</p>
+<p></p>
+<p><a href="concepts.html"><img src="../images/ngback.gif" alt="backarrow"></a> <a href="concepts.html"><strong>Back: Concepts</strong></a></p>
+<div class="copyright">&copy; 2007 Thomas Holland</div>
+</body>
+</html>
