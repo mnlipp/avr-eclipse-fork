@@ -1,3 +1,72 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Change Log                           *
+*                                                                              *
+* A plugin supporting the development of applications for the AVR series       *
+* of Processors.                                                               *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+$Id: changelog.txt 481 2008-06-18 13:16:58Z innot $
+
+================================================================================
+Version 2.2.0 [18-June-2008]
+
+New:
+-----------------------------
+* AVRDude support
+  - A list of Programmers can be managed via the AVRDude preferences.
+  - AVRDude project properties to set all properties.
+  - (optional) avrdude tool in toolchain to auto-upload the project whenever the project is build.
+  - "Upload Project to Device" action in the project context menu to manually upload with avrdude.
+  - Optional upload via toolbar action or hotkey (Ctrl+Alt+U on Windows) (not in 2.2beta1)
+    
+* Target Hardware properties can now also be defined per build configuration.
+  - Enable in the project properties on the AVR page.
+
+* Supported MCU View
+  - Show a list of all MCUs supported by the plugin and various subsystems like gcc and avrdude.
+  - Clickable hyperlinks to the Atmel datasheets for most MCUs.
+  - Open with "Window > Show View -> Other... -> AVR -> AVR Supported MCUs"
+
+Changed / Improved:
+-----------------------------
+* AVR Device Explorer
+  The Device Explorer is now a "Selection Listener" and "Selection Provider".
+  When selecting a AVR project or a text which starts with a valid MCU name,
+  the associated MCU information is shown in the Device Explorer
+
+* Build variables
+  The build variables defined by the plugin (e.g. ${AVRTARGETMCU} and ${AVRTARGETFCPU}) can now 
+  have an optional argument to read the value from a different project or build configuration.
+  Example: ${AVRTARGETMCU:project01/release} gets the target mcu of the "release" configuration of 
+           project "project01".
+
+* Changed since 2.2beta1:
+  - Most of the user documentation updated to 2.2 incl. a tutorial on how to use avrdude.
+    Some features are still lack a user documentation (will be completed in one of the next releases)
+  - List of datasheets, signatures, fusebytes and lockbits updated to AVR Studio Build 589
+    (ATXmega MCUs only partially supported -- no fusebytes/Lockbits yet)
+
+Fixes:
+-----------------------------
+* Windows: Now the last installed version of winAVR is used when multiple winAVR
+  versions are installed
+  
+* Multiple failures when some / all of the paths were invalid. Fixed and replaced by error messages.
+  
+* Fixed since 2.2beta1:
+  - Plugin did not parse programmer ids with "-" or "_" from avrdude output (Bug 1984307)
+  - AVR popup menu was not shown in C/C++ Explorer
+  
+
+================================================================================
+Version 2.1.1 [25 March 2008]
+
+Fixes:
+-----------------------------
+* Bug 1892250: Error when showing the "AVR Target Hardware" Properties
+* Bug 1911201: No MCU Target Hardware options for Library Projects
+
+================================================================================
 Version 2.1.0 [10 February 2008]
 
 New:

@@ -1,0 +1,60 @@
+@import "../PRODUCT_PLUGIN/book.css";
+
+td.lineabove {
+	border-top-width: medium;
+	border-top-style: solid;
+	border-top-color: #000000;
+}
+
+.guibutton {
+	color: #000000;
+	font-weight: normal;
+	font-family: helvetica, sans-serif;
+	background-color: #DCDCDC;
+	padding: 1px 5px;
+	font-size: 10pt;
+	border: outset 2px;
+	text-decoration: none;
+	line-height:175%;
+}
+ 
+.categoryrelated {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: x-small;
+	font-style: normal;
+	font-weight: bolder;
+	font-variant: normal;
+	color: #0033FF;
+	letter-spacing: 1px;
+	padding-bottom: 10px;
+	display: block;
+	margin-top: 30px;
+}
+
+.copyright {
+	font-size: xx-small;
+	font-family: "Courier New", Courier, monospace;
+	color: #0000FF;
+	border-top-width: 1px;
+	border-top-style: solid;
+	margin-top: 20px;
+	padding: 5px;
+}
+.codeblock {
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	margin: auto;
+	padding: 10px;
+}
+.unused {
+	color: #999999;
+}
+.indent {
+	margin-left: 30px;
+}
