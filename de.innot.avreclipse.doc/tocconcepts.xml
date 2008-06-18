@@ -11,4 +11,6 @@
 
   <topic label="Plugin path management"  href="concepts/avr_path_management.html"> </topic>
 
+  <topic label="Build Configurations"  href="concepts/concept_build_configuration.html"> </topic>
+
 </toc>

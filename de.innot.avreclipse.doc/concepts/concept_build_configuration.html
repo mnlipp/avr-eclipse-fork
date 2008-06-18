@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Language" content="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Build Configurations</title>
+	<link rel="stylesheet" type="text/css" href="../book.css">
+</head>
+
+<body>
+
+<h1>Build Configurations</h1>
+
+<p>Build configurations is a concept supplied by CDT. The AVR Eclipse Plugin extends this concept a bit to make it a little bit easier to use.</p>
+<h2>What are Build Configurations</h2>
+<p>In a nutshell a build configuration is a collection of properties and settings to be used for a project. They include the compiler flags, linker options and other settings to adjust the build process.</p>
+<p>Each C/C++ Project has a least one build configuration, but can have an unlimited number of distinct build configurations. Unless changed in the New Project Wizard, each C/C++ project has the two default configurations <strong>Debug</strong> and <strong>Release</strong>, which have the compiler flags optimized for debugging and size respectively.</p>
+<p>The settings within each build configuration are separate from each other. This is used to compile and build the same source files with different settings with a single click -- without having to modify makefiles or adjusting global settings for each build.</p>
+<p>All CDT- and AVR-specific project properties pages have unified controls to handle configurations.</p>
+<p><img src="images/concepts_build_config_1.png" alt="build configuration"></p>
+<p>With the <strong>Configuration</strong> drop down field the available configurations can be selected. All settings below are only applied to the selected configuration.</p>
+<p>The Manage configuration button opens a new dialog where configurations can be added, removed or renamed.</p>
+<p><img src="images/concepts_build_config_manager.png" alt="Configuration Manager"></p>
+<p>Here two new configurations have been added  to compile the project either for a 1 MHz ATmega16 or for a 4 MHz ATmega32. The &quot;ATmega16_1MHz&quot; configuration has also been set active. Each C/C++ project has one active configuration. This is the configuration used when the project is build with <strong>Build Project</strong>, either form the <strong>Project</strong> main menu or from the project context menu.</p>
+<p>The active build configuration can be set from the <strong>Manage configurations</strong> dialog as seen above, or again via the <strong>Project</strong> main menu or the project context menu (<strong>Build Configurations</strong> &gt; <strong>Set active</strong> &gt; <strong>...</strong>). The project context menu also has an option to build all configurations at once (<strong>Build Configurations</strong> &gt; <strong>Build</strong> &gt; <strong>All</strong>).</p>
+<h2>AVR Properties and Build Configurations</h2>
+<p>Version 2.1 of the AVR Eclipse Plugin had only a project-global setting for the target hardware which applied to all build configuration. To keep compatability with  2.1  and also to reduce the number of options for simple projects, the concept of build configurations has been slighly modified with the AVR Eclipse Plugin.</p>
+<p>All AVR-specific properties of an AVR project can be either project-global or per build configuration. This is selected on the project properties AVR page:</p>
+<p><img src="images/concepts_build_config_per_config_flag.png" alt="Per Config Flag"></p>
+<p>The default for the <strong>Enable individual settings for Build Configurations</strong> is off. This means that all AVRDude and Target Hardware settings apply to the project, regardless off the active build configuration. The configuration selector on the AVR property pages is disabled.</p>
+<p>Once the <strong>Enable individual settings for Build Configurations</strong> flag is set, the configuration selector on the AVR property pages is enabled and all changes in the AVR properties will only apply to the selected build configuration.</p>
+<p>The plugin remembers the settings for project-global and each build configuration separatly, so the mode can be switched  back and forth between project-global and per-config without loosing any settings.</p>
+<p>When using the per-configuration mode, the project-global settings are always used as a default for newly created build configurations. The <strong>Copy settings from : Existing configuration</strong> <strong>xxx</strong> option on the  <strong>Create configuration</strong> dialog (<strong>Manage configurations</strong> &gt; <strong>New...</strong>) does not apply to the AVR properties. This is due to internal reasons as  CDT does not know anything about the AVR properties.</p>
+<p>On the other hand each AVR property page has a <strong>Copy Project Settings</strong> button, which will copy the project-global settings for the selected page to the selected build configuration.</p>
+<p><img src="images/concepts_build_config_copy_button.png" alt="Copy Project Settings button" width="651" height="335"></p>
+<h2>Internal</h2>
+<p>All AVR project specific settings are stored in a simple Java properties file named <em>de.innot.avreclipse.core.prefs</em> in the <em>.settings</em> folder of your project. This file may contain options that are not yet implemented in the plugin and should not be edited.</p>
+<p>The project-global properties are named <em>avrtarget/[option name]</em> while the per-config properties are named <em>avrtarget/[internal-config-id]/[option name].</em></p>
+<div class="categoryrelated">Related Tasks</div>
+<div class="copyright">&copy; 2008 Thomas Holland</div>
+</body>
+
+</html>

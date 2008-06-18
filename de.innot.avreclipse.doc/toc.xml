@@ -2,6 +2,8 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="AVR Plugin" topic="home.html" id="avrplugin">
+	<topic label="AVR Eclipse plugin overview" href="overview.html" />
+
 	<topic label="Before you begin" href="concepts/before_you_begin.html" />
 
 	<topic label="Getting Started" href="gettingstarted/gs_tutorials.html">
