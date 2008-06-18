@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="AVR Plugin" topic="home.html" id="avrplugin">
+	<topic label="AVR Eclipse plugin overview" href="overview.html" />
+
+	<topic label="Before you begin" href="concepts/before_you_begin.html" />
+
+	<topic label="Getting Started" href="gettingstarted/gs_tutorials.html">
+		<anchor id="gettingstarted" />
+	</topic>
+	<topic label="Concepts" href="concepts/concepts.html" >
+		<anchor id="concepts" />
+	</topic>
+	<topic label="Tasks" href="tasks/tasks.html" >
+		<anchor id="tasks" />
+	</topic>
+
+	<!-- No reference and samples yet   
+		<topic label="Reference">
+		<anchor id="reference"/>
+		</topic>
+		<topic label="Samples">
+		<anchor id="samples"/>
+		</topic>
+	-->
+	<topic label="What's new" href="other/whatsnew.html" />
+	<topic label="Licence" href="other/licence.html" />
+	<topic label="Contact" href="other/contact.html" />
+
+</toc>
