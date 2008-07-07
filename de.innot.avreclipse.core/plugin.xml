@@ -560,7 +560,7 @@
 			command="avr-gcc"
 			errorParsers="org.eclipse.cdt.core.GCCErrorParser"
 			outputFlag="-c -o"
-			natureFilter="cnature" >
+			natureFilter="both" >
 			
 			<supportedProperties>
 				<property id="org.eclipse.cdt.build.core.buildType">
