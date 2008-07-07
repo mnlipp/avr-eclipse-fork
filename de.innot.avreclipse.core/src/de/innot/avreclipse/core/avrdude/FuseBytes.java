@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import org.osgi.service.prefs.Preferences;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * Storage independent container for the Fuse Byte values.
@@ -40,9 +42,6 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
  * 
  */
 public class FuseBytes extends AbstractBytes {
-
-	/** Maximum number of Fuse Bytes supported. */
-	public final static int	MAX_FUSEBYTES	= 3;
 
 	/**
 	 * Create a new FuseBytes object and load the properties from the Preferences.
@@ -102,8 +101,13 @@ public class FuseBytes extends AbstractBytes {
 	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#getMaxBytes()
 	 */
 	@Override
-	protected int getMaxBytes() {
-		return MAX_FUSEBYTES;
+	protected int getByteCount() {
+		try {
+			return Fuses.getDefault().getByteCount(getMCUId());
+		} catch (IOException e) {
+			// If you want to see the Exception use the Fuses class directly
+			return 0;
+		}
 	}
 
 	/**

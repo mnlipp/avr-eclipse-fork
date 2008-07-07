@@ -46,8 +46,15 @@ import de.innot.avreclipse.core.toolinfo.fuses.Locks;
 public class AVRDudeActionFactory {
 
 	/** The name of the fuses for 1, 2 or 3 fusebytes */
-	private final static MemType[][]	FUSENAMEMAP		= { {}, { MemType.fuse },
-			{ MemType.lfuse, MemType.hfuse }, { MemType.lfuse, MemType.hfuse, MemType.efuse } };
+	private final static MemType[][]	FUSENAMEMAP		= {
+			{},
+			{ MemType.fuse },
+			{ MemType.lfuse, MemType.hfuse },
+			{ MemType.lfuse, MemType.hfuse, MemType.efuse },
+			{ MemType.fuse0, MemType.fuse1, MemType.fuse2, MemType.fuse3 },
+			{ MemType.fuse0, MemType.fuse1, MemType.fuse2, MemType.fuse3, MemType.fuse4 },
+			{ MemType.fuse0, MemType.fuse1, MemType.fuse2, MemType.fuse3, MemType.fuse4,
+			MemType.fuse5 }							};
 
 	/** The name of the lockbit bytes (currently only one) */
 	private final static MemType[][]	LOCKSNAMEMAP	= { {}, { MemType.lock } };
@@ -299,7 +306,6 @@ public class AVRDudeActionFactory {
 			return fuseactions;
 		}
 
-		// Get the name mapping
 		MemType[] fusenames = FUSENAMEMAP[fusecount];
 
 		// iterate over all fusenames until we run out of names or out of values

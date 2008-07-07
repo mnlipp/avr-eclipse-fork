@@ -122,6 +122,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	private Composite[]			fByteCompos;
 	private Text[]				fValueTexts;
+	private Label[]				fFuseLabels;
 
 	private Composite			fWarningCompo;
 	private Label				fWarningLabel;
@@ -129,14 +130,11 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	@SuppressWarnings("unused")
 	private Button				fConvertButton;
 
-	/** Number of bytes for the current MCU handled on the page */
-	private int					fCount					= 0;
-
 	/** The Properties that this page works with */
 	private AVRDudeProperties	fTargetProps;
 
 	/** The AbstractBytes property object this page works with */
-	private AbstractBytes		fBytes;
+	protected AbstractBytes		fBytes;
 
 	// The abstract hook methods for the subclasses
 
@@ -154,7 +152,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	/**
 	 * Get the maximum number of byte value editor fields to generate.
 	 * 
-	 * @return 3 for the fuses page and 1 for the lockbits page.
+	 * @return 6 for the fuses page and 1 for the lockbits page.
 	 */
 	protected abstract int getMaxBytes();
 
@@ -163,7 +161,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * 
 	 * @param mcuid
 	 *            Target MCU id value.
-	 * @return 0-3 for the fuse page and 1 for the lockbits page.
+	 * @return 0-6 for the fuse page and 1 for the lockbits page.
 	 */
 	protected abstract int getByteCount(String mcuid);
 
@@ -183,7 +181,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * Get the Label text for the n-th byte.
 	 * 
 	 * @param index
-	 *            0-2 for fuses, 0 for lockbits
+	 *            0-5 for fuses, 0 for lockbits
 	 * @return <code>String</code> with the name of the byte at the index.
 	 */
 	protected abstract String getByteEditorLabel(int index);
@@ -222,6 +220,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		int maxbytes = getMaxBytes();
 		fByteCompos = new Composite[maxbytes];
 		fValueTexts = new Text[maxbytes];
+		fFuseLabels = new Label[maxbytes];
 
 		parent.setLayout(new GridLayout(1, false));
 
@@ -465,6 +464,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				// Set the MCU of the current bytes to the MCU of the project / build configuration
 				String mcuid = fTargetProps.getParent().getMCUId();
 				fBytes.setMCUId(mcuid);
+				updateData(fTargetProps);
 				checkValid();
 				updatePreview(fTargetProps);
 			}
@@ -562,10 +562,11 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// method can update the content when required.
 		fValueTexts[index] = text;
 
-		// Add the label
-		Label label = new Label(compo, SWT.CENTER);
-		label.setText(getByteEditorLabel(index));
-		label.setSize(10, 0);
+		// Add the labels
+		Label fuselabel = new Label(compo, SWT.CENTER);
+		fuselabel.setText(Integer.toString(index));
+		fuselabel.setSize(10, 0);
+		fFuseLabels[index] = fuselabel;
 
 		return compo;
 	}
@@ -598,11 +599,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 */
 	private void enableByteGroup(boolean enabled) {
 		for (int i = 0; i < fByteCompos.length; i++) {
-			if (i >= fCount) {
-				setEnabled(fByteCompos[i], false);
-			} else {
-				setEnabled(fByteCompos[i], enabled);
-			}
+			setEnabled(fByteCompos[i], enabled);
 		}
 		fReadButton.setEnabled(enabled);
 		// fCopyButton.setEnabled(enabled);
@@ -696,9 +693,33 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		fTargetProps = props;
 		fBytes = getByteProps(props);
 
-		// Get the target MCU and its number of fusebytes
-		String mcuid = props.getParent().getMCUId();
-		fCount = getByteCount(mcuid);
+		// Set the text for the filename
+		// fFileText.setText(src.getFileName());
+
+		// Set the immediate fuse values
+		int[] values = fBytes.getValues();
+		int count = getMaxBytes();
+
+		for (int i = 0; i < count; i++) {
+			if (i < values.length) {
+				String newvalue = "";
+				int currvalue = values[i];
+				if (0 <= currvalue && currvalue <= 255) {
+					newvalue = Integer.toHexString(currvalue).toUpperCase();
+				}
+				fValueTexts[i].setText(newvalue);
+				fFuseLabels[i].setText(getByteEditorLabel(i));
+				fByteCompos[i].setVisible(true);
+			} else {
+				// byte value index > than max. supported by the current Fuse MCU.
+				// hide the editor compo
+				fValueTexts[i].setText("");
+				fByteCompos[i].setVisible(false);
+			}
+		}
+
+		// Check if the values are valid and show a warning (if required)
+		checkValid();
 
 		// Update the radio buttons
 
@@ -731,24 +752,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 		}
 
-		// Set the text for the filename
-		// fFileText.setText(src.getFileName());
-
-		// Set the immediate fuse values
-		int[] values = fBytes.getValues();
-		int count = Math.min(values.length, getMaxBytes());
-
-		for (int i = 0; i < count; i++) {
-			String newvalue = "";
-			int currvalue = values[i];
-			if (0 <= currvalue && currvalue <= 255) {
-				newvalue = Integer.toHexString(currvalue).toUpperCase();
-			}
-			fValueTexts[i].setText(newvalue);
-		}
-
-		// Check if the values are valid and show a warning (if required)
-		checkValid();
 	}
 
 	/**
@@ -791,14 +794,14 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 										return;
 									}
 								}
-								// Clear the current bytes and transfer the new values
-								fBytes.clearValues();
-								fBytes.setValues(bytevalues.getValues());
-
 								// if the attached mcu differs from the project mcu the user got a
 								// warning, where he chose to accept the values. So we set the mcu
 								// for the values to the one from the project.
 								fBytes.setMCUId(projectmcu);
+
+								// Clear the current bytes and transfer the new values
+								fBytes.clearValues();
+								fBytes.setValues(bytevalues.getValues());
 
 								updateData(fTargetProps);
 							}

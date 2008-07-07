@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import org.osgi.service.prefs.Preferences;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.Locks;
 
 /**
  * Storage independent container for the Lockbit values.
@@ -40,9 +42,6 @@ import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
  * 
  */
 public class LockbitBytes extends AbstractBytes {
-
-	/** Maximum number of Lockbit Bytes supported. */
-	public final static int	MAX_LOCKBITBYTES	= 1;
 
 	/**
 	 * Create a new LockbitBytes object and load the properties from the Preferences.
@@ -102,8 +101,13 @@ public class LockbitBytes extends AbstractBytes {
 	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#getMaxBytes()
 	 */
 	@Override
-	protected int getMaxBytes() {
-		return MAX_LOCKBITBYTES;
+	protected int getByteCount() {
+		try {
+			return Locks.getDefault().getByteCount(getMCUId());
+		} catch (IOException e) {
+			// If you want to see the Exception use the Fuses class directly
+			return 0;
+		}
 	}
 
 	/**

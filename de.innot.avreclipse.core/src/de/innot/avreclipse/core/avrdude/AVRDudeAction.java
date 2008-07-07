@@ -31,11 +31,15 @@ import de.innot.avreclipse.mbs.BuildMacro;
 public class AVRDudeAction {
 
 	public enum MemType {
+		// The names of the ATXmega fusebytes is currently just speculation because avrdude does not
+		// support more than 3 fuse bytes at this time.
 		flash("Flash"), eeprom("EEPROM"), signature("Signature"), fuse("Fuse Byte"), lfuse(
-		        "Low Fuse Byte"), hfuse("High Fuse Byte"), efuse("Extended Fuse Byte"), lock(
-		        "Lock Byte"), calibration("Calibration Bytes");
+				"Low Fuse Byte"), hfuse("High Fuse Byte"), efuse("Extended Fuse Byte"), lock(
+				"Lock Byte"), calibration("Calibration Bytes"), fuse0("Fuse Byte 0"), fuse1(
+				"Fuse Byte 1"), fuse2("Fuse Byte 2"), fuse3("Fuse Byte 3"), fuse4("Fuse Byte 4"), fuse5(
+				"Fuse Byte 5");
 
-		private String name;
+		private String	name;
 
 		private MemType(String name) {
 			this.name = name;
@@ -50,7 +54,7 @@ public class AVRDudeAction {
 	public enum Action {
 		read("r"), write("w"), verify("v");
 
-		public String symbol;
+		public String	symbol;
 
 		private Action(String op) {
 			symbol = op;
@@ -69,9 +73,9 @@ public class AVRDudeAction {
 
 	public enum FileType {
 		iHex("i"), sRec("s"), raw("r"), immediate("m"), decimal("d"), hex("h"), octal("o"), binary(
-		        "b"), auto("a");
+				"b"), auto("a");
 
-		public String symbol;
+		public String	symbol;
 
 		private FileType(String type) {
 			symbol = type;
@@ -88,11 +92,11 @@ public class AVRDudeAction {
 		}
 	}
 
-	private MemType fMemType;
-	private Action fAction;
-	private String fFilename;
-	private FileType fFileType;
-	private int fImmediateValue;
+	private final MemType	fMemType;
+	private final Action	fAction;
+	private String			fFilename;
+	private final FileType	fFileType;
+	private int				fImmediateValue;
 
 	public AVRDudeAction(MemType memtype, Action action, String filename, FileType filetype) {
 
@@ -114,8 +118,8 @@ public class AVRDudeAction {
 	/**
 	 * Get the name of the file.
 	 * 
-	 * @return <code>String</code> with the filename or <code>null</code> if
-	 *         this is an immediate action.
+	 * @return <code>String</code> with the filename or <code>null</code> if this is an
+	 *         immediate action.
 	 */
 	public String getFilename() {
 		if (fFileType == FileType.immediate) {
@@ -145,9 +149,8 @@ public class AVRDudeAction {
 	/**
 	 * Get the avrdude action option.
 	 * <p>
-	 * The filename (if set) will be resolved against the given
-	 * <code>IConfiguration</code>. Also the filename is converted to the OS
-	 * format.
+	 * The filename (if set) will be resolved against the given <code>IConfiguration</code>. Also
+	 * the filename is converted to the OS format.
 	 * 
 	 * @param buildcfg
 	 *            <code>IConfiguration</code> context for resolving macros.
@@ -193,18 +196,17 @@ public class AVRDudeAction {
 		return sb.toString();
 	}
 
-	private final static Pattern fRemoveTrim = Pattern.compile(".*-U\\s*(.*?)");
+	private final static Pattern	fRemoveTrim	= Pattern.compile(".*-U\\s*(.*?)");
 
 	/**
 	 * Create an action for the given argument.
 	 * <p>
-	 * This is the reverse of {@link #getArgument()}. It parses the argument
-	 * and extracts the information required to make a new
-	 * <code>AVRDudeAction</code>
+	 * This is the reverse of {@link #getArgument()}. It parses the argument and extracts the
+	 * information required to make a new <code>AVRDudeAction</code>
 	 * </p>
 	 * <p>
-	 * The current implementation requires that the filetype at the end is set,
-	 * otherwise it will not parse
+	 * The current implementation requires that the filetype at the end is set, otherwise it will
+	 * not parse
 	 * 
 	 * @param argument
 	 * @return
@@ -251,7 +253,7 @@ public class AVRDudeAction {
 			memtype = MemType.valueOf(field);
 		} catch (IllegalArgumentException iae) {
 			throw new IllegalArgumentException("Invalid memory specification \"" + field + "\"",
-			        iae);
+					iae);
 		}
 
 		// Action
@@ -275,7 +277,7 @@ public class AVRDudeAction {
 			filetype = FileType.getFileType(field);
 			if (filetype == null) {
 				throw new IllegalArgumentException("Invalid file type specification \"" + field
-				        + "\"");
+						+ "\"");
 			}
 			endfilename = p;
 		}
@@ -306,38 +308,38 @@ public class AVRDudeAction {
 		// interface.
 		StringBuilder sb = new StringBuilder(80);
 		switch (fAction) {
-		case read:
-			sb.append("Reading ");
-			sb.append(fMemType);
-			sb.append(" to file \"");
-			sb.append(fFilename);
-			sb.append("\" in ");
-			sb.append(fFileType);
-			sb.append(" format");
-			break;
-		case write:
-			sb.append("Writing \"");
-			if (fFileType == FileType.immediate) {
-				sb.append("0x");
-				sb.append(Integer.toHexString(fImmediateValue));
-			} else {
+			case read:
+				sb.append("Reading ");
+				sb.append(fMemType);
+				sb.append(" to file \"");
 				sb.append(fFilename);
-			}
-			sb.append("\" to ");
-			sb.append(fMemType);
-			break;
-		case verify:
-			sb.append("Verifying \"");
-			sb.append(fMemType);
-			sb.append(" against \"");
-			if (fFileType == FileType.immediate) {
-				sb.append("0x");
-				sb.append(Integer.toHexString(fImmediateValue));
-			} else {
-				sb.append(fFilename);
-			}
-			sb.append("\"");
-			break;
+				sb.append("\" in ");
+				sb.append(fFileType);
+				sb.append(" format");
+				break;
+			case write:
+				sb.append("Writing \"");
+				if (fFileType == FileType.immediate) {
+					sb.append("0x");
+					sb.append(Integer.toHexString(fImmediateValue));
+				} else {
+					sb.append(fFilename);
+				}
+				sb.append("\" to ");
+				sb.append(fMemType);
+				break;
+			case verify:
+				sb.append("Verifying \"");
+				sb.append(fMemType);
+				sb.append(" against \"");
+				if (fFileType == FileType.immediate) {
+					sb.append("0x");
+					sb.append(Integer.toHexString(fImmediateValue));
+				} else {
+					sb.append(fFilename);
+				}
+				sb.append("\"");
+				break;
 		}
 
 		return sb.toString();

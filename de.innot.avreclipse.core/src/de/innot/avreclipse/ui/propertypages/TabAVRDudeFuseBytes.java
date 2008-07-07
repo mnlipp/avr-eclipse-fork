@@ -42,7 +42,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 
 	/** Max number of Fuse bytes */
-	private final static int		MAX_FUSES	= 3;
+	private final static int		MAX_FUSES	= 6;
 
 	/** The byte editor labels */
 	private final static String[]	FUSENAMES	= { "low", "high", "ext." };
@@ -85,11 +85,24 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	 */
 	@Override
 	protected String getByteEditorLabel(int index) {
-		if (0 <= index && index < FUSENAMES.length) {
-			return FUSENAMES[index];
+		int fusecount = fBytes.getValues().length;
+
+		if (fusecount == 1) {
+			// Single Fuse byte MCU: Name "fuse"
+			return "fuse";
 		}
-		// Return an empty name for yet unknown index values.
-		return "";
+
+		if (fusecount <= 3) {
+			// pre-ATXmega format: up to three fusebytes with the name "low", "high" and "ext."
+			if (0 <= index && index < FUSENAMES.length) {
+				return FUSENAMES[index];
+			}
+			// Return an empty name for invalid index values.
+			return "";
+		}
+
+		// new ATXmega format: more than three fusebytes, just numbered 1...n
+		return Integer.toString(index);
 	}
 
 	/*

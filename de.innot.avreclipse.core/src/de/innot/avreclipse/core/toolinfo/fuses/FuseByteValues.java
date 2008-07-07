@@ -17,8 +17,6 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.IOException;
 
-import de.innot.avreclipse.core.avrdude.FuseBytes;
-
 /**
  * Container for the fuse bytes.
  * 
@@ -28,17 +26,11 @@ import de.innot.avreclipse.core.avrdude.FuseBytes;
  */
 public class FuseByteValues extends ByteValues {
 
-	// Name of the fuse bytes in avrdude format
-	private final static String	FUSE	= "fuse";
-	private final static String	LFUSE	= "lfuse";
-	private final static String	HFUSE	= "hfuse";
-	private final static String	EFUSE	= "efuse";
-
 	/**
 	 * Create a new fuse byte values container for a given MCU.
 	 * <p>
 	 * The MCU parameter is stored but only used for reference. The actual number of bytes does not
-	 * depend on the MCU but is taken from the subclass via the {@link #getMaxBytes()} hook method.
+	 * depend on the MCU but is taken from the subclass via the {@link #getByteCount()} hook method.
 	 * </p>
 	 * 
 	 * @param mcuid
@@ -65,16 +57,6 @@ public class FuseByteValues extends ByteValues {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#getMaxBytes()
-	 */
-	@Override
-	public int getMaxBytes() {
-		return FuseBytes.MAX_FUSEBYTES;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#getByteCount()
 	 */
 	@Override
@@ -86,24 +68,4 @@ public class FuseByteValues extends ByteValues {
 			return 0;
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#nameToIndex(java.lang.String)
-	 */
-	@Override
-	public int nameToIndex(String name) {
-		int index = -1;
-		if (FUSE.equals(name) || LFUSE.equals(name)) {
-			index = 0;
-		} else if (HFUSE.equals(name)) {
-			index = 1;
-		} else if (EFUSE.equals(name)) {
-			index = 2;
-		}
-
-		return index;
-	}
-
 }

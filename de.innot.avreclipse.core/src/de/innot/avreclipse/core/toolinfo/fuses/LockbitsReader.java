@@ -31,7 +31,7 @@ public class LockbitsReader extends AbstractFusesReader {
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.AbstractFusesReader#getTargetNodeName()
 	 */
 	@Override
-	protected String getTargetNodeName() {
+	protected String getTargetMemspace() {
 		return "LOCKBIT";
 	}
 
@@ -53,10 +53,11 @@ public class LockbitsReader extends AbstractFusesReader {
 	 *      int, de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription[])
 	 */
 	@Override
-	protected void addBitFields(IDescriptionHolder desc, int index, BitFieldDescription[] bitfields) {
+	protected void addBitFields(IDescriptionHolder desc, int index, String name,
+			BitFieldDescription[] bitfields) {
 
 		LockbitsDescription lockbitsdesc = (LockbitsDescription) desc;
-		lockbitsdesc.setBitFieldDescriptions(index, bitfields);
+		lockbitsdesc.setBitFieldDescriptions(index, name, bitfields);
 
 	}
 

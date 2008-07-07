@@ -6,8 +6,8 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 /**
  * {@link IDescriptionHolder} implementation for Locks.
  * <p>
- * Objects of this class hold the {@link BitFieldDescription} objects for the Locks byte of a
- * single MCU.
+ * Objects of this class hold the {@link BitFieldDescription} objects for the Locks byte of a single
+ * MCU.
  * </p>
  * <p>
  * This Class is a simple extension of {@link FusesDescription}, as from an implementation point of
@@ -21,7 +21,7 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 public class LockbitsDescription extends FusesDescription {
 
 	/* Change this whenever the fields of this class have changed */
-	private static final long	serialVersionUID	= -1592633607351612877L;
+	private static final long	serialVersionUID	= 201286106985049090L;
 
 	/**
 	 * Create a new LockbitsDescription for a MCU with the given number of lock bytes.

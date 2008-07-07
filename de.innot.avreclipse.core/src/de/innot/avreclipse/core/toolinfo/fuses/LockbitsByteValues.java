@@ -17,8 +17,6 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.IOException;
 
-import de.innot.avreclipse.core.avrdude.LockbitBytes;
-
 /**
  * Container for the Lockbit byte(s).
  * <p>
@@ -32,13 +30,11 @@ import de.innot.avreclipse.core.avrdude.LockbitBytes;
  */
 public class LockbitsByteValues extends ByteValues {
 
-	private final static String	LOCK	= "lock";
-
 	/**
 	 * Create a new lockbits byte value container for a given MCU.
 	 * <p>
 	 * The MCU parameter is stored but only used for reference. The actual number of bytes does not
-	 * depend on the MCU but is taken from the subclass via the {@link #getMaxBytes()} hook method.
+	 * depend on the MCU but is taken from the subclass via the {@link #getByteCount()} hook method.
 	 * </p>
 	 * 
 	 * @param mcuid
@@ -65,16 +61,6 @@ public class LockbitsByteValues extends ByteValues {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#getMaxBytes()
-	 */
-	@Override
-	public int getMaxBytes() {
-		return LockbitBytes.MAX_LOCKBITBYTES;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#getByteCount()
 	 */
 	@Override
@@ -82,24 +68,8 @@ public class LockbitsByteValues extends ByteValues {
 		try {
 			return Locks.getDefault().getByteCount(getMCUId());
 		} catch (IOException e) {
-			// If you want to see the Exception use the Fuses class directly
+			// If you want to see the Exception use the Locks class directly
 			return 0;
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.ByteValues#nameToIndex(java.lang.String)
-	 */
-	@Override
-	public int nameToIndex(String name) {
-		int index = -1;
-		if (LOCK.equals(name)) {
-			index = 0;
-		}
-
-		return index;
-	}
-
 }

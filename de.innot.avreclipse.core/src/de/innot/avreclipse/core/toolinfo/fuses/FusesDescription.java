@@ -31,7 +31,7 @@ import java.io.Serializable;
 public class FusesDescription implements Serializable, IDescriptionHolder {
 
 	/* Change this whenever the fields of this class have changed */
-	private static final long				serialVersionUID	= 3400953893478459140L;
+	private static final long				serialVersionUID	= 1210974654053970636L;
 
 	/** The MCU for this description. */
 	private final String					fMCUid;
@@ -45,6 +45,9 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 	/** Array with default values, one for each byte */
 	private final int[]						fDefaultValues;
 
+	/** Array with the Fuse byte names (from the part description file) */
+	private final String[]					fByteName;
+
 	/**
 	 * Create a new FusesDescription for a MCU with the given number of fuse bytes.
 	 * 
@@ -57,9 +60,12 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 		fMCUid = mcuid;
 		fByteCount = bytecount;
 		fBitfields = new BitFieldDescription[bytecount][];
+		fByteName = new String[bytecount];
 		fDefaultValues = new int[bytecount];
+
 		// set the defaults to -1 = no default available
 		for (int i = 0; i < bytecount; i++) {
+			fByteName[i] = "";
 			fDefaultValues[i] = -1;
 		}
 	}
@@ -95,6 +101,16 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IDescriptionHolder#getByteName(int)
+	 */
+	public String getByteName(int index) {
+		checkIndex(index);
+		return fByteName[index];
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IDescriptionHolder#getDefaultValue(int)
 	 */
 	public int getDefaultValue(int index) {
@@ -114,15 +130,18 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 	 * 
 	 * @param index
 	 *            <code>int</code> with the fuse byte index.
+	 * @param name
+	 *            <code>String</code> with the part description file name of the fuse byte.
 	 * @param bitfields
 	 *            Array of <code>BitFieldDescription</code> objects for the byte at the given
 	 *            index.
 	 * @throws IllegalArgumentException
 	 *             if the index is not valid for this MCU.
 	 */
-	protected void setBitFieldDescriptions(int index, BitFieldDescription[] bitfields) {
+	protected void setBitFieldDescriptions(int index, String name, BitFieldDescription[] bitfields) {
 		checkIndex(index);
 		fBitfields[index] = bitfields;
+		fByteName[index] = name;
 	}
 
 	/**
@@ -169,7 +188,7 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 		StringBuffer sb = new StringBuffer("Fuses for " + getMCUId());
 		sb.append(" (" + getByteCount() + ") [");
 		for (int i = 0; i < getByteCount(); i++) {
-			sb.append("[ Byte " + i + " ");
+			sb.append("[ (" + i + ") " + fByteName[i] + " ");
 			BitFieldDescription[] fields = getBitFieldDescriptions(i);
 			for (int j = 0; j < fields.length; j++) {
 				sb.append("[");
@@ -182,5 +201,4 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 
 		return sb.toString();
 	}
-
 }

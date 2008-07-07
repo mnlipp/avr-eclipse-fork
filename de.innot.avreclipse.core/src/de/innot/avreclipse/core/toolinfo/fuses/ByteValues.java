@@ -15,7 +15,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo.fuses;
 
-
 /**
  * Abstract container for byte values.
  * <p>
@@ -35,6 +34,9 @@ public abstract class ByteValues {
 	/** The MCU for which the byte values are valid. Set during instantiation. */
 	private final String	fMCUId;
 
+	/** The number of bytes in this object */
+	private final int		fByteCount;
+
 	/** The actual byte values. The array is initialized during instantiation. */
 	private final int[]		fValues;
 
@@ -42,7 +44,7 @@ public abstract class ByteValues {
 	 * Create a new byte values container for a given MCU.
 	 * <p>
 	 * The MCU parameter is stored but only used for reference. The actual number of bytes does not
-	 * depend on the MCU but is taken from the subclass via the {@link #getMaxBytes()} hook method.
+	 * depend on the MCU but is taken from the subclass via the {@link #getByteCount()} hook method.
 	 * </p>
 	 * 
 	 * @param mcuid
@@ -50,7 +52,8 @@ public abstract class ByteValues {
 	 */
 	protected ByteValues(String mcuid) {
 		fMCUId = mcuid;
-		fValues = new int[getMaxBytes()];
+		fByteCount = getByteCount();
+		fValues = new int[fByteCount];
 		clearValues();
 	}
 
@@ -65,20 +68,32 @@ public abstract class ByteValues {
 	 */
 	protected ByteValues(ByteValues source) {
 		fMCUId = source.fMCUId;
-		fValues = new int[getMaxBytes()];
-		System.arraycopy(source.fValues, 0, fValues, 0, getMaxBytes());
+		fByteCount = source.fByteCount;
+		fValues = new int[fByteCount];
+		System.arraycopy(source.fValues, 0, fValues, 0, fByteCount);
 	}
 
 	/**
-	 * Returns the maximum number of bytes the subclass supports.
+	 * Create a new byte values container for the given MCU id and copies the values of the given
+	 * source ByteValues object to the new ByteValues object.
 	 * <p>
-	 * Subclasses must override this to tell <code>AbstractBytes</code> how many bytes they
-	 * support.
+	 * If the source has more values, they are truncated. If it has less then the values array is
+	 * filled up with <code>-1</code> values.
 	 * </p>
 	 * 
-	 * @return <code>3</code> for fuse bytes and <code>1</code> for lockbit bytes.
+	 * @param mcuid
+	 * @param source
 	 */
-	public abstract int getMaxBytes();
+	protected ByteValues(String mcuid, ByteValues source) {
+		fMCUId = mcuid;
+		fByteCount = getByteCount();
+		fValues = new int[fByteCount];
+		for (int i = 0; i < fValues.length; i++) {
+			fValues[i] = -1;
+		}
+		int copycount = Math.min(fByteCount, source.fByteCount);
+		System.arraycopy(source.fValues, 0, fValues, 0, copycount);
+	}
 
 	/**
 	 * Get the current MCU for which the byte values are valid.
@@ -87,27 +102,6 @@ public abstract class ByteValues {
 	 */
 	public String getMCUId() {
 		return fMCUId;
-	}
-
-	/**
-	 * Sets the named byte to a value.
-	 * 
-	 * @param name
-	 *            The name of a byte in avrdude format, e.g. "lfuse" or "lock"
-	 * @param value
-	 *            The new value. Must be a byte value (0-255) or -1 to unset the value.
-	 * @throws IllegalArgumentException
-	 *             if the name is not valid or the value is out of range.
-	 */
-	public void setValue(String name, int value) {
-
-		int index = nameToIndex(name);
-
-		if (index == -1) {
-			throw new IllegalArgumentException("Byte name [" + name + "] is undefined.");
-		}
-
-		setValue(index, value);
 	}
 
 	/**
@@ -207,19 +201,6 @@ public abstract class ByteValues {
 	public abstract int getByteCount();
 
 	/**
-	 * Convert a byte name in avdude format to an byte index.
-	 * <p>
-	 * </p>
-	 * 
-	 * @param name
-	 *            <code>String</code> with a name, e.g. "lfuse" or "lock"
-	 * @return the index of the byte with the given name.
-	 * @throws IllegalArgumentException
-	 *             if the name is unknown.
-	 */
-	public abstract int nameToIndex(String name);
-
-	/**
 	 * Checks if the index is valid for the subclass.
 	 * 
 	 * @param index
@@ -228,7 +209,7 @@ public abstract class ByteValues {
 	 *             if the index is not valid.
 	 */
 	private void checkIndex(int index) {
-		if (!(0 <= index && index < getMaxBytes())) {
+		if (!(0 <= index && index < getByteCount())) {
 			throw new IllegalArgumentException("[" + index + "] is not a valid byte index.");
 		}
 	}

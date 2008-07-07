@@ -39,7 +39,15 @@ import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader;
 /**
  * Fuses info reader.
  * <p>
- * This Class will take a PartDescriptionFile Document and read the Fuse Byte settings from it.
+ * This Class will take a PartDescriptionFile Document and read either the Fuse Byte or the Lockbit
+ * settings from it. What to read is determined by the subclass.
+ * </p>
+ * <p>
+ * The definitions of Fuses and Lockbits are very similar, therefore this class does most of the
+ * parsing and the subclasses just need to supply a few informations.
+ * </p>
+ * <p>
+ * 
  * </p>
  * 
  * @author Thomas Holland
@@ -69,39 +77,39 @@ public abstract class AbstractFusesReader extends BaseReader {
 	@Override
 	public void parse(Document document) {
 
-		// Find the <module class="FUSE"> node.
-		// Get all <module> nodes and look for the one with the attribute
-		// "class"
-		NodeList modulenodes = document.getElementsByTagName("module");
-		String targetnodename = getTargetNodeName();
-		Node targetmodule = null;
+		// Find the <registers memspace="FUSE|LOCKBIT"> node.
+		// Get all <registers> nodes and look for the one which has the
+		// right memspace attribute. The memspace attribute name is supplied
+		// by the subclass with the #getTargetNodeName() method.
 
-		for (int i = 0; i < modulenodes.getLength(); i++) {
-			Node node = modulenodes.item(i);
+		NodeList allregistersnodes = document.getElementsByTagName("registers");
+		String targetmemspace = getTargetMemspace();
+		Node registersnode = null;
+
+		for (int i = 0; i < allregistersnodes.getLength(); i++) {
+			Node node = allregistersnodes.item(i);
 			if (node.hasAttributes()) {
-				NamedNodeMap attributes = modulenodes.item(i).getAttributes();
-				Node classattr = attributes.getNamedItem("class");
-				if (classattr != null) {
-					if (targetnodename.equals(classattr.getTextContent())) {
-						targetmodule = node;
+				NamedNodeMap attributes = allregistersnodes.item(i).getAttributes();
+				Node memspaceattr = attributes.getNamedItem("memspace");
+				if (memspaceattr != null) {
+					if (targetmemspace.equals(memspaceattr.getTextContent())) {
+						registersnode = node;
 						break;
 					}
 				}
 			}
 		}
 
-		if (targetmodule == null) {
-			// No target node found (some MCUs don't have fuses)
+		if (registersnode == null) {
+			// No target node found (some MCUs don't have fuses / lockbits)
 			return;
 		}
 
-		// OK, we have right module. The module has a "registers" node with the
-		// actual definitions and zero or more "enumerator" nodes
-		// which contain human readable presets.
+		// OK, we have right node.
 
-		// Read all enumerators
+		// Read all enumerators. The Enumerators are siblings of our target node.
 		Map<String, List<BitFieldValue>> enumerators = new HashMap<String, List<BitFieldValue>>();
-		Node child = targetmodule.getFirstChild();
+		Node child = registersnode.getParentNode().getFirstChild();
 		while (child != null) {
 			if ("enumerator".equals(child.getNodeName())) {
 				readEnumeratorNode(child, enumerators);
@@ -112,14 +120,7 @@ public abstract class AbstractFusesReader extends BaseReader {
 		// Analyze the Registers node
 		IDescriptionHolder desc = null;
 
-		child = targetmodule.getFirstChild();
-		while (child != null) {
-			if ("registers".equals(child.getNodeName())) {
-				desc = readRegisterNode(child, enumerators);
-				break;
-			}
-			child = child.getNextSibling();
-		}
+		desc = readRegistersNode(registersnode, enumerators);
 
 		if (desc == null) {
 			// no <registers> element found
@@ -148,6 +149,12 @@ public abstract class AbstractFusesReader extends BaseReader {
 	protected abstract IDescriptionHolder getDescriptionHolder(String mcuid, int bytecount);
 
 	/**
+	 * @param document
+	 * @param fusedesc
+	 */
+	protected abstract void setDefaultValues(Document document, IDescriptionHolder fusedesc);
+
+	/**
 	 * Add the array of <code>BitFieldDescription</code> objects to the description holder.
 	 * 
 	 * @param desc
@@ -155,10 +162,13 @@ public abstract class AbstractFusesReader extends BaseReader {
 	 *            call.
 	 * @param index
 	 *            The byte index for which to set the bitfield descriptions.
+	 * @param name
+	 *            The name for the byte as used in the part escription file, e.g. "LOW" or
+	 *            "FUSEBYTE0"
 	 * @param bitfields
 	 *            The array of bitfields.
 	 */
-	protected abstract void addBitFields(IDescriptionHolder desc, int index,
+	protected abstract void addBitFields(IDescriptionHolder desc, int index, String name,
 			BitFieldDescription[] bitfields);
 
 	/**
@@ -169,7 +179,7 @@ public abstract class AbstractFusesReader extends BaseReader {
 	 * 
 	 * @return String with a valid module class name.
 	 */
-	protected abstract String getTargetNodeName();
+	protected abstract String getTargetMemspace();
 
 	/**
 	 * Get the storage destination folder for the fuse description files.
@@ -245,6 +255,21 @@ public abstract class AbstractFusesReader extends BaseReader {
 		}
 	}
 
+	/**
+	 * Read the given &lt;enumerator&gt; node and add its content to the given global enumerators
+	 * list.
+	 * <p>
+	 * All &lt;enum&gt; children of the &lt;enumerator&gt; node are collected in a list of
+	 * BitFieldValue objects and mapped to the name of the enumerator node, which is then added to
+	 * the global list.
+	 * </p>
+	 * 
+	 * @param node
+	 *            A &lt;enumerator&gt; node
+	 * @param enums
+	 *            The global map of all enumerator names and their <code>BitFieldValue</code>
+	 *            lists
+	 */
 	private void readEnumeratorNode(Node node, Map<String, List<BitFieldValue>> enums) {
 
 		List<BitFieldValue> values = new ArrayList<BitFieldValue>();
@@ -269,8 +294,13 @@ public abstract class AbstractFusesReader extends BaseReader {
 	}
 
 	/**
+	 * Read the given &lt;enum&gt; node and return a new BitFieldValue with the descriptive text and
+	 * the value of the enum node.
+	 * 
 	 * @param node
-	 * @return
+	 *            A &lt;enum&gt; node
+	 * @return New <code>BitFieldValue</code> object with the values from the "text" and "val"
+	 *         attributes.
 	 */
 	private BitFieldValue readEnumNode(Node node) {
 		BitFieldValue value = new BitFieldValue();
@@ -285,16 +315,19 @@ public abstract class AbstractFusesReader extends BaseReader {
 
 	/**
 	 * @param node
+	 *            A &lt;registers memspace="FUSE|LOCKBIT"&gt; node.
 	 * @param enumerators
+	 *            The global list of enumerators for this node.
 	 * @return
 	 */
-	private IDescriptionHolder readRegisterNode(Node node,
+	private IDescriptionHolder readRegistersNode(Node node,
 			Map<String, List<BitFieldValue>> enumerators) {
 
 		List<Node> regnodes = new ArrayList<Node>();
 		List<Integer> offsetlist = new ArrayList<Integer>();
+		List<String> namelist = new ArrayList<String>();
 
-		int fusebytecount = 0;
+		int bytecount = 0;
 
 		// The reading is done in two steps.
 		// 1. Read all <reg> nodes to get the total count of bytes.
@@ -306,30 +339,38 @@ public abstract class AbstractFusesReader extends BaseReader {
 
 		while (regnode != null) {
 			if ("reg".equals(regnode.getNodeName())) {
-				fusebytecount++;
+				bytecount++;
 				regnodes.add(regnode);
 
 				// read the offset attribute and store it
-				// This is used to get the order of the fusebytes correct (they
+				// This is used to get the correct order of the bytes (they
 				// are in reverse order within the document).
-				// Note: We do not use the name attribute, because we handle the
-				// assignment of names ourself to be compatible with avrdude.
+				// We also read the name of the byte. This is later used to
+				// map to the correct name for avrdude.
 				Node offsetattr = regnode.getAttributes().getNamedItem("offset");
 				Integer offsetvalue = Integer.decode(offsetattr.getTextContent());
 				offsetlist.add(offsetvalue);
+
+				Node nameattr = regnode.getAttributes().getNamedItem("name");
+				if (nameattr != null) {
+					String namevalue = nameattr.getTextContent();
+					namelist.add(namevalue);
+				} else {
+					namelist.add("");
+				}
 			}
 			regnode = regnode.getNextSibling();
 		}
 
 		// Get a description holder object for the accumulated number of fuse
 		// bytes from the subclass
-		IDescriptionHolder desc = getDescriptionHolder(fMCUid, fusebytecount);
+		IDescriptionHolder desc = getDescriptionHolder(fMCUid, bytecount);
 
 		// Now we can read the bitfields for each node
 		for (int i = 0; i < regnodes.size(); i++) {
 			regnode = regnodes.get(i);
 
-			// Get the child <bitfield> nodes and prepare a new bitfield list
+			// Get the child <bitfield> nodes and create a new bitfield list
 			Node bitfieldnode = regnode.getFirstChild();
 			List<BitFieldDescription> bitfields = new ArrayList<BitFieldDescription>();
 
@@ -343,13 +384,21 @@ public abstract class AbstractFusesReader extends BaseReader {
 
 			// all bitfields have been read
 			// Add them to the description
-			addBitFields(desc, offsetlist.get(i), bitfields
+			addBitFields(desc, offsetlist.get(i), namelist.get(i), bitfields
 					.toArray(new BitFieldDescription[bitfields.size()]));
 		}
 
 		return desc;
 	}
 
+	/**
+	 * @param node
+	 *            A &lt;bitfield&gt; node
+	 * @param enumerators
+	 *            The global list of enumerators for this node.
+	 * @return A <code>BitFieldDescription</code> object representing the given &lt;bitfield&gt;
+	 *         node.
+	 */
 	private BitFieldDescription readBitfieldNode(Node node,
 			Map<String, List<BitFieldValue>> enumerators) {
 
@@ -373,7 +422,5 @@ public abstract class AbstractFusesReader extends BaseReader {
 
 		return bitfield;
 	}
-
-	protected abstract void setDefaultValues(Document document, IDescriptionHolder fusedesc);
 
 }

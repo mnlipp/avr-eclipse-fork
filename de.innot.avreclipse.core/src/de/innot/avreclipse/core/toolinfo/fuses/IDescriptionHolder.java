@@ -57,14 +57,32 @@ public interface IDescriptionHolder {
 	public BitFieldDescription[] getBitFieldDescriptions(int index);
 
 	/**
+	 * Get the name of the byte at the given index.
+	 * <p>
+	 * The name is the one given in the Atmel part description file and will be either:
+	 * <ul>
+	 * <li><i>LOW</i>, <i>HIGH</i>, <i>EXTENDED</i> for the all AVR series MCUs except the
+	 * ATXmega series.</li>
+	 * <li><i>FUSEBYTE0</i>,...,<i>FUSEBYTEn</i> for an ATXmega MCU.</li>
+	 * </ul>
+	 * This is used to map the name to a avrdude byte name (as soon as avrdude supports the ATXmega,
+	 * which is currently not the case).
+	 * </p>
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public String getByteName(int index);
+
+	/**
 	 * Get the default value for a single byte.
 	 * <p>
 	 * The default value is derived from the part description files. Might be <code>NO_VALUE</code>
 	 * if no default value has been defined in the part description files.
 	 * </p>
 	 * <p>
-	 * The default value for LockbitBytes is always <code>0xff</code> (all bits set), which means no
-	 * locks.
+	 * The default value for LockbitBytes is always <code>0xff</code> (all bits set), which means
+	 * no locks.
 	 * </p>
 	 * 
 	 * @param index

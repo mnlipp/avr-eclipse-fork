@@ -49,9 +49,10 @@ public class FusesReader extends AbstractFusesReader {
 	 *      int, de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription[])
 	 */
 	@Override
-	protected void addBitFields(IDescriptionHolder desc, int index, BitFieldDescription[] bitfields) {
+	protected void addBitFields(IDescriptionHolder desc, int index, String name,
+			BitFieldDescription[] bitfields) {
 		FusesDescription fusesdesc = (FusesDescription) desc;
-		fusesdesc.setBitFieldDescriptions(index, bitfields);
+		fusesdesc.setBitFieldDescriptions(index, name, bitfields);
 	}
 
 	/*
@@ -71,7 +72,7 @@ public class FusesReader extends AbstractFusesReader {
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.AbstractFusesReader#getNode(org.w3c.dom.Document)
 	 */
 	@Override
-	protected String getTargetNodeName() {
+	protected String getTargetMemspace() {
 		return "FUSE";
 	}
 
@@ -197,26 +198,26 @@ public class FusesReader extends AbstractFusesReader {
 	/**
 	 * Convert a fuse byte name to an index.
 	 * <p>
-	 * The names (and their order) are defined in the {@link AbstractFusesReader#FUSENAMES} array.
-	 * If the given name matches an entry in this array, the ordinal number of the entry is
-	 * returned.
-	 * </p>
-	 * <p>
-	 * Currently there are three names supported: <code>LOW</code>, <code>HIGH</code> and
-	 * <code>EXTENDED</code>. More fusebytes names can be supported by adding them to
-	 * <code>FUSENAMES</code>
+	 * Currently the following names are supported: <code>LOW</code>, <code>HIGH</code>,
+	 * <code>EXTENDED</code> or <code>FUSEn</code> with <code>n</code> being a single digit.
 	 * </p>
 	 * 
 	 * @param name
-	 *            Name of the fuse byte (LOW, HIGH or EXTENDED)
-	 * @return 1, 2 or 3 respectively. Or -1 if the name is not recognized.
+	 *            Name of the fuse byte (LOW, HIGH, EXTENDED or FUSEn)
+	 * @return Index of the named fuse byte. Or -1 if the name is not recognized.
 	 */
 	private int nameToIndex(String name) {
 
+		// Test for the old format (LOW/HIGH/EXTENDED)
 		for (int i = 0; i < FUSENAMES.length; i++) {
 			if (FUSENAMES[i].equalsIgnoreCase(name)) {
 				return i;
 			}
+		}
+		// Test for the new format (FUSE0...FUSEn)
+		// This works as long as n is single digit (10 fuse bytes in total, 0...9)
+		if (name.startsWith("FUSE")) {
+			return Integer.parseInt(name.substring(name.length() - 1));
 		}
 
 		// Name not found;

@@ -37,9 +37,9 @@ import de.innot.avreclipse.core.IMCUProvider;
 /**
  * This class handles the list of Fuse descriptions.
  * <p>
- * Most AVR MCUs have between one and three fusebytes. The description of these fuses for each MCU
- * type is stored in a {@link IDescriptionHolder} object. This class manages the list of all
- * available fuse byte descriptions.
+ * Most AVR MCUs have between one and three fusebytes with the new ATXmega series having 6. The
+ * description of these fuses for each MCU type is stored in a {@link IDescriptionHolder} object.
+ * This class manages the list of all available fuse byte descriptions.
  * </p>
  * <p>
  * To get the <code>IDescriptionHolder</code for a MCU id use
@@ -164,7 +164,7 @@ public class Fuses implements IMCUProvider {
 	 * 
 	 * @param mcuid
 	 *            A valid MCU id value.
-	 * @return <code>int</code> with the number of fuse bytes for the mcu or -1 if the MCU id is
+	 * @return <code>int</code> with the number of fuse bytes for the mcu or 0 if the MCU id is
 	 *         unknown.
 	 * @throws IOException
 	 */
@@ -175,7 +175,7 @@ public class Fuses implements IMCUProvider {
 		if (desc != null) {
 			return desc.getByteCount();
 		}
-		return -1;
+		return 0;
 	}
 
 	//

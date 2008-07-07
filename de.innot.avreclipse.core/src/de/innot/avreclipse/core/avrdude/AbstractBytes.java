@@ -90,7 +90,7 @@ public abstract class AbstractBytes {
 	 * This is used when the {@link #fUseFile} flag is <code>false</code>.
 	 * </p>
 	 */
-	private final ByteValues		fByteValues;
+	private ByteValues				fByteValues;
 	private final static String		KEY_BYTEVALUES		= "ByteValues";
 	private final static String		SEPARATOR			= ":";
 
@@ -178,9 +178,10 @@ public abstract class AbstractBytes {
 	 * support.
 	 * </p>
 	 * 
-	 * @return <code>3</code> for fuse bytes and <code>1</code> for lockbit bytes.
+	 * @return <code>1</code> up to
+	 *         <code>6<code> for fuse bytes and <code>1</code> for lockbit bytes.
 	 */
-	protected abstract int getMaxBytes();
+	protected abstract int getByteCount();
 
 	/**
 	 * Get the MCU id value for which this object is valid.
@@ -209,6 +210,12 @@ public abstract class AbstractBytes {
 	 */
 	public void setMCUId(String mcuid) {
 		fMCUid = mcuid;
+
+		// copy the old byte values to a new ByteValues Object for the given MCU
+		ByteValues newByteValues = createByteValuesObject(mcuid);
+		newByteValues.setValues(fByteValues.getValues());
+		fByteValues = newByteValues;
+
 	}
 
 	/**
@@ -321,11 +328,6 @@ public abstract class AbstractBytes {
 	 * <p>
 	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p>
-	 * <p>
-	 * This always returns the maximum number of values, regardless of the number of bytes supported
-	 * by the current MCU. It is up to the caller to use only those values actually supported.
-	 * </p>
-	 * 
 	 * 
 	 * @return Array of <code>int</code> with all byte values.
 	 */
@@ -341,11 +343,6 @@ public abstract class AbstractBytes {
 	 * <p>
 	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p>
-	 * <p>
-	 * This always returns the maximum number of values, regardless of the number of bytes supported
-	 * by the current MCU. It is up to the caller to use only those values actually supported.
-	 * </p>
-	 * 
 	 * 
 	 * @return Array of <code>int</code> with all byte values.
 	 */
@@ -358,10 +355,6 @@ public abstract class AbstractBytes {
 	 * Get all current byte values stored in the object.
 	 * <p>
 	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
-	 * </p>
-	 * <p>
-	 * This always returns the maximum number of values, regardless of the number of bytes supported
-	 * by the current MCU. It is up to the caller to use only those values actually supported.
 	 * </p>
 	 * 
 	 * @return Array of <code>int</code> with all byte values.
@@ -387,7 +380,7 @@ public abstract class AbstractBytes {
 		// While values[].length should be equal to the length of the internal
 		// field (and equal to MAX_FUSEBYTES), we use this to avoid any
 		// OutOfBoundExceptions
-		int min = Math.min(values.length, getMaxBytes());
+		int min = Math.min(values.length, getByteCount());
 
 		// Set all individual values. setFuseValue() will take care of setting
 		// the dirty flag as needed.
@@ -408,7 +401,7 @@ public abstract class AbstractBytes {
 	 *         or the index is out of bounds.
 	 */
 	public int getValue(int index) {
-		if (!(0 <= index && index < getMaxBytes())) {
+		if (!(0 <= index && index < getByteCount())) {
 			return -1;
 		}
 
@@ -425,17 +418,17 @@ public abstract class AbstractBytes {
 	 * </p>
 	 * 
 	 * @param index
-	 *            The byte to set. Must be between 0 and <code>getMaxBytes() - 1</code>
+	 *            The byte to set. Must be between 0 and <code>getByteCount() - 1</code>,
+	 *            otherwise the value is ignored.
 	 * @param value
 	 *            <code>int</code> with the byte value (0-255) or <code>-1</code> to unset the
 	 *            value.
 	 * @throws IllegalArgumentException
-	 *             if the index is out of bounds (0-2) or the value is out of range (-1 to 255)
+	 *             if the the value is out of range (-1 to 255)
 	 */
 	public void setValue(int index, int value) {
-		if (!(0 <= index && index < getMaxBytes())) {
-			throw new IllegalArgumentException("invalid fusebyte index:" + index
-					+ " (must be between 0 and " + getMaxBytes() + ")");
+		if (!(0 <= index && index < getByteCount())) {
+			return;
 		}
 		if (!(-1 <= value && value <= 255)) {
 			throw new IllegalArgumentException("invalid value:" + index
@@ -502,7 +495,7 @@ public abstract class AbstractBytes {
 
 		// split the values
 		String[] values = fusevaluestring.split(SEPARATOR);
-		int count = Math.min(values.length, getMaxBytes());
+		int count = Math.min(values.length, getByteCount());
 		for (int i = 0; i < count; i++) {
 			String value = values[i];
 			if (value.length() != 0) {
@@ -529,7 +522,7 @@ public abstract class AbstractBytes {
 
 			// convert the values to a single String
 			StringBuilder sb = new StringBuilder(20);
-			for (int i = 0; i < getMaxBytes(); i++) {
+			for (int i = 0; i < getByteCount(); i++) {
 				if (i > 0)
 					sb.append(SEPARATOR);
 				sb.append(fByteValues.getValue(i));

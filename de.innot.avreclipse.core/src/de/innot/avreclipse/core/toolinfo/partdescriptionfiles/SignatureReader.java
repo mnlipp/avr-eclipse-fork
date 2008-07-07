@@ -72,8 +72,12 @@ public class SignatureReader extends BaseReader {
 				return;
 			}
 			String basevalue = nodes.item(0).getFirstChild().getNodeValue();
-			// skip the leading "$" of the element data
-			id.append(basevalue.substring(1));
+			// The signature byte starts with an "$" with older part description files.
+			// Newer PDFs (ATXmega) start with "0x".
+			// So we just take the last two chars of the basevalue which should be fine
+			// for either case (and future changes)
+
+			id.append(basevalue.substring(basevalue.length() - 2));
 		}
 		String signature = id.toString();
 
