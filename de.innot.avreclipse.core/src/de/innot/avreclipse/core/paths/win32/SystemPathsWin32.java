@@ -78,7 +78,7 @@ public class SystemPathsWin32 {
 		}
 	}
 
-	public IPath getSystemPath(AVRPath avrpath) {
+	public IPath getSystemPath(AVRPath avrpath, boolean force) {
 		IPath path = null;
 
 		// This method may be called from different threads. To prevent
@@ -92,14 +92,17 @@ public class SystemPathsWin32 {
 			}
 
 			// Test if it is already in the cache
-			path = fPathCache.get(avrpath);
-			if (path != null) {
-				return path;
+			if (!force) {
+				path = fPathCache.get(avrpath);
+				if (path != null) {
+					return path;
+				}
 			}
 
 			// not in cache, then try to find the path
 			path = internalGetPath(avrpath);
 			fPathCache.put(avrpath, path);
+
 		} finally {
 			lock.release();
 		}

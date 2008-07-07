@@ -29,11 +29,10 @@ public class AVRPathManager implements IPathProvider {
 		Bundled, System, Custom
 	}
 
+	private IPreferenceStore	fPrefs;
+	private final AVRPath		fAvrPath;
 
-	private IPreferenceStore fPrefs;
-	private AVRPath fAvrPath;
-
-	private String fPrefsValue = null;
+	private String				fPrefsValue	= null;
 
 	/**
 	 * Creates a PathProvider for the instance Preference Store and AVRPath.
@@ -61,7 +60,7 @@ public class AVRPathManager implements IPathProvider {
 		this(pathmanager.fPrefs, pathmanager.fAvrPath);
 		fPrefsValue = pathmanager.fPrefsValue;
 	}
-	
+
 	/**
 	 * Gets the UI name of the underlying AVRPath.
 	 * 
@@ -70,7 +69,7 @@ public class AVRPathManager implements IPathProvider {
 	public String getName() {
 		return fAvrPath.toString();
 	}
-	
+
 	/**
 	 * Gets a description from the underlying AVRPath.
 	 * 
@@ -79,12 +78,12 @@ public class AVRPathManager implements IPathProvider {
 	public String getDescription() {
 		return fAvrPath.getDescription();
 	}
-	
+
 	/**
 	 * Gets the current path.
 	 * 
-	 * This is different from IPathProvider.getPath() because the returned path
-	 * is cached internally and can be modified with the setPath() method.
+	 * This is different from IPathProvider.getPath() because the returned path is cached internally
+	 * and can be modified with the setPath() method.
 	 * 
 	 * 
 	 * @return <code>IPath</code>
@@ -99,7 +98,7 @@ public class AVRPathManager implements IPathProvider {
 
 		if (fPrefsValue.equals(AVRPathManager.SourceType.System.name())) {
 			// System path
-			return getSystemPath();
+			return getSystemPath(false);
 		}
 
 		if (fPrefsValue.startsWith(AVRPathManager.SourceType.Bundled.name())) {
@@ -134,10 +133,14 @@ public class AVRPathManager implements IPathProvider {
 	 * 
 	 * This is the path as determined by system path / windows registry.
 	 * 
+	 * @param force
+	 *            If <code>true</code> reload the system path directly, without using any cached
+	 *            values.
+	 * 
 	 * @return <code>IPath</code> to the system dependent source directory
 	 */
-	public IPath getSystemPath() {
-		return SystemPathHelper.getPath(fAvrPath);
+	public IPath getSystemPath(boolean force) {
+		return SystemPathHelper.getPath(fAvrPath, force);
 	}
 
 	/**
@@ -160,14 +163,14 @@ public class AVRPathManager implements IPathProvider {
 	public void setPath(String newpath, SourceType source) {
 		String newvalue = null;
 		switch (source) {
-		case System:
-			newvalue = source.name();
-			break;
-		case Bundled:
-			newvalue = source.name() + ":" + newpath;
-			break;
-		case Custom:
-			newvalue = newpath;
+			case System:
+				newvalue = source.name();
+				break;
+			case Bundled:
+				newvalue = source.name() + ":" + newpath;
+				break;
+			case Custom:
+				newvalue = newpath;
 		}
 		fPrefsValue = newvalue;
 	}
@@ -184,8 +187,7 @@ public class AVRPathManager implements IPathProvider {
 	 * 
 	 * This can be one of the {@link SourceType} values
 	 * <ul>
-	 * <li><code>Bundled</code> if the path points to a bundled avr-gcc
-	 * toolchain.</li>
+	 * <li><code>Bundled</code> if the path points to a bundled avr-gcc toolchain.</li>
 	 * <li><code>System</code> if the system default path is used.</li>
 	 * <li><code>Custom</code> if the path is selected by the user.</li>
 	 * </ul>
@@ -213,12 +215,11 @@ public class AVRPathManager implements IPathProvider {
 	 * Some paths are required, some are optional.
 	 * </p>
 	 * <p>
-	 * For required paths this method returns <code>true</code> if a
-	 * internally defined testfile exists in the given path.
+	 * For required paths this method returns <code>true</code> if a internally defined testfile
+	 * exists in the given path.
 	 * </p>
 	 * <p>
-	 * For optional paths this method also returns true if - and only if - the
-	 * path is empty ("").
+	 * For optional paths this method also returns true if - and only if - the path is empty ("").
 	 * </p>
 	 * 
 	 * @return <code>true</code> if the path points to a valid source folder.
@@ -239,15 +240,15 @@ public class AVRPathManager implements IPathProvider {
 		if (file.canRead()) {
 			return true;
 		}
-		
+
 		// try with ".exe" appended, as otherwise on Windows
 		// file.canRead() will fail
-		testpath = path.append(fAvrPath.getTest()+".exe");
+		testpath = path.append(fAvrPath.getTest() + ".exe");
 		file = testpath.toFile();
 		if (file.canRead()) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -265,8 +266,8 @@ public class AVRPathManager implements IPathProvider {
 	/**
 	 * Stores the path in the PreferenceStore.
 	 * 
-	 * Until <code>store()</code> is called, all modifications to the path are
-	 * only internal to this IPathManager and not visible outside.
+	 * Until <code>store()</code> is called, all modifications to the path are only internal to
+	 * this IPathManager and not visible outside.
 	 */
 	public void store() {
 		if (fPrefsValue != null) {

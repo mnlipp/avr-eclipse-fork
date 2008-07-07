@@ -23,8 +23,8 @@ import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 
 public class AVRPathProvider implements IPathProvider {
 
-	private IPreferenceStore fPrefs;
-	private AVRPath fAvrPath;
+	private final IPreferenceStore	fPrefs;
+	private final AVRPath			fAvrPath;
 
 	/**
 	 * Creates a PathProvider for the instance Preference Store and AVRPath.
@@ -60,7 +60,7 @@ public class AVRPathProvider implements IPathProvider {
 
 		if (pathvalue.equals(AVRPathManager.SourceType.System.name())) {
 			// System path
-			return SystemPathHelper.getPath(fAvrPath);
+			return SystemPathHelper.getPath(fAvrPath, false);
 		}
 
 		if (pathvalue.startsWith(AVRPathManager.SourceType.Bundled.name())) {

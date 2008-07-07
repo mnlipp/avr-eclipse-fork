@@ -21,19 +21,17 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import de.innot.avreclipse.core.paths.SystemPathHelper;
-
 /**
  * The activator class controls the plug-in life cycle
  */
 public class AVRPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "de.innot.avreclipse.core";
-	public static final String DEFAULT_CONSOLE = "AVR Eclipse Plugin Log";
+	public static final String	PLUGIN_ID		= "de.innot.avreclipse.core";
+	public static final String	DEFAULT_CONSOLE	= "AVR Eclipse Plugin Log";
 
 	// The shared instance
-	private static AVRPlugin plugin;
+	private static AVRPlugin	plugin;
 
 	/**
 	 * The constructor
@@ -50,12 +48,6 @@ public class AVRPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-
-		// initialize the System path cache.
-		// Especially on posix platforms it may take a while to find
-		// the paths. SystemPathHelper.initSystemPaths() starts a
-		// background job to do the actual initialization.
-		SystemPathHelper.initSystemPaths();
 	}
 
 	/*
@@ -79,8 +71,7 @@ public class AVRPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Returns an image descriptor for the image file at the given plug-in
-	 * relative path
+	 * Returns an image descriptor for the image file at the given plug-in relative path
 	 * 
 	 * @param path
 	 *            the path
@@ -91,8 +82,7 @@ public class AVRPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Log the given status and print it to the err Stream if debugging is
-	 * enabled.
+	 * Log the given status and print it to the err Stream if debugging is enabled.
 	 * 
 	 * @param status
 	 */
@@ -116,10 +106,9 @@ public class AVRPlugin extends AbstractUIPlugin {
 	/**
 	 * Gets the default console for this plugin.
 	 * <p>
-	 * This console is used for logging internal information, like the output of
-	 * the external tools called internally (not by user interaction). This
-	 * Console is only for background information and debugging and should never
-	 * be actively brought to the front.
+	 * This console is used for logging internal information, like the output of the external tools
+	 * called internally (not by user interaction). This Console is only for background information
+	 * and debugging and should never be actively brought to the front.
 	 * </p>
 	 * 
 	 * @return The default <code>MessageConsole</code>
@@ -135,8 +124,8 @@ public class AVRPlugin extends AbstractUIPlugin {
 	 * </p>
 	 * <p>
 	 * If the console already exists, a reference is returned, otherwise a new
-	 * <code>MessageConsole</code> with the given name is created, added to
-	 * the ConsoleManager, and returned.
+	 * <code>MessageConsole</code> with the given name is created, added to the ConsoleManager,
+	 * and returned.
 	 * </p>
 	 * 
 	 * @param name

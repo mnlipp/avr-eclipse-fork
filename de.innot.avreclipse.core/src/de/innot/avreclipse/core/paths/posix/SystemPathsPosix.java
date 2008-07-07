@@ -17,6 +17,7 @@
 package de.innot.avreclipse.core.paths.posix;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,18 +29,20 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.core.paths.AVRPath;
+import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 
 /**
  * Gets the actual system paths to the AVR-GCC Toolchain and some config files.
  * 
- * As these path can be almost everywhere (or not exist at all), this class
- * tries to get the location with the following methods:
+ * As these path can be almost everywhere (or not exist at all), this class tries to get the
+ * location with the following methods:
  * <ol>
  * <li><code>which</code> command to look in the current $PATH</li>
- * <li><code>find</code> command to search certain parts of the filesystem.
- * Currently the following paths are checked (in this order)
+ * <li><code>find</code> command to search certain parts of the filesystem. Currently the
+ * following paths are checked (in this order)
  * <ul>
  * <li><code>/usr/local/</code></li>
  * <li><code>/usr/</code></li>
@@ -51,8 +54,8 @@ import de.innot.avreclipse.core.paths.AVRPath;
  * </li>
  * </ol>
  * <p>
- * As the values are fairly static they are cached to avoid expensive searches.
- * The cache can be cleared with the {@link #clearCache()} method.
+ * As the values are fairly static they are cached to avoid expensive searches. The cache can be
+ * cleared with the {@link #clearCache()} method.
  * </p>
  * 
  * @author Thomas Holland
@@ -60,20 +63,20 @@ import de.innot.avreclipse.core.paths.AVRPath;
  */
 public class SystemPathsPosix {
 
-	private static SystemPathsPosix fInstance = null;
+	private static SystemPathsPosix	fInstance		= null;
 
-	private static ILock lock = Job.getJobManager().newLock();
+	private static ILock			lock			= Job.getJobManager().newLock();
 
-	private Map<AVRPath, IPath> fPathCache = null;
+	private Map<AVRPath, IPath>		fPathCache		= null;
 
-	private final static IPath fEmptyPath = new Path("");
+	private final static IPath		fEmptyPath		= new Path("");
 
 	/** Paths to be searched in order. */
 	// /etc/ was used to find the avrdude.conf file. While this is currently not
 	// required I leave it in just in case we will be looking for some other
 	// configuration file in a future version of the plugin.
-	private final static String[] fSearchPaths = { "/usr/local/", "/usr/", "/opt/", "/etc/", "~/",
-	        "/home/" };
+	private final static String[]	fSearchPaths	= { "/usr/local/", "/usr/", "/opt/", "~/",
+			"/home/", "/etc/"						};
 
 	public static SystemPathsPosix getDefault() {
 		if (fInstance == null) {
@@ -93,12 +96,20 @@ public class SystemPathsPosix {
 			if (fPathCache != null) {
 				fPathCache.clear();
 			}
+
+			// Clear the persistent cache
+			IPreferenceStore prefs = AVRPathsPreferences.getPreferenceStore();
+			for (AVRPath avrpath : AVRPath.values()) {
+				if (prefs.contains("cache_" + avrpath.name())) {
+					prefs.setToDefault("cache_" + avrpath.name());
+				}
+			}
 		} finally {
 			lock.release();
 		}
 	}
 
-	public IPath getSystemPath(AVRPath pathcontext) {
+	public IPath getSystemPath(AVRPath pathcontext, boolean force) {
 		IPath path = null;
 
 		// This method may be called from different threads. To prevent
@@ -111,15 +122,43 @@ public class SystemPathsPosix {
 				fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
 			}
 
-			// Test if it is already in the cache
-			path = fPathCache.get(pathcontext);
-			if (path != null) {
-				return path;
+			if (!force) {
+				// Test if it is already in the runtime cache
+				path = fPathCache.get(pathcontext);
+				if (path != null) {
+					return path;
+				}
+
+				// Test if it is in the persistent cache.
+				// If there is an entry in the preferencestore named "cache_..." and its value is a
+				// valid directory path and it contains the test file, then we use it instead of
+				// re-searching the system.
+				String cachedpath = AVRPathsPreferences.getPreferenceStore().getString(
+						"cache_" + pathcontext.name());
+				if (cachedpath.length() > 0) {
+					IPath testpath = new Path(cachedpath);
+					testpath.append(pathcontext.getTest());
+					File file = testpath.toFile();
+					if (file.canRead()) {
+						path = new Path(cachedpath);
+						fPathCache.put(pathcontext, path);
+						return path;
+					}
+				}
 			}
 
-			// not in cache, then try to find the path
-			path = internalGetPath(pathcontext);
+			if (path == null) {
+				// not in cache, then try to find the path
+				path = internalGetPath(pathcontext);
+
+				// save the path in the cache preferences
+				AVRPathsPreferences.getPreferenceStore().putValue("cache_" + pathcontext.name(),
+						path.toOSString());
+			}
+
+			// put the path in the runtime cache.
 			fPathCache.put(pathcontext, path);
+
 		} finally {
 			lock.release();
 		}
@@ -143,12 +182,32 @@ public class SystemPathsPosix {
 		return path;
 	}
 
+	/**
+	 * Use the posix 'which' command to find the given file.
+	 * 
+	 * @param file
+	 *            Name of the file
+	 * @return <code>IPath</code> to the file. May be an empty path if the file could not be found
+	 *         with the 'which' command.
+	 */
 	private IPath which(String file) {
 
 		IPath path = executeCommand("which " + file);
 		return path;
 	}
 
+	/**
+	 * Use the posix 'find' command to find the given file.
+	 * <p>
+	 * This method will search the paths in the order given by the {@link #fSearchPaths} array of
+	 * path names.
+	 * </p>
+	 * 
+	 * @param file
+	 *            Name of the file
+	 * @return <code>IPath</code> to the file. May be an empty path if the file could not be found
+	 *         with the 'find' command.
+	 */
 	private IPath find(String file) {
 
 		for (String findpath : fSearchPaths) {
@@ -163,6 +222,14 @@ public class SystemPathsPosix {
 
 	}
 
+	/**
+	 * Execute the given command and read its output until a line with a valid path is found, which
+	 * is returned.
+	 * 
+	 * @param command
+	 * @return A valid <code>IPath</code> or an empty path if the command did not return a valid
+	 *         path.
+	 */
 	public static IPath executeCommand(String command) {
 
 		IPath path = fEmptyPath;

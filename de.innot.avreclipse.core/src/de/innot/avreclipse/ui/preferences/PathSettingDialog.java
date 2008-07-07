@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.StatusDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -47,24 +49,24 @@ import de.innot.avreclipse.core.paths.AVRPathManager.SourceType;
 public class PathSettingDialog extends StatusDialog {
 
 	// The GUI Widgets
-	private Combo fTypeCombo = null;
-	private Combo fBundleCombo = null;
-	private Text fPathText = null;
-	private Button fFolderButton = null;
+	private Combo			fTypeCombo		= null;
+	private Combo			fBundleCombo	= null;
+	private Text			fPathText		= null;
+	private Button			fFolderButton	= null;
 
-	private PageBook fPageBook = null;
-	private Composite fSystemPage = null;
-	private Composite fBundlePage = null;
-	private Composite fCustomPage = null;
+	private PageBook		fPageBook		= null;
+	private Composite		fSystemPage		= null;
+	private Composite		fBundlePage		= null;
+	private Composite		fCustomPage		= null;
 
 	// Internal path storage
-	private AVRPathManager fPathManager = null;
+	private AVRPathManager	fPathManager	= null;
 
 	/**
 	 * Constructor for a new PathSettingDialog.
 	 * 
-	 * The passed IPathManager is copied and any changes to the path are only
-	 * written back to it when the {@link #getResult()} method is called.
+	 * The passed IPathManager is copied and any changes to the path are only written back to it
+	 * when the {@link #getResult()} method is called.
 	 * 
 	 * @param parent
 	 *            Parent <code>Shell</code>
@@ -94,8 +96,8 @@ public class PathSettingDialog extends StatusDialog {
 
 		// The list of supported Source types
 		String[] types = { AVRPathManager.SourceType.System.toString(),
-		        AVRPathManager.SourceType.Bundled.toString(),
-		        AVRPathManager.SourceType.Custom.toString() };
+				AVRPathManager.SourceType.Bundled.toString(),
+				AVRPathManager.SourceType.Custom.toString() };
 
 		// TODO: try to determine the size dynamically
 		getShell().setMinimumSize(400, 220);
@@ -160,16 +162,31 @@ public class PathSettingDialog extends StatusDialog {
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		page.setLayout(layout);
 
 		Label label = new Label(page, SWT.NONE);
 		label.setText("System value:");
 
-		Text text = new Text(page, SWT.BORDER | SWT.READ_ONLY);
+		final Text text = new Text(page, SWT.BORDER | SWT.READ_ONLY);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		// text.setBackground(page.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-		text.setText(fPathManager.getSystemPath().toOSString());
+		text.setText(fPathManager.getSystemPath(false).toOSString());
+
+		Button rescanbutton = new Button(page, SWT.NONE);
+		rescanbutton.setText("Rescan");
+		rescanbutton.addSelectionListener(new SelectionAdapter() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				text.setText(fPathManager.getSystemPath(true).toOSString());
+			}
+		});
 
 		return page;
 	}
@@ -264,9 +281,8 @@ public class PathSettingDialog extends StatusDialog {
 	 * It will return a IPathManager with the selected path.
 	 * </p>
 	 * <p>
-	 * This should only be called when <code>open()</code> returned
-	 * <code>OK</code> (OK Button clicked). Otherwise canceled changes will be
-	 * returned.
+	 * This should only be called when <code>open()</code> returned <code>OK</code> (OK Button
+	 * clicked). Otherwise canceled changes will be returned.
 	 * </p>
 	 * 
 	 * @return The IPathManager with the modified path.
@@ -278,12 +294,10 @@ public class PathSettingDialog extends StatusDialog {
 	/**
 	 * Change the source type and show the associated editor page.
 	 * 
-	 * This method will also change the internally stored path to the selected
-	 * source type.
+	 * This method will also change the internally stored path to the selected source type.
 	 * <p>
-	 * The sourcetype is passed as a <code>String</code> (iso
-	 * <code>SourceType</code>) as it comes directly from the Source Type
-	 * combo widget.
+	 * The sourcetype is passed as a <code>String</code> (iso <code>SourceType</code>) as it
+	 * comes directly from the Source Type combo widget.
 	 * </p>
 	 * 
 	 * @param type
@@ -293,14 +307,14 @@ public class PathSettingDialog extends StatusDialog {
 		if (type.equals(SourceType.System.toString())) {
 			// System source
 			fPageBook.showPage(fSystemPage);
-			fPathManager.setPath(null, SourceType.System);
+			fPathManager.setPath(fPathManager.getSystemPath(false).toOSString(), SourceType.System);
 		}
 		if (type.equals(SourceType.Bundled.toString())) {
 			// Bundle source
 			fPageBook.showPage(fBundlePage);
 			// TODO: Bundle: load bundle id
 			updateStatus(new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
-			        "Bundled toolchains not yet supported"));
+					"Bundled toolchains not yet supported"));
 			return;
 
 		}
@@ -332,8 +346,7 @@ public class PathSettingDialog extends StatusDialog {
 
 		if (empty && valid) {
 			// warning only
-			status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
-			        "Optional path is empty");
+			status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID, "Optional path is empty");
 		}
 		if (!valid) {
 			// error
