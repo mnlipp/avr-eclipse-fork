@@ -775,7 +775,7 @@ public class AVRDude implements IMCUProvider {
 	 * @param cwd
 	 *            <code>IPath</code> with a current working directory or <code>null</code> to
 	 *            use the default working directory (usually the one defined with the system
-	 *            property <code>user.dir</code).
+	 *            property <code>user.dir</code). May not be empty.
 	 * @return A list of all output lines, or <code>null</code> if the command could not be
 	 *         launched.
 	 * @throws AVRDudeException
@@ -786,6 +786,12 @@ public class AVRDude implements IMCUProvider {
 
 		try {
 			monitor.beginTask("Running avrdude", 100);
+
+			// Check if the CWD is valid
+			if (cwd != null && cwd.isEmpty()) {
+				throw new AVRDudeException(Reason.INVALID_CWD,
+						"CWD does not point to a valid directory.");
+			}
 
 			String command = getToolPath().toOSString();
 
