@@ -13,12 +13,17 @@
  * $Id$
  *     
  *******************************************************************************/
-package de.innot.avreclipse.core.toolinfo.fuses;
+package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
 
 import org.eclipse.core.runtime.IPath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
+import de.innot.avreclipse.core.toolinfo.fuses.FusesDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.IDescriptionHolder;
 
 /**
  * @author Thomas Holland

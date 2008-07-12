@@ -13,7 +13,7 @@
  * $Id$
  *     
  *******************************************************************************/
-package de.innot.avreclipse.core.toolinfo.fuses;
+package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,7 +34,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import de.innot.avreclipse.AVRPlugin;
-import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader;
+import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValue;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
+import de.innot.avreclipse.core.toolinfo.fuses.IDescriptionHolder;
 
 /**
  * Fuses info reader.

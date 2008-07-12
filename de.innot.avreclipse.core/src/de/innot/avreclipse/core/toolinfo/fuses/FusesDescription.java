@@ -138,7 +138,7 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 	 * @throws IllegalArgumentException
 	 *             if the index is not valid for this MCU.
 	 */
-	protected void setBitFieldDescriptions(int index, String name, BitFieldDescription[] bitfields) {
+	public void setBitFieldDescriptions(int index, String name, BitFieldDescription[] bitfields) {
 		checkIndex(index);
 		fBitfields[index] = bitfields;
 		fByteName[index] = name;
@@ -157,7 +157,7 @@ public class FusesDescription implements Serializable, IDescriptionHolder {
 	 * @throws IllegalArgumentException
 	 *             if the index is not valid for this MCU.
 	 */
-	protected void setDefaultValue(int index, int value) {
+	public void setDefaultValue(int index, int value) {
 		checkIndex(index);
 		fDefaultValues[index] = value;
 	}
