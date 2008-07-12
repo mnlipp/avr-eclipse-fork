@@ -69,7 +69,8 @@ public class AVRPathManagerTest {
 		// Test Default and System Paths
 		assertNotNull(manager.getDefaultPath());
 		assertFalse("".equals(manager.getDefaultPath().toString()));
-		assertFalse("".equals(manager.getSystemPath().toString()));
+		assertFalse("".equals(manager.getSystemPath(true).toString()));
+		assertFalse("".equals(manager.getSystemPath(false).toString()));
 	}
 
 	/**
