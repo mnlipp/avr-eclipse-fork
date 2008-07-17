@@ -23,8 +23,8 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.Locks;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * Storage independent container for the Lockbit values.
@@ -82,7 +82,7 @@ public class LockbitBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(String mcuid) {
-		return new LockbitsByteValues(mcuid);
+		return new ByteValues(FuseType.LOCKBITS, mcuid);
 	}
 
 	/*
@@ -92,7 +92,7 @@ public class LockbitBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {
-		return new LockbitsByteValues(source);
+		return new ByteValues(source);
 	}
 
 	/*
@@ -103,7 +103,7 @@ public class LockbitBytes extends AbstractBytes {
 	@Override
 	protected int getByteCount() {
 		try {
-			return Locks.getDefault().getByteCount(getMCUId());
+			return Fuses.getDefault().getLockbitsByteCount(getMCUId());
 		} catch (IOException e) {
 			// If you want to see the Exception use the Fuses class directly
 			return 0;

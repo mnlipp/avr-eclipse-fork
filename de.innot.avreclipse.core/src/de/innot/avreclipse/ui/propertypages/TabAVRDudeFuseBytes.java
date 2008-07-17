@@ -60,7 +60,7 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	@Override
 	protected int getByteCount(String mcuid) {
 		try {
-			return Fuses.getDefault().getByteCount(mcuid);
+			return Fuses.getDefault().getFuseByteCount(mcuid);
 		} catch (IOException e) {
 			// can't load the fuses description for the MCU.
 			// return 0 = no fuses.

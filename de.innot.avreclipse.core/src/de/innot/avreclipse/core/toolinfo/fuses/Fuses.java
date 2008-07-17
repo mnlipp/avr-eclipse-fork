@@ -16,33 +16,40 @@
 package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.osgi.framework.Bundle;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
 
 /**
- * This class handles the list of Fuse descriptions.
+ * This class handles the list of Fuse and Lockbits descriptions.
  * <p>
- * Most AVR MCUs have between one and three fusebytes with the new ATXmega series having 6. The
- * description of these fuses for each MCU type is stored in a {@link IDescriptionHolder} object.
- * This class manages the list of all available fuse byte descriptions.
+ * Most AVR MCUs have between one and three fusebytes with the new ATXmega series having six. All
+ * current AVR MCUs have also one Lockbits byte, which is very similar to the fuse bytes.<br>
+ * The description of these fuses and lockbits for each MCU type is stored in a
+ * {@link IFusesDescription} object. This class manages the list of all available fuse byte
+ * descriptions.
  * </p>
  * <p>
- * To get the <code>IDescriptionHolder</code for a MCU id use
+ * To get the <code>IFusesDescription</code for a MCU id use
  * {@link #getDescription(String)}.
  * </p>
  * <p>
@@ -57,8 +64,8 @@ import de.innot.avreclipse.core.IMCUProvider;
  * (<code>.metadata/.plugins/de.innot.avreclipse.core/fusesdesc/</code>)
  * </p>
  * <p>
- * Each folder contains serialized <code>FusesDescription</code> 
- * objects. This class also has a cache of all descriptions already 
+ * Each folder contains serialized <code>ByteDescriptions</code> 
+ * objects as xml files. This class also has a cache of all descriptions already 
  * requested to reduce disk access.
  * </p>
  * @author Thomas Holland
@@ -71,11 +78,11 @@ public class Fuses implements IMCUProvider {
 	private final static String						DEFAULTFOLDER			= "/properties/fusedesc";
 	private final static String						INSTANCEFOLDER			= "fusedesc";
 
-	/** File name extension for <code>IDescriptionHolder</code> objects. */
+	/** File name extension for <code>IFusesDescription</code> objects. */
 	private final static String						DESCRIPTION_EXTENSION	= ".desc";
 
-	/** Cache of accessed <code>IDescriptionHolder</code> objects */
-	private final Map<String, IDescriptionHolder>	fCache;
+	/** Cache of accessed <code>IFusesDescription</code> objects */
+	private final Map<String, IFusesDescription>	fCache;
 
 	/** List of all MCU id values for which Descriptions exist */
 	private Set<String>								fMCUList				= null;
@@ -94,22 +101,22 @@ public class Fuses implements IMCUProvider {
 	// protected constructor to prevent outside instantiation.
 	protected Fuses() {
 		// Init the cache
-		fCache = new HashMap<String, IDescriptionHolder>();
+		fCache = new HashMap<String, IFusesDescription>();
 	}
 
 	/**
-	 * Get the {@link IDescriptionHolder} with the fuse byte bitfield descriptions for the given MCU
+	 * Get the {@link IFusesDescription} with the fuse and lockbits descriptions for the given MCU
 	 * id.
 	 * 
 	 * @param mcuid
 	 *            <code>String</code> with a valid MCU id
-	 * @return <code>IDescriptionHolder</code> for the MCU or <code>null</code> if the given MCU
+	 * @return <code>IFusesDescription</code> for the MCU or <code>null</code> if the given MCU
 	 *         id is unknown.
 	 * @throws IOException
 	 *             if either the storage locations can't be accessed or a file exists, but can't be
 	 *             accessed.
 	 */
-	public IDescriptionHolder getDescription(String mcuid) throws IOException {
+	public IFusesDescription getDescription(String mcuid) throws IOException {
 
 		if (mcuid == null || (mcuid.length() == 0)) {
 			return null;
@@ -134,7 +141,7 @@ public class Fuses implements IMCUProvider {
 		}
 		IPath[] allpaths = new IPath[] { instancelocation, defaultlocation };
 
-		IDescriptionHolder desc = null;
+		IFusesDescription desc = null;
 
 		for (IPath path : allpaths) {
 			desc = getDescriptionFromLocation(mcuid, path);
@@ -157,7 +164,7 @@ public class Fuses implements IMCUProvider {
 	 * This is a convenience method (almost) equivalent to
 	 * 
 	 * <pre>
-	 * getDescription(mcuid).getByteCount();
+	 * getDescription(mcuid).getFuseByteCount();
 	 * </pre>
 	 * 
 	 * </p>
@@ -168,12 +175,39 @@ public class Fuses implements IMCUProvider {
 	 *         unknown.
 	 * @throws IOException
 	 */
-	public int getByteCount(String mcuid) throws IOException {
+	public int getFuseByteCount(String mcuid) throws IOException {
 		// Get the Description
-		IDescriptionHolder desc;
+		IFusesDescription desc;
 		desc = getDescription(mcuid);
 		if (desc != null) {
-			return desc.getByteCount();
+			return desc.getByteCount(FuseType.FUSE);
+		}
+		return 0;
+	}
+
+	/**
+	 * Return the number of lockbits Bytes for the given MCU.
+	 * <p>
+	 * This is a convenience method (almost) equivalent to
+	 * 
+	 * <pre>
+	 * getDescription(mcuid).getLockbitsByteCount();
+	 * </pre>
+	 * 
+	 * </p>
+	 * 
+	 * @param mcuid
+	 *            A valid MCU id value.
+	 * @return <code>int</code> with the number of fuse bytes for the mcu or 0 if the MCU id is
+	 *         unknown.
+	 * @throws IOException
+	 */
+	public int getLockbitsByteCount(String mcuid) throws IOException {
+		// Get the Description
+		IFusesDescription desc;
+		desc = getDescription(mcuid);
+		if (desc != null) {
+			return desc.getByteCount(FuseType.LOCKBITS);
 		}
 		return 0;
 	}
@@ -190,7 +224,7 @@ public class Fuses implements IMCUProvider {
 	public String getMCUInfo(String mcuid) {
 		int count = 0;
 		try {
-			count = getByteCount(mcuid);
+			count = getFuseByteCount(mcuid);
 		} catch (IOException e) {
 			return null;
 		}
@@ -272,11 +306,10 @@ public class Fuses implements IMCUProvider {
 	 *            <code>IPath</code> to a folder containing the serialized description holder
 	 *            objects.
 	 * @throws IOException
-	 *             when the description file is not readable or of the wrong type (e.g. different
-	 *             class version)
+	 *             when the description file is not readable or contains errors.
 	 * @return
 	 */
-	private IDescriptionHolder getDescriptionFromLocation(String mcuid, IPath location)
+	private IFusesDescription getDescriptionFromLocation(String mcuid, IPath location)
 			throws IOException {
 
 		String filename = mcuid + DESCRIPTION_EXTENSION;
@@ -288,20 +321,46 @@ public class Fuses implements IMCUProvider {
 		}
 
 		// OK, file exist. De-serialize it
-		FusesDescription newdesc = null;
-		FileInputStream fis = null;
-		ObjectInputStream in = null;
+
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		try {
-			fis = new FileInputStream(file);
-			in = new ObjectInputStream(fis);
-			newdesc = (FusesDescription) in.readObject();
-			in.close();
-		} catch (ClassNotFoundException ex) {
-			throw new IOException("File [" + file.toString()
-					+ "] contains invalid data (wrong class version)", ex);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.parse(file);
+			ByteDescriptions fd = new ByteDescriptions(document);
+			return fd;
+
+		} catch (SAXParseException spe) {
+			// TODO: rewrite the error handling code
+			// Error generated by the parser
+			System.out.println("\n** Parsing error" + ", line " + spe.getLineNumber() + ", uri "
+					+ spe.getSystemId());
+			System.out.println("  " + spe.getMessage());
+
+			// Use the contained exception, if any
+			Exception x = spe;
+			if (spe.getException() != null)
+				x = spe.getException();
+			x.printStackTrace();
+
+		} catch (SAXException sxe) {
+			// Error generated by this application
+			// (or a parser-initialization error)
+			Exception x = sxe;
+			if (sxe.getException() != null)
+				x = sxe.getException();
+			x.printStackTrace();
+
+		} catch (ParserConfigurationException pce) {
+			// Parser with specified options can't be built
+			pce.printStackTrace();
+
+		} catch (IOException ioe) {
+			// I/O error
+			ioe.printStackTrace();
 		}
 
-		return newdesc;
+		// we end up here if an Exception was thrown.
+		return null;
 	}
 
 	/**

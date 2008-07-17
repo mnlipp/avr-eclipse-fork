@@ -33,7 +33,6 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction.Action;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.FileType;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction.MemType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
-import de.innot.avreclipse.core.toolinfo.fuses.Locks;
 
 /**
  * This class provides some static methods to get {@link AVRDudeAction} objects for common
@@ -289,7 +288,7 @@ public class AVRDudeActionFactory {
 		// Test if this is a 1 Fuse or 2-3 Fuse MCU
 		int fusecount;
 		try {
-			fusecount = Fuses.getDefault().getByteCount(mcuid);
+			fusecount = Fuses.getDefault().getFuseByteCount(mcuid);
 		} catch (IOException e) {
 			// Can't access the FuseDescription Objects?
 			// Log the Exception and return an empty list.
@@ -342,7 +341,7 @@ public class AVRDudeActionFactory {
 
 		int fusecount;
 		try {
-			fusecount = Fuses.getDefault().getByteCount(mcuid);
+			fusecount = Fuses.getDefault().getFuseByteCount(mcuid);
 		} catch (IOException e) {
 			return null;
 		}
@@ -378,7 +377,7 @@ public class AVRDudeActionFactory {
 		// case future AVR MCUs will have more than one lockbit byte.
 		int count;
 		try {
-			count = Locks.getDefault().getByteCount(mcuid);
+			count = Fuses.getDefault().getLockbitsByteCount(mcuid);
 		} catch (IOException e) {
 			// Can't access the LockbitsDescription Objects?
 			// Log the Exception and return an empty list.
@@ -433,7 +432,7 @@ public class AVRDudeActionFactory {
 
 		int count;
 		try {
-			count = Locks.getDefault().getByteCount(mcuid);
+			count = Fuses.getDefault().getLockbitsByteCount(mcuid);
 		} catch (IOException e) {
 			return null;
 		}

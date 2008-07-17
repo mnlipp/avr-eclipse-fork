@@ -1,0 +1,53 @@
+package de.innot.avreclipse.core.toolinfo.fuses;
+
+import java.util.List;
+
+public interface IByteDescription {
+
+	/**
+	 * Get the list of <code>BitFieldDescription</code> objects for this byte.
+	 * <p>
+	 * The returned list is a copy of the actual list. Any modifications to the returned list do not
+	 * apply to the original list of this byte description object.
+	 * </p>
+	 * 
+	 * @return <code>List&lt;BitFieldDescription&gt;</code>
+	 */
+	public List<IBitFieldDescription> getBitFieldDescriptions();
+
+	/**
+	 * Get the name of this fuse byte object.
+	 * <p>
+	 * This is the name as defined in the part description file. Currently the name may be one of
+	 * the following:
+	 * <ul>
+	 * <li><code>LOW</code>, <code>HIGH</code> or <code>EXTENDED</code> for the fuse bytes
+	 * of pre-ATXmega MCUs.</li>
+	 * <li><code>FUSEBYTE0</code>, <code>FUSEBYTE1</code>, ..., <code>FUSEBYTE5</code> for
+	 * the fuse bytes of ATXmega MCUs.</li>
+	 * <li><code>LOCKBITS</code> for the lockbits byte.</li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * <strong>Note:</strong> AVRDude uses different names to access the fuse bytes. It is up to
+	 * the caller to map the names as required.
+	 * </p>
+	 * 
+	 * @return The name of the byte.
+	 */
+	public String getName();
+
+	/**
+	 * Get the default value of this byte.
+	 * <p>
+	 * The part description files have only default settings for some MCUs. In these MCUs the return
+	 * value will by a byte value (0-255).<br>
+	 * For fuse bytes without default value <code>-1</code> is returned.<br>
+	 * For lockbit bytes the default value of <code>0xFF</code> is returned (= no locks).
+	 * </p>
+	 * 
+	 * @return The default value or <code>-1</code> if no default available.
+	 */
+	public int getDefaultValue();
+
+}

@@ -15,11 +15,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import java.io.IOException;
+
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AbstractBytes;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * The AVRDude Lockbits Tab page.
@@ -53,8 +56,13 @@ public class TabAVRDudeLockbits extends AbstractTabAVRDudeBytes {
 	 */
 	@Override
 	protected int getByteCount(String mcuid) {
-		// As far as I can see all AVR MCUs have one and only one Lockbits byte.
-		return MAX_LOCKBYTES;
+		try {
+			return Fuses.getDefault().getLockbitsByteCount(mcuid);
+		} catch (IOException e) {
+			// can't load the fuses description for the MCU.
+			// return 0 = no fuses.
+			return 0;
+		}
 	}
 
 	/*

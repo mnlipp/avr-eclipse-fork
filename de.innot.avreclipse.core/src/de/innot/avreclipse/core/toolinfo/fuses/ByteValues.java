@@ -15,10 +15,16 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo.fuses;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.core.runtime.Assert;
+
 /**
- * Abstract container for byte values.
+ * A container for byte values.
  * <p>
- * This class is the base for the {@link FuseByteValues} and {@link LockbitsByteValues} classes.
  * </p>
  * <p>
  * It manages an arbitrary array of byte values and knows for which MCU these byte values are valid.
@@ -29,16 +35,25 @@ package de.innot.avreclipse.core.toolinfo.fuses;
  * @since 2.2
  * 
  */
-public abstract class ByteValues {
+public class ByteValues {
+
+	/** The type of Bytes, FUSE oder LOCKBITS */
+	private final FuseType						fType;
 
 	/** The MCU for which the byte values are valid. Set during instantiation. */
-	private final String	fMCUId;
+	private final String						fMCUId;
 
 	/** The number of bytes in this object */
-	private final int		fByteCount;
+	private final int							fByteCount;
 
 	/** The actual byte values. The array is initialized during instantiation. */
-	private final int[]		fValues;
+	private final int[]							fValues;
+
+	/** The description of the bitfields */
+	private IFusesDescription					fDescription	= null;
+
+	/** Map of the bitfielddescriptions */
+	private Map<String, IBitFieldDescription>	fBitFieldNames	= null;
 
 	/**
 	 * Create a new byte values container for a given MCU.
@@ -50,7 +65,9 @@ public abstract class ByteValues {
 	 * @param mcuid
 	 *            <code>String</code> with a MCU id value.
 	 */
-	protected ByteValues(String mcuid) {
+	public ByteValues(FuseType type, String mcuid) {
+		Assert.isNotNull(mcuid);
+		fType = type;
 		fMCUId = mcuid;
 		fByteCount = getByteCount();
 		fValues = new int[fByteCount];
@@ -66,7 +83,9 @@ public abstract class ByteValues {
 	 * @param source
 	 *            <code>ByteValues</code> object to clone.
 	 */
-	protected ByteValues(ByteValues source) {
+	public ByteValues(ByteValues source) {
+		Assert.isNotNull(source);
+		fType = source.fType;
 		fMCUId = source.fMCUId;
 		fByteCount = source.fByteCount;
 		fValues = new int[fByteCount];
@@ -77,14 +96,21 @@ public abstract class ByteValues {
 	 * Create a new byte values container for the given MCU id and copies the values of the given
 	 * source ByteValues object to the new ByteValues object.
 	 * <p>
+	 * This constructor is used to change the MCU for an existing <code>ByteValues</code> object.
+	 * Because the same bit values have different meanings for different MCU and might even cause an
+	 * MCU to lock up, this constructor should be used carefully and only after review by the user.
+	 * </p>
+	 * <p>
 	 * If the source has more values, they are truncated. If it has less then the values array is
 	 * filled up with <code>-1</code> values.
 	 * </p>
 	 * 
 	 * @param mcuid
+	 *            A valid MCU id value.
 	 * @param source
 	 */
 	protected ByteValues(String mcuid, ByteValues source) {
+		fType = source.fType;
 		fMCUId = mcuid;
 		fByteCount = getByteCount();
 		fValues = new int[fByteCount];
@@ -93,6 +119,18 @@ public abstract class ByteValues {
 		}
 		int copycount = Math.min(fByteCount, source.fByteCount);
 		System.arraycopy(source.fValues, 0, fValues, 0, copycount);
+	}
+
+	/**
+	 * Get the Fuse type for these byte values.
+	 * <p>
+	 * Currently {@link FuseType#FUSE} and {@link FuseType#LOCKBITS} are the only supported types.
+	 * </p>
+	 * 
+	 * @return
+	 */
+	public FuseType getType() {
+		return fType;
 	}
 
 	/**
@@ -117,6 +155,10 @@ public abstract class ByteValues {
 	public void setValue(int index, int value) {
 
 		checkIndex(index);
+
+		if (value < -1 || value > 255) {
+			throw new IllegalArgumentException("Value [" + value + "] out of range (-1...255)");
+		}
 
 		fValues[index] = value;
 	}
@@ -174,6 +216,57 @@ public abstract class ByteValues {
 	}
 
 	/**
+	 * Returns the value of the bitfield with the given name.
+	 * <p>
+	 * The result is the current value of the bitfield, already normalized (range 0 to maxValue).
+	 * </p>
+	 * 
+	 * @param name
+	 *            The name of the bitfield.
+	 * @return The current value of the bitfield, or <code>-1</code> if the bitfield value is not
+	 *         yet set.
+	 * @throws IllegalArgumentException
+	 *             if the name of the bitfield is not valid.
+	 */
+	public int getNamedValue(String name) {
+		initBitFieldNames();
+		IBitFieldDescription desc = fBitFieldNames.get(name);
+		if (desc == null) {
+			throw new IllegalArgumentException("Bitfield name [" + name + "] is not known.");
+		}
+		int index = desc.getIndex();
+		int value = fValues[index];
+		if (value == -1)
+			return value;
+		return desc.bitfieldToValue(value);
+	}
+
+	public void setNamedValue(String name, int value) {
+		initBitFieldNames();
+		IBitFieldDescription desc = fBitFieldNames.get(name);
+		if (desc == null) {
+			throw new IllegalArgumentException("Bitfield name [" + name + "] is not known.");
+		}
+		int index = desc.getIndex();
+
+		// Test if the value is within bounds
+		if (value > desc.getMaxValue() || value < 0) {
+			throw new IllegalArgumentException("Value [" + value + "] out of range (0..."
+					+ desc.getMaxValue() + ")");
+		}
+
+		// Now left-shift the value to the right place and insert it
+		// into the current value.
+		int bitfieldvalue = desc.valueToBitfield(value);
+		int oldvalue = fValues[index];
+		if (oldvalue == -1)
+			oldvalue = 0xff;
+		int newvalue = oldvalue & ~desc.getMask();
+		newvalue |= bitfieldvalue;
+		fValues[index] = newvalue;
+	}
+
+	/**
 	 * Clears all values.
 	 * <p>
 	 * This method will set the value of all bytes to <code>-1</code>
@@ -188,17 +281,19 @@ public abstract class ByteValues {
 	/**
 	 * Get the actual number of bytes supported by the MCU.
 	 * <p>
-	 * While the <code>getValues()</code> method always returns the maximum number of bytes,
-	 * independent of the MCU, this method gets the number of bytes supported by the current MCU.
+	 * Depending on the type of this object either the number of fuse bytes (0 up to 6) or the
+	 * number of lockbits bytes (currently always 1) is returned.
 	 * </p>
 	 * <p>
 	 * If the MCU is not supported <code>0</code> is returned.
 	 * </p>
 	 * 
-	 * @return Number of bytes supported by the MCU. Between <code>0</code> and
-	 *         <code>getMaxBytes()</code>.
+	 * @return Number of bytes supported by the MCU. Between <code>0</code> and <code>6</code>.
 	 */
-	public abstract int getByteCount();
+	public int getByteCount() {
+		IFusesDescription fusedescription = getDescription(fMCUId);
+		return fusedescription.getByteCount(fType);
+	}
 
 	/**
 	 * Checks if the index is valid for the subclass.
@@ -213,4 +308,37 @@ public abstract class ByteValues {
 			throw new IllegalArgumentException("[" + index + "] is not a valid byte index.");
 		}
 	}
+
+	private void initBitFieldNames() {
+
+		if (fBitFieldNames != null) {
+			return;
+		}
+
+		IFusesDescription fusedescription = getDescription(fMCUId);
+		fBitFieldNames = new HashMap<String, IBitFieldDescription>();
+
+		List<IByteDescription> bytedesclist = fusedescription.getByteDescriptions(fType);
+
+		for (IByteDescription bytedesc : bytedesclist) {
+			List<IBitFieldDescription> bitfieldlist = bytedesc.getBitFieldDescriptions();
+			for (IBitFieldDescription desc : bitfieldlist) {
+				fBitFieldNames.put(desc.getName(), desc);
+			}
+		}
+	}
+
+	private IFusesDescription getDescription(String mcuid) {
+
+		if (fDescription == null) {
+			try {
+				fDescription = Fuses.getDefault().getDescription(mcuid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return fDescription;
+	}
+
 }

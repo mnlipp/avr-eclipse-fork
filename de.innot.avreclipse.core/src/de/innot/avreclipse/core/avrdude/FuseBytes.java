@@ -23,7 +23,7 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
@@ -82,7 +82,7 @@ public class FuseBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(String mcuid) {
-		return new FuseByteValues(mcuid);
+		return new ByteValues(FuseType.FUSE, mcuid);
 	}
 
 	/*
@@ -92,7 +92,7 @@ public class FuseBytes extends AbstractBytes {
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {
-		return new FuseByteValues(source);
+		return new ByteValues(source);
 	}
 
 	/*
@@ -103,7 +103,7 @@ public class FuseBytes extends AbstractBytes {
 	@Override
 	protected int getByteCount() {
 		try {
-			return Fuses.getDefault().getByteCount(getMCUId());
+			return Fuses.getDefault().getFuseByteCount(getMCUId());
 		} catch (IOException e) {
 			// If you want to see the Exception use the Fuses class directly
 			return 0;

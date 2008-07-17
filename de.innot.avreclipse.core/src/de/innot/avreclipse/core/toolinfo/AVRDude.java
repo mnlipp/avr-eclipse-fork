@@ -52,8 +52,7 @@ import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.LockbitsByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -340,7 +339,7 @@ public class AVRDude implements IMCUProvider {
 		// First get the attached MCU
 		String mcuid = getAttachedMCU(config);
 
-		ByteValues values = new FuseByteValues(mcuid);
+		ByteValues values = new ByteValues(FuseType.FUSE, mcuid);
 
 		int fusebytecount = values.getByteCount();
 		List<String> args = new ArrayList<String>(config.getArguments());
@@ -407,12 +406,12 @@ public class AVRDude implements IMCUProvider {
 	 * @return <code>LockbitsByteValues</code> with the values and the MCU id of the attached MCU.
 	 * @throws AVRDudeException
 	 */
-	public LockbitsByteValues getLockbits(ProgrammerConfig config) throws AVRDudeException {
+	public ByteValues getLockbits(ProgrammerConfig config) throws AVRDudeException {
 
 		// First get the attached MCU
 		String mcuid = getAttachedMCU(config);
 
-		LockbitsByteValues values = new LockbitsByteValues(mcuid);
+		ByteValues values = new ByteValues(FuseType.LOCKBITS, mcuid);
 
 		int locksbytecount = values.getByteCount();
 		List<String> args = new ArrayList<String>(config.getArguments());
