@@ -2,13 +2,9 @@
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
 <!--Date: 16.07.08 13:59-->
-<!--Based on: Atmel Part Description File "AT90S4434.xml"-->
-<description mcutype="at90s4434">
-<version build="204" status="RELEASED"/>
-<fusebyte index="0" name="LOW">
-<bitfield desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
-<bitfield desc="Short start-up time enabled" mask="0x01" name="FSTRT"/>
-</fusebyte>
+<!--Based on: Atmel Part Description File "AT86RF401.xml"-->
+<description mcutype="at86rf401">
+<version build="201" status="RELEASED"/>
 <lockbitsbyte index="0" name="LOCKBIT">
 <bitfield desc="Memory Lock" mask="0x06" name="LB">
 <value desc="Further programming and verification disabled" val="0x00"/>
