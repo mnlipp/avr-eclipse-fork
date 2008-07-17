@@ -82,6 +82,11 @@ public class AVRDudeProperties {
 	private static final String			KEY_NOWRITE					= "NoWrite";
 	private static final boolean		DEFAULT_NOWRITE				= false;
 
+	/** No auto chip erase flag. <code>true</code> disables chip erase when writing flash memory. */
+	private boolean						fNoChipErase;
+	private static final String			KEY_NOCHIPERASE				= "NoChipErase";
+	private static final boolean		DEFAULT_NOCHIPERASE			= false;
+
 	/** Use Erase Cycle Counter flags. <code>true</code> enables the counter */
 	private boolean						fUseCounter;
 	private static final String			KEY_USECOUNTER				= "UseCounter";
@@ -136,6 +141,11 @@ public class AVRDudeProperties {
 	/** The <code>LockbitBytes</code> with all lock byte related settings. */
 	private LockbitBytes				fLockbits;
 	private static final String			NODE_LOCKS					= "Locks";
+
+	/** Other avrdude options. Free text for avrdude options not directly supported by the plugin. */
+	private String						fOtherOptions;
+	private static final String			KEY_OTHEROPTIONS			= "OtherOptions";
+	private static final String			DEFAULT_OTHEROPTIONS		= "";
 
 	// Unused for now
 	// private static final String NODE_CALIBRATION = "CalibrationBytes";
@@ -196,6 +206,7 @@ public class AVRDudeProperties {
 		fNoSigCheck = source.fNoSigCheck;
 		fNoVerify = source.fNoVerify;
 		fNoWrite = source.fNoWrite;
+		fNoChipErase = source.fNoChipErase;
 		fUseCounter = source.fUseCounter;
 
 		fWriteFlash = source.fWriteFlash;
@@ -209,6 +220,8 @@ public class AVRDudeProperties {
 		fFuseBytes = new FuseBytes(prefs.node(NODE_FUSES), this, source.fFuseBytes);
 
 		fLockbits = new LockbitBytes(prefs.node(NODE_LOCKS), this, source.fLockbits);
+
+		fOtherOptions = source.fOtherOptions;
 
 		// fAVRDudeCalibration = new
 		// CalibrationBytes(source.fAVRDudeCalibration);
@@ -308,6 +321,17 @@ public class AVRDudeProperties {
 		}
 	}
 
+	public boolean getNoChipErase() {
+		return fNoChipErase;
+	}
+
+	public void setNoChipErase(boolean nochiperase) {
+		if (fNoChipErase != nochiperase) {
+			fNoChipErase = nochiperase;
+			fDirty = true;
+		}
+	}
+
 	public boolean getUseCounter() {
 		return fUseCounter;
 	}
@@ -393,6 +417,17 @@ public class AVRDudeProperties {
 		return fLockbits;
 	}
 
+	public String getOtherOptions() {
+		return fOtherOptions;
+	}
+
+	public void setOtherOptions(String otheroptions) {
+		if (!fOtherOptions.equals(otheroptions)) {
+			fOtherOptions = otheroptions;
+			fDirty = true;
+		}
+	}
+
 	/**
 	 * Gets the avrdude command arguments as defined by the properties.
 	 * 
@@ -441,6 +476,11 @@ public class AVRDudeProperties {
 			arguments.add("-V");
 		}
 
+		// ad the No Chip Erase flag
+		if (fNoChipErase) {
+			arguments.add("-D");
+		}
+
 		// add the Use Erase Cycle Counter flag
 		if (fUseCounter) {
 			arguments.add("-y");
@@ -453,6 +493,11 @@ public class AVRDudeProperties {
 		// be restored.
 		if (fFuseBytes.getWrite() && !fNoWrite) {
 			arguments.add("-u");
+		}
+
+		// add the other options field
+		if (fOtherOptions.length() > 0) {
+			arguments.add(fOtherOptions);
 		}
 
 		return arguments;
@@ -546,6 +591,7 @@ public class AVRDudeProperties {
 		fNoSigCheck = fPrefs.getBoolean(KEY_NOSIGCHECK, DEFAULT_NOSIGCHECK);
 		fNoVerify = fPrefs.getBoolean(KEY_NOVERIFY, DEFAULT_NOVERIFY);
 		fNoWrite = fPrefs.getBoolean(KEY_NOWRITE, DEFAULT_NOWRITE);
+		fNoChipErase = fPrefs.getBoolean(KEY_NOCHIPERASE, DEFAULT_NOCHIPERASE);
 		fUseCounter = fPrefs.getBoolean(KEY_USECOUNTER, DEFAULT_USECOUNTER);
 
 		fWriteFlash = fPrefs.getBoolean(KEY_WRITEFLASH, DEFAULT_WRITEFLASH);
@@ -559,6 +605,8 @@ public class AVRDudeProperties {
 		fFuseBytes = new FuseBytes(fPrefs.node(NODE_FUSES), this);
 
 		fLockbits = new LockbitBytes(fPrefs.node(NODE_LOCKS), this);
+
+		fOtherOptions = fPrefs.get(KEY_OTHEROPTIONS, DEFAULT_OTHEROPTIONS);
 
 		// fAVRDudeCalibration = new
 		// CalibrationBytes(fPrefs.node(NODE_CALIBRATION));
@@ -582,6 +630,7 @@ public class AVRDudeProperties {
 				fPrefs.putBoolean(KEY_NOSIGCHECK, fNoSigCheck);
 				fPrefs.putBoolean(KEY_NOVERIFY, fNoVerify);
 				fPrefs.putBoolean(KEY_NOWRITE, fNoWrite);
+				fPrefs.putBoolean(KEY_NOCHIPERASE, fNoChipErase);
 				fPrefs.putBoolean(KEY_USECOUNTER, fUseCounter);
 
 				fPrefs.putBoolean(KEY_WRITEFLASH, fWriteFlash);
@@ -591,6 +640,8 @@ public class AVRDudeProperties {
 				fPrefs.putBoolean(KEY_WRITEEEPROM, fWriteEEPROM);
 				fPrefs.putBoolean(KEY_EEPROMFROMCONFIG, fEEPROMFromConfig);
 				fPrefs.put(KEY_EEPROMFILE, fEEPROMFile);
+
+				fPrefs.put(KEY_OTHEROPTIONS, fOtherOptions);
 
 				fPrefs.flush();
 

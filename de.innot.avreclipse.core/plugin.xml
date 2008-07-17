@@ -287,6 +287,14 @@
 			name="Advanced"
 			weight="005"
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
+
+		<!-- #### AVRDude/Other Tab #### -->
+		<tab
+			class="de.innot.avreclipse.ui.propertypages.TabAVRDudeOther"
+			icon="icons/viewer16/dummy.png"
+			name="Other"
+			weight="006"
+			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 
 <!--
