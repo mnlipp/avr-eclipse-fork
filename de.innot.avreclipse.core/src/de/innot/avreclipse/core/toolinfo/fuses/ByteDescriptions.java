@@ -42,27 +42,27 @@ import de.innot.avreclipse.AVRPlugin;
  */
 public class ByteDescriptions implements IFusesDescription {
 
-	private final static String		ELEMENT_ROOT		= "description";
-	private final static String		ATTR_ROOT_MCUTYPE	= "mcutype";
+	private final static String			ELEMENT_ROOT		= "description";
+	private final static String			ATTR_ROOT_MCUTYPE	= "mcutype";
 
-	private final static String		ELEMENT_VERSION		= "version";
-	private final static String		ATTR_VERSION_BUILD	= "build";
-	private final static String		ATTR_VERSION_STATUS	= "status";
+	private final static String			ELEMENT_VERSION		= "version";
+	private final static String			ATTR_VERSION_BUILD	= "build";
+	private final static String			ATTR_VERSION_STATUS	= "status";
 
 	/** The MCU for this description. */
-	private String					fMCUid;
+	private String						fMCUid;
 
 	/** The build number from the Part Description File */
-	private int						fBuildVersion;
+	private int							fBuildVersion;
 
 	/** The release status from the Part Description File */
-	private String					fStatus;
+	private String						fStatus;
 
 	/** The list of Fuse byte descriptions. */
-	private List<ByteDescription>	fFuseByteDescList;
+	private final List<ByteDescription>	fFuseByteDescList;
 
 	/** The list of Lockbits byte descriptions. */
-	private List<ByteDescription>	fLockbitsByteDescList;
+	private final List<ByteDescription>	fLockbitsByteDescList;
 
 	/**
 	 * Create a new ByteDescriptions for a MCU with the given number of fuse bytes.
@@ -81,6 +81,8 @@ public class ByteDescriptions implements IFusesDescription {
 	public ByteDescriptions(Document document) throws IllegalArgumentException {
 
 		fMCUid = null;
+		fFuseByteDescList = new ArrayList<ByteDescription>();
+		fLockbitsByteDescList = new ArrayList<ByteDescription>();
 
 		// Default attribute values for the <version> element.
 		// Used when these attributes are missing from the xml file.

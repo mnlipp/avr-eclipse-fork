@@ -292,6 +292,9 @@ public class ByteValues {
 	 */
 	public int getByteCount() {
 		IFusesDescription fusedescription = getDescription(fMCUId);
+		if (fusedescription == null) {
+			return 0;
+		}
 		return fusedescription.getByteCount(fType);
 	}
 
