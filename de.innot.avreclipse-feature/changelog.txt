@@ -8,6 +8,38 @@
 $Id$
 
 ================================================================================
+Version 2.3.0
+
+New:
+-----------------------------
+
+Changed / Improved:
+-----------------------------
+* ATXmega processors are now fully supported. (Except for the avrdude related
+  parts because avrdude does not yet support the ATXmega line.)
+  
+* The AVRDude project properties now have a new field "other options" to add
+  avrdude options not supported by the plugin. (As of version 2.3 the plugin
+  supports all options for avrdude version 5.5).
+
+Fixes:
+-----------------------------
+* Bug 1962594: Searching for System Paths slow on Linux.
+  Discovered System paths are now persisted on Posix platforms. 
+  This should improve startup time, but changes to the system paths are not 
+  recognized on startup anymore. In this case the new "Rescan" button on the 
+  AVR path preferences modification dialog needs to be used.
+
+* Bug 2008171: Build System ignores .c files in C++ project
+  Fixed.
+  
+* Bug 2011424: Added a descriptive error message when the build directory is
+  not valid.
+  
+* Bug 2020689: avrdude option -D (Disable auto erase for flash) missing.
+  Fixed: added option to inhibit auto erase.
+
+================================================================================
 Version 2.2.0 [18-June-2008]
 
 New:
