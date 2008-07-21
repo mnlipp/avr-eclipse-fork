@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.StatusDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -169,7 +170,7 @@ public class PathSettingDialog extends StatusDialog {
 		label.setText("System value:");
 
 		final Text text = new Text(page, SWT.BORDER | SWT.READ_ONLY);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		// text.setBackground(page.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		text.setText(fPathManager.getSystemPath(false).toOSString());
 
@@ -184,7 +185,13 @@ public class PathSettingDialog extends StatusDialog {
 			 */
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				text.setText(fPathManager.getSystemPath(true).toOSString());
+				BusyIndicator.showWhile(fPageBook.getDisplay(), new Runnable() {
+					public void run() {
+						fPathManager.getSystemPath(true);
+					}
+				});
+				// Get the updated system path from the cache
+				text.setText(fPathManager.getSystemPath(false).toOSString());
 			}
 		});
 

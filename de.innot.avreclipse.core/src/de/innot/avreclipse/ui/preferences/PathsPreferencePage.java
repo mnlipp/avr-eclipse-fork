@@ -15,9 +15,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -25,19 +30,26 @@ import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 
 /**
  * Paths Preference page of the AVR Eclipse plugin.
- * 
  * <p>
- * This class represents a preference page that is contributed to the
- * Preferences dialog. By subclassing <samp>FieldEditorPreferencePage</samp>,
- * we can use the field support built into JFace that allows us to create a page
- * that is small and knows how to save, restore and apply itself.
+ * This page manages two preferences:
+ * <ul>
+ * <li>The "no scan at startup" flag to inhibit the background scan for changed system paths.</li>
+ * <li>The path settings for all paths required by the plugin.</li>
+ * </ul>
  * </p>
+ * <p>
+ * Most of the real work of path management is done in the {@link AVRPathsFieldEditor} included on
+ * this page.
+ * </p>
+ * 
+ * @author Thomas Holland
+ * @since 2.1
  */
 
 public class PathsPreferencePage extends FieldEditorPreferencePage implements
-        IWorkbenchPreferencePage {
+		IWorkbenchPreferencePage {
 
-	private IPreferenceStore fPreferenceStore = null;
+	private IPreferenceStore	fPreferenceStore	= null;
 
 	public PathsPreferencePage() {
 		super(GRID);
@@ -55,12 +67,34 @@ public class PathsPreferencePage extends FieldEditorPreferencePage implements
 	 */
 	@Override
 	public void createFieldEditors() {
-		// This is very simple, as the preference page has only one control, a
-		// custom field editor for the paths. All work is handled there.
+
+		// This page has two fields:
+		// The first one to inhibit the startup search for changed system paths
+		// The second to edit all paths.
+
 		Composite parent = getFieldEditorParent();
 
-		AVRPathsFieldEditor fPaths = new AVRPathsFieldEditor(parent);
-		addField(fPaths);
+		Label filler = new Label(parent, SWT.NONE);
+		filler.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+
+		// Startup search inhibit
+
+		BooleanFieldEditor autoScanBoolean = new BooleanFieldEditor(
+				AVRPathsPreferences.KEY_NOSTARTUPSCAN,
+				"Disable search for system paths at startup", BooleanFieldEditor.DEFAULT, parent);
+		addField(autoScanBoolean);
+
+		Composite note = createNoteComposite(JFaceResources.getDialogFont(), parent, "Note:",
+				"If disabled, a manual rescan may be required when a new avr-gcc toolchain has been installed.\n");
+		note.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+
+		filler = new Label(parent, SWT.NONE);
+		filler.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
+
+		// Path editor field control.
+
+		AVRPathsFieldEditor pathEditor = new AVRPathsFieldEditor(parent);
+		addField(pathEditor);
 
 	}
 

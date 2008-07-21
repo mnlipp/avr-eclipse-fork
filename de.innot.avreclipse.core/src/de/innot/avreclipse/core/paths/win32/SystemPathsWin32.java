@@ -16,100 +16,44 @@
 
 package de.innot.avreclipse.core.paths.win32;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.cdt.utils.WindowsRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.ILock;
-import org.eclipse.core.runtime.jobs.Job;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.paths.AVRPath;
+import de.innot.avreclipse.core.paths.SystemPathHelper;
 
 /**
  * Gets the actual system paths to the winAVR and AVR Tools applications.
- * 
- * The paths are taken from the Windows registry. As the values are fairly static they are cached to
- * avoid expensive registry lookups.
- * 
- * The cache can be cleared with the {@link #clear()} method
+ * <p>
+ * Unlike the Posix variant of this class, which actually looks through the (almost) complete
+ * filesystem, this class will retrieve the paths from the Windows registry. But even this has a bit
+ * of overhead, so the {@link SystemPathHelper}, which uses this class, should cache the results.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.1
  */
 public class SystemPathsWin32 {
+	private static IPath		fWinAVRPath		= null;
+	private static IPath		fAVRToolsPath	= null;
 
-	private static SystemPathsWin32	fInstance		= null;
-
-	private static ILock			lock			= Job.getJobManager().newLock();
-
-	private Map<AVRPath, IPath>		fPathCache		= null;
-	private IPath					fWinAVRPath		= null;
-	private IPath					fAVRToolsPath	= null;
-
-	private final static IPath		fEmptyPath		= new Path("");
-
-	public static SystemPathsWin32 getDefault() {
-		if (fInstance == null) {
-			fInstance = new SystemPathsWin32();
-		}
-		return fInstance;
-	}
+	private final static IPath	fEmptyPath		= new Path("");
 
 	private SystemPathsWin32() {
 		// prevent instantiation
 	}
 
-	public void clearCache() {
-
-		try {
-			lock.acquire();
-			if (fPathCache != null) {
-				fPathCache.clear();
-			}
-			fWinAVRPath = null;
-			fAVRToolsPath = null;
-		} finally {
-			lock.release();
-		}
-	}
-
-	public IPath getSystemPath(AVRPath avrpath, boolean force) {
-		IPath path = null;
-
-		// This method may be called from different threads. To prevent
-		// an undefined cache this method locks itself while it
-		// is looking for the path
-
-		try {
-			lock.acquire();
-			if (fPathCache == null) {
-				fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
-			}
-
-			// Test if it is already in the cache
-			if (!force) {
-				path = fPathCache.get(avrpath);
-				if (path != null) {
-					return path;
-				}
-			}
-
-			// not in cache, then try to find the path
-			path = internalGetPath(avrpath);
-			fPathCache.put(avrpath, path);
-
-		} finally {
-			lock.release();
-		}
-		return path;
-	}
-
-	private IPath internalGetPath(AVRPath avrpath) {
+	/**
+	 * Find the system path for the given {@link AVRPath} enum value.
+	 * 
+	 * @param avrpath
+	 * @return a valid path or <code>null</code> if no path could be found.
+	 */
+	public static IPath getSystemPath(AVRPath avrpath) {
 
 		switch (avrpath) {
 			case AVRGCC:
@@ -141,7 +85,7 @@ public class SystemPathsWin32 {
 		}
 	}
 
-	private IPath getWinAVRPath(String append) {
+	private static IPath getWinAVRPath(String append) {
 		IPath basepath = getWinAVRBasePath();
 		if (basepath.isEmpty()) {
 			return basepath;
@@ -154,7 +98,7 @@ public class SystemPathsWin32 {
 	 * 
 	 * @return IPath with the current path to the winAVR base directory
 	 */
-	private IPath getWinAVRBasePath() {
+	private static IPath getWinAVRBasePath() {
 		if (fWinAVRPath != null) {
 			return fWinAVRPath;
 		}
@@ -189,7 +133,7 @@ public class SystemPathsWin32 {
 	 * 
 	 * @return IPath with the current path to the AVR Tools base directory
 	 */
-	private IPath getAVRToolsPath() {
+	private static IPath getAVRToolsPath() {
 
 		if (fAVRToolsPath != null) {
 			return fAVRToolsPath;

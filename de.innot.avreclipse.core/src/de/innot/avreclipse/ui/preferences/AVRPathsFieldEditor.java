@@ -20,6 +20,7 @@ import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
@@ -40,8 +41,7 @@ import de.innot.avreclipse.core.paths.AVRPathManager;
 /**
  * A custom field editor to edit all plugin paths.
  * 
- * This can be used on a FieldEditorPreferencePage to manage the the current
- * path settings.
+ * This can be used on a FieldEditorPreferencePage to manage the the current path settings.
  * 
  * @author Thomas Holland
  * 
@@ -49,26 +49,28 @@ import de.innot.avreclipse.core.paths.AVRPathManager;
 public class AVRPathsFieldEditor extends FieldEditor {
 
 	// GUI Widgets
-	private Table fTable;
-	private Composite fButtons;
-	private Button fEditButton;
+	private Table				fTable;
+	private Composite			fButtons;
+	private Button				fEditButton;
+	private Button				fRescanButton;
 
-	private boolean fValid = true;
+	private boolean				fValid		= true;
 
 	// The three columns
-	private static final int COLUMN_NAME = 0;
-	private static final int COLUMN_TYPE = 1;
-	private static final int COLUMN_PATH = 2;
+	private static final int	COLUMN_NAME	= 0;
+	private static final int	COLUMN_TYPE	= 1;
+	private static final int	COLUMN_PATH	= 2;
 
 	// fonts and colors used
-	final Font fBoldFont = JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT);
-	final Font fDialogFont = JFaceResources.getFontRegistry().get(JFaceResources.DIALOG_FONT);
+	final Font					fBoldFont	= JFaceResources.getFontRegistry().getBold(
+													JFaceResources.DIALOG_FONT);
+	final Font					fDialogFont	= JFaceResources.getFontRegistry().get(
+													JFaceResources.DIALOG_FONT);
 
 	/**
 	 * Handle selection events from the edit button.
 	 * 
-	 * It will open a PathSettingDialog, where the currently selected path can
-	 * be modified.
+	 * It will open a PathSettingDialog, where the currently selected path can be modified.
 	 */
 	private class ButtonSelectionListener implements SelectionListener {
 
@@ -77,19 +79,31 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		}
 
 		public void widgetSelected(SelectionEvent e) {
-			// Get the selected item, get the associated path and
+			// Get the selected item and get the associated path.
 			// open a PathSettingDialog to modify the path.
 			TableItem selected = fTable.getSelection()[0];
 			AVRPathManager path = (AVRPathManager) selected.getData();
-			PathSettingDialog dialog = new PathSettingDialog(fTable.getShell(), path);
-			if (dialog.open() == Window.OK) {
-				// OK Button selected:
-				// get the modified Path, keep it and update this Editor
-				AVRPathManager newpath = dialog.getResult();
-				selected.setData(newpath);
-				updateTableItem(selected);
-				refreshValidState();
+
+			if (e.getSource() == fEditButton) {
+				PathSettingDialog dialog = new PathSettingDialog(fTable.getShell(), path);
+				if (dialog.open() == Window.OK) {
+					// OK Button selected:
+					// get the modified Path, keep it and update this Editor
+					path = dialog.getResult();
+				}
+			} else if (e.getSource() == fRescanButton) {
+				// force a search for the current system path.
+				// This may take a while so we display a Wait cursor
+				final AVRPathManager finalpath = path;
+				BusyIndicator.showWhile(fTable.getDisplay(), new Runnable() {
+					public void run() {
+						finalpath.getSystemPath(true);
+					}
+				});
 			}
+			selected.setData(path);
+			updateTableItem(selected);
+			refreshValidState();
 		}
 	}
 
@@ -108,6 +122,18 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		public void widgetSelected(SelectionEvent e) {
 			// Enable the Edit button
 			fEditButton.setEnabled(true);
+
+			// Enable the rescan button of a system path item has been seelcted
+			TableItem selected = fTable.getSelection()[0];
+			AVRPathManager path = (AVRPathManager) selected.getData();
+			switch (path.getSourceType()) {
+				case System:
+					fRescanButton.setEnabled(true);
+					break;
+				default:
+					fRescanButton.setEnabled(false);
+			}
+
 		}
 
 	}
@@ -115,8 +141,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 	/**
 	 * Constructor for the AVRPathsFieldEditor.
 	 * 
-	 * Sets the preference name (unused) and the labeltext (also unused) to
-	 * fixed values.
+	 * Sets the preference name (unused) and the labeltext (also unused) to fixed values.
 	 */
 	public AVRPathsFieldEditor(Composite parent) {
 		super("avrpaths", "AVR Paths:", parent);
@@ -186,6 +211,15 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		fEditButton.setText("Edit...");
 		fEditButton.addSelectionListener(new ButtonSelectionListener());
 		fEditButton.setEnabled(false);
+
+		// Create the rescan Button
+
+		fRescanButton = new Button(fButtons, SWT.PUSH);
+
+		fRescanButton.setText("Rescan");
+		fRescanButton.addSelectionListener(new ButtonSelectionListener());
+		fRescanButton.setEnabled(false);
+
 	}
 
 	/*
@@ -349,11 +383,11 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		} else if (valid) {
 			// valid but empty path (use for optional paths)
 			item.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
-			        ISharedImages.IMG_OBJS_WARN_TSK));
+					ISharedImages.IMG_OBJS_WARN_TSK));
 		} else {
 			// Path is invalid
 			item.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
-			        ISharedImages.IMG_OBJS_ERROR_TSK));
+					ISharedImages.IMG_OBJS_ERROR_TSK));
 		}
 
 		item.setText(COLUMN_NAME, path.getName());
@@ -362,24 +396,24 @@ public class AVRPathsFieldEditor extends FieldEditor {
 
 		// Adjust color/font according to source type
 		switch (path.getSourceType()) {
-		case System:
-			item.setFont(COLUMN_TYPE, fDialogFont);
-			item.setFont(COLUMN_PATH, fDialogFont);
-			item
-			        .setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(
-			                SWT.COLOR_DARK_GRAY));
-			break;
-		case Bundled:
-			item.setFont(COLUMN_TYPE, fDialogFont);
-			item.setFont(COLUMN_PATH, fDialogFont);
-			item
-			        .setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(
-			                SWT.COLOR_DARK_GRAY));
-			break;
-		case Custom:
-			item.setFont(COLUMN_TYPE, fBoldFont);
-			item.setFont(COLUMN_PATH, fBoldFont);
-			item.setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			case System:
+				item.setFont(COLUMN_TYPE, fDialogFont);
+				item.setFont(COLUMN_PATH, fDialogFont);
+				item.setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(
+						SWT.COLOR_DARK_GRAY));
+				break;
+			case Bundled:
+				item.setFont(COLUMN_TYPE, fDialogFont);
+				item.setFont(COLUMN_PATH, fDialogFont);
+				item.setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(
+						SWT.COLOR_DARK_GRAY));
+				break;
+			case Custom:
+				item.setFont(COLUMN_TYPE, fBoldFont);
+				item.setFont(COLUMN_PATH, fBoldFont);
+				item
+						.setForeground(COLUMN_PATH, fTable.getDisplay().getSystemColor(
+								SWT.COLOR_BLACK));
 		}
 
 		// Updates the table layout.

@@ -157,8 +157,13 @@
 -->
 	<extension point="org.eclipse.ui.preferencePages">
 		<page name="AVR"
-			class="de.innot.avreclipse.ui.preferences.PathsPreferencePage"
+			class="de.innot.avreclipse.ui.preferences.MainPreferencePage"
 			id="de.innot.avreclipse.preferences.PreferencePage">
+		</page>
+		<page name="Paths"
+			category="de.innot.avreclipse.preferences.PreferencePage"
+			class="de.innot.avreclipse.ui.preferences.PathsPreferencePage"
+			id="de.innot.avreclipse.preferences.PathsPreferencePage">
 		</page>
 		<page name="AVRDude"
 			category="de.innot.avreclipse.preferences.PreferencePage"

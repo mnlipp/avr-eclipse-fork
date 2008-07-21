@@ -21,6 +21,8 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -48,6 +50,9 @@ public class AVRPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		// Rescan all system paths (unless the "No startup scan" flag has been set
+		AVRPathsPreferences.scanAllPaths();
 	}
 
 	/*

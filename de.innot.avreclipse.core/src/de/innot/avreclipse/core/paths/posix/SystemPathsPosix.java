@@ -17,22 +17,16 @@
 package de.innot.avreclipse.core.paths.posix;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.cdt.utils.spawner.ProcessFactory;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.jobs.ILock;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.innot.avreclipse.core.paths.AVRPath;
-import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
+import de.innot.avreclipse.core.paths.SystemPathHelper;
 
 /**
  * Gets the actual system paths to the AVR-GCC Toolchain and some config files.
@@ -54,20 +48,14 @@ import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
  * </li>
  * </ol>
  * <p>
- * As the values are fairly static they are cached to avoid expensive searches. The cache can be
- * cleared with the {@link #clearCache()} method.
+ * Finding a path can be quite expensive on large systems. Therefore the caller ({@link SystemPathHelper})
+ * should cache any paths found.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.1
  */
 public class SystemPathsPosix {
-
-	private static SystemPathsPosix	fInstance		= null;
-
-	private static ILock			lock			= Job.getJobManager().newLock();
-
-	private Map<AVRPath, IPath>		fPathCache		= null;
 
 	private final static IPath		fEmptyPath		= new Path("");
 
@@ -78,98 +66,20 @@ public class SystemPathsPosix {
 	private final static String[]	fSearchPaths	= { "/usr/local/", "/usr/", "/opt/", "~/",
 			"/home/", "/etc/"						};
 
-	public static SystemPathsPosix getDefault() {
-		if (fInstance == null) {
-			fInstance = new SystemPathsPosix();
-		}
-		return fInstance;
-	}
-
 	private SystemPathsPosix() {
 		// prevent instantiation
 	}
 
-	public void clearCache() {
-
-		try {
-			lock.acquire();
-			if (fPathCache != null) {
-				fPathCache.clear();
-			}
-
-			// Clear the persistent cache
-			IPreferenceStore prefs = AVRPathsPreferences.getPreferenceStore();
-			for (AVRPath avrpath : AVRPath.values()) {
-				if (prefs.contains("cache_" + avrpath.name())) {
-					prefs.setToDefault("cache_" + avrpath.name());
-				}
-			}
-		} finally {
-			lock.release();
-		}
-	}
-
-	public IPath getSystemPath(AVRPath pathcontext, boolean force) {
-		IPath path = null;
-
-		// This method may be called from different threads. To prevent
-		// an undefined cache this method locks itself while it
-		// is looking for the path
-
-		try {
-			lock.acquire();
-			if (fPathCache == null) {
-				fPathCache = new HashMap<AVRPath, IPath>(AVRPath.values().length);
-			}
-
-			if (!force) {
-				// Test if it is already in the runtime cache
-				path = fPathCache.get(pathcontext);
-				if (path != null) {
-					return path;
-				}
-
-				// Test if it is in the persistent cache.
-				// If there is an entry in the preferencestore named "cache_..." and its value is a
-				// valid directory path and it contains the test file, then we use it instead of
-				// re-searching the system.
-				String cachedpath = AVRPathsPreferences.getPreferenceStore().getString(
-						"cache_" + pathcontext.name());
-				if (cachedpath.length() > 0) {
-					IPath testpath = new Path(cachedpath);
-					testpath.append(pathcontext.getTest());
-					File file = testpath.toFile();
-					if (file.canRead()) {
-						path = new Path(cachedpath);
-						fPathCache.put(pathcontext, path);
-						return path;
-					}
-				}
-			}
-
-			if (path == null) {
-				// not in cache, then try to find the path
-				path = internalGetPath(pathcontext);
-
-				// save the path in the cache preferences
-				AVRPathsPreferences.getPreferenceStore().putValue("cache_" + pathcontext.name(),
-						path.toOSString());
-			}
-
-			// put the path in the runtime cache.
-			fPathCache.put(pathcontext, path);
-
-		} finally {
-			lock.release();
-		}
-		return path;
-
-	}
-
-	private IPath internalGetPath(AVRPath pathcontext) {
+	/**
+	 * Find the system path for the given {@link AVRPath} enum value.
+	 * 
+	 * @param avrpath
+	 * @return a valid path or <code>null</code> if no path could be found.
+	 */
+	public static IPath getSystemPath(AVRPath avrpath) {
 
 		IPath path = fEmptyPath;
-		String test = pathcontext.getTest();
+		String test = avrpath.getTest();
 		path = which(test);
 		if (path.isEmpty()) {
 			path = find("*/" + test);
@@ -190,7 +100,7 @@ public class SystemPathsPosix {
 	 * @return <code>IPath</code> to the file. May be an empty path if the file could not be found
 	 *         with the 'which' command.
 	 */
-	private IPath which(String file) {
+	private static IPath which(String file) {
 
 		IPath path = executeCommand("which " + file);
 		return path;
@@ -208,7 +118,7 @@ public class SystemPathsPosix {
 	 * @return <code>IPath</code> to the file. May be an empty path if the file could not be found
 	 *         with the 'find' command.
 	 */
-	private IPath find(String file) {
+	private static IPath find(String file) {
 
 		for (String findpath : fSearchPaths) {
 			IPath testpath = executeCommand("find " + findpath + " -path " + file);
