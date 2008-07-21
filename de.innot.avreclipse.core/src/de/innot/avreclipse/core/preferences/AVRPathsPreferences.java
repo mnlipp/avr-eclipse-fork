@@ -24,6 +24,7 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -48,21 +49,22 @@ import de.innot.avreclipse.core.paths.SystemPathHelper;
  */
 public class AVRPathsPreferences {
 
-	public static final String						KEY_AVR_ID				= "AVRsettings";
+	public static final String						KEY_AVR_ID						= "AVRsettings";
 
-	public static final String						KEY_PER_PROJECT			= "perProject";
-	private static final boolean					DEFAULT_PER_PROJECT		= false;
+	public static final String						KEY_PER_PROJECT					= "perProject";
+	private static final boolean					DEFAULT_PER_PROJECT				= false;
 
-	public static final String						KEY_NOSTARTUPSCAN		= "NoScanAtStartup";
-	private static final Boolean					DEFAULT_NOSTARTUP_SCAN	= false;
+	public static final String						KEY_NOSTARTUPSCAN				= "NoScanAtStartup";
+	private static final Boolean					DEFAULT_NOSTARTUP_SCAN_POSIX	= true;
+	private static final Boolean					DEFAULT_NOSTARTUP_SCAN_WINDOWS	= false;
 
-	private static final String						CLASSNAME				= "avrpaths";
-	private static final String						QUALIFIER				= AVRPlugin.PLUGIN_ID
-																					+ "/"
-																					+ CLASSNAME;
+	private static final String						CLASSNAME						= "avrpaths";
+	private static final String						QUALIFIER						= AVRPlugin.PLUGIN_ID
+																							+ "/"
+																							+ CLASSNAME;
 
-	private static IPreferenceStore					fInstanceStore			= null;
-	private static Map<IProject, IPreferenceStore>	fProjectStoreMap		= new HashMap<IProject, IPreferenceStore>();
+	private static IPreferenceStore					fInstanceStore					= null;
+	private static Map<IProject, IPreferenceStore>	fProjectStoreMap				= new HashMap<IProject, IPreferenceStore>();
 
 	/**
 	 * Gets the instance Path preferences.
@@ -180,13 +182,28 @@ public class AVRPathsPreferences {
 
 	/**
 	 * Initialize the default property values.
+	 * <p>
+	 * This sets the "No scan at startup" flag depending on the operating system:
+	 * <ul>
+	 * <li><code>true</code> on Posix systems due to the expensive scan and the fact that new
+	 * versions of the avr-gcc toolchain usually just replace the old version.</li>
+	 * <li><code>false</code> on Windows systems, because the scan is just a quick registry
+	 * lookup and also because the default for winAVR installations is in a separate folder for each
+	 * new version.</li>
+	 * </ul>
+	 * and the default for all paths to {@link AVRPathManager.SourceType#System}.
+	 * </p>
 	 * 
-	 * This is called from {@link de.innot.avreclipse.core.preferences.PreferenceInitializer}
+	 * @see de.innot.avreclipse.core.preferences.PreferenceInitializer
 	 */
 	public static void initializeDefaultPreferences() {
 		IEclipsePreferences prefs = getDefaultPreferences();
 		prefs.putBoolean(KEY_PER_PROJECT, DEFAULT_PER_PROJECT);
-		prefs.putBoolean(KEY_NOSTARTUPSCAN, DEFAULT_NOSTARTUP_SCAN);
+		if (isWindows()) {
+			prefs.putBoolean(KEY_NOSTARTUPSCAN, DEFAULT_NOSTARTUP_SCAN_WINDOWS);
+		} else {
+			prefs.putBoolean(KEY_NOSTARTUPSCAN, DEFAULT_NOSTARTUP_SCAN_POSIX);
+		}
 
 		// get all supported path and set the default to System
 		// TODO: change this to bundle once bundles are supported
@@ -194,6 +211,13 @@ public class AVRPathsPreferences {
 		for (AVRPath avrpath : allpaths) {
 			prefs.put(avrpath.name(), AVRPathManager.SourceType.System.name());
 		}
+	}
+
+	/**
+	 * @return true if running on windows
+	 */
+	private static boolean isWindows() {
+		return (Platform.getOS().equals(Platform.OS_WIN32));
 	}
 
 }
