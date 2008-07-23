@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: PathSettingDialog.java 338 2008-03-01 10:53:16Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 
