@@ -16,19 +16,23 @@
 package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+
+import de.innot.avreclipse.AVRPlugin;
 
 /**
  * A container for byte values.
  * <p>
- * </p>
- * <p>
- * It manages an arbitrary array of byte values and knows for which MCU these byte values are valid.
- * It is up to the subclasses to assign a meaning to these byte value
+ * This class holds the actual byte values for either the Fuse bytes or a Lockbit byte. These byte
+ * values are only valid for the MCU type set at construction time. To change the MCU a new
+ * ByteValue Object for the new MCU has to be created, for example with the special copy constructor ({@link #ByteValues(String, ByteValues)}).
  * </p>
  * 
  * @author Thomas Holland
@@ -52,15 +56,13 @@ public class ByteValues {
 	/** The description of the bitfields */
 	private IFusesDescription					fDescription	= null;
 
-	/** Map of the bitfielddescriptions */
-	private Map<String, IBitFieldDescription>	fBitFieldNames	= null;
+	/** Map of all bitfield descriptions mapped to their name for easy access */
+	private Map<String, BitFieldDescription>	fBitFieldNames	= null;
 
 	/**
 	 * Create a new byte values container for a given MCU.
 	 * <p>
-	 * The MCU parameter is stored but only used for reference. The actual number of bytes does not
-	 * depend on the MCU but is taken from the subclass via the {@link #getByteCount()} hook method.
-	 * </p>
+	 * The new ByteValues object is
 	 * 
 	 * @param mcuid
 	 *            <code>String</code> with a MCU id value.
@@ -69,7 +71,7 @@ public class ByteValues {
 		Assert.isNotNull(mcuid);
 		fType = type;
 		fMCUId = mcuid;
-		fByteCount = getByteCount();
+		fByteCount = loadByteCount();
 		fValues = new int[fByteCount];
 		clearValues();
 	}
@@ -108,11 +110,12 @@ public class ByteValues {
 	 * @param mcuid
 	 *            A valid MCU id value.
 	 * @param source
+	 *            <code>ByteValues</code> object to clone.
 	 */
-	protected ByteValues(String mcuid, ByteValues source) {
+	public ByteValues(String mcuid, ByteValues source) {
 		fType = source.fType;
 		fMCUId = mcuid;
-		fByteCount = getByteCount();
+		fByteCount = loadByteCount();
 		fValues = new int[fByteCount];
 		for (int i = 0; i < fValues.length; i++) {
 			fValues[i] = -1;
@@ -134,7 +137,7 @@ public class ByteValues {
 	}
 
 	/**
-	 * Get the current MCU for which the byte values are valid.
+	 * Get the MCU associated with this ByteValues object and for which the byte values are valid.
 	 * 
 	 * @return <code>String</code> with a MCU id.
 	 */
@@ -143,10 +146,26 @@ public class ByteValues {
 	}
 
 	/**
+	 * Get the actual number of bytes supported by the MCU.
+	 * <p>
+	 * Depending on the type of this object either the number of fuse bytes (0 up to 6) or the
+	 * number of lockbits bytes (currently always 1) is returned.
+	 * </p>
+	 * <p>
+	 * If the MCU is not supported <code>0</code> is returned.
+	 * </p>
+	 * 
+	 * @return Number of bytes supported by the MCU. Between <code>0</code> and <code>6</code>.
+	 */
+	public int getByteCount() {
+		return fByteCount;
+	}
+
+	/**
 	 * Sets the byte at the given index to a value.
 	 * 
 	 * @param index
-	 *            The index of the byte to set. Must be between 0 and <code>getMaxBytes() - 1</code>.
+	 *            The index of the byte to set. Must be between 0 and {@link #getByteCount()}-1.
 	 * @param value
 	 *            The new value. Must be a byte value (0-255) or -1 to unset the value.
 	 * @throws IllegalArgumentException
@@ -156,7 +175,7 @@ public class ByteValues {
 
 		checkIndex(index);
 
-		if (value < -1 || value > 255) {
+		if (value < -1 || 255 < value) {
 			throw new IllegalArgumentException("Value [" + value + "] out of range (-1...255)");
 		}
 
@@ -167,8 +186,7 @@ public class ByteValues {
 	 * Get the value of the byte with the given index.
 	 * 
 	 * @param index
-	 *            The index of the byte to read. Must be between 0 and
-	 *            <code>getMaxBytes() - 1</code>.
+	 *            The index of the byte to read. Must be between 0 and {@link #getByteCount()}-1.
 	 * @return <code>int</code> with a byte value (0-255) or <code>-1</code> if the value is not
 	 *         set.
 	 * @throws IllegalArgumentException
@@ -184,9 +202,9 @@ public class ByteValues {
 	 * Set all byte values.
 	 * <p>
 	 * Copies all values from the given array to the internal storage. If the given
-	 * <code>int[]</code> has less entries than this class supports, then the remaining bytes
-	 * remain untouched. Only <code>getMaxBytes()</code> bytes are copied. Any additional bytes in
-	 * the source array are ignored.
+	 * <code>int[]</code> has less entries than this class supports, then the remaining bytes are
+	 * untouched. Only {@link #getByteCount()} bytes are copied. Any additional bytes in the source
+	 * array are ignored.
 	 * </p>
 	 * <p>
 	 * The values of the source are not checked.
@@ -203,7 +221,8 @@ public class ByteValues {
 	/**
 	 * Returns an array with all byte values.
 	 * <p>
-	 * The returned array is a copy of the internal structure.
+	 * The returned array is a copy of the internal structure and any changes to it will not be
+	 * reflected.
 	 * </p>
 	 * 
 	 * @return Array of <code>int</code> with the current byte values (0 to 255 or -1).
@@ -216,7 +235,7 @@ public class ByteValues {
 	}
 
 	/**
-	 * Returns the value of the bitfield with the given name.
+	 * Gets the value of the bitfield with the given name.
 	 * <p>
 	 * The result is the current value of the bitfield, already normalized (range 0 to maxValue).
 	 * </p>
@@ -230,7 +249,7 @@ public class ByteValues {
 	 */
 	public int getNamedValue(String name) {
 		initBitFieldNames();
-		IBitFieldDescription desc = fBitFieldNames.get(name);
+		BitFieldDescription desc = fBitFieldNames.get(name);
 		if (desc == null) {
 			throw new IllegalArgumentException("Bitfield name [" + name + "] is not known.");
 		}
@@ -241,19 +260,32 @@ public class ByteValues {
 		return desc.bitfieldToValue(value);
 	}
 
+	/**
+	 * Sets the value of the bitfield with the given name.
+	 * 
+	 * @param name
+	 *            The name of the bitfield.
+	 * @param value
+	 *            The normalized new value for the bitfield (between 0 to maxValue)
+	 * @throws IllegalArgumentException
+	 *             if the name of the bitfield is not valid or the value is out of range (0 to
+	 *             maxValue).
+	 */
 	public void setNamedValue(String name, int value) {
 		initBitFieldNames();
-		IBitFieldDescription desc = fBitFieldNames.get(name);
+
+		BitFieldDescription desc = fBitFieldNames.get(name);
 		if (desc == null) {
 			throw new IllegalArgumentException("Bitfield name [" + name + "] is not known.");
 		}
-		int index = desc.getIndex();
 
 		// Test if the value is within bounds
-		if (value > desc.getMaxValue() || value < 0) {
+		if (value < 0 || desc.getMaxValue() < value) {
 			throw new IllegalArgumentException("Value [" + value + "] out of range (0..."
 					+ desc.getMaxValue() + ")");
 		}
+
+		int index = desc.getIndex();
 
 		// Now left-shift the value to the right place and insert it
 		// into the current value.
@@ -264,6 +296,32 @@ public class ByteValues {
 		int newvalue = oldvalue & ~desc.getMask();
 		newvalue |= bitfieldvalue;
 		fValues[index] = newvalue;
+	}
+
+	/**
+	 * Get the descriptive text for the value of the named bitfield.
+	 * <p>
+	 * This method returns a human readable text for the value of the bitfield. This may be one of
+	 * the enumerations from the part description file or some other meaningful text if no
+	 * enumerations have been defined.
+	 * </p>
+	 * 
+	 * @see IBitFieldDescription#getValueText(int)
+	 * @param name
+	 *            The name of the bitfield.
+	 * @return Human readable string
+	 * 
+	 */
+	public String getNamedValueText(String name) {
+		initBitFieldNames();
+		BitFieldDescription desc = fBitFieldNames.get(name);
+		int value = getNamedValue(name);
+		if (value == -1) {
+			return "undefined";
+		}
+		String valuetext = desc.getValueText(value);
+
+		return valuetext;
 	}
 
 	/**
@@ -279,23 +337,42 @@ public class ByteValues {
 	}
 
 	/**
-	 * Get the actual number of bytes supported by the MCU.
+	 * Get a list of all BitField names.
 	 * <p>
-	 * Depending on the type of this object either the number of fuse bytes (0 up to 6) or the
-	 * number of lockbits bytes (currently always 1) is returned.
-	 * </p>
-	 * <p>
-	 * If the MCU is not supported <code>0</code> is returned.
+	 * The returned list is a copy of the internal list.
 	 * </p>
 	 * 
-	 * @return Number of bytes supported by the MCU. Between <code>0</code> and <code>6</code>.
+	 * @return <code>List&lt;String&gt;</code> with the names.
 	 */
-	public int getByteCount() {
-		IFusesDescription fusedescription = getDescription(fMCUId);
-		if (fusedescription == null) {
-			return 0;
-		}
-		return fusedescription.getByteCount(fType);
+	public List<String> getBitfieldNames() {
+		initBitFieldNames();
+		return new ArrayList<String>(fBitFieldNames.keySet());
+	}
+
+	/**
+	 * Get a list of all {@link IBitFieldDescription} objects.
+	 * <p>
+	 * The returned list is a copy of the internal list.
+	 * </p>
+	 * 
+	 * @return <code>List&lt;IBitFieldDescription&gt;</code>.
+	 */
+	public List<BitFieldDescription> getBitfieldDescriptions() {
+		initBitFieldNames();
+		return new ArrayList<BitFieldDescription>(fBitFieldNames.values());
+	}
+
+	/**
+	 * Get the name of the byte at the given index.
+	 * 
+	 * @param index
+	 *            Between 0 and {@link #getByteCount()} - 1.
+	 * @return Name of the byte from the part description file.
+	 */
+	public String getByteName(int index) {
+		IFusesDescription fusesdesc = getDescription(fMCUId);
+		IByteDescription bytedesc = fusesdesc.getByteDescription(fType, index);
+		return bytedesc.getName();
 	}
 
 	/**
@@ -312,36 +389,73 @@ public class ByteValues {
 		}
 	}
 
+	/**
+	 * Initialize the Map of Bitfield names to their corresponding description objects.
+	 * 
+	 */
 	private void initBitFieldNames() {
 
 		if (fBitFieldNames != null) {
+			// return if the map has already been initialized
 			return;
 		}
 
+		fBitFieldNames = new HashMap<String, BitFieldDescription>();
 		IFusesDescription fusedescription = getDescription(fMCUId);
-		fBitFieldNames = new HashMap<String, IBitFieldDescription>();
+		if (fusedescription == null) {
+			// If the fusedescription could not be read we leave the map empty.
+			return;
+		}
 
+		// Get all byte descriptions, get the bitfield descriptions from them
+		// and fill the map.
 		List<IByteDescription> bytedesclist = fusedescription.getByteDescriptions(fType);
 
 		for (IByteDescription bytedesc : bytedesclist) {
-			List<IBitFieldDescription> bitfieldlist = bytedesc.getBitFieldDescriptions();
-			for (IBitFieldDescription desc : bitfieldlist) {
+			List<BitFieldDescription> bitfieldlist = bytedesc.getBitFieldDescriptions();
+			for (BitFieldDescription desc : bitfieldlist) {
 				fBitFieldNames.put(desc.getName(), desc);
 			}
 		}
 	}
 
+	/**
+	 * Determine the bytecount for the mcu from the description object.
+	 * <p>
+	 * In case of errors determining the actual bytecount <code>0</code> is returned.
+	 * </p>
+	 * 
+	 * @return Number of bytes supported by the MCU. Between <code>0</code> and <code>6</code>.
+	 */
+	private int loadByteCount() {
+		IFusesDescription fusedescription = getDescription(fMCUId);
+		if (fusedescription == null) {
+			return 0;
+		}
+		return fusedescription.getByteCount(fType);
+	}
+
+	/**
+	 * Get the description object for the given mcu id.
+	 * 
+	 * @param mcuid
+	 * @return <code>IFusesdescription</code> Object or <code>null</code> if the description
+	 *         could not be loaded.
+	 */
 	private IFusesDescription getDescription(String mcuid) {
 
 		if (fDescription == null) {
 			try {
 				fDescription = Fuses.getDefault().getDescription(mcuid);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// Could not read the Description from the plugin
+				// Log the error and return null (indicates no fuse bytes)
+				IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+						"Could not read the description file from the filesystem", e);
+				AVRPlugin.getDefault().log(status);
+				return null;
 			}
 		}
 		return fDescription;
 	}
-
 }

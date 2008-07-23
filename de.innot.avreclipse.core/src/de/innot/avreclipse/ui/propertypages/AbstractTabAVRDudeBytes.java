@@ -54,6 +54,7 @@ import de.innot.avreclipse.core.avrdude.AbstractBytes;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
+import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 /**
@@ -69,6 +70,7 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
  * <li>Upload the byte values defined in a file</li>
  * <li>Upload some immediate byte values</li>
  * </ul>
+ * Also a detailed preview of the selected bytes is shown.
  * </p>
  * 
  * @author Thomas Holland
@@ -77,64 +79,66 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
  */
 public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab {
 
-	private final static int	LABEL_GROUPNAME			= 0;
-	private final static int	LABEL_NAME				= 1;
+	private final static int		LABEL_GROUPNAME			= 0;
+	private final static int		LABEL_NAME				= 1;
 
 	// The GUI texts
-	private final static String	GROUP_NAME				= "Upload {0}";
-	private final static String	TEXT_NOUPLOAD			= "do not set {0}";
-	private final static String	TEXT_FROMFILE			= "from {0} file";
-	private final static String	TEXT_IMMEDIATE			= "direct hex value{0}";
+	private final static String		GROUP_NAME				= "Upload {0}";
+	private final static String		TEXT_NOUPLOAD			= "do not set {0}";
+	private final static String		TEXT_FROMFILE			= "from {0} file";
+	private final static String		TEXT_IMMEDIATE			= "direct hex value{0}";
 
-	private final static String	TEXT_READDEVICE			= "Load from MCU";
-	private final static String	TEXT_READDEVICE_BUSY	= "Loading...";
-	private final static String	TEXT_COPYFILE			= "Copy from file";
+	private final static String		TEXT_READDEVICE			= "Load from MCU";
+	private final static String		TEXT_READDEVICE_BUSY	= "Loading...";
+	private final static String		TEXT_COPYFILE			= "Copy from file";
 
-	private final static String	WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
-																+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
-	private final static String	WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
-																+ "This is not compatible with the {2} MCU setting [{1}].";
-	private final static String	WARN_BUTTON_ACCEPT		= "Accept anyway";
+	private final static String		WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
+																	+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
+	private final static String		WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
+																	+ "This is not compatible with the {2} MCU setting [{1}].";
+	private final static String		WARN_BUTTON_ACCEPT		= "Accept anyway";
 	@SuppressWarnings("unused")
-	private final static String	WARN_BUTTON_CONVERT		= "Convert";
-	private final static String	WARN_FROMPROJECT		= "project";
-	private final static String	WARN_FROMCONFIG			= "build configuration";
+	private final static String		WARN_BUTTON_CONVERT		= "Convert";
+	private final static String		WARN_FROMPROJECT		= "project";
+	private final static String		WARN_FROMCONFIG			= "build configuration";
 
-	private static final Image	IMG_WARN				= PlatformUI
-																.getWorkbench()
-																.getSharedImages()
-																.getImage(
-																		ISharedImages.IMG_OBJS_WARN_TSK);
+	private static final Image		IMG_WARN				= PlatformUI
+																	.getWorkbench()
+																	.getSharedImages()
+																	.getImage(
+																			ISharedImages.IMG_OBJS_WARN_TSK);
 
 	// The GUI widgets
-	private Button				fNoUploadButton;
+	private Button					fNoUploadButton;
 
-	private Button				fUploadFileButton;
-	private Text				fFileText;
-	private Button				fWorkplaceButton;
-	private Button				fFilesystemButton;
-	private Button				fVariableButton;
+	private Button					fUploadFileButton;
+	private Text					fFileText;
+	private Button					fWorkplaceButton;
+	private Button					fFilesystemButton;
+	private Button					fVariableButton;
 
-	private Button				fImmediateButton;
-	private Composite			fBytesCompo;
-	private Button				fReadButton;
-	private Button				fCopyButton;
+	private Button					fImmediateButton;
+	private Composite				fBytesCompo;
+	private Button					fReadButton;
+	private Button					fCopyButton;
 
-	private Composite[]			fByteCompos;
-	private Text[]				fValueTexts;
-	private Label[]				fFuseLabels;
+	private Composite[]				fByteCompos;
+	private Text[]					fValueTexts;
+	private Label[]					fFuseLabels;
 
-	private Composite			fWarningCompo;
-	private Label				fWarningLabel;
-	private Button				fAcceptButton;
+	private Composite				fWarningCompo;
+	private Label					fWarningLabel;
+	private Button					fAcceptButton;
 	@SuppressWarnings("unused")
-	private Button				fConvertButton;
+	private Button					fConvertButton;
+
+	private FuseBytePreviewControl	fPreviewControl;
 
 	/** The Properties that this page works with */
-	private AVRDudeProperties	fTargetProps;
+	private AVRDudeProperties		fTargetProps;
 
 	/** The AbstractBytes property object this page works with */
-	protected AbstractBytes		fBytes;
+	protected AbstractBytes			fBytes;
 
 	// The abstract hook methods for the subclasses
 
@@ -157,16 +161,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	protected abstract int getMaxBytes();
 
 	/**
-	 * Get the actual number of bytes for the given MCU.
-	 * 
-	 * @param mcuid
-	 *            Target MCU id value.
-	 * @return 0-6 for the fuse page and 1 for the lockbits page.
-	 */
-	protected abstract int getByteCount(String mcuid);
-
-	/**
-	 * Load the ByteValues from the target MCU.
+	 * Load the ByteValues from the target MCU with avrdude.
 	 * 
 	 * @param avrdudeprops
 	 *            The current properties, including the ProgrammerConfig needed by avrdude.
@@ -224,7 +219,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 		parent.setLayout(new GridLayout(1, false));
 
-		addMainSection(parent);
+		// Add the source selection group
+		addSourceSelectionGroup(parent);
+
+		// Add the detailed byte values preview
+		fPreviewControl = new FuseBytePreviewControl(parent, SWT.BORDER);
+		fPreviewControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 	}
 
@@ -242,7 +242,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * @param parent
 	 *            Parent <code>Composite</code>
 	 */
-	private void addMainSection(Composite parent) {
+	private void addSourceSelectionGroup(Composite parent) {
 
 		// Group Setup
 		Group group = new Group(parent, SWT.NONE);
@@ -284,7 +284,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(false);
 				enableByteGroup(false);
 
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
+
+				fPreviewControl.setByteValues(null);
 
 				// If the warning was active it is now made invisible
 				checkValid();
@@ -309,10 +311,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 */
 	private void addFromFileSection(Composite parent) {
 
-		// TODO remove this once files are supported.
-		if (true)
-			return;
-
 		fUploadFileButton = new Button(parent, SWT.RADIO);
 		fUploadFileButton.setText(MessageFormat.format(TEXT_FROMFILE, getLabels()[LABEL_NAME]));
 		fUploadFileButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -323,7 +321,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				fBytes.setUseFile(true);
 				enableFileGroup(true);
 				enableByteGroup(false);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
+				// TODO: update the Fusebytes preview
 				// Check if the file is compatible and display a warning if required
 				checkValid();
 			}
@@ -335,7 +334,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			public void modifyText(ModifyEvent e) {
 				String newpath = fFileText.getText();
 				fBytes.setFileName(newpath);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
+				// TODO: update the Fusebytes preview
 			}
 		});
 
@@ -373,7 +373,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				.setText(MessageFormat.format(TEXT_IMMEDIATE, getMaxBytes() > 1 ? "s" : ""));
 		GridData buttonGD = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
 		// This is somewhat arbitrarily and looks good on my setup.
-		// Your milage may vary.
+		// Your mileage may vary.
 		buttonGD.verticalIndent = 4;
 		fImmediateButton.setLayoutData(buttonGD);
 		fImmediateButton.addSelectionListener(new SelectionAdapter() {
@@ -383,7 +383,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				fBytes.setUseFile(false);
 				enableFileGroup(false);
 				enableByteGroup(true);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
+				fPreviewControl.setByteValues(fBytes.getByteValues());
 
 				// Check if the byte values are compatible and display a warning if required
 				checkValid();
@@ -435,6 +436,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	}
 
+	/**
+	 * Add the warning section, which consists of a composite that can be set visible or hidden as
+	 * required.
+	 * 
+	 * @param parent
+	 */
 	private void addWarningSection(Composite parent) {
 
 		// The Warning Composite
@@ -466,7 +473,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				fBytes.setMCUId(mcuid);
 				updateData(fTargetProps);
 				checkValid();
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -528,9 +535,16 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 					newvalue = -1;
 				}
 
-				// ... and set the property
-				fBytes.setValue(index, newvalue);
-				updatePreview(fTargetProps);
+				// ... and set the property (if the source text control is enabled)
+				// The check is necessary because this event handler is
+				// also called when the #setText(String) method of this Text control
+				// is called, even when the control is disabled.
+				// The check prevents unnecessary updates of the previews.
+				if (source.isEnabled()) {
+					fBytes.setValue(index, newvalue);
+					updateAVRDudePreview(fTargetProps);
+					fPreviewControl.setByteValues(fBytes.getByteValues());
+				}
 			}
 
 		});
@@ -578,10 +592,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 *            <code>true</code> to enable, <code>false</code> to disable.
 	 */
 	private void enableFileGroup(boolean enabled) {
-		// TODO remove this once files are supported.
-		if (true)
-			return;
-
 		fFileText.setEnabled(enabled);
 		fWorkplaceButton.setEnabled(enabled);
 		fFilesystemButton.setEnabled(enabled);
@@ -605,6 +615,10 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// fCopyButton.setEnabled(enabled);
 	}
 
+	/**
+	 * Check if the MCU from the active ByteValues matches the MCU from the project. If there is a
+	 * mismatch then the warning composite is made visible.
+	 */
 	private void checkValid() {
 
 		if (!fBytes.getWrite()) {
@@ -705,7 +719,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				String newvalue = "";
 				int currvalue = values[i];
 				if (0 <= currvalue && currvalue <= 255) {
-					newvalue = Integer.toHexString(currvalue).toUpperCase();
+					newvalue = "00" + Integer.toHexString(currvalue).toUpperCase();
+					newvalue = newvalue.substring(newvalue.length() - 2);
 				}
 				fValueTexts[i].setText(newvalue);
 				fFuseLabels[i].setText(getByteEditorLabel(i));
@@ -734,6 +749,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			fImmediateButton.setSelection(false);
 			enableFileGroup(false);
 			enableByteGroup(false);
+			fPreviewControl.setByteValues(null);
 		} else {
 			// write bytes
 			fNoUploadButton.setSelection(false);
@@ -750,6 +766,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(false);
 				enableByteGroup(true);
 			}
+			fPreviewControl.setByteValues(fBytes.getByteValues());
 		}
 
 	}

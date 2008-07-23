@@ -201,7 +201,7 @@ public class TabAVRDudeAdvanced extends AbstractAVRDudePropertyTab {
 
 		}
 
-		updatePreview(fTargetProps);
+		updateAVRDudePreview(fTargetProps);
 	}
 
 	/*

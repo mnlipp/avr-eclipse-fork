@@ -40,15 +40,15 @@ import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader;
  * <p>
  * This class has two constructors. One to pass the value and description directly and another one
  * to read the value and description from an XML document node. The first one is used by the
- * {@link FusesReader} while parsing the <em>part description file</em> while the second
- * one is used when a {@link BitFieldDescription} is constructed from an XML file.<br>
+ * {@link FusesReader} while parsing the <em>part description file</em> while the second one is
+ * used when a {@link BitFieldDescription} is constructed from an XML file.<br>
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
  * 
  */
-public class BitFieldValueDescription implements IBitFieldValueDescription {
+public class BitFieldValueDescription {
 
 	/** XML element tag name name for a <code>BitFieldValueDescription</code> object. */
 	public final static String	TAG_VALUE			= "value";
@@ -104,15 +104,15 @@ public class BitFieldValueDescription implements IBitFieldValueDescription {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldValueDescription#getDescription()
+	/**
+	 * @return the description of this bitfield value enumeration element
 	 */
 	public String getDescription() {
 		return fDescription;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldValueDescription#getValue()
+	/**
+	 * @return the value of this bitfield value enumeration element
 	 */
 	public int getValue() {
 		return fValue;

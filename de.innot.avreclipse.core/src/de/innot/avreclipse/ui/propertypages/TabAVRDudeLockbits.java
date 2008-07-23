@@ -15,14 +15,11 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
-import java.io.IOException;
-
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AbstractBytes;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * The AVRDude Lockbits Tab page.
@@ -48,22 +45,6 @@ public class TabAVRDudeLockbits extends AbstractTabAVRDudeBytes {
 
 	/** The file extensions for lockbits files. Used by the file selector. */
 	private final static String[]	LOCKBITS_EXTS	= new String[] { "*.locks" };
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getByteCount(java.lang.String)
-	 */
-	@Override
-	protected int getByteCount(String mcuid) {
-		try {
-			return Fuses.getDefault().getLockbitsByteCount(mcuid);
-		} catch (IOException e) {
-			// can't load the fuses description for the MCU.
-			// return 0 = no fuses.
-			return 0;
-		}
-	}
 
 	/*
 	 * (non-Javadoc)

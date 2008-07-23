@@ -13,7 +13,7 @@ public interface IByteDescription {
 	 * 
 	 * @return <code>List&lt;BitFieldDescription&gt;</code>
 	 */
-	public List<IBitFieldDescription> getBitFieldDescriptions();
+	public List<BitFieldDescription> getBitFieldDescriptions();
 
 	/**
 	 * Get the name of this fuse byte object.

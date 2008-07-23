@@ -82,7 +82,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		performCopy(avrdudeprops);
 
 		// Update the avrdude command preview.
-		updatePreview(avrdudeprops);
+		updateAVRDudePreview(avrdudeprops);
 	}
 
 	abstract protected void performCopy(AVRDudeProperties srcprops);
@@ -99,7 +99,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 		updateData(avrdudeprops);
 
 		// Update the avrdude command preview.
-		updatePreview(props.getAVRDudeProperties());
+		updateAVRDudePreview(props.getAVRDudeProperties());
 	}
 
 	abstract protected void updateData(AVRDudeProperties avrdudeprops);
@@ -331,7 +331,7 @@ public abstract class AbstractAVRDudePropertyTab extends AbstractAVRPropertyTab 
 	 * @param props
 	 *            The <code>AVRProjectProperties</code> for which to display the preview
 	 */
-	protected void updatePreview(AVRDudeProperties props) {
+	protected void updateAVRDudePreview(AVRDudeProperties props) {
 
 		if (page instanceof PageAVRDude) {
 			PageAVRDude avrdudepage = (PageAVRDude) page;

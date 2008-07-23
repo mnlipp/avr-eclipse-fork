@@ -143,7 +143,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 				String selectedid = getProgrammerConfigId(selectedname);
 				fTargetProps.setProgrammerId(selectedid);
 				showProgrammerWarning("", false);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 		// Init the combo with the list of available programmer configurations
@@ -233,7 +233,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 		fBitClockText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				fTargetProps.setBitclock(fBitClockText.getText());
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 		fBitClockText.addVerifyListener(new VerifyListener() {
@@ -295,7 +295,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 		fBitBangDelayText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				fTargetProps.setBitBangDelay(fBitBangDelayText.getText());
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 		fBitBangDelayText.addVerifyListener(new VerifyListener() {

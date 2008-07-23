@@ -123,7 +123,7 @@ public class TabAVRDudeOther extends AbstractAVRDudePropertyTab {
 			public void modifyText(ModifyEvent e) {
 				String newvalue = fOtherOptionsText.getText();
 				fTargetProps.setOtherOptions(newvalue);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 
 		});
@@ -216,7 +216,7 @@ public class TabAVRDudeOther extends AbstractAVRDudePropertyTab {
 			setEnabled(fCounterOptionsComposite, newvalue);
 		}
 
-		updatePreview(fTargetProps);
+		updateAVRDudePreview(fTargetProps);
 	}
 
 	/*

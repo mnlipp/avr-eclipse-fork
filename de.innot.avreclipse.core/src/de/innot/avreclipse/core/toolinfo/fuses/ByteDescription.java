@@ -113,11 +113,6 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 		// Now read the children of the byte element:
 		// one default element (optional) and at least one <bitfield>
 		NodeList children = byteelement.getChildNodes();
-		if (children.getLength() == 0) {
-			throw new IllegalArgumentException("Element <\"" + fType.getElementName()
-					+ "\"> must have at least one <" + BitFieldDescription.TAG_BITFIELD
-					+ "> child element");
-		}
 
 		for (int n = 0; n < children.getLength(); n++) {
 			Node child = children.item(n);
@@ -137,11 +132,6 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 			}
 		}
 
-		if (fBitFieldList.size() == 0) {
-			throw new IllegalArgumentException("Element <\"" + fType.getElementName()
-					+ "\"> must have at least one <" + BitFieldDescription.TAG_BITFIELD
-					+ "> child element");
-		}
 	}
 
 	/*
@@ -149,8 +139,8 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getBitFieldDescriptions()
 	 */
-	public List<IBitFieldDescription> getBitFieldDescriptions() {
-		return new ArrayList<IBitFieldDescription>(fBitFieldList);
+	public List<BitFieldDescription> getBitFieldDescriptions() {
+		return new ArrayList<BitFieldDescription>(fBitFieldList);
 	}
 
 	/*
@@ -260,7 +250,7 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 		sb.append(fType.getElementName());
 		sb.append(" [");
 		sb.append(" default=" + fDefaultValue);
-		for (IBitFieldDescription bfd : fBitFieldList) {
+		for (BitFieldDescription bfd : fBitFieldList) {
 			sb.append(", " + bfd.toString());
 		}
 		sb.append("]");

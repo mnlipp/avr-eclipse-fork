@@ -172,18 +172,6 @@ public abstract class AbstractBytes {
 	protected abstract ByteValues createByteValuesObject(ByteValues source);
 
 	/**
-	 * Returns the maximum number of bytes the subclass supports.
-	 * <p>
-	 * Subclasses must override this to tell <code>AbstractBytes</code> how many bytes they
-	 * support.
-	 * </p>
-	 * 
-	 * @return <code>1</code> up to
-	 *         <code>6<code> for fuse bytes and <code>1</code> for lockbit bytes.
-	 */
-	protected abstract int getByteCount();
-
-	/**
 	 * Get the MCU id value for which this object is valid.
 	 * 
 	 * @return <code>String</code> with an mcu id.
@@ -321,7 +309,29 @@ public abstract class AbstractBytes {
 	}
 
 	/**
-	 * Get all current byte values.
+	 * Get all current byte values as a <code>ByteValues</code> object.
+	 * <p>
+	 * Get all bytes according to the current setting either from a file or from the object storage.<br>
+	 * The returned <code>ByteValues</code> object is a copy of the internal values and any
+	 * modifications are not reflected on the values in this object.
+	 * </p>
+	 * <p>
+	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
+	 * </p> <
+	 * 
+	 * @return
+	 */
+	public ByteValues getByteValues() {
+		if (fUseFile) {
+			// TODO: handle files
+			return null;
+		}
+
+		return new ByteValues(fByteValues);
+	}
+
+	/**
+	 * Get all current byte values as an array of <code>int</code>.
 	 * <p>
 	 * Get all bytes according to the current setting either from a file or from the object storage.
 	 * </p>
@@ -380,7 +390,7 @@ public abstract class AbstractBytes {
 		// While values[].length should be equal to the length of the internal
 		// field (and equal to MAX_FUSEBYTES), we use this to avoid any
 		// OutOfBoundExceptions
-		int min = Math.min(values.length, getByteCount());
+		int min = Math.min(values.length, fByteValues.getByteCount());
 
 		// Set all individual values. setFuseValue() will take care of setting
 		// the dirty flag as needed.
@@ -401,7 +411,7 @@ public abstract class AbstractBytes {
 	 *         or the index is out of bounds.
 	 */
 	public int getValue(int index) {
-		if (!(0 <= index && index < getByteCount())) {
+		if (!(0 <= index && index < fByteValues.getByteCount())) {
 			return -1;
 		}
 
@@ -427,7 +437,7 @@ public abstract class AbstractBytes {
 	 *             if the the value is out of range (-1 to 255)
 	 */
 	public void setValue(int index, int value) {
-		if (!(0 <= index && index < getByteCount())) {
+		if (!(0 <= index && index < fByteValues.getByteCount())) {
 			return;
 		}
 		if (!(-1 <= value && value <= 255)) {
@@ -495,7 +505,7 @@ public abstract class AbstractBytes {
 
 		// split the values
 		String[] values = fusevaluestring.split(SEPARATOR);
-		int count = Math.min(values.length, getByteCount());
+		int count = Math.min(values.length, fByteValues.getByteCount());
 		for (int i = 0; i < count; i++) {
 			String value = values[i];
 			if (value.length() != 0) {
@@ -522,7 +532,7 @@ public abstract class AbstractBytes {
 
 			// convert the values to a single String
 			StringBuilder sb = new StringBuilder(20);
-			for (int i = 0; i < getByteCount(); i++) {
+			for (int i = 0; i < fByteValues.getByteCount(); i++) {
 				if (i > 0)
 					sb.append(SEPARATOR);
 				sb.append(fByteValues.getValue(i));

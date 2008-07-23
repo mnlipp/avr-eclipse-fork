@@ -26,7 +26,38 @@ import org.w3c.dom.NodeList;
 
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader;
 
-public class BitFieldDescription implements IBitFieldDescription {
+/**
+ * Describes a BitField which is part of a Fuse byte or a LockBits byte.
+ * <p>
+ * This class represents all properties of a single BitField. They are:
+ * <ul>
+ * <li><code>Name</code>: the name of the BitField, e.g. <code>SPIEN</code>.</li>
+ * <li><code>Description</code>: a more user friendly long description of the bitfield.</li>
+ * <li><code>Mask</code>: an integer value that determines which bits are covered bitfield.</li>
+ * <li><code>Index</code>: the index of the parent byte within its {@link ByteValues} structure.
+ * This is not strictly a BitField property, but it is useful to work with the BitFieldDescription
+ * object</li>
+ * </ul>
+ * Each of these properties has an associated getter method.
+ * </p>
+ * <p>
+ * The interface has also some convenient methods to work with the BitFields. It also knows how to
+ * serialize itself to an XML DOM and can be instantiated from the DOM.
+ * </p>
+ * <p>
+ * This class has two constructors. One to pass the value and description directly and another one
+ * to read the value and description from an XML document node. The first one is used by the
+ * {@link FusesReader} while parsing the <em>part description file</em> while the second one is
+ * used when a {@link ByteDescription} is constructed from an XML file.<br>
+ * </p>
+ * 
+ * </p>
+ * 
+ * @author Thomas Holland
+ * @since 2.3
+ * 
+ */
+public class BitFieldDescription {
 
 	/** XML element tag name name for a <code>BitFieldValueDescription</code> object. */
 	public final static String						TAG_BITFIELD	= "bitfield";
@@ -136,65 +167,92 @@ public class BitFieldDescription implements IBitFieldDescription {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Get the byte index of the parent fuse or lockbits byte.
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getIndex()
+	 * @return <code>int</code> from <code>0</code> up to <code>5</code> for fuse bytes or
+	 *         <code>0</code> for a lockbits.
 	 */
 	public int getIndex() {
 		return fIndex;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Get the name of the BitField.
+	 * <p>
+	 * This is the name from the part description file, e.g. <em>"SPIEN"</em> or
+	 * <em>"SUT_CKSEL"</em>".
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getName()
+	 * @return
 	 */
 	public String getName() {
 		return fName;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Get the long, human readable, description for the BitField.
+	 * <p>
+	 * This is the description from the part description file.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getDescription()
+	 * @return
 	 */
 	public String getDescription() {
 		return fDescription;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Get the bitmask for the BitField.
+	 * <p>
+	 * The value is taken from the part description file. It has ones for all bits that make up the
+	 * BitField, and zeros for all bits outside of the BitField.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getMask()
+	 * @return byte value between <code>0x00</code> and <code>0xFF</code>.
 	 */
 	public int getMask() {
 		return fMask;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Return the maximum value acceptable for this BitField.
+	 * <p>
+	 * This is 2^^(number of 1-bits in the mask) minus 1.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getMaxValue()
+	 * @return max value
 	 */
 	public int getMaxValue() {
 		return (2 << (Integer.bitCount(fMask) - 1)) - 1;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Convert a normalize value to a bitfield value.
+	 * <p>
+	 * This method will left-shift the given value for the required number of places to match the
+	 * mask.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#valueToBitfield(int)
+	 * @param value
+	 *            the normalized value (range 0 to {@link #getMaxValue()})
+	 * @return <code>int</code> with the shifted value.
 	 */
 	public int valueToBitfield(int value) {
 		// left-shift the value to the right place (as determined by the mask)
 		return value << Integer.numberOfTrailingZeros(fMask);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Convert a BitField value to a normalized value.
+	 * <p>
+	 * This method will mask off all bits outside this BitField and then right-shift the result so
+	 * that a normalized value (range 0 to {@link #getMaxValue()}) is returned.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#bitfieldToValue(int)
+	 * @param bitfieldvalue
+	 *            a byte from which to extract and normalize the value of this bitfield.
+	 * @return <code>int</code> with the normalized value.
 	 */
 	public int bitfieldToValue(int bitfieldvalue) {
 		// Mask the appropriate bits and rightshift (normalize) the result
@@ -202,16 +260,70 @@ public class BitFieldDescription implements IBitFieldDescription {
 		return masked >> Integer.numberOfTrailingZeros(fMask);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Get a list of all values for this BitField as defined in the part description file.
+	 * <p>
+	 * The returned list is a copy and any changes to the list will not affect this BitField object.
+	 * </p>
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IBitFieldDescription#getValues()
+	 * @return List of <code>IBitFieldValueDescription</code> objects, or <code>null</code> if
+	 *         no values are defined.
 	 */
-	public List<IBitFieldValueDescription> getValues() {
+	public List<BitFieldValueDescription> getValuesEnumeration() {
 		if (fValues != null) {
-			return new ArrayList<IBitFieldValueDescription>(fValues);
+			return new ArrayList<BitFieldValueDescription>(fValues);
 		}
 		return null;
+	}
+
+	/**
+	 * Get the descriptive text for the given BitField value.
+	 * <p>
+	 * Depending on the type of the BitField different return values are possible:
+	 * <ul>
+	 * <li>
+	 * <p>
+	 * The BitField has a some BitFieldValue description objects
+	 * <ul>
+	 * <li>The value matches one of them: return the value description.</li>
+	 * <li>The value matches none of them: return the string "undefined"</li>
+	 * </ul>
+	 * </p>
+	 * </li>
+	 * <li>
+	 * <p>
+	 * The BitField has no BitFieldValue description objects
+	 * <ul>
+	 * <li>The BitField is a single bit: Return "Yes" for <code>0</code> and <code>"No"</code>
+	 * for <code>1</code>. This matches the fuse byte logic used by ATMEL.</li>
+	 * <li>The BitField covers multiple bits: return the value as a hex string</li>
+	 * </ul>
+	 * </p>
+	 * </li>
+	 * </p>
+	 * 
+	 * @param value
+	 *            Normalized BitField value (range 0 up to {@link #getMaxValue()};
+	 * @return
+	 */
+	public String getValueText(int value) {
+		for (BitFieldValueDescription desc : fValues) {
+			if (desc.getValue() == value) {
+				return desc.getDescription();
+			}
+		}
+		if (fValues.size() > 0) {
+			// The value was not in the list. Return an error string
+			return "undefined (" + ByteDescription.toHex(value) + ")";
+		}
+
+		// There are no BitFieldValueDescriptions available for this BitField
+		// If if is a single-bit field return "yes"/"no" (fuse-byte logic where 0 means yes),
+		// If it is a multi-bit field just return the value as hex string.
+		if (Integer.bitCount(fMask) == 1) {
+			return value == 0 ? "Yes" : "No";
+		}
+		return ByteDescription.toHex(value);
 	}
 
 	/**

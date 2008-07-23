@@ -141,7 +141,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteFlash(false);
 				enableFlashFileGroup(false);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -159,7 +159,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				// toolchain(s).
 				setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEFLASH);
 				enableFlashFileGroup(false);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -174,7 +174,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				fTargetProps.setFlashFromConfig(false);
 				fFlashFileText.setText(fTargetProps.getFlashFile());
 				enableFlashFileGroup(true);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -185,7 +185,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			public void modifyText(ModifyEvent e) {
 				String newpath = fFlashFileText.getText();
 				fTargetProps.setFlashFile(newpath);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -251,7 +251,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			public void widgetSelected(SelectionEvent e) {
 				fTargetProps.setWriteEEPROM(false);
 				enableEEPROMFileGroup(false);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -269,7 +269,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				// Set the corresponding "Generate EEPROM Image" in the current
 				// toolchain(s).
 				setBuildConfigGenerateFlag(PluginIDs.PLUGIN_TOOLCHAIN_OPTION_GENERATEEEPROM);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -284,7 +284,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 				fTargetProps.setEEPROMFromConfig(false);
 				fEEPROMFileText.setText(fTargetProps.getEEPROMFile());
 				enableEEPROMFileGroup(true);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -295,7 +295,7 @@ public class TabAVRDudeFlashEEPROM extends AbstractAVRDudePropertyTab {
 			public void modifyText(ModifyEvent e) {
 				String newpath = fEEPROMFileText.getText();
 				fTargetProps.setEEPROMFile(newpath);
-				updatePreview(fTargetProps);
+				updateAVRDudePreview(fTargetProps);
 			}
 		});
 

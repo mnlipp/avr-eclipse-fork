@@ -15,7 +15,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +23,6 @@ import org.osgi.service.prefs.Preferences;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
-import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 
 /**
  * Storage independent container for the Lockbit values.
@@ -93,21 +91,6 @@ public class LockbitBytes extends AbstractBytes {
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {
 		return new ByteValues(source);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#getMaxBytes()
-	 */
-	@Override
-	protected int getByteCount() {
-		try {
-			return Fuses.getDefault().getLockbitsByteCount(getMCUId());
-		} catch (IOException e) {
-			// If you want to see the Exception use the Fuses class directly
-			return 0;
-		}
 	}
 
 	/**
