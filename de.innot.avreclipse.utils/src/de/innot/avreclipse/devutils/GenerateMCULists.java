@@ -35,9 +35,8 @@ import org.w3c.dom.Document;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.PartDescriptionFilesReader;
-import de.innot.avreclipse.core.toolinfo.fuses.FusesReader;
-import de.innot.avreclipse.core.toolinfo.fuses.LockbitsReader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader;
+import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader;
 
@@ -63,7 +62,6 @@ public class GenerateMCULists implements IApplication {
 		// Build a list of partdescriptionfiles readers
 		List<IPDFreader> readers = new ArrayList<IPDFreader>();
 		readers.add(new MyFusesReader());
-		readers.add(new MyLockbitsReader());
 		readers.add(new MySignatureReader());
 		readers.add(new MyDatasheetReader());
 
@@ -97,35 +95,6 @@ public class GenerateMCULists implements IApplication {
 	private class MyFusesReader extends FusesReader {
 
 		private final static String	DESCRIPTION_FOLDER	= "fusedesc";
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader#getStoragePath()
-		 */
-		@Override
-		protected IPath getStoragePath() {
-			IPath statelocation = Activator.getDefault().getStateLocation();
-			IPath descriptionlocation = statelocation.append(DESCRIPTION_FOLDER);
-
-			return descriptionlocation;
-		}
-
-	}
-
-	/**
-	 * Modified {@link LockbitsReader}.
-	 * <p>
-	 * The only modifications is a different storage location (The storage area of this plugin as
-	 * opposed to the storage area of the core plugin.
-	 * </p>
-	 * The generated files can be copied to the <code>properties/lockbitsdesc</code> Folder of the
-	 * core plugin.
-	 * </p>
-	 */
-	private class MyLockbitsReader extends LockbitsReader {
-
-		private final static String	DESCRIPTION_FOLDER	= "lockbitdesc";
 
 		/*
 		 * (non-Javadoc)
