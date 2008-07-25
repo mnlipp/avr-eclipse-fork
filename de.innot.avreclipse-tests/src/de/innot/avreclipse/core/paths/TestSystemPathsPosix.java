@@ -17,7 +17,7 @@ public class TestSystemPathsPosix {
 		if (isWindows())
 			return;
 
-		IPath path = SystemPathsPosix.getDefault().getSystemPath(AVRPath.AVRGCC, false);
+		IPath path = SystemPathsPosix.getSystemPath(AVRPath.AVRGCC);
 		assertFalse(path.isEmpty());
 	}
 
@@ -27,10 +27,9 @@ public class TestSystemPathsPosix {
 		if (isWindows())
 			return;
 
-		SystemPathsPosix spp = SystemPathsPosix.getDefault();
 		AVRPath[] allpaths = AVRPath.values();
 		for (AVRPath avrpath : allpaths) {
-			IPath path = spp.getSystemPath(avrpath, false);
+			IPath path = SystemPathsPosix.getSystemPath(avrpath);
 			assertNotNull(avrpath.getName(), path);
 			if (!avrpath.isOptional()) {
 				assertFalse(avrpath.getName(), path.isEmpty());

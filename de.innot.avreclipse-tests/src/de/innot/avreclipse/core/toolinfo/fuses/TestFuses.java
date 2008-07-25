@@ -81,8 +81,8 @@ public class TestFuses {
 		assertEquals("hasMCU(\"at90can128\")", true, fFuses.hasMCU("at90can128"));
 		assertEquals("hasMCU(\"attiny861\")", true, fFuses.hasMCU("attiny861"));
 
-		// Test MCUs without Fusebytes
-		assertEquals("hasMCU(\"at89s52\")", false, fFuses.hasMCU("at89s52"));
+		// Test MCUs without Fusebytes, but with Lockbits
+		assertEquals("hasMCU(\"at89s52\")", true, fFuses.hasMCU("at89s52"));
 
 		// Test a few failures
 		assertEquals("hasMCU(\"foobar\")", false, fFuses.hasMCU("foobar"));
@@ -99,15 +99,18 @@ public class TestFuses {
 	@Test
 	public void testGetFusesDescription() throws IOException {
 		// get a few Descriptions and test that they returned good values
-		IDescriptionHolder test = fFuses.getDescription("atmega16");
+		IFusesDescription test = fFuses.getDescription("atmega16");
 		assertNotNull("getFusesDescription(\"atmega16\") returned null", test);
 
 		test = fFuses.getDescription("at90s1200");
 		assertNotNull("getFusesDescription(\"at90s1200\") returned null", test);
 
-		// Test a no fuse MCU. This should return null
+		test = fFuses.getDescription("atxmega64a1");
+		assertNotNull("getFusesDescription(\"atxmega64a1\") returned null", test);
+
+		// Test a no fuse MCU.
 		test = fFuses.getDescription("at89s51");
-		assertNull("getFusesDescription(\"at89s51\") did not return null", test);
+		assertNotNull("getFusesDescription(\"at89s51\") returned null", test);
 
 		// Test a non-Existing MCU. This should return null
 		test = fFuses.getDescription("foobar");
@@ -130,31 +133,35 @@ public class TestFuses {
 	@Test
 	public void testGetFuseByteCount() throws IOException {
 
+		// Test a 6 fuse bytes MCU
+		int count = fFuses.getFuseByteCount("atxmega128a1");
+		assertEquals("getFuseByteCount(\"atxmega128a1\")", 6, count);
+
 		// Test a 3 fuse bytes MCU
-		int count = fFuses.getByteCount("at90pwm2");
+		count = fFuses.getFuseByteCount("at90pwm2");
 		assertEquals("getFuseByteCount(\"at90pwm2\")", 3, count);
 
 		// Test a 2 fuse bytes MCU
-		count = fFuses.getByteCount("atmega323");
+		count = fFuses.getFuseByteCount("atmega323");
 		assertEquals("getFuseByteCount(\"atmega323\")", 2, count);
 
 		// Test a 1 fuse bytes MCU
-		count = fFuses.getByteCount("attiny12");
+		count = fFuses.getFuseByteCount("attiny12");
 		assertEquals("getFuseByteCount(\"attiny12\")", 1, count);
 
 		// Test a 0 fuse bytes MCU
-		count = fFuses.getByteCount("at86rf401");
-		assertEquals("getFuseByteCount(\"at86rf401\")", -1, count);
+		count = fFuses.getFuseByteCount("at86rf401");
+		assertEquals("getFuseByteCount(\"at86rf401\")", 0, count);
 
 		// Test invalid MCU names
-		count = fFuses.getByteCount("foobar");
-		assertEquals("getFuseByteCount(\"foobar\")", -1, count);
+		count = fFuses.getFuseByteCount("foobar");
+		assertEquals("getFuseByteCount(\"foobar\")", 0, count);
 
-		count = fFuses.getByteCount("");
-		assertEquals("getFuseByteCount(\"\")", -1, count);
+		count = fFuses.getFuseByteCount("");
+		assertEquals("getFuseByteCount(\"\")", 0, count);
 
-		count = fFuses.getByteCount(null);
-		assertEquals("getFuseByteCount(null)", -1, count);
+		count = fFuses.getFuseByteCount(null);
+		assertEquals("getFuseByteCount(null)", 0, count);
 
 	}
 
