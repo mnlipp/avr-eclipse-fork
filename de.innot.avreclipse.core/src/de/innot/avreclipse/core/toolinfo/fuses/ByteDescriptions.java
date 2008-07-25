@@ -337,6 +337,36 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription,
+	 *      de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 */
+	public boolean isCompatibleWith(IFusesDescription target, FuseType type) {
+
+		// First check the byte count. If they differ, then it can not be compatible
+		if (getByteCount(type) != target.getByteCount(type)) {
+			return false;
+		}
+
+		// Next get a list of all ByteDescription Objects and compare them each
+		List<IByteDescription> ourlist = getByteDescriptions(type);
+		List<IByteDescription> targetlist = target.getByteDescriptions(type);
+
+		for (int i = 0; i < ourlist.size(); i++) {
+			IByteDescription ourbyte = ourlist.get(i);
+			IByteDescription targetbyte = targetlist.get(i);
+			if (!ourbyte.isCompatibleWith(targetbyte)) {
+				return false;
+			}
+		}
+
+		// all bytes matched -> success
+		return true;
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

@@ -16,7 +16,9 @@
 package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -189,6 +191,34 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 	 */
 	public void addBitFieldDescription(BitFieldDescription bitfielddescription) {
 		fBitFieldList.add(bitfielddescription);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IByteDescription)
+	 */
+	public boolean isCompatibleWith(IByteDescription target) {
+
+		// Get the list of the target BitFieldDescriptions and convert it into a map with BitField
+		// names and their masks.
+		List<BitFieldDescription> targetlist = target.getBitFieldDescriptions();
+		Map<String, Integer> targetmap = new HashMap<String, Integer>();
+		for (BitFieldDescription bfd : targetlist) {
+			targetmap.put(bfd.getName(), bfd.getMask());
+		}
+
+		// now we can compare them with our bitfields.
+		for (BitFieldDescription ourbitfield : fBitFieldList) {
+			String name = ourbitfield.getName();
+			Integer mask = targetmap.get(name);
+			if (mask == null || mask != ourbitfield.getMask()) {
+				return false;
+			}
+		}
+
+		// All bitfields match -> success
+		return true;
 	}
 
 	/**

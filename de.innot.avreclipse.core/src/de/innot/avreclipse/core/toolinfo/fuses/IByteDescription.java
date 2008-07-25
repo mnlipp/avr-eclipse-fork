@@ -50,4 +50,17 @@ public interface IByteDescription {
 	 */
 	public int getDefaultValue();
 
+	/**
+	 * Checks if the target IByteDescription is compatible with this IByteDescription.
+	 * <p>
+	 * They are compatible if all BitFields have the same name and the same mask. The meaning of the
+	 * BitFields are not checked since we assume that they are reasonably close or identical (this
+	 * assumption has not yet been verified).
+	 * </p>
+	 * 
+	 * @param target
+	 *            The <code>IByteDescription</code> to check against.
+	 * @return <code>true</code> if the given description is (reasonable) compatible.
+	 */
+	public boolean isCompatibleWith(IByteDescription target);
 }

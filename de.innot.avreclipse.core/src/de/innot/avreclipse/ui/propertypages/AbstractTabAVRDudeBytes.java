@@ -627,14 +627,21 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			return;
 		}
 
-		if (fBytes.isCompatibleWith(fTargetProps.getParent().getMCUId())) {
+		String projectmcuid = fTargetProps.getParent().getMCUId();
+		if (fBytes.isCompatibleWith(projectmcuid)) {
 			// Compatible - no warning
 			fWarningCompo.setVisible(false);
+
+			// Nevertheless - if the mcu id differs we change the mcu type of our ByteValues to the
+			// one from the project.
+			if (!fBytes.getMCUId().equals(projectmcuid)) {
+				fBytes.setMCUId(projectmcuid);
+			}
 			return;
 		}
 
 		String valuesmcu = AVRMCUidConverter.id2name(fBytes.getMCUId());
-		String projectmcu = AVRMCUidConverter.id2name(fTargetProps.getParent().getMCUId());
+		String projectmcu = AVRMCUidConverter.id2name(projectmcuid);
 
 		String message = MessageFormat.format(fBytes.getUseFile() ? WARN_FILEINCOMPATIBLE
 				: WARN_BYTESINCOMPATIBLE, valuesmcu, projectmcu, isPerConfig() ? WARN_FROMCONFIG

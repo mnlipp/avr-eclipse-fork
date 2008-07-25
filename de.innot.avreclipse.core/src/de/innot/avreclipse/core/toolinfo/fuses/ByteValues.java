@@ -350,7 +350,7 @@ public class ByteValues {
 	}
 
 	/**
-	 * Get a list of all {@link IBitFieldDescription} objects.
+	 * Get a list of all {@link BitFieldDescription} objects.
 	 * <p>
 	 * The returned list is a copy of the internal list.
 	 * </p>
@@ -360,6 +360,19 @@ public class ByteValues {
 	public List<BitFieldDescription> getBitfieldDescriptions() {
 		initBitFieldNames();
 		return new ArrayList<BitFieldDescription>(fBitFieldNames.values());
+	}
+
+	/**
+	 * Get a single named {@link BitFieldDescription}.
+	 * 
+	 * @param name
+	 *            of the BitField
+	 * @return The <code>BitFieldDescription</code> or <code>null</code> if no BitField with the
+	 *         given name exists.
+	 */
+	public BitFieldDescription getBitFieldDescription(String name) {
+		initBitFieldNames();
+		return fBitFieldNames.get(name);
 	}
 
 	/**
@@ -457,5 +470,100 @@ public class ByteValues {
 			}
 		}
 		return fDescription;
+	}
+
+	/**
+	 * Test if this Object is compatible with the given MCU.
+	 * <p>
+	 * The test will be successfull iff all bitfields for this and the given MCU have the same name
+	 * and the same mask. In this case we assume that the meaning of the bitfields is also the same
+	 * or at least very close.
+	 * </p>
+	 * <p>
+	 * If the two MCUs are compatible it is (hopefully) save to use the
+	 * {@link #ByteValues(String, ByteValues)} constructor to make a copy of this ByteValues object
+	 * with the new MCU.
+	 * </p>
+	 * 
+	 * @return <code>true</code> if the current byte values are also valid for the given MCU id.
+	 * 
+	 */
+	public boolean isCompatibleWith(String mcuid) {
+		IFusesDescription ourdesc = getDescription(fMCUId);
+		IFusesDescription targetdesc = getDescription(mcuid);
+		return ourdesc.isCompatibleWith(targetdesc, fType);
+	}
+
+	/**
+	 * Convert this ByteValue object to a different MCU.
+	 * <p>
+	 * This method works by getting a list of all BitField names for the new target MCU and compares
+	 * them one by one with the BitField names of this object. If the names match and also the
+	 * length of the mask match, then the single BitField value is copied from this object to a new
+	 * ByteValues object.
+	 * </p>
+	 * <p>
+	 * Because sometimes different names are used for the same BitField there is a list of
+	 * exceptions ({@link #CONVERTIBLES}) which will also be used to find matching names.
+	 * </p>
+	 * <p>
+	 * For the user interface this method will fill three Lists with all fields converted, source
+	 * fields not copied and target fields not set.
+	 * </p>
+	 * 
+	 * @param mcuid
+	 *            The MCU id for the new <code>ByteValues</code> object.
+	 * @param successlist
+	 *            A List with the BitFields that have been copied (names as used by the target).
+	 * @param notcopiedlist
+	 *            A List with the BitFields in this (source) object, that were not copied to the
+	 *            target.
+	 * @param unsetlist
+	 *            A List with the BitFields in the target object that have no matching BitField in
+	 *            the this (source) object.
+	 * @return A new <code>ByteValues</code> object valid for the given MCU and with those
+	 *         BitFields filled that match this object. All other bits are set to <code>1</code>.
+	 */
+	public ByteValues convertTo(String mcuid, List<BitFieldDescription> successlist,
+			List<BitFieldDescription> notcopiedlist, List<BitFieldDescription> unsetlist) {
+
+		initBitFieldNames();
+
+		// Add all our bitfields to the notcopied list and remove those entries that have been
+		// matched.
+		notcopiedlist.addAll(fBitFieldNames.values());
+
+		// Create a new ByteValues Object for the target mcu
+		ByteValues target = new ByteValues(fType, mcuid);
+
+		List<String> targetbfdnames = target.getBitfieldNames();
+
+		for (String name : targetbfdnames) {
+
+			// Check if the name matches.
+			if (fBitFieldNames.containsKey(name)) {
+				// OK, we have a matching name. Now check if the mask matches
+				BitFieldDescription targetbfd = target.getBitFieldDescription(name);
+				BitFieldDescription ourbfd = fBitFieldNames.get(name);
+				if (targetbfd.getMaxValue() == ourbfd.getMaxValue()) {
+					// similar masks: now copy the value
+					int ourvalue = getNamedValue(name);
+					if (ourvalue == -1) {
+						// If the value is undefined we do not copy
+						unsetlist.add(ourbfd);
+						continue;
+					}
+					target.setNamedValue(name, ourvalue);
+					// mark the BitField as success and skip over the no-match parts
+					successlist.add(targetbfd);
+					notcopiedlist.remove(ourbfd);
+					continue;
+				}
+			}
+			// no match found
+			unsetlist.add(target.getBitFieldDescription(name));
+		}
+
+		return target;
 	}
 }

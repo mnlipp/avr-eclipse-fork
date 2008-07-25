@@ -555,9 +555,8 @@ public abstract class AbstractBytes {
 			// TODO: Check against the file
 			return false;
 		}
-		return fMCUid.equals(mcuid);
 
-		// TODO: check the FuseDescriptions if the fuse settings are compatible.
+		return fByteValues.isCompatibleWith(mcuid);
 	}
 
 }

@@ -117,4 +117,24 @@ public interface IFusesDescription {
 	 */
 	public List<IByteDescription> getByteDescriptions(FuseType type);
 
+	/**
+	 * Checks if the target IFusesDescription is compatible with this IFusesDescription.
+	 * <p>
+	 * They are compatible iff they have the same number of bytes and all BitFields have the same
+	 * name and the same mask. The meaning of the BitFields are not checked since we assume that
+	 * they are reasonably close or identical (this assumption has not yet been verified).
+	 * </p>
+	 * <p>
+	 * Both the Fuses and the LockBits are compared with this call. As the LockBits seem to be
+	 * identical for all AVR processors this should not be a problem.
+	 * </p>
+	 * 
+	 * @param target
+	 *            The <code>IFusesDescription</code> to check against.
+	 * @param type
+	 *            The type of descriptions to compare. Either {@link FuseType#FUSE} or
+	 *            {@link FuseType#LOCKBITS}.
+	 * @return <code>true</code> if the given description is (reasonable) compatible.
+	 */
+	public boolean isCompatibleWith(IFusesDescription target, FuseType type);
 }
