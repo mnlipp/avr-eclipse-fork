@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 16.07.08 13:59-->
+<!--Date: 25.07.08 20:22-->
 <!--Based on: Atmel Part Description File "AT90PWM2B.xml"-->
+<!--SVN: $Id$-->
 <description mcutype="at90pwm2b">
 <version build="167" status="RELEASED"/>
 <fusebyte index="2" name="EXTENDED">

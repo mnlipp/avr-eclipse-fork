@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 16.07.08 13:59-->
+<!--Date: 25.07.08 20:22-->
 <!--Based on: Atmel Part Description File "AT90S1200.xml"-->
+<!--SVN: $Id$-->
 <description mcutype="at90s1200">
 <version build="198" status="RELEASED"/>
 <fusebyte index="0" name="LOW">

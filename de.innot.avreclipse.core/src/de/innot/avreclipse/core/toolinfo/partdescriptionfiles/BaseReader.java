@@ -23,8 +23,8 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 /**
  * A basic implementation of an PartDescriptionFile reader.
  * <p>
- * This class will fetch the MCU id from the given Document and pass the
- * document to the {@link #parse(Document)} method of the subclass.
+ * This class will fetch the MCU id from the given Document and pass the document to the
+ * {@link #parse(Document)} method of the subclass.
  * </p>
  * 
  * @author Thomas Holland
@@ -34,10 +34,10 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 public abstract class BaseReader implements IPDFreader {
 
 	/** Element name for the MCU type */
-	private final static String PARTNAME = "PART_NAME";
+	private final static String	PARTNAME	= "PART_NAME";
 
 	/** The MCU id value as read from the part description file */
-	protected String fMCUid;
+	protected String			fMCUid;
 
 	/*
 	 * (non-Javadoc)
@@ -52,8 +52,10 @@ public abstract class BaseReader implements IPDFreader {
 		fMCUid = AVRMCUidConverter.name2id(partname);
 
 		if (partname.endsWith("comp")) {
-			// ignore entries ending with "comp", as they only seem to be an
-			// "complete" version of base files with the same signature
+			// ignore entries ending with "comp".
+			// These are the descriptions of a different MCU running in a compatibility mode and
+			// acting as this MCU. This might be useful for Debugging, but for now we ignore these
+			// files.
 			return;
 		}
 
@@ -63,13 +65,11 @@ public abstract class BaseReader implements IPDFreader {
 	/**
 	 * Parse the given <code>Document</code>.
 	 * <p>
-	 * The MCU id has already been parsed and is stored in the field
-	 * {@link #fMCUid}.
+	 * The MCU id has already been parsed and is stored in the field {@link #fMCUid}.
 	 * </p>
 	 * 
 	 * @param document
-	 *            XML DOM with the content of a single Atmel part description
-	 *            file.
+	 *            XML DOM with the content of a single Atmel part description file.
 	 */
 	abstract protected void parse(Document document);
 
