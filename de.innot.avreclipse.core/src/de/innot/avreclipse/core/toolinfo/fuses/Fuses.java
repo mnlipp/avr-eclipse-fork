@@ -45,11 +45,11 @@ import de.innot.avreclipse.core.IMCUProvider;
  * Most AVR MCUs have between one and three fusebytes with the new ATXmega series having six. All
  * current AVR MCUs have also one Lockbits byte, which is very similar to the fuse bytes.<br>
  * The description of these fuses and lockbits for each MCU type is stored in a
- * {@link IFusesDescription} object. This class manages the list of all available fuse byte
+ * {@link IMCUDescription} object. This class manages the list of all available fuse byte
  * descriptions.
  * </p>
  * <p>
- * To get the <code>IFusesDescription</code for a MCU id use
+ * To get the <code>IMCUDescription</code for a MCU id use
  * {@link #getDescription(String)}.
  * </p>
  * <p>
@@ -64,7 +64,7 @@ import de.innot.avreclipse.core.IMCUProvider;
  * (<code>.metadata/.plugins/de.innot.avreclipse.core/fusesdesc/</code>)
  * </p>
  * <p>
- * Each folder contains serialized <code>ByteDescriptions</code> 
+ * Each folder contains serialized <code>MCUDescription</code> 
  * objects as xml files. This class also has a cache of all descriptions already 
  * requested to reduce disk access.
  * </p>
@@ -78,11 +78,11 @@ public class Fuses implements IMCUProvider {
 	private final static String						DEFAULTFOLDER			= "/properties/fusedesc";
 	private final static String						INSTANCEFOLDER			= "fusedesc";
 
-	/** File name extension for <code>IFusesDescription</code> objects. */
+	/** File name extension for <code>IMCUDescription</code> objects. */
 	private final static String						DESCRIPTION_EXTENSION	= ".desc";
 
-	/** Cache of accessed <code>IFusesDescription</code> objects */
-	private final Map<String, IFusesDescription>	fCache;
+	/** Cache of accessed <code>IMCUDescription</code> objects */
+	private final Map<String, IMCUDescription>	fCache;
 
 	/** List of all MCU id values for which Descriptions exist */
 	private Set<String>								fMCUList				= null;
@@ -101,22 +101,22 @@ public class Fuses implements IMCUProvider {
 	// protected constructor to prevent outside instantiation.
 	protected Fuses() {
 		// Init the cache
-		fCache = new HashMap<String, IFusesDescription>();
+		fCache = new HashMap<String, IMCUDescription>();
 	}
 
 	/**
-	 * Get the {@link IFusesDescription} with the fuse and lockbits descriptions for the given MCU
+	 * Get the {@link IMCUDescription} with the fuse and lockbits descriptions for the given MCU
 	 * id.
 	 * 
 	 * @param mcuid
 	 *            <code>String</code> with a valid MCU id
-	 * @return <code>IFusesDescription</code> for the MCU or <code>null</code> if the given MCU
+	 * @return <code>IMCUDescription</code> for the MCU or <code>null</code> if the given MCU
 	 *         id is unknown.
 	 * @throws IOException
 	 *             if either the storage locations can't be accessed or a file exists, but can't be
 	 *             accessed.
 	 */
-	public IFusesDescription getDescription(String mcuid) throws IOException {
+	public IMCUDescription getDescription(String mcuid) throws IOException {
 
 		if (mcuid == null || (mcuid.length() == 0)) {
 			return null;
@@ -141,7 +141,7 @@ public class Fuses implements IMCUProvider {
 		}
 		IPath[] allpaths = new IPath[] { instancelocation, defaultlocation };
 
-		IFusesDescription desc = null;
+		IMCUDescription desc = null;
 
 		for (IPath path : allpaths) {
 			desc = getDescriptionFromLocation(mcuid, path);
@@ -177,7 +177,7 @@ public class Fuses implements IMCUProvider {
 	 */
 	public int getFuseByteCount(String mcuid) throws IOException {
 		// Get the Description
-		IFusesDescription desc;
+		IMCUDescription desc;
 		desc = getDescription(mcuid);
 		if (desc != null) {
 			return desc.getByteCount(FuseType.FUSE);
@@ -204,7 +204,7 @@ public class Fuses implements IMCUProvider {
 	 */
 	public int getLockbitsByteCount(String mcuid) throws IOException {
 		// Get the Description
-		IFusesDescription desc;
+		IMCUDescription desc;
 		desc = getDescription(mcuid);
 		if (desc != null) {
 			return desc.getByteCount(FuseType.LOCKBITS);
@@ -309,7 +309,7 @@ public class Fuses implements IMCUProvider {
 	 *             when the description file is not readable or contains errors.
 	 * @return
 	 */
-	private IFusesDescription getDescriptionFromLocation(String mcuid, IPath location)
+	private IMCUDescription getDescriptionFromLocation(String mcuid, IPath location)
 			throws IOException {
 
 		String filename = mcuid + DESCRIPTION_EXTENSION;
@@ -326,7 +326,7 @@ public class Fuses implements IMCUProvider {
 		try {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document document = builder.parse(file);
-			ByteDescriptions fd = new ByteDescriptions(document);
+			MCUDescription fd = new MCUDescription(document);
 			return fd;
 
 		} catch (SAXParseException spe) {

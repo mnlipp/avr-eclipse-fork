@@ -54,7 +54,7 @@ public class ByteValues {
 	private final int[]							fValues;
 
 	/** The description of the bitfields */
-	private IFusesDescription					fDescription	= null;
+	private IMCUDescription					fDescription	= null;
 
 	/** Map of all bitfield descriptions mapped to their name for easy access */
 	private Map<String, BitFieldDescription>	fBitFieldNames	= null;
@@ -383,7 +383,7 @@ public class ByteValues {
 	 * @return Name of the byte from the part description file.
 	 */
 	public String getByteName(int index) {
-		IFusesDescription fusesdesc = getDescription(fMCUId);
+		IMCUDescription fusesdesc = getDescription(fMCUId);
 		IByteDescription bytedesc = fusesdesc.getByteDescription(fType, index);
 		return bytedesc.getName();
 	}
@@ -414,7 +414,7 @@ public class ByteValues {
 		}
 
 		fBitFieldNames = new HashMap<String, BitFieldDescription>();
-		IFusesDescription fusedescription = getDescription(fMCUId);
+		IMCUDescription fusedescription = getDescription(fMCUId);
 		if (fusedescription == null) {
 			// If the fusedescription could not be read we leave the map empty.
 			return;
@@ -441,7 +441,7 @@ public class ByteValues {
 	 * @return Number of bytes supported by the MCU. Between <code>0</code> and <code>6</code>.
 	 */
 	private int loadByteCount() {
-		IFusesDescription fusedescription = getDescription(fMCUId);
+		IMCUDescription fusedescription = getDescription(fMCUId);
 		if (fusedescription == null) {
 			return 0;
 		}
@@ -455,7 +455,7 @@ public class ByteValues {
 	 * @return <code>IFusesdescription</code> Object or <code>null</code> if the description
 	 *         could not be loaded.
 	 */
-	private IFusesDescription getDescription(String mcuid) {
+	private IMCUDescription getDescription(String mcuid) {
 
 		if (fDescription == null) {
 			try {
@@ -489,8 +489,8 @@ public class ByteValues {
 	 * 
 	 */
 	public boolean isCompatibleWith(String mcuid) {
-		IFusesDescription ourdesc = getDescription(fMCUId);
-		IFusesDescription targetdesc = getDescription(mcuid);
+		IMCUDescription ourdesc = getDescription(fMCUId);
+		IMCUDescription targetdesc = getDescription(mcuid);
 		return ourdesc.isCompatibleWith(targetdesc, fType);
 	}
 

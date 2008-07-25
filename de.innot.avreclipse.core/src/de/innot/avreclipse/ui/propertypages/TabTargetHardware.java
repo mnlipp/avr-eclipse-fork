@@ -349,7 +349,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	}
 
 	/**
-	 * Check if the FuseBytes and Lockbits in the current properties are compatible with the
+	 * Check if the FuseBytesProperties and Lockbits in the current properties are compatible with the
 	 * selected mcu. If not, a warning dialog is shown.
 	 */
 	private void checkFuseBytes(String mcuid) {

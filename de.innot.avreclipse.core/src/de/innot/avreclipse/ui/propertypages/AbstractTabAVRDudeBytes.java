@@ -50,7 +50,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
-import de.innot.avreclipse.core.avrdude.AbstractBytes;
+import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -137,8 +137,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	/** The Properties that this page works with */
 	private AVRDudeProperties		fTargetProps;
 
-	/** The AbstractBytes property object this page works with */
-	protected AbstractBytes			fBytes;
+	/** The BaseBytesProperties property object this page works with */
+	protected BaseBytesProperties			fBytes;
 
 	// The abstract hook methods for the subclasses
 
@@ -196,10 +196,10 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * 
 	 * @param avrdudeprops
 	 *            Source properties
-	 * @return <code>FuseBytes</code> or <code>LockbitBytes</code> object extracted from the
+	 * @return <code>FuseBytesProperties</code> or <code>LockbitBytesProperties</code> object extracted from the
 	 *         given <code>AVRDudeProperties</code>
 	 */
-	protected abstract AbstractBytes getByteProps(AVRDudeProperties avrdudeprops);
+	protected abstract BaseBytesProperties getByteProps(AVRDudeProperties avrdudeprops);
 
 	// The GUI stuff
 
@@ -673,9 +673,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// Properties.
 		// The caller of this method will handle the actual saving
 
-		// Copy the settings from the FuseBytes sub-properties
-		AbstractBytes src = getByteProps(fTargetProps);
-		AbstractBytes dst = getByteProps(dstprops);
+		// Copy the settings from the FuseBytesProperties sub-properties
+		BaseBytesProperties src = getByteProps(fTargetProps);
+		BaseBytesProperties dst = getByteProps(dstprops);
 
 		dst.setWrite(src.getWrite());
 		dst.setUseFile(src.getUseFile());
@@ -691,9 +691,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	@Override
 	protected void performCopy(AVRDudeProperties srcprops) {
 
-		// Copy the settings from the AbstractBytes sub-properties
-		AbstractBytes src = getByteProps(srcprops);
-		AbstractBytes dst = getByteProps(fTargetProps);
+		// Copy the settings from the BaseBytesProperties sub-properties
+		BaseBytesProperties src = getByteProps(srcprops);
+		BaseBytesProperties dst = getByteProps(fTargetProps);
 
 		dst.setWrite(src.getWrite());
 		dst.setUseFile(src.getUseFile());

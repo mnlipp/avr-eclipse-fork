@@ -40,7 +40,7 @@ import de.innot.avreclipse.mbs.BuildMacro;
  * @since 2.2
  * 
  */
-public abstract class AbstractBytes {
+public abstract class BaseBytesProperties {
 
 	/** The MCU id for which the current fuse byte values are valid */
 	private String					fMCUid;
@@ -111,7 +111,7 @@ public abstract class AbstractBytes {
 	private boolean					fDirty				= false;
 
 	/**
-	 * Create a new FuseBytes object and load the properties from the Preferences.
+	 * Create a new FuseBytesProperties object and load the properties from the Preferences.
 	 * <p>
 	 * If the given Preferences has no saved properties yet, the default values are used.
 	 * </p>
@@ -121,7 +121,7 @@ public abstract class AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 */
-	protected AbstractBytes(Preferences prefs, AVRDudeProperties parent) {
+	protected BaseBytesProperties(Preferences prefs, AVRDudeProperties parent) {
 		fPrefs = prefs;
 		fParent = parent;
 		fByteValues = createByteValuesObject(parent.getParent().getMCUId());
@@ -140,9 +140,9 @@ public abstract class AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 * @param source
-	 *            <code>FuseBytes</code> object to copy.
+	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public AbstractBytes(Preferences prefs, AVRDudeProperties parent, AbstractBytes source) {
+	public BaseBytesProperties(Preferences prefs, AVRDudeProperties parent, BaseBytesProperties source) {
 		fPrefs = prefs;
 		fParent = parent;
 

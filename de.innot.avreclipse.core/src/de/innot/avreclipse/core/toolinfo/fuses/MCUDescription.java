@@ -30,7 +30,7 @@ import org.w3c.dom.NodeList;
 import de.innot.avreclipse.AVRPlugin;
 
 /**
- * {@link IFusesDescription} implementation for FuseBytes.
+ * {@link IMCUDescription} implementation for FuseBytes.
  * <p>
  * Objects of this class hold the {@link BitFieldDescription} objects for all fuse bytes of a single
  * MCU.
@@ -40,7 +40,7 @@ import de.innot.avreclipse.AVRPlugin;
  * @since 2.2
  * 
  */
-public class ByteDescriptions implements IFusesDescription {
+public class MCUDescription implements IMCUDescription {
 
 	private final static String			ELEMENT_ROOT		= "description";
 	private final static String			ATTR_ROOT_MCUTYPE	= "mcutype";
@@ -65,20 +65,20 @@ public class ByteDescriptions implements IFusesDescription {
 	private final List<ByteDescription>	fLockbitsByteDescList;
 
 	/**
-	 * Create a new ByteDescriptions for a MCU with the given number of fuse bytes.
+	 * Create a new MCUDescription for a MCU with the given number of fuse bytes.
 	 * 
 	 * @param mcuid
 	 *            <code>String</code> with a MCU id value.
 	 * @param bytecount
 	 *            <code>int</code> with the number of fuse bytes this MCU has.
 	 */
-	public ByteDescriptions(String mcuid) {
+	public MCUDescription(String mcuid) {
 		fMCUid = mcuid;
 		fFuseByteDescList = new ArrayList<ByteDescription>();
 		fLockbitsByteDescList = new ArrayList<ByteDescription>();
 	}
 
-	public ByteDescriptions(Document document) throws IllegalArgumentException {
+	public MCUDescription(Document document) throws IllegalArgumentException {
 
 		fMCUid = null;
 		fFuseByteDescList = new ArrayList<ByteDescription>();
@@ -142,7 +142,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getMCUId()
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getMCUId()
 	 */
 	public String getMCUId() {
 		return fMCUid;
@@ -151,7 +151,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getStatus()
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getStatus()
 	 */
 	public String getStatus() {
 		return fStatus;
@@ -160,7 +160,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getVersion()
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getVersion()
 	 */
 	public int getVersion() {
 		return fBuildVersion;
@@ -180,7 +180,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getByteCount(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteCount(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
 	 */
 	public int getByteCount(FuseType type) {
 		switch (type) {
@@ -199,7 +199,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getByteDescription(java.lang.String)
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(java.lang.String)
 	 */
 	public IByteDescription getByteDescription(String name) {
 		// go thru both fusebytes and lockbitsbyte list and see if we can find a match.
@@ -219,7 +219,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getByteDescription(de.innot.avreclipse.core.toolinfo.fuses.FuseType,
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(de.innot.avreclipse.core.toolinfo.fuses.FuseType,
 	 *      int)
 	 */
 	public IByteDescription getByteDescription(FuseType type, int index) {
@@ -236,7 +236,7 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#getByteDescriptions(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescriptions(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
 	 */
 	public List<IByteDescription> getByteDescriptions(FuseType type) {
 		switch (type) {
@@ -271,7 +271,7 @@ public class ByteDescriptions implements IFusesDescription {
 	}
 
 	/**
-	 * Convert this ByteDescriptions Object to XML.
+	 * Convert this MCUDescription Object to XML.
 	 * <p>
 	 * This method is used to serialize the descriptions to a XML DOM tree. Saving the DOM tree to a
 	 * file is left to the caller.
@@ -337,10 +337,10 @@ public class ByteDescriptions implements IFusesDescription {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription,
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription,
 	 *      de.innot.avreclipse.core.toolinfo.fuses.FuseType)
 	 */
-	public boolean isCompatibleWith(IFusesDescription target, FuseType type) {
+	public boolean isCompatibleWith(IMCUDescription target, FuseType type) {
 
 		// First check the byte count. If they differ, then it can not be compatible
 		if (getByteCount(type) != target.getByteCount(type)) {

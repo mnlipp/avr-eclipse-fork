@@ -51,11 +51,11 @@ import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteDescription;
-import de.innot.avreclipse.core.toolinfo.fuses.ByteDescriptions;
+import de.innot.avreclipse.core.toolinfo.fuses.MCUDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 import de.innot.avreclipse.core.toolinfo.fuses.IByteDescription;
-import de.innot.avreclipse.core.toolinfo.fuses.IFusesDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -80,7 +80,7 @@ public class FusesReader extends BaseReader {
 	private final static String				FILE_POSTFIX	= ".desc";
 
 	/** List of all Fuses Descriptions */
-	private Map<String, ByteDescriptions>	fFuseDescriptions;
+	private Map<String, MCUDescription>	fFuseDescriptions;
 
 	/*
 	 * (non-Javadoc)
@@ -88,7 +88,7 @@ public class FusesReader extends BaseReader {
 	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#start()
 	 */
 	public void start() {
-		fFuseDescriptions = new HashMap<String, ByteDescriptions>();
+		fFuseDescriptions = new HashMap<String, MCUDescription>();
 	}
 
 	/*
@@ -100,7 +100,7 @@ public class FusesReader extends BaseReader {
 	public void parse(Document document) {
 
 		// initialize the description object we will fill with data
-		ByteDescriptions desc = new ByteDescriptions(fMCUid);
+		MCUDescription desc = new MCUDescription(fMCUid);
 
 		// Find the <registers memspace="FUSE|LOCKBIT"> nodes.
 		// Get all <registers> nodes and look for the one which has the
@@ -176,7 +176,7 @@ public class FusesReader extends BaseReader {
 			File file = location.append(mcuid + FILE_POSTFIX).toFile();
 			FileOutputStream fos = null;
 
-			ByteDescriptions fusesdesc = fFuseDescriptions.get(mcuid);
+			MCUDescription fusesdesc = fFuseDescriptions.get(mcuid);
 
 			// Create a blank XML DOM document...
 			try {
@@ -255,13 +255,13 @@ public class FusesReader extends BaseReader {
 				// For now we just continue and try the next object.
 			} catch (FileNotFoundException fnfe) {
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-						"Could not create the ByteDescriptions file for " + mcuid, fnfe);
+						"Could not create the MCUDescription file for " + mcuid, fnfe);
 				AVRPlugin.getDefault().log(status);
 				// TODO throw an Exception to notify the caller
 				// For now we just continue and try the next object.
 			} catch (IOException ioe) {
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-						"Could not write the ByteDescriptions file for " + mcuid, ioe);
+						"Could not write the MCUDescription file for " + mcuid, ioe);
 				AVRPlugin.getDefault().log(status);
 				// TODO throw an Exception to notify the caller
 				// For now we just continue and try the next object.
@@ -289,10 +289,10 @@ public class FusesReader extends BaseReader {
 	 * @param registersnode
 	 *            A &lt;registers memspace="FUSE|LOCKBIT"&gt; node.
 	 * @param desc
-	 *            A <code>ByteDescriptions</code> container which will be filled with the
+	 *            A <code>MCUDescription</code> container which will be filled with the
 	 *            <code>ByteDescription</code> objects for each byte.
 	 */
-	private void readRegistersNode(Node registersnode, ByteDescriptions desc) {
+	private void readRegistersNode(Node registersnode, MCUDescription desc) {
 
 		// First get the type of the node
 		NamedNodeMap attrs = registersnode.getAttributes();
@@ -445,7 +445,7 @@ public class FusesReader extends BaseReader {
 
 	/**
 	 * Extract the build version and release status from the part description file document and call
-	 * the {@link #setVersionAndStatus(IFusesDescription, int, String)} method of the subclass to
+	 * the {@link #setVersionAndStatus(IMCUDescription, int, String)} method of the subclass to
 	 * set the values.
 	 * 
 	 * @param document
@@ -454,7 +454,7 @@ public class FusesReader extends BaseReader {
 	 *            The description holder created by the {@link #getDescriptionHolder(String, int)}
 	 *            call.
 	 */
-	private void setVersionAndStatus(Document document, ByteDescriptions desc) {
+	private void setVersionAndStatus(Document document, MCUDescription desc) {
 
 		int version = 0;
 		String status = "UNKNOWN";
@@ -483,7 +483,7 @@ public class FusesReader extends BaseReader {
 	 * @param document
 	 * @param fusedesc
 	 */
-	private void setDefaultValues(Document document, ByteDescriptions desc) {
+	private void setDefaultValues(Document document, MCUDescription desc) {
 
 		// Get the <FUSE> nodes (from the old, pre-V2, part of the PDF)
 		NodeList allfusenodes = document.getElementsByTagName("FUSE");

@@ -24,8 +24,8 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
-import de.innot.avreclipse.core.avrdude.FuseBytes;
-import de.innot.avreclipse.core.avrdude.LockbitBytes;
+import de.innot.avreclipse.core.avrdude.FuseBytesProperties;
+import de.innot.avreclipse.core.avrdude.LockbitBytesProperties;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
@@ -134,12 +134,12 @@ public class AVRDudeProperties {
 	private static final String			KEY_EEPROMFILE				= "EEPROMFile";
 	private static final String			DEFAULT_EEPROMFILE			= "";
 
-	/** The <code>FuseBytes</code> with all fuse bytes related settings. */
-	private FuseBytes					fFuseBytes;
+	/** The <code>FuseBytesProperties</code> with all fuse bytes related settings. */
+	private FuseBytesProperties					fFuseBytes;
 	private static final String			NODE_FUSES					= "Fuses";
 
-	/** The <code>LockbitBytes</code> with all lock byte related settings. */
-	private LockbitBytes				fLockbits;
+	/** The <code>LockbitBytesProperties</code> with all lock byte related settings. */
+	private LockbitBytesProperties				fLockbits;
 	private static final String			NODE_LOCKS					= "Locks";
 
 	/** Other avrdude options. Free text for avrdude options not directly supported by the plugin. */
@@ -217,9 +217,9 @@ public class AVRDudeProperties {
 		fEEPROMFromConfig = source.fEEPROMFromConfig;
 		fEEPROMFile = source.fEEPROMFile;
 
-		fFuseBytes = new FuseBytes(prefs.node(NODE_FUSES), this, source.fFuseBytes);
+		fFuseBytes = new FuseBytesProperties(prefs.node(NODE_FUSES), this, source.fFuseBytes);
 
-		fLockbits = new LockbitBytes(prefs.node(NODE_LOCKS), this, source.fLockbits);
+		fLockbits = new LockbitBytesProperties(prefs.node(NODE_LOCKS), this, source.fLockbits);
 
 		fOtherOptions = source.fOtherOptions;
 
@@ -409,11 +409,11 @@ public class AVRDudeProperties {
 		}
 	}
 
-	public FuseBytes getFuseBytes() {
+	public FuseBytesProperties getFuseBytes() {
 		return fFuseBytes;
 	}
 
-	public LockbitBytes getLockbitBytes() {
+	public LockbitBytesProperties getLockbitBytes() {
 		return fLockbits;
 	}
 
@@ -602,9 +602,9 @@ public class AVRDudeProperties {
 		fEEPROMFromConfig = fPrefs.getBoolean(KEY_EEPROMFROMCONFIG, DEFAULT_EEPROMFROMCONFIG);
 		fEEPROMFile = fPrefs.get(KEY_EEPROMFILE, DEFAULT_EEPROMFILE);
 
-		fFuseBytes = new FuseBytes(fPrefs.node(NODE_FUSES), this);
+		fFuseBytes = new FuseBytesProperties(fPrefs.node(NODE_FUSES), this);
 
-		fLockbits = new LockbitBytes(fPrefs.node(NODE_LOCKS), this);
+		fLockbits = new LockbitBytesProperties(fPrefs.node(NODE_LOCKS), this);
 
 		fOtherOptions = fPrefs.get(KEY_OTHEROPTIONS, DEFAULT_OTHEROPTIONS);
 

@@ -39,10 +39,10 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * @since 2.2
  * 
  */
-public class LockbitBytes extends AbstractBytes {
+public class LockbitBytesProperties extends BaseBytesProperties {
 
 	/**
-	 * Create a new LockbitBytes object and load the properties from the Preferences.
+	 * Create a new LockbitBytesProperties object and load the properties from the Preferences.
 	 * <p>
 	 * If the given Preferences has no saved properties yet, the default values are used.
 	 * </p>
@@ -52,12 +52,12 @@ public class LockbitBytes extends AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 */
-	public LockbitBytes(Preferences prefs, AVRDudeProperties parent) {
+	public LockbitBytesProperties(Preferences prefs, AVRDudeProperties parent) {
 		super(prefs, parent);
 	}
 
 	/**
-	 * Create a new LockbitBytes object and copy from the given LockbitBytes object.
+	 * Create a new LockbitBytesProperties object and copy from the given LockbitBytesProperties object.
 	 * <p>
 	 * All values from the source are copied, except for the source Preferences and the Parent.
 	 * </p>
@@ -67,16 +67,16 @@ public class LockbitBytes extends AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 * @param source
-	 *            <code>FuseBytes</code> object to copy.
+	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public LockbitBytes(Preferences prefs, AVRDudeProperties parent, AbstractBytes source) {
+	public LockbitBytesProperties(Preferences prefs, AVRDudeProperties parent, BaseBytesProperties source) {
 		super(prefs, parent, source);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#createByteValuesObject(java.lang.String)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(java.lang.String)
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(String mcuid) {
@@ -86,7 +86,7 @@ public class LockbitBytes extends AbstractBytes {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {

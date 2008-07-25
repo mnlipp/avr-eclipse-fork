@@ -16,7 +16,7 @@
 package de.innot.avreclipse.ui.propertypages;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
-import de.innot.avreclipse.core.avrdude.AbstractBytes;
+import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
@@ -92,7 +92,7 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getByteProps(de.innot.avreclipse.core.properties.AVRDudeProperties)
 	 */
 	@Override
-	protected AbstractBytes getByteProps(AVRDudeProperties avrdudeprops) {
+	protected BaseBytesProperties getByteProps(AVRDudeProperties avrdudeprops) {
 		return avrdudeprops.getFuseBytes();
 	}
 

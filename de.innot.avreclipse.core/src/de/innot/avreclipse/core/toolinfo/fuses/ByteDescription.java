@@ -224,7 +224,7 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 	/**
 	 * Convert this ByteDescription Object to XML.
 	 * 
-	 * @see ByteDescriptions#toXML(Document) for the DTD of the generated xml
+	 * @see MCUDescription#toXML(Document) for the DTD of the generated xml
 	 * 
 	 * @param parentelement
 	 *            A &lt;fusedescription&gt; element node to which this description is added

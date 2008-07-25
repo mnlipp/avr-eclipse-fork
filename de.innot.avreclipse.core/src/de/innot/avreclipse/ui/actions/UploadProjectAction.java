@@ -50,7 +50,7 @@ import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
-import de.innot.avreclipse.core.avrdude.FuseBytes;
+import de.innot.avreclipse.core.avrdude.FuseBytesProperties;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
@@ -257,7 +257,7 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 
 		// Check that the fuses are valid (if they are to be uploaded)
 		if (props.getAVRDudeProperties().getFuseBytes().getWrite()) {
-			FuseBytes fusebytes = props.getAVRDudeProperties().getFuseBytes();
+			FuseBytesProperties fusebytes = props.getAVRDudeProperties().getFuseBytes();
 			if (!fusebytes.isCompatibleWith(props.getMCUId())) {
 				String fusesmcuid = AVRMCUidConverter.id2name(fusebytes.getMCUId());
 				String propsmcuid = AVRMCUidConverter.id2name(props.getMCUId());

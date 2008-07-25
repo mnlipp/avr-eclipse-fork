@@ -39,10 +39,10 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * @since 2.2
  * 
  */
-public class FuseBytes extends AbstractBytes {
+public class FuseBytesProperties extends BaseBytesProperties {
 
 	/**
-	 * Create a new FuseBytes object and load the properties from the Preferences.
+	 * Create a new FuseBytesProperties object and load the properties from the Preferences.
 	 * <p>
 	 * If the given Preferences has no saved properties yet, the default values are used.
 	 * </p>
@@ -52,12 +52,12 @@ public class FuseBytes extends AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 */
-	public FuseBytes(Preferences prefs, AVRDudeProperties parent) {
+	public FuseBytesProperties(Preferences prefs, AVRDudeProperties parent) {
 		super(prefs, parent);
 	}
 
 	/**
-	 * Create a new FuseBytes object and copy from the given FuseByte object.
+	 * Create a new FuseBytesProperties object and copy from the given FuseByte object.
 	 * <p>
 	 * All values from the source are copied, except for the source Preferences and the Parent.
 	 * </p>
@@ -67,16 +67,16 @@ public class FuseBytes extends AbstractBytes {
 	 * @param parent
 	 *            Reference to the <code>AVRDudeProperties</code> parent object.
 	 * @param source
-	 *            <code>FuseBytes</code> object to copy.
+	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public FuseBytes(Preferences prefs, AVRDudeProperties parent, FuseBytes source) {
+	public FuseBytesProperties(Preferences prefs, AVRDudeProperties parent, FuseBytesProperties source) {
 		super(prefs, parent, source);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#createByteValuesObject(java.lang.String)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(java.lang.String)
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(String mcuid) {
@@ -86,7 +86,7 @@ public class FuseBytes extends AbstractBytes {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.AbstractBytes#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
 	 */
 	@Override
 	protected ByteValues createByteValuesObject(ByteValues source) {

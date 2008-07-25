@@ -24,7 +24,7 @@ import java.util.List;
  * @author Thomas Holland
  * @since 2.2
  */
-public interface IFusesDescription {
+public interface IMCUDescription {
 
 	/** <code>int</code> value that represents a non-existing or illegal value. */
 	public final static int	NO_VALUE	= -1;
@@ -118,7 +118,7 @@ public interface IFusesDescription {
 	public List<IByteDescription> getByteDescriptions(FuseType type);
 
 	/**
-	 * Checks if the target IFusesDescription is compatible with this IFusesDescription.
+	 * Checks if the target IMCUDescription is compatible with this IMCUDescription.
 	 * <p>
 	 * They are compatible iff they have the same number of bytes and all BitFields have the same
 	 * name and the same mask. The meaning of the BitFields are not checked since we assume that
@@ -130,11 +130,11 @@ public interface IFusesDescription {
 	 * </p>
 	 * 
 	 * @param target
-	 *            The <code>IFusesDescription</code> to check against.
+	 *            The <code>IMCUDescription</code> to check against.
 	 * @param type
 	 *            The type of descriptions to compare. Either {@link FuseType#FUSE} or
 	 *            {@link FuseType#LOCKBITS}.
 	 * @return <code>true</code> if the given description is (reasonable) compatible.
 	 */
-	public boolean isCompatibleWith(IFusesDescription target, FuseType type);
+	public boolean isCompatibleWith(IMCUDescription target, FuseType type);
 }
