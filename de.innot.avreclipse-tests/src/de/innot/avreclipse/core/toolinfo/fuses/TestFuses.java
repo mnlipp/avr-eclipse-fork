@@ -99,7 +99,7 @@ public class TestFuses {
 	@Test
 	public void testGetFusesDescription() throws IOException {
 		// get a few Descriptions and test that they returned good values
-		IFusesDescription test = fFuses.getDescription("atmega16");
+		IMCUDescription test = fFuses.getDescription("atmega16");
 		assertNotNull("getFusesDescription(\"atmega16\") returned null", test);
 
 		test = fFuses.getDescription("at90s1200");
