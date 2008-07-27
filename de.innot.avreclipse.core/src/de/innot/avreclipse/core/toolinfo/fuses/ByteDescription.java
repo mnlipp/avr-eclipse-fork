@@ -37,24 +37,22 @@ import org.w3c.dom.NodeList;
  */
 public class ByteDescription implements Comparable<ByteDescription>, IByteDescription {
 
-	private final static String				ATTR_BYTE_INDEX		= "index";
-	private final static String				ATTR_BYTE_NAME		= "name";
-
-	private final static String				ELEMENT_DEFAULT		= "default";
-	private final static String				ATTR_DEFAULT_VALUE	= "value";
+	protected final static String			ATTR_BYTE_INDEX		= "index";
+	protected final static String			ATTR_BYTE_NAME		= "name";
+	protected final static String			ATTR_DEFAULT_VALUE	= "default";
 
 	/** The type of this byte. Either FUSE or LOCKBITS */
-	private FuseType						fType;
+	private final FuseType					fType;
 	// TODO: Do we need this?
 
 	/** Fuse byte name (from the part description file). */
-	private String							fName;
+	private final String					fName;
 
 	/** The index of the Byte. (0 up to 5 for fuse bytes, 0 for the lockbits byte) */
-	private int								fIndex;
+	private final int						fIndex;
 
 	/** The default values. <code>-1</code> if no default value is defined. */
-	private int								fDefaultValue;
+	private final int						fDefaultValue;
 
 	/** List with all BitFieldDescriptions for this byte. */
 	private final List<BitFieldDescription>	fBitFieldList;
@@ -71,20 +69,30 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 	 *            The index of this byte within its memory. <code>0</code> up to <code>5</code>
 	 *            for fuse bytes (depending on MCU) or <code>0</code> for the lockbits byte.
 	 */
-	public ByteDescription(FuseType type, String name, int index) {
+	public ByteDescription(FuseType type, String name, int index, int defaultvalue) {
 		fType = type;
 		fName = name;
 		fIndex = index;
-		fDefaultValue = -1;
+		fDefaultValue = defaultvalue;
 		fBitFieldList = new ArrayList<BitFieldDescription>();
 	}
 
+	/**
+	 * Construct a new ByteDescription from a XML &lt;fusebyte&gt; or &lt;lockbitsbyte&gt; node.
+	 * <p>
+	 * This constructor will take the node and parse the values from the "index", "name" and
+	 * "default" attributes.
+	 * </p>
+	 * <p>
+	 * Then the list of {@link BitFieldDescription}s is filled from all &lt;bitfield&gt; elements.
+	 * </p>
+	 * 
+	 * @param bitfieldnode
+	 *            A &lt;bitfield&gt; document node.
+	 */
 	public ByteDescription(Node byteelement) throws IllegalArgumentException {
 
 		// Default / Error check values
-		fName = null;
-		fIndex = -1;
-		fDefaultValue = -1;
 		fBitFieldList = new ArrayList<BitFieldDescription>();
 
 		// Get the type of this byte from the given node.
@@ -94,10 +102,11 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 			fType = FuseType.LOCKBITS;
 		}
 
-		// The byte element has two attributes: "index" and "name"
+		// The byte element has three attributes: "index", "name" and optional "default"
 		// Both must be present and valid, otherwise an Exception is thrown.
 
 		NamedNodeMap attrs = byteelement.getAttributes();
+
 		Node indexnode = attrs.getNamedItem(ATTR_BYTE_INDEX);
 		if (indexnode == null) {
 			throw new IllegalArgumentException("Required attribute \"" + ATTR_BYTE_INDEX
@@ -112,22 +121,20 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 		}
 		fName = namenode.getNodeValue();
 
+		Node defaultnode = attrs.getNamedItem(ATTR_DEFAULT_VALUE);
+		if (defaultnode == null) {
+			fDefaultValue = -1;
+		} else {
+			fDefaultValue = Integer.decode(defaultnode.getTextContent());
+		}
+
 		// Now read the children of the byte element:
 		// one default element (optional) and at least one <bitfield>
 		NodeList children = byteelement.getChildNodes();
 
 		for (int n = 0; n < children.getLength(); n++) {
 			Node child = children.item(n);
-			if (ELEMENT_DEFAULT.equalsIgnoreCase(child.getNodeName())) {
-				// The <default> element has one attribute: "value"
-				attrs = child.getAttributes();
-				for (int k = 0; k < attrs.getLength(); k++) {
-					Node attr = attrs.item(k);
-					if (ATTR_DEFAULT_VALUE.equalsIgnoreCase(attr.getNodeName())) {
-						fDefaultValue = Integer.decode(attr.getNodeValue());
-					}
-				}
-			} else if (BitFieldDescription.TAG_BITFIELD.equalsIgnoreCase(child.getNodeName())) {
+			if (BitFieldDescription.TAG_BITFIELD.equalsIgnoreCase(child.getNodeName())) {
 				// get the BitfieldDescription Object and add it to the list
 				BitFieldDescription bfd = new BitFieldDescription(child);
 				fBitFieldList.add(bfd);
@@ -164,20 +171,6 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 			return 0xff;
 		}
 		return fDefaultValue;
-	}
-
-	/**
-	 * Sets the default value for this byte.
-	 * <p>
-	 * The default value can be retrieved with {@link #getDefaultValue()}
-	 * </p>
-	 * 
-	 * @param value
-	 *            The new default value. Can be <code>-1</code> to indicate that no default is
-	 *            available.
-	 */
-	public void setDefaultValue(int value) {
-		fDefaultValue = value;
 	}
 
 	/**
@@ -236,11 +229,9 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 		Element bytenode = document.createElement(fType.getElementName());
 		bytenode.setAttribute(ATTR_BYTE_INDEX, Integer.toString(fIndex));
 		bytenode.setAttribute(ATTR_BYTE_NAME, fName);
-
 		if (fDefaultValue != -1) {
-			Element defaultnode = document.createElement(ELEMENT_DEFAULT);
-			defaultnode.setAttribute(ATTR_DEFAULT_VALUE, toHex(fDefaultValue));
-			bytenode.appendChild(defaultnode);
+			bytenode.setAttribute(ATTR_DEFAULT_VALUE, toHex(fDefaultValue));
+
 		}
 
 		// add the bitfield description elements

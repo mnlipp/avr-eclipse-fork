@@ -51,11 +51,11 @@ import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteDescription;
-import de.innot.avreclipse.core.toolinfo.fuses.MCUDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 import de.innot.avreclipse.core.toolinfo.fuses.IByteDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.MCUDescription;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -77,7 +77,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  */
 public class FusesReader extends BaseReader {
 
-	private final static String				FILE_POSTFIX	= ".desc";
+	private final static String			FILE_POSTFIX	= ".desc";
 
 	/** List of all Fuses Descriptions */
 	private Map<String, MCUDescription>	fFuseDescriptions;
@@ -102,6 +102,9 @@ public class FusesReader extends BaseReader {
 		// initialize the description object we will fill with data
 		MCUDescription desc = new MCUDescription(fMCUid);
 
+		// Get the default Fuse byte values (if present)
+		Map<String, Integer> defaults = getDefaultValues(document);
+
 		// Find the <registers memspace="FUSE|LOCKBIT"> nodes.
 		// Get all <registers> nodes and look for the one which has the
 		// right memspace attribute.
@@ -115,14 +118,11 @@ public class FusesReader extends BaseReader {
 				if (memspaceattr != null) {
 					if ("FUSE".equalsIgnoreCase(memspaceattr.getTextContent())
 							|| "LOCKBIT".equalsIgnoreCase(memspaceattr.getTextContent())) {
-						readRegistersNode(node, desc);
+						readRegistersNode(node, desc, defaults);
 					}
 				}
 			}
 		}
-
-		// Now get the default values (if present)
-		setDefaultValues(document, desc);
 
 		// and the build version and the status
 		setVersionAndStatus(document, desc);
@@ -202,7 +202,8 @@ public class FusesReader extends BaseReader {
 						+ AVRMCUidConverter.id2name(mcuid) + ".xml\"");
 				document.appendChild(comment);
 
-				comment = document.createComment("SVN: $Id$");
+				comment = document
+						.createComment("SVN: $Id$");
 				document.appendChild(comment);
 
 				// And now add the Actual Description to the document
@@ -291,8 +292,11 @@ public class FusesReader extends BaseReader {
 	 * @param desc
 	 *            A <code>MCUDescription</code> container which will be filled with the
 	 *            <code>ByteDescription</code> objects for each byte.
+	 * @param A
+	 *            map with the names of all fuse bytes and their default value.
 	 */
-	private void readRegistersNode(Node registersnode, MCUDescription desc) {
+	private void readRegistersNode(Node registersnode, MCUDescription desc,
+			Map<String, Integer> defaults) {
 
 		// First get the type of the node
 		NamedNodeMap attrs = registersnode.getAttributes();
@@ -322,19 +326,21 @@ public class FusesReader extends BaseReader {
 				// We also read the name of the byte. This is later used to
 				// map to the correct name for avrdude.
 				Node offsetattr = regnode.getAttributes().getNamedItem("offset");
-				Integer offsetvalue = Integer.decode(offsetattr.getTextContent());
+				Integer offset = Integer.decode(offsetattr.getTextContent());
 
 				Node nameattr = regnode.getAttributes().getNamedItem("name");
-				String namevalue = (nameattr != null) ? nameattr.getTextContent() : "";
+				String name = (nameattr != null) ? nameattr.getTextContent() : "";
 
-				ByteDescription bytedesc = new ByteDescription(type, namevalue, offsetvalue);
+				int defaultvalue = defaults.containsKey(name) ? defaults.get(name) : -1;
+
+				ByteDescription bytedesc = new ByteDescription(type, name, offset, defaultvalue);
 
 				// Now we can read the bitfields for each node
 				Node bitfieldnode = regnode.getFirstChild();
 				while (bitfieldnode != null) {
 					if ("bitfield".equals(bitfieldnode.getNodeName())) {
 						BitFieldDescription bitfield = readBitfieldNode(bitfieldnode, enumerators,
-								offsetvalue);
+								offset, defaultvalue);
 						bytedesc.addBitFieldDescription(bitfield);
 					}
 					bitfieldnode = bitfieldnode.getNextSibling();
@@ -415,7 +421,7 @@ public class FusesReader extends BaseReader {
 	 *         node.
 	 */
 	private BitFieldDescription readBitfieldNode(Node node,
-			Map<String, List<BitFieldValueDescription>> enumerators, int index) {
+			Map<String, List<BitFieldValueDescription>> enumerators, int index, int defaultvalue) {
 
 		// Get the Attributes of the <bitfield> node
 		NamedNodeMap attrs = node.getAttributes();
@@ -439,14 +445,14 @@ public class FusesReader extends BaseReader {
 		name = bitfieldNameFixer(name, mask, description);
 
 		BitFieldDescription bitfield = new BitFieldDescription(index, name, description, mask,
-				values);
+				defaultvalue, values);
 		return bitfield;
 	}
 
 	/**
 	 * Extract the build version and release status from the part description file document and call
-	 * the {@link #setVersionAndStatus(IMCUDescription, int, String)} method of the subclass to
-	 * set the values.
+	 * the {@link #setVersionAndStatus(IMCUDescription, int, String)} method of the subclass to set
+	 * the values.
 	 * 
 	 * @param document
 	 *            Part description file DOM
@@ -480,10 +486,13 @@ public class FusesReader extends BaseReader {
 	}
 
 	/**
+	 * Read the Document and extract the default values for all fuse bytes.
+	 * 
 	 * @param document
-	 * @param fusedesc
 	 */
-	private void setDefaultValues(Document document, MCUDescription desc) {
+	private Map<String, Integer> getDefaultValues(Document document) {
+
+		Map<String, Integer> defaultsmap = new HashMap<String, Integer>(6);
 
 		// Get the <FUSE> nodes (from the old, pre-V2, part of the PDF)
 		NodeList allfusenodes = document.getElementsByTagName("FUSE");
@@ -510,7 +519,7 @@ public class FusesReader extends BaseReader {
 			// Now we have the names of the fuse bytes
 			// Iterate once again through all child nodes, this time look for a node
 			// which matches one of the fusenames. Once found pass this node to
-			// getDefaultValue() to read all fuse bits and their default value.
+			// readFuseByteNode() to read all fuse bits and their default value.
 
 			childnode = fusenode.getFirstChild();
 			while (childnode != null) {
@@ -519,16 +528,14 @@ public class FusesReader extends BaseReader {
 						// Found the fuse node in the childnodes
 						int defaultvalue = readFuseByteNode(childnode);
 						String name = childnode.getNodeName();
-						IByteDescription ibd = desc.getByteDescription(name);
-						if (ibd != null) {
-							ByteDescription bd = (ByteDescription) ibd;
-							bd.setDefaultValue(defaultvalue);
-						}
+
+						defaultsmap.put(name, Integer.valueOf(defaultvalue));
 					}
 				}
 				childnode = childnode.getNextSibling();
 			}
 		}
+		return defaultsmap;
 	}
 
 	/**

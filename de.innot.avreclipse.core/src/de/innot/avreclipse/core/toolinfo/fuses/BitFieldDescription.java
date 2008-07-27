@@ -62,26 +62,32 @@ public class BitFieldDescription {
 	/** XML element tag name name for a <code>BitFieldValueDescription</code> object. */
 	public final static String						TAG_BITFIELD	= "bitfield";
 
-	/** XML attribute name for the bitfield name */
+	/** XML attribute name for the BitField name */
 	public final static String						ATTR_NAME		= "name";
 
-	/** XML attribute name for the bitfield description */
+	/** XML attribute name for the BitField description */
 	public final static String						ATTR_DESC		= "desc";
 
-	/** XML attribute name for the bitfield mask */
+	/** XML attribute name for the BitField mask */
 	public final static String						ATTR_MASK		= "mask";
 
+	/** XML attribute name for the default value */
+	public final static String						ATTR_DEFAULT	= "default";
+
 	/** The byte index of the fuse/lock byte this description belongs to */
-	private int										fIndex			= -1;
+	private final int								fIndex;
 
-	/** The name of this bitfield */
-	private String									fName			= "unknown";
+	/** The name of this BitField */
+	private final String							fName;
 
-	/** Description of this bitfield */
-	private String									fDescription	= "???";
+	/** Description of this BitField */
+	private final String							fDescription;
 
-	/** The mask for this bitfield */
-	private int										fMask			= -1;
+	/** The mask for this BitField */
+	private final int								fMask;
+
+	/** The default value for this BitField. <code>-1</code> if no default available. */
+	private final int								fDefault;
 
 	/**
 	 * A enumeration of all possible values. This is optional and may be empty if no values are
@@ -98,31 +104,43 @@ public class BitFieldDescription {
 	 * @param index
 	 *            the fuse byte / locks byte offset
 	 * @param name
-	 *            the name of the bitfield
+	 *            the name of the BitField
 	 * @param description
-	 *            the description of the bitfield
+	 *            the description of the BitField
 	 * @param mask
 	 *            the mask defining which bits of the byte are represented by this bitfield.
+	 * @param defaultvalue
+	 *            the default value for the byte containing this BitField. <code>-1</code> means
+	 *            no default available. The value is converted to a normalized BitField value.
 	 * @param values
 	 *            enumeration of all possible values (can be <code>null</code> if the bitfield has
 	 *            no predefined values.
 	 */
 	public BitFieldDescription(int index, String name, String description, int mask,
-			List<BitFieldValueDescription> values) {
+			int defaultvalue, List<BitFieldValueDescription> values) {
 		fIndex = index;
 		fName = name;
 		fDescription = description;
 		fMask = mask;
 
 		fValues = values;
+
+		// convert the default value
+		fDefault = defaultvalue != -1 ? byteToBitField(defaultvalue) : -1;
+
 	}
 
 	/**
-	 * Construct a new BitFieldValueDescription from a XML &lt;bitfield&gt; node.
+	 * Construct a new BitFieldDescription from a XML &lt;bitfield&gt; node.
 	 * <p>
-	 * This constructor will take the node and parse the values from the "name", "desc" and "mask"
-	 * attributes. The index is taken from the "index" attribute of the parent node. If any
-	 * attribute is missing a default value is used.
+	 * This constructor will take the node and parse the values from the "name", "desc", "mask" and
+	 * "default" attributes. The index is taken from the "index" attribute of the parent node. If
+	 * any attribute is missing a default value is used, except for "mask", which is required and
+	 * will cause an IllegalArgumentException if missing.
+	 * </p>
+	 * <p>
+	 * Then the list of {@link BitFieldValueDescription}s is filled from all &lt;value&gt;
+	 * elements.
 	 * </p>
 	 * 
 	 * @param bitfieldnode
@@ -132,17 +150,33 @@ public class BitFieldDescription {
 
 		// First get our own attributes
 		NamedNodeMap attrs = bitfieldnode.getAttributes();
-		for (int i = 0; i < attrs.getLength(); i++) {
-			Node attr = attrs.item(i);
-			if (ATTR_NAME.equalsIgnoreCase(attr.getNodeName())) {
-				fName = attr.getTextContent();
-			}
-			if (ATTR_DESC.equalsIgnoreCase(attr.getNodeName())) {
-				fDescription = attr.getTextContent();
-			}
-			if (ATTR_MASK.equalsIgnoreCase(attr.getNodeName())) {
-				fMask = Integer.decode(attr.getTextContent());
-			}
+
+		Node namenode = attrs.getNamedItem(ATTR_NAME);
+		if (namenode != null) {
+			fName = namenode.getNodeValue();
+		} else {
+			fName = "???";
+		}
+
+		Node descnode = attrs.getNamedItem(ATTR_DESC);
+		if (descnode != null) {
+			fDescription = descnode.getNodeValue();
+		} else {
+			fDescription = "no description available";
+		}
+
+		Node masknode = attrs.getNamedItem(ATTR_MASK);
+		if (masknode == null) {
+			throw new IllegalArgumentException("Required attribute \"" + ATTR_MASK
+					+ "\" for element <" + bitfieldnode.getNodeName() + "> missing.");
+		}
+		fMask = Integer.decode(masknode.getTextContent());
+
+		Node defaultnode = attrs.getNamedItem(ATTR_DEFAULT);
+		if (defaultnode == null) {
+			fDefault = -1;
+		} else {
+			fDefault = Integer.decode(defaultnode.getTextContent());
 		}
 
 		// Then collect the BitFieldValueDescription child nodes
@@ -161,10 +195,10 @@ public class BitFieldDescription {
 		// and finally get the index from the parent
 		Node parent = bitfieldnode.getParentNode();
 		NamedNodeMap parentattrs = parent.getAttributes();
-		Node indexnode = parentattrs.getNamedItem("index");
-		if (indexnode != null) {
-			fIndex = Integer.decode(indexnode.getTextContent());
-		}
+		// The next line should not fail, because if the attribute was missing ByteDescription would
+		// have thrown an Exception already.
+		Node indexnode = parentattrs.getNamedItem(ByteDescription.ATTR_BYTE_INDEX);
+		fIndex = Integer.decode(indexnode.getTextContent());
 	}
 
 	/**
@@ -228,7 +262,22 @@ public class BitFieldDescription {
 	}
 
 	/**
-	 * Convert a normalize value to a bitfield value.
+	 * Returns the default value of this BitField as defined in the part description file.
+	 * <p>
+	 * Especially newer MCUs do not have default values in the part description files. In this case
+	 * <code>-1</code> is returned. The same is true for LockBits, because they are never defined
+	 * in the part description files.
+	 * </p>
+	 * 
+	 * @return The normalized default value for this BitField (range 0 to {@link #getMaxValue()},
+	 *         or <code>-1</code>
+	 */
+	public int getDefaultValue() {
+		return fDefault;
+	}
+
+	/**
+	 * Convert a normalize value to a Byte value.
 	 * <p>
 	 * This method will left-shift the given value for the required number of places to match the
 	 * mask.
@@ -238,13 +287,13 @@ public class BitFieldDescription {
 	 *            the normalized value (range 0 to {@link #getMaxValue()})
 	 * @return <code>int</code> with the shifted value.
 	 */
-	public int valueToBitfield(int value) {
+	public int bitFieldToByte(int value) {
 		// left-shift the value to the right place (as determined by the mask)
 		return value << Integer.numberOfTrailingZeros(fMask);
 	}
 
 	/**
-	 * Convert a BitField value to a normalized value.
+	 * Convert a Byte value to a normalized BitField value.
 	 * <p>
 	 * This method will mask off all bits outside this BitField and then right-shift the result so
 	 * that a normalized value (range 0 to {@link #getMaxValue()}) is returned.
@@ -254,7 +303,7 @@ public class BitFieldDescription {
 	 *            a byte from which to extract and normalize the value of this bitfield.
 	 * @return <code>int</code> with the normalized value.
 	 */
-	public int bitfieldToValue(int bitfieldvalue) {
+	public int byteToBitField(int bitfieldvalue) {
 		// Mask the appropriate bits and rightshift (normalize) the result
 		int masked = bitfieldvalue & fMask;
 		return masked >> Integer.numberOfTrailingZeros(fMask);
@@ -344,6 +393,7 @@ public class BitFieldDescription {
 		element.setAttribute(ATTR_NAME, fName);
 		element.setAttribute(ATTR_DESC, fDescription);
 		element.setAttribute(ATTR_MASK, ByteDescription.toHex(fMask));
+		element.setAttribute(ATTR_DEFAULT, ByteDescription.toHex(fDefault));
 
 		if (fValues != null && fValues.size() > 0) {
 			for (BitFieldValueDescription bfv : fValues) {

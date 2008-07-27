@@ -53,9 +53,6 @@ public class ByteValues {
 	/** The actual byte values. The array is initialized during instantiation. */
 	private final int[]							fValues;
 
-	/** The description of the bitfields */
-	private IMCUDescription					fDescription	= null;
-
 	/** Map of all bitfield descriptions mapped to their name for easy access */
 	private Map<String, BitFieldDescription>	fBitFieldNames	= null;
 
@@ -257,7 +254,7 @@ public class ByteValues {
 		int value = fValues[index];
 		if (value == -1)
 			return value;
-		return desc.bitfieldToValue(value);
+		return desc.byteToBitField(value);
 	}
 
 	/**
@@ -289,7 +286,7 @@ public class ByteValues {
 
 		// Now left-shift the value to the right place and insert it
 		// into the current value.
-		int bitfieldvalue = desc.valueToBitfield(value);
+		int bitfieldvalue = desc.bitFieldToByte(value);
 		int oldvalue = fValues[index];
 		if (oldvalue == -1)
 			oldvalue = 0xff;
@@ -308,7 +305,7 @@ public class ByteValues {
 	 * 
 	 * @see IBitFieldDescription#getValueText(int)
 	 * @param name
-	 *            The name of the bitfield.
+	 *            The name of the BitField.
 	 * @return Human readable string
 	 * 
 	 */
@@ -322,6 +319,29 @@ public class ByteValues {
 		String valuetext = desc.getValueText(value);
 
 		return valuetext;
+	}
+
+	/**
+	 * Set the value of a BitField to the default.
+	 * <p>
+	 * The default value comes from the part description file. For some MCUs there exist no default
+	 * fuse byte values and LockBits never have a default value. In these cases the method will set
+	 * the value of the BitField to all <code>1</code>s.
+	 * </p>
+	 * 
+	 * @param name
+	 *            The name of the BitField.
+	 */
+	public void setNamedValueToDefault(String name) {
+		initBitFieldNames();
+		BitFieldDescription desc = fBitFieldNames.get(name);
+
+		int defaultvalue = desc.getDefaultValue();
+		if (defaultvalue != -1) {
+			setNamedValue(name, defaultvalue);
+		} else {
+			setNamedValue(name, desc.getMaxValue());
+		}
 	}
 
 	/**
@@ -457,19 +477,21 @@ public class ByteValues {
 	 */
 	private IMCUDescription getDescription(String mcuid) {
 
-		if (fDescription == null) {
-			try {
-				fDescription = Fuses.getDefault().getDescription(mcuid);
-			} catch (IOException e) {
-				// Could not read the Description from the plugin
-				// Log the error and return null (indicates no fuse bytes)
-				IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
-						"Could not read the description file from the filesystem", e);
-				AVRPlugin.getDefault().log(status);
-				return null;
-			}
+		// we used to cache the value but the Fuses class already caches all results it is not
+		// necessary to do it again.
+
+		IMCUDescription description = null;
+		try {
+			description = Fuses.getDefault().getDescription(mcuid);
+		} catch (IOException e) {
+			// Could not read the Description from the plugin
+			// Log the error and return null (indicates no fuse bytes)
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not read the description file from the filesystem", e);
+			AVRPlugin.getDefault().log(status);
+			return null;
 		}
-		return fDescription;
+		return description;
 	}
 
 	/**
@@ -503,38 +525,30 @@ public class ByteValues {
 	 * ByteValues object.
 	 * </p>
 	 * <p>
-	 * Because sometimes different names are used for the same BitField there is a list of
-	 * exceptions ({@link #CONVERTIBLES}) which will also be used to find matching names.
-	 * </p>
-	 * <p>
-	 * For the user interface this method will fill three Lists with all fields converted, source
-	 * fields not copied and target fields not set.
+	 * All BitFields of the newly created target <code>ByteValues</code>, which do not have a
+	 * matching BitField in this <code>ByteValues</code> object, are set to their default value
+	 * (if defined) or to all <code>1</code>s.
 	 * </p>
 	 * 
 	 * @param mcuid
 	 *            The MCU id for the new <code>ByteValues</code> object.
-	 * @param successlist
-	 *            A List with the BitFields that have been copied (names as used by the target).
-	 * @param notcopiedlist
-	 *            A List with the BitFields in this (source) object, that were not copied to the
-	 *            target.
-	 * @param unsetlist
-	 *            A List with the BitFields in the target object that have no matching BitField in
-	 *            the this (source) object.
+	 * @param results
+	 *            A {@link ConversionResults} object which will maintain the lists of successful and
+	 *            unsuccessful BitField conversions.
 	 * @return A new <code>ByteValues</code> object valid for the given MCU and with those
 	 *         BitFields filled that match this object. All other bits are set to <code>1</code>.
 	 */
-	public ByteValues convertTo(String mcuid, List<BitFieldDescription> successlist,
-			List<BitFieldDescription> notcopiedlist, List<BitFieldDescription> unsetlist) {
+	public ByteValues convertTo(String mcuid, ConversionResults results) {
 
 		initBitFieldNames();
 
-		// Add all our bitfields to the notcopied list and remove those entries that have been
-		// matched.
-		notcopiedlist.addAll(fBitFieldNames.values());
-
 		// Create a new ByteValues Object for the target mcu
 		ByteValues target = new ByteValues(fType, mcuid);
+
+		// Init the results with all our bitfields.
+		// Later we will remove those entries that have been converted successfully,
+		// so that at the end only the BitFields not copied will remain in the results object.
+		results.init(this, target);
 
 		List<String> targetbfdnames = target.getBitfieldNames();
 
@@ -550,19 +564,22 @@ public class ByteValues {
 					int ourvalue = getNamedValue(name);
 					if (ourvalue == -1) {
 						// If the value is undefined we do not copy
-						unsetlist.add(ourbfd);
+						results.addUnset(ourbfd);
 						continue;
 					}
 					target.setNamedValue(name, ourvalue);
 					// mark the BitField as success and skip over the no-match parts
-					successlist.add(targetbfd);
-					notcopiedlist.remove(ourbfd);
+					results.addSuccess(targetbfd);
+					results.removeNotCopied(ourbfd);
 					continue;
 				}
 			}
-			// no match found
-			unsetlist.add(target.getBitFieldDescription(name));
+			// no match found. Set to default value and add to the list
+			target.setNamedValueToDefault(name);
+			results.addUnset(target.getBitFieldDescription(name));
 		}
+
+		results.setReady();
 
 		return target;
 	}

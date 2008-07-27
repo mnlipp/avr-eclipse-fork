@@ -46,13 +46,16 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.progress.UIJob;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
 import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
@@ -96,8 +99,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 																	+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
 	private final static String		WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
 																	+ "This is not compatible with the {2} MCU setting [{1}].";
-	private final static String		WARN_BUTTON_ACCEPT		= "Accept anyway";
-	@SuppressWarnings("unused")
 	private final static String		WARN_BUTTON_CONVERT		= "Convert";
 	private final static String		WARN_FROMPROJECT		= "project";
 	private final static String		WARN_FROMCONFIG			= "build configuration";
@@ -128,8 +129,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	private Composite				fWarningCompo;
 	private Label					fWarningLabel;
-	private Button					fAcceptButton;
-	@SuppressWarnings("unused")
 	private Button					fConvertButton;
 
 	private FuseBytePreviewControl	fPreviewControl;
@@ -138,7 +137,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private AVRDudeProperties		fTargetProps;
 
 	/** The BaseBytesProperties property object this page works with */
-	protected BaseBytesProperties			fBytes;
+	protected BaseBytesProperties	fBytes;
 
 	// The abstract hook methods for the subclasses
 
@@ -196,8 +195,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * 
 	 * @param avrdudeprops
 	 *            Source properties
-	 * @return <code>FuseBytesProperties</code> or <code>LockbitBytesProperties</code> object extracted from the
-	 *         given <code>AVRDudeProperties</code>
+	 * @return <code>FuseBytesProperties</code> or <code>LockbitBytesProperties</code> object
+	 *         extracted from the given <code>AVRDudeProperties</code>
 	 */
 	protected abstract BaseBytesProperties getByteProps(AVRDudeProperties avrdudeprops);
 
@@ -441,13 +440,14 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * required.
 	 * 
 	 * @param parent
+	 *            Parent <code>Composite</code>
 	 */
 	private void addWarningSection(Composite parent) {
 
 		// The Warning Composite
 		fWarningCompo = new Composite(parent, SWT.NONE);
 		fWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
-		GridLayout gl = new GridLayout(4, false);
+		GridLayout gl = new GridLayout(3, false);
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
 		gl.verticalSpacing = 0;
@@ -458,22 +458,23 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		warnicon.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 		warnicon.setImage(IMG_WARN);
 
-		fWarningLabel = new Label(fWarningCompo, SWT.LEFT);
+		fWarningLabel = new Label(fWarningCompo, SWT.LEFT | SWT.WRAP);
 		fWarningLabel.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		fWarningLabel.setText(WARN_FILEINCOMPATIBLE);
 
-		fAcceptButton = new Button(fWarningCompo, SWT.PUSH);
-		fAcceptButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
-		fAcceptButton.setText(WARN_BUTTON_ACCEPT);
-		fAcceptButton.addSelectionListener(new SelectionAdapter() {
+		fConvertButton = new Button(fWarningCompo, SWT.PUSH);
+		fConvertButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+		fConvertButton.setText(WARN_BUTTON_CONVERT);
+		fConvertButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				// Set the MCU of the current bytes to the MCU of the project / build configuration
+				// Convert the Fuse bytes to the MCU of the project / build configuration
 				String mcuid = fTargetProps.getParent().getMCUId();
-				fBytes.setMCUId(mcuid);
+				ByteValues newvalues = convertFusesTo(mcuid, fBytes.getByteValues());
+				fBytes.setByteValues(newvalues);
+
 				updateData(fTargetProps);
 				checkValid();
-				updateAVRDudePreview(fTargetProps);
 			}
 		});
 
@@ -635,7 +636,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			// Nevertheless - if the mcu id differs we change the mcu type of our ByteValues to the
 			// one from the project.
 			if (!fBytes.getMCUId().equals(projectmcuid)) {
-				fBytes.setMCUId(projectmcuid);
+				ConversionResults results = new ConversionResults();
+				fBytes.convertTo(projectmcuid, results);
+				fPreviewControl.setConversionResults(results, fBytes.getByteValues());
 			}
 			return;
 		}
@@ -648,9 +651,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				: WARN_FROMPROJECT);
 
 		fWarningLabel.setText(message);
-
-		// Hide the accept button if a file is selected
-		fAcceptButton.setVisible(!fBytes.getUseFile());
 
 		fWarningCompo.setVisible(true);
 	}
@@ -776,6 +776,23 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			fPreviewControl.setByteValues(fBytes.getByteValues());
 		}
 
+		updateAVRDudePreview(fTargetProps);
+
+	}
+
+	public ByteValues convertFusesTo(final String targetmcu, final ByteValues sourcevalues) {
+
+		ConversionResults results = new ConversionResults();
+		final ByteValues targetvalues = sourcevalues.convertTo(targetmcu, results);
+
+		fBytes.setByteValues(targetvalues);
+		fPreviewControl.setConversionResults(results, targetvalues);
+
+		MessageConsole console = AVRPlugin.getDefault().getConsole("Fuse Byte Conversion");
+
+		results.printToConsole(console);
+
+		return targetvalues;
 	}
 
 	/**
@@ -810,23 +827,32 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 								String newmcu = bytevalues.getMCUId();
 								if (!projectmcu.equals(newmcu)) {
 									// No, they don't match. Ask the user what to do
-									// "Accept anyway" or "Cancel"
+									// "Convert to project MCU", "Accept anyway" or "Cancel"
 									Dialog dialog = new MCUMismatchDialog(fReadButton.getShell(),
 											newmcu, projectmcu);
 									int choice = dialog.open();
-									if (choice == 1) {
-										return;
+									switch (choice) {
+										case MCUMismatchDialog.CANCEL:
+											return;
+										case MCUMismatchDialog.ACCEPT:
+											// Accept the values including their MCUId.
+											// Set the properties accordingly
+											fBytes.setByteValues(bytevalues);
+											break;
+										case MCUMismatchDialog.CONVERT:
+											// Convert the values to the current project MCU
+											ByteValues newvalues = convertFusesTo(projectmcu,
+													bytevalues);
+											fBytes.setByteValues(newvalues);
+											break;
 									}
+								} else {
+									// MCUs are the same.
+									// Clear the current bytes and transfer the new values
+									fBytes.clearValues();
+									fBytes.setValues(bytevalues.getValues());
 								}
-								// if the attached mcu differs from the project mcu the user got a
-								// warning, where he chose to accept the values. So we set the mcu
-								// for the values to the one from the project.
-								fBytes.setMCUId(projectmcu);
-
-								// Clear the current bytes and transfer the new values
-								fBytes.clearValues();
-								fBytes.setValues(bytevalues.getValues());
-
+								checkValid();
 								updateData(fTargetProps);
 							}
 						});
@@ -891,6 +917,10 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 */
 	private class MCUMismatchDialog extends MessageDialog {
 
+		public final static int	CONVERT	= 0;
+		public final static int	ACCEPT	= 1;
+		public final static int	CANCEL	= 2;
+
 		/**
 		 * Create a new Dialog.
 		 * <p>
@@ -906,14 +936,15 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		 */
 		public MCUMismatchDialog(Shell shell, String newmcu, String projectmcu) {
 
-			super(shell, "AVRDude Warning", null, "", WARNING, new String[] { "Accept", "Cancel" },
-					0);
+			super(shell, "AVRDude Warning", null, "", WARNING, new String[] { "Convert", "Accept",
+					"Cancel" }, 0);
 
 			String proptype = isPerConfig() ? "build configuration" : "project";
 
 			String source = "The {3} values are valid for an {0} MCU.\n"
 					+ "This MCU is not compatible with the current {2} MCU [{1}].\n\n"
-					+ "\"Accept\" to accept the new values anyway.\n"
+					+ "\"Convert\" to try to convert the values to {1} {3} settings.\n"
+					+ "\"Accept\" to accept the new values anyway (and convert later).\n"
 					+ "\"Cancel\" to discard the new values.";
 
 			this.message = MessageFormat.format(source, newmcu, projectmcu, proptype,

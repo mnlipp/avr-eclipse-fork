@@ -23,6 +23,7 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
 import de.innot.avreclipse.mbs.BuildMacro;
 
 /**
@@ -142,7 +143,8 @@ public abstract class BaseBytesProperties {
 	 * @param source
 	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public BaseBytesProperties(Preferences prefs, AVRDudeProperties parent, BaseBytesProperties source) {
+	public BaseBytesProperties(Preferences prefs, AVRDudeProperties parent,
+			BaseBytesProperties source) {
 		fPrefs = prefs;
 		fParent = parent;
 
@@ -197,12 +199,17 @@ public abstract class BaseBytesProperties {
 	 * @param mcuid
 	 */
 	public void setMCUId(String mcuid) {
-		fMCUid = mcuid;
 
-		// copy the old byte values to a new ByteValues Object for the given MCU
-		ByteValues newByteValues = createByteValuesObject(mcuid);
-		newByteValues.setValues(fByteValues.getValues());
-		fByteValues = newByteValues;
+		if (!fMCUid.equals(mcuid)) {
+			fMCUid = mcuid;
+
+			// copy the old byte values to a new ByteValues Object for the given MCU
+			ByteValues newByteValues = createByteValuesObject(mcuid);
+			newByteValues.setValues(fByteValues.getValues());
+			fByteValues = newByteValues;
+
+			fDirty = true;
+		}
 
 	}
 
@@ -328,6 +335,39 @@ public abstract class BaseBytesProperties {
 		}
 
 		return new ByteValues(fByteValues);
+	}
+
+	/**
+	 * Sets the current byte values.
+	 * <p>
+	 * This method copies the given <code>ByteValues</code>, so that it cannot be changed without
+	 * going through the methods of this class.
+	 * </p>
+	 * <p>
+	 * The MCU Id of this class is set to the one of the given <code>ByteValues</code>
+	 * 
+	 * @param newvalues
+	 *            The ByteValues object to copy from.
+	 * @throws IllegalArgumentException
+	 *             if the type of the new byte values (FUSE or LOCKS) does not match the current
+	 *             setting.
+	 */
+	public void setByteValues(ByteValues newvalues) {
+		if (fUseFile) {
+			// TODO: handle files
+			return;
+		}
+
+		if (fByteValues.getType() != newvalues.getType()) {
+			throw new IllegalArgumentException("Cannot set a " + newvalues.getType().toString()
+					+ " ByteValues object");
+		}
+
+		fByteValues = createByteValuesObject(newvalues);
+		fMCUid = newvalues.getMCUId();
+
+		fDirty = true;
+		return;
 	}
 
 	/**
@@ -459,6 +499,7 @@ public abstract class BaseBytesProperties {
 	 */
 	public void clearValues() {
 		fByteValues.clearValues();
+		fDirty = true;
 	}
 
 	/**
@@ -513,6 +554,8 @@ public abstract class BaseBytesProperties {
 			}
 		}
 
+		fDirty = false;
+
 	}
 
 	/**
@@ -541,6 +584,8 @@ public abstract class BaseBytesProperties {
 
 			fPrefs.flush();
 		}
+
+		fDirty = false;
 	}
 
 	/**
@@ -557,6 +602,18 @@ public abstract class BaseBytesProperties {
 		}
 
 		return fByteValues.isCompatibleWith(mcuid);
+	}
+
+	public void convertTo(String mcuid, ConversionResults results) {
+
+		if (fUseFile) {
+			// TODO: Check against the file
+			return;
+		}
+
+		fByteValues = fByteValues.convertTo(mcuid, results);
+		fMCUid = mcuid;
+
 	}
 
 }
