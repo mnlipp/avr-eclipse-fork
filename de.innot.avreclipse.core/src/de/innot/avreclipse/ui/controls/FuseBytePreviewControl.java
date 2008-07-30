@@ -21,7 +21,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.jface.layout.TreeColumnLayout;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.viewers.ColumnPixelData;
+import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
@@ -169,9 +172,11 @@ public class FuseBytePreviewControl extends Composite {
 		fHeaderLabel = new Label(this, SWT.NONE);
 		fHeaderLabel.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 
+		Composite treecomposite = new Composite(this, SWT.NONE);
+		treecomposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
 		// The content Tree
-		fTree = new Tree(this, SWT.H_SCROLL | SWT.V_SCROLL);
-		fTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		fTree = new Tree(treecomposite, SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
 		fTree.setHeaderVisible(true);
 		fTree.setBackground(this.getBackground());
 		fTree.setLinesVisible(true);
@@ -183,28 +188,38 @@ public class FuseBytePreviewControl extends Composite {
 		fTree.addListener(SWT.EraseItem, paintlistener);
 
 		// Add the listeners required for the (fake) tooltips
-		Listener tooltiplistener = new ToolTipListener();
-		fTree.addListener(SWT.Dispose, tooltiplistener);
-		fTree.addListener(SWT.KeyDown, tooltiplistener);
-		fTree.addListener(SWT.MouseMove, tooltiplistener);
-		fTree.addListener(SWT.MouseHover, tooltiplistener);
+		// Listener tooltiplistener = new ToolTipListener();
+		// fTree.addListener(SWT.Dispose, tooltiplistener);
+		// fTree.addListener(SWT.KeyDown, tooltiplistener);
+		// fTree.addListener(SWT.MouseMove, tooltiplistener);
+		// fTree.addListener(SWT.MouseHover, tooltiplistener);
 
 		// We have three columns for: Name, Value (as Text) and Value (as single bits)
 
 		TreeColumn namecolumn = new TreeColumn(fTree, SWT.LEFT);
 		namecolumn.setWidth(100);
 		namecolumn.setText("Name");
-		namecolumn.setResizable(true);
+		// namecolumn.setResizable(true);
 
 		TreeColumn valuecolumn = new TreeColumn(fTree, SWT.LEFT);
 		valuecolumn.setWidth(100);
 		valuecolumn.setText("Value");
-		valuecolumn.setResizable(true);
+		// valuecolumn.setResizable(true);
 
 		TreeColumn bitscolumn = new TreeColumn(fTree, SWT.LEFT);
 		bitscolumn.setWidth(100);
 		bitscolumn.setText("Bits");
-		bitscolumn.setResizable(true);
+		// bitscolumn.setResizable(true);
+
+		// Set the Layout
+		TreeItem item = new TreeItem(fTree, SWT.NONE);
+		TreeColumnLayout treelayout = new TreeColumnLayout();
+		treecomposite.setLayout(treelayout);
+
+		treelayout.setColumnData(namecolumn, new ColumnWeightData(25));
+		treelayout.setColumnData(valuecolumn, new ColumnWeightData(60));
+		treelayout.setColumnData(bitscolumn, new ColumnPixelData(item.getBounds().height * 8 + 2,
+				false, true));
 
 	}
 
@@ -250,10 +265,8 @@ public class FuseBytePreviewControl extends Composite {
 		for (TreeItem item : fRootItems) {
 			item.setExpanded(true);
 		}
-		TreeColumn[] columns = fTree.getColumns();
-		for (TreeColumn col : columns) {
-			col.pack();
-		}
+
+		fTree.getColumn(COLUMN_BITS).pack(); // force redraw of the Bits column
 	}
 
 	public void setConversionResults(ConversionResults results, ByteValues target) {
@@ -513,8 +526,8 @@ public class FuseBytePreviewControl extends Composite {
 
 				// Calculate the area for the single bit. This is used as reference for all
 				// drawings.
-				Rectangle bitarea = new Rectangle(event.x + i * event.height, event.y,
-						event.height - 2, event.height - 2);
+				Rectangle bitarea = new Rectangle(event.x + i * event.height, event.y + 1,
+						event.height - 3, event.height - 3);
 
 				// determine if the current bit is inside of the mask
 				boolean insidemask = (mask & (1 << (7 - i))) != 0;
@@ -555,7 +568,8 @@ public class FuseBytePreviewControl extends Composite {
 						gc.fillRectangle(x, y, width, height);
 					} else {
 						// 0-bit inside of mask
-						// currently we don't draw anything, just let the background shine through.
+						gc.setBackground(background);
+						gc.fillRectangle(x, y, width, height);
 					}
 				}
 			}
