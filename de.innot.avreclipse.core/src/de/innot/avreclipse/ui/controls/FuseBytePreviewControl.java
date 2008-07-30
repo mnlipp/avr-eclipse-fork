@@ -172,7 +172,7 @@ public class FuseBytePreviewControl extends Composite {
 		// The content Tree
 		fTree = new Tree(this, SWT.H_SCROLL | SWT.V_SCROLL);
 		fTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		fTree.setHeaderVisible(false);
+		fTree.setHeaderVisible(true);
 		fTree.setBackground(this.getBackground());
 		fTree.setLinesVisible(true);
 
@@ -194,14 +194,17 @@ public class FuseBytePreviewControl extends Composite {
 		TreeColumn namecolumn = new TreeColumn(fTree, SWT.LEFT);
 		namecolumn.setWidth(100);
 		namecolumn.setText("Name");
+		namecolumn.setResizable(true);
 
 		TreeColumn valuecolumn = new TreeColumn(fTree, SWT.LEFT);
 		valuecolumn.setWidth(100);
 		valuecolumn.setText("Value");
+		valuecolumn.setResizable(true);
 
 		TreeColumn bitscolumn = new TreeColumn(fTree, SWT.LEFT);
 		bitscolumn.setWidth(100);
 		bitscolumn.setText("Bits");
+		bitscolumn.setResizable(true);
 
 	}
 
