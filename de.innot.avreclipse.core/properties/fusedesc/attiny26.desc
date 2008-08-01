@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "ATtiny26.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="attiny26">
 <version build="255" status="RELEASED"/>
-<fusebyte index="1" name="HIGH">
-<default value="0xF7"/>
-<bitfield desc="Reset Disabled (Enable PB7 as i/o pin)" mask="0x10" name="RSTDISBL"/>
-<bitfield desc="Serial program downloading (SPI) enabled" mask="0x08" name="SPIEN"/>
-<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x04" name="EESAVE"/>
-<bitfield desc="Brown out detector trigger level" mask="0x02" name="BODLEVEL">
+<fusebyte default="0xF7" index="1" name="HIGH">
+<bitfield default="0x01" desc="Reset Disabled (Enable PB7 as i/o pin)" mask="0x10" name="RSTDISBL"/>
+<bitfield default="0x00" desc="Serial program downloading (SPI) enabled" mask="0x08" name="SPIEN"/>
+<bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x04" name="EESAVE"/>
+<bitfield default="0x01" desc="Brown out detector trigger level" mask="0x02" name="BODLEVEL">
 <value desc="Brown-out detection at VCC=4.0 V" val="0x00"/>
 <value desc="Brown-out detection at VCC=2.7 V" val="0x01"/>
 </bitfield>
-<bitfield desc="Brown-out detection enabled" mask="0x01" name="BODEN"/>
+<bitfield default="0x01" desc="Brown-out detection enabled" mask="0x01" name="BODEN"/>
 </fusebyte>
-<fusebyte index="0" name="LOW">
-<default value="0xF9"/>
-<bitfield desc="CKOPT fuse (operation dependent of CKSEL fuses)" mask="0x40" name="CKOPT"/>
-<bitfield desc="Select Clock Source" mask="0xBF" name="PLLCK_SUT_CKSEL">
+<fusebyte default="0xF9" index="0" name="LOW">
+<bitfield default="0x01" desc="CKOPT fuse (operation dependent of CKSEL fuses)" mask="0x40" name="CKOPT"/>
+<bitfield default="0xB9" desc="Select Clock Source" mask="0xBF" name="PLLCK_SUT_CKSEL">
 <value desc="PLL Clock; Start-up time: 1K CK + 0 ms" val="0x01"/>
 <value desc="PLL Clock; Start-up time: 1K CK + 4 ms" val="0x11"/>
 <value desc="PLL Clock; Start-up time: 1K CK + 64 ms" val="0x21"/>

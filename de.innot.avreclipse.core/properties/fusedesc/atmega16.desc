@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "ATmega16.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega16">
 <version build="247" status="RELEASED"/>
-<fusebyte index="1" name="HIGH">
-<default value="0x99"/>
-<bitfield desc="On-Chip Debug Enabled" mask="0x80" name="OCDEN"/>
-<bitfield desc="JTAG Interface Enabled" mask="0x40" name="JTAGEN"/>
-<bitfield desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
-<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
-<bitfield desc="Select Boot Size" mask="0x06" name="BOOTSZ">
+<fusebyte default="0x99" index="1" name="HIGH">
+<bitfield default="0x01" desc="On-Chip Debug Enabled" mask="0x80" name="OCDEN"/>
+<bitfield default="0x00" desc="JTAG Interface Enabled" mask="0x40" name="JTAGEN"/>
+<bitfield default="0x00" desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
+<bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
+<bitfield default="0x00" desc="Select Boot Size" mask="0x06" name="BOOTSZ">
 <value desc="Boot Flash size=128 words start address=$1F80" val="0x03"/>
 <value desc="Boot Flash size=256 words start address=$1F00" val="0x02"/>
 <value desc="Boot Flash size=512 words start address=$1E00" val="0x01"/>
 <value desc="Boot Flash size=1024 words start address=$1C00" val="0x00"/>
 </bitfield>
-<bitfield desc="Boot Reset vector Enabled" mask="0x01" name="BOOTRST"/>
-<bitfield desc="CKOPT fuse (operation dependent of CKSEL fuses)" mask="0x10" name="CKOPT"/>
+<bitfield default="0x01" desc="Boot Reset vector Enabled" mask="0x01" name="BOOTRST"/>
+<bitfield default="0x01" desc="CKOPT fuse (operation dependent of CKSEL fuses)" mask="0x10" name="CKOPT"/>
 </fusebyte>
-<fusebyte index="0" name="LOW">
-<default value="0xC1"/>
-<bitfield desc="Brown out detector trigger level" mask="0x80" name="BODLEVEL">
+<fusebyte default="0xC1" index="0" name="LOW">
+<bitfield default="0x01" desc="Brown out detector trigger level" mask="0x80" name="BODLEVEL">
 <value desc="Brown-out detection at VCC=4.0 V" val="0x00"/>
 <value desc="Brown-out detection at VCC=2.7 V" val="0x01"/>
 </bitfield>
-<bitfield desc="Brown-out detection enabled" mask="0x40" name="BODEN"/>
-<bitfield desc="Select Clock Source" mask="0x3F" name="SUT_CKSEL">
+<bitfield default="0x01" desc="Brown-out detection enabled" mask="0x40" name="BODEN"/>
+<bitfield default="0x01" desc="Select Clock Source" mask="0x3F" name="SUT_CKSEL">
 <value desc="Ext. Clock; Start-up time: 6 CK + 0 ms" val="0x00"/>
 <value desc="Ext. Clock; Start-up time: 6 CK + 4 ms" val="0x10"/>
 <value desc="Ext. Clock; Start-up time: 6 CK + 64 ms" val="0x20"/>

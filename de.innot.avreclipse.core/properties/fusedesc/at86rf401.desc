@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "AT86RF401.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="at86rf401">

@@ -1,28 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "ATmega406.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega406">
 <version build="200" status="RELEASED"/>
-<fusebyte index="1" name="HIGH">
-<default value="0xFE"/>
-<bitfield desc="On-Chip Debug Enabled" mask="0x02" name="OCDEN"/>
-<bitfield desc="JTAG Interface Enabled" mask="0x01" name="JTAGEN"/>
+<fusebyte default="0xFE" index="1" name="HIGH">
+<bitfield default="0x01" desc="On-Chip Debug Enabled" mask="0x02" name="OCDEN"/>
+<bitfield default="0x00" desc="JTAG Interface Enabled" mask="0x01" name="JTAGEN"/>
 </fusebyte>
-<fusebyte index="0" name="LOW">
-<default value="0xCD"/>
-<bitfield desc="Watchdog timer always on" mask="0x80" name="WDTON"/>
-<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
-<bitfield desc="Select boot size" mask="0x30" name="BOOTSZ">
+<fusebyte default="0xCD" index="0" name="LOW">
+<bitfield default="0x01" desc="Watchdog timer always on" mask="0x80" name="WDTON"/>
+<bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
+<bitfield default="0x00" desc="Select boot size" mask="0x30" name="BOOTSZ">
 <value desc="Boot Flash size=256 words Boot address=$4F00" val="0x03"/>
 <value desc="Boot Flash size=512 words Boot address=$4E00" val="0x02"/>
 <value desc="Boot Flash size=1024 words Boot address=$4C00" val="0x01"/>
 <value desc="Boot Flash size=2048 words Boot address=$4800" val="0x00"/>
 </bitfield>
-<bitfield desc="Boot Reset vector Enabled" mask="0x08" name="BOOTRST"/>
-<bitfield desc="Clock Selection" mask="0x07" name="SUT_CKSEL">
+<bitfield default="0x01" desc="Boot Reset vector Enabled" mask="0x08" name="BOOTRST"/>
+<bitfield default="0x05" desc="Clock Selection" mask="0x07" name="SUT_CKSEL">
 <value desc="Start-up time: 14 CK + 0 ms" val="0x00"/>
 <value desc="Start-up time: 14 CK + 3.9 ms" val="0x02"/>
 <value desc="Start-up time: 14 CK + 62.5 ms" val="0x04"/>

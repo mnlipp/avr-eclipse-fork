@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "ATmega16HVA.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega16hva">
 <version build="37" status="RELEASED"/>
-<fusebyte index="0" name="LOW">
-<default value="0xDF"/>
-<bitfield desc="Watch-dog Timer always on" mask="0x80" name="WDTON"/>
-<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
-<bitfield desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
-<bitfield desc="Debug Wire enable" mask="0x10" name="DWEN"/>
-<bitfield desc="Self Programming enable" mask="0x08" name="SELFPRGEN"/>
-<bitfield desc="Select start-up time" mask="0x07" name="SUT">
+<fusebyte default="0xDF" index="0" name="LOW">
+<bitfield default="0x01" desc="Watch-dog Timer always on" mask="0x80" name="WDTON"/>
+<bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
+<bitfield default="0x00" desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
+<bitfield default="0x01" desc="Debug Wire enable" mask="0x10" name="DWEN"/>
+<bitfield default="0x01" desc="Self Programming enable" mask="0x08" name="SELFPRGEN"/>
+<bitfield default="0x07" desc="Select start-up time" mask="0x07" name="SUT">
 <value desc="Start-up time 6 CK/14 CK + 4 ms" val="0x00"/>
 <value desc="Start-up time 6 CK/14 CK + 8 ms" val="0x01"/>
 <value desc="Start-up time 6 CK/14 CK + 16 ms" val="0x02"/>

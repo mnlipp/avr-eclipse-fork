@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 25.07.08 20:22-->
+<!--Date: 31.07.08 15:47-->
 <!--Based on: Atmel Part Description File "ATtiny13.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="attiny13">
 <version build="244" status="RELEASED"/>
-<fusebyte index="1" name="HIGH">
-<default value="0xFF"/>
-<bitfield desc="Self Programming enable" mask="0x10" name="SELFPRGEN"/>
-<bitfield desc="Debug Wire enable" mask="0x08" name="DWEN"/>
-<bitfield desc="Enable BOD and select level" mask="0x06" name="BODLEVEL">
+<fusebyte default="0xFF" index="1" name="HIGH">
+<bitfield default="0x01" desc="Self Programming enable" mask="0x10" name="SELFPRGEN"/>
+<bitfield default="0x01" desc="Debug Wire enable" mask="0x08" name="DWEN"/>
+<bitfield default="0x03" desc="Enable BOD and select level" mask="0x06" name="BODLEVEL">
 <value desc="Brown-out detection at VCC=4.3 V" val="0x00"/>
 <value desc="Brown-out detection at VCC=2.7 V" val="0x01"/>
 <value desc="Brown-out detection at VCC=1.8 V" val="0x02"/>
 <value desc="Brown-out detection disabled" val="0x03"/>
 </bitfield>
-<bitfield desc="Reset Disabled (Enable PB5 as i/o pin)" mask="0x01" name="RSTDISBL"/>
+<bitfield default="0x01" desc="Reset Disabled (Enable PB5 as i/o pin)" mask="0x01" name="RSTDISBL"/>
 </fusebyte>
-<fusebyte index="0" name="LOW">
-<default value="0x6A"/>
-<bitfield desc="Serial program downloading (SPI) enabled" mask="0x80" name="SPIEN"/>
-<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
-<bitfield desc="Watch-dog Timer always on" mask="0x20" name="WDTON"/>
-<bitfield desc="Divide clock by 8 internally" mask="0x10" name="CKDIV8"/>
-<bitfield desc="Select Clock Source" mask="0x0F" name="SUT_CKSEL">
+<fusebyte default="0x6A" index="0" name="LOW">
+<bitfield default="0x00" desc="Serial program downloading (SPI) enabled" mask="0x80" name="SPIEN"/>
+<bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>
+<bitfield default="0x01" desc="Watch-dog Timer always on" mask="0x20" name="WDTON"/>
+<bitfield default="0x00" desc="Divide clock by 8 internally" mask="0x10" name="CKDIV8"/>
+<bitfield default="0x0A" desc="Select Clock Source" mask="0x0F" name="SUT_CKSEL">
 <value desc="Ext. Clock; Start-up time: 14 CK + 0 ms" val="0x00"/>
 <value desc="Ext. Clock; Start-up time: 14 CK + 4 ms" val="0x04"/>
 <value desc="Ext. Clock; Start-up time: 14 CK + 64 ms" val="0x08"/>

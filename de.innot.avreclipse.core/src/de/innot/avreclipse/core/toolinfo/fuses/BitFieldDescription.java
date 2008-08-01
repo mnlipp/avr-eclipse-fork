@@ -393,8 +393,9 @@ public class BitFieldDescription {
 		element.setAttribute(ATTR_NAME, fName);
 		element.setAttribute(ATTR_DESC, fDescription);
 		element.setAttribute(ATTR_MASK, ByteDescription.toHex(fMask));
-		element.setAttribute(ATTR_DEFAULT, ByteDescription.toHex(fDefault));
-
+		if (fDefault != -1) {
+			element.setAttribute(ATTR_DEFAULT, ByteDescription.toHex(fDefault));
+		}
 		if (fValues != null && fValues.size() > 0) {
 			for (BitFieldValueDescription bfv : fValues) {
 				bfv.toXML(element);
