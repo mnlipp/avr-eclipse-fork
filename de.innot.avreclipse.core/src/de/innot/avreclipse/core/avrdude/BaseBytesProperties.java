@@ -370,6 +370,11 @@ public abstract class BaseBytesProperties {
 		return;
 	}
 
+	public void setDefaultValues() {
+		fByteValues.setDefaultValues();
+		fDirty = true;
+	}
+
 	/**
 	 * Get all current byte values as an array of <code>int</code>.
 	 * <p>

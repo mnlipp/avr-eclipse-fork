@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.FocusAdapter;
@@ -31,10 +30,12 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,8 +43,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.MessageConsole;
@@ -56,9 +58,11 @@ import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
+import de.innot.avreclipse.ui.dialogs.MCUMismatchDialog;
 
 /**
  * The base AVRDude Tab page for Fuses and Lockbits.
@@ -91,10 +95,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String		TEXT_FROMFILE			= "from {0} file";
 	private final static String		TEXT_IMMEDIATE			= "direct hex value{0}";
 
-	private final static String		TEXT_READDEVICE			= "Load from MCU";
-	private final static String		TEXT_READDEVICE_BUSY	= "Loading...";
-	private final static String		TEXT_COPYFILE			= "Copy from file";
-
 	private final static String		WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
 																	+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
 	private final static String		WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
@@ -103,11 +103,22 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String		WARN_FROMPROJECT		= "project";
 	private final static String		WARN_FROMCONFIG			= "build configuration";
 
+	// Warning image
 	private static final Image		IMG_WARN				= PlatformUI
 																	.getWorkbench()
 																	.getSharedImages()
 																	.getImage(
 																			ISharedImages.IMG_OBJS_WARN_TSK);
+
+	// ToolTip texts for the hex value actions
+	private final static String		MENU_EDIT				= "Start editor";
+	private final static String		MENU_READDEVICE			= "Load from MCU";
+	private final static String		TEXT_LOADING			= "Loading from MCU...";
+	private final static String		MENU_COPYFILE			= "Copy from file";
+	private final static String		MENU_DEFAULTS			= "Set to default (if available)";
+	private final static String		MENU_ALLONES			= "Set all bits to 1";
+	private final static String		MENU_ALLZEROS			= "Set all bits to 0";
+	private final static String		MENU_CLEARALL			= "Clear all bytes";
 
 	// The GUI widgets
 	private Button					fNoUploadButton;
@@ -120,8 +131,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	private Button					fImmediateButton;
 	private Composite				fBytesCompo;
-	private Button					fReadButton;
-	private Button					fCopyButton;
+	private ToolBar					fActionsToolBar;
+	private Label					fLoadingLabel;
 
 	private Composite[]				fByteCompos;
 	private Text[]					fValueTexts;
@@ -153,11 +164,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	protected abstract String[] getLabels();
 
 	/**
-	 * Get the maximum number of byte value editor fields to generate.
+	 * Get the type of fuse memory this tab is for, {@link FuseType#FUSE} or
+	 * {@link FuseType#LOCKBITS}.
 	 * 
-	 * @return 6 for the fuses page and 1 for the lockbits page.
+	 * @return
 	 */
-	protected abstract int getMaxBytes();
+	protected abstract FuseType getType();
 
 	/**
 	 * Load the ByteValues from the target MCU with avrdude.
@@ -211,7 +223,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	public void createControls(Composite parent) {
 
 		// init the arrays
-		int maxbytes = getMaxBytes();
+		int maxbytes = getType().getMaxBytes();
 		fByteCompos = new Composite[maxbytes];
 		fValueTexts = new Text[maxbytes];
 		fFuseLabels = new Label[maxbytes];
@@ -368,12 +380,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 		// add the radio button
 		fImmediateButton = new Button(parent, SWT.RADIO);
-		fImmediateButton
-				.setText(MessageFormat.format(TEXT_IMMEDIATE, getMaxBytes() > 1 ? "s" : ""));
-		GridData buttonGD = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
+		fImmediateButton.setText(MessageFormat.format(TEXT_IMMEDIATE,
+				getType().getMaxBytes() > 1 ? "s" : ""));
+		GridData buttonGD = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
 		// This is somewhat arbitrarily and looks good on my setup.
 		// Your mileage may vary.
-		buttonGD.verticalIndent = 4;
+		buttonGD.verticalIndent = 8;
 		fImmediateButton.setLayoutData(buttonGD);
 		fImmediateButton.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -392,47 +404,50 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 		// add the byte editor composites (wrapped in a composite)
 		fBytesCompo = new Composite(parent, SWT.NONE);
-		GridData bytesGD = new GridData(SWT.BEGINNING, SWT.FILL, false, false, 1, 1);
+		GridData bytesGD = new GridData(SWT.BEGINNING, SWT.TOP, false, false, 1, 1);
 
 		// Make the size of the byte edit fields somewhat dependent on the font
 		// size. I use 6 chars instead of the actual required 2, because 2 was
 		// just to small.
-		// Also a little vertical indent to get it aligned with the Button
-		// behind it (this again works for me and YMMV.
 		FontMetrics fm = getFontMetrics(parent);
-		bytesGD.widthHint = Dialog.convertWidthInCharsToPixels(fm, 6) * getMaxBytes();
-		bytesGD.verticalIndent = 2;
+		bytesGD.widthHint = Dialog.convertWidthInCharsToPixels(fm, 6) * getType().getMaxBytes();
 		fBytesCompo.setLayoutData(bytesGD);
 		fBytesCompo.setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		// Insert the byte editor compos
-		for (int i = 0; i < getMaxBytes(); i++) {
+		for (int i = 0; i < getType().getMaxBytes(); i++) {
 			makeByteEditComposite(fBytesCompo, i);
 		}
 
-		// add the read button
-		fReadButton = new Button(parent, SWT.PUSH);
-		fReadButton.setText(TEXT_READDEVICE);
-		fReadButton.setBackground(parent.getBackground());
-		GridData editbuttonGD = new GridData(SWT.FILL, SWT.TOP, false, false);
-		fReadButton.setLayoutData(editbuttonGD);
-		fReadButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				readFuseBytesFromDevice();
-			}
-		});
+		// Add the actions menu
 
-		// add the copy button
-		fCopyButton = new Button(parent, SWT.PUSH);
-		fCopyButton.setText(TEXT_COPYFILE);
-		fCopyButton.setBackground(parent.getBackground());
-		GridData copybuttonGD = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
-		fCopyButton.setLayoutData(copybuttonGD);
+		fActionsToolBar = createActionsToolbar(parent);
+		GridData toolbarGD = new GridData(SWT.BEGINNING, SWT.TOP, false, false);
+		fActionsToolBar.setLayoutData(toolbarGD);
 
-		// TODO Remove this line once files are supported.
-		fCopyButton.setVisible(false);
+		// and the loading label
+		fLoadingLabel = new Label(parent, SWT.NONE);
+		fLoadingLabel.setText(TEXT_LOADING);
+		GridData loadingGD = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
+		fLoadingLabel.setLayoutData(loadingGD);
+		fLoadingLabel.setVisible(false);
 
+		// Adjust the Layout: try to get all components to line up on their baseline.
+		// This is more or less a hack and probably only looks good on my system.
+		// But I don't know SWT well enough to do this the right way.
+		// Feel free to do something else!
+		Point sizeButton = fImmediateButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		Point sizeToolBar = fActionsToolBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		Point sizeEditors = fByteCompos[0].getChildren()[0].computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		Point sizeLabel = fLoadingLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+
+		// Toolbar is the master. Align the tops of the other three components in this row according
+		// to the height of the toolbar.
+		int tbheight = sizeToolBar.y;
+
+		buttonGD.verticalIndent = tbheight - sizeButton.y - 3;
+		bytesGD.verticalIndent = tbheight - sizeEditors.y - 2;
+		loadingGD.verticalIndent = tbheight - sizeLabel.y - 5;
 	}
 
 	/**
@@ -473,13 +488,48 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				ByteValues newvalues = convertFusesTo(mcuid, fBytes.getByteValues());
 				fBytes.setByteValues(newvalues);
 
-				updateData(fTargetProps);
 				checkValid();
+				UpdateFields();
 			}
 		});
 
 		fWarningCompo.setVisible(false);
 
+	}
+
+	/**
+	 * Create a ToolBar with the actions for the direct Hex entry line.
+	 * <p>
+	 * The contents of the ToolBar are actually defined by the {@link ActionItem} enumeration.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            <code>Composite</code> to which the ToolBar is added.
+	 * @return Reference to the ToolBar
+	 */
+	private ToolBar createActionsToolbar(Composite parent) {
+
+		SelectionListener menuListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ActionItem item = (ActionItem) e.widget.getData();
+				item.performAction(AbstractTabAVRDudeBytes.this);
+				UpdateFields();
+			}
+		};
+
+		ToolBar toolbar = new ToolBar(parent, SWT.FLAT);
+
+		for (ActionItem item : ActionItem.values()) {
+			ToolItem ti = new ToolItem(toolbar, SWT.PUSH);
+			ti.setImage(item.image);
+			ti.setDisabledImage(item.disabledImage);
+			ti.setToolTipText(item.tooltipText);
+			ti.setData(item);
+			ti.addSelectionListener(menuListener);
+		}
+
+		return toolbar;
 	}
 
 	/**
@@ -497,6 +547,11 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * The Editor uses a <code>FillLayout</code> to pack both elements tightly. It is up to the
 	 * caller to set the LayoutData for this composite
 	 * </p>
+	 * <p>
+	 * This method saves a reference to the Text control and the Label control in the
+	 * {@link #fValueTexts} respectively {@link #fFuseLabels} arrays for access to them outside of
+	 * this method.
+	 * </p>
 	 * 
 	 * @param parent
 	 *            Parent <code>Composite</code>
@@ -506,6 +561,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * @return <code>Composite</code> with the editor.
 	 */
 	private Composite makeByteEditComposite(Composite parent, int index) {
+
+		// TODO: maybe more elegant if coded as a separate class extending composite. That way we
+		// could also get rid of the three ugly arrays with references to the hex editor components.
 
 		FillLayout layout = new FillLayout(SWT.VERTICAL);
 
@@ -577,7 +635,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		// method can update the content when required.
 		fValueTexts[index] = text;
 
-		// Add the labels
+		// Add the label
 		Label fuselabel = new Label(compo, SWT.CENTER);
 		fuselabel.setText(Integer.toString(index));
 		fuselabel.setSize(10, 0);
@@ -612,13 +670,19 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		for (int i = 0; i < fByteCompos.length; i++) {
 			setEnabled(fByteCompos[i], enabled);
 		}
-		fReadButton.setEnabled(enabled);
-		// fCopyButton.setEnabled(enabled);
+		fActionsToolBar.setEnabled(enabled);
 	}
 
 	/**
-	 * Check if the MCU from the active ByteValues matches the MCU from the project. If there is a
-	 * mismatch then the warning composite is made visible.
+	 * Check if the MCU from the active ByteValues is compatible with the MCU from the project.
+	 * <p>
+	 * Three possible results:
+	 * <ul>
+	 * <li>The MCUs are the same: do nothing</li>
+	 * <li>The MCUs are not the same but compatible: Silently convert the ByteValues to the new MCU</li>
+	 * <li>The MCUs are not compatible: Show the warning and the convert button</li>
+	 * </ul>
+	 * </p>
 	 */
 	private void checkValid() {
 
@@ -629,20 +693,27 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		}
 
 		String projectmcuid = fTargetProps.getParent().getMCUId();
+		if (fBytes.getMCUId().equals(projectmcuid)) {
+			// Identical MCUs - hide the warning and do nothing
+			fWarningCompo.setVisible(false);
+
+			return;
+		}
+
 		if (fBytes.isCompatibleWith(projectmcuid)) {
 			// Compatible - no warning
 			fWarningCompo.setVisible(false);
 
-			// Nevertheless - if the mcu id differs we change the mcu type of our ByteValues to the
-			// one from the project.
-			if (!fBytes.getMCUId().equals(projectmcuid)) {
-				ConversionResults results = new ConversionResults();
-				fBytes.convertTo(projectmcuid, results);
-				fPreviewControl.setConversionResults(results, fBytes.getByteValues());
-			}
+			// But convert the ByteValues anyway so everything is in sync.
+			ByteValues newvalues = convertFusesTo(projectmcuid, fBytes.getByteValues());
+			fBytes.setByteValues(newvalues);
+			UpdateFields();
+
 			return;
 		}
 
+		// The two MCUs are not compatible.
+		// Update the warning composite with the MCU names and show it.
 		String valuesmcu = AVRMCUidConverter.id2name(fBytes.getMCUId());
 		String projectmcu = AVRMCUidConverter.id2name(projectmcuid);
 
@@ -651,7 +722,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				: WARN_FROMPROJECT);
 
 		fWarningLabel.setText(message);
-
 		fWarningCompo.setVisible(true);
 	}
 
@@ -715,30 +785,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		fBytes = getByteProps(props);
 
 		// Set the text for the filename
-		// fFileText.setText(src.getFileName());
-
-		// Set the immediate fuse values
-		int[] values = fBytes.getValues();
-		int count = getMaxBytes();
-
-		for (int i = 0; i < count; i++) {
-			if (i < values.length) {
-				String newvalue = "";
-				int currvalue = values[i];
-				if (0 <= currvalue && currvalue <= 255) {
-					newvalue = "00" + Integer.toHexString(currvalue).toUpperCase();
-					newvalue = newvalue.substring(newvalue.length() - 2);
-				}
-				fValueTexts[i].setText(newvalue);
-				fFuseLabels[i].setText(getByteEditorLabel(i));
-				fByteCompos[i].setVisible(true);
-			} else {
-				// byte value index > than max. supported by the current Fuse MCU.
-				// hide the editor compo
-				fValueTexts[i].setText("");
-				fByteCompos[i].setVisible(false);
-			}
-		}
+		fFileText.setText(fBytes.getFileName());
 
 		// Check if the values are valid and show a warning (if required)
 		checkValid();
@@ -773,20 +820,77 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(false);
 				enableByteGroup(true);
 			}
-			fPreviewControl.setByteValues(fBytes.getByteValues());
 		}
 
-		updateAVRDudePreview(fTargetProps);
+		UpdateFields();
 
 	}
 
-	public ByteValues convertFusesTo(final String targetmcu, final ByteValues sourcevalues) {
+	/**
+	 * Update all fields showing fuse byte values.
+	 * <p>
+	 * These are:
+	 * <ul>
+	 * <li>The Fuse Byte Editor Text controls</li>
+	 * <li>The Fuse Byte Values Preview control</li>
+	 * <li>The AVRDude command line preview</li>
+	 * </ul>
+	 * This method should be called whenever any fuse byte value has changed.
+	 * </p>
+	 */
+	private void UpdateFields() {
+
+		// Update the Fuse Byte Editor Texts.
+		int[] values = fBytes.getValues();
+		int count = getType().getMaxBytes();
+
+		for (int i = 0; i < count; i++) {
+			if (i < values.length) {
+				String newvalue = "";
+				int currvalue = values[i];
+				if (0 <= currvalue && currvalue <= 255) {
+					newvalue = "00" + Integer.toHexString(currvalue).toUpperCase();
+					newvalue = newvalue.substring(newvalue.length() - 2);
+				}
+				fValueTexts[i].setText(newvalue);
+				fFuseLabels[i].setText(getByteEditorLabel(i));
+				fByteCompos[i].setVisible(true);
+			} else {
+				// byte value index > than max. supported by the current Fuse MCU.
+				// hide the editor compo
+				fValueTexts[i].setText("");
+				fByteCompos[i].setVisible(false);
+			}
+		}
+
+		// Update the Fuses Preview.
+		// If the "no write" flag is set, the preview is cleared (set to null)
+		if (fBytes.getWrite()) {
+			fPreviewControl.setByteValues(fBytes.getByteValues());
+		} else {
+			fPreviewControl.setByteValues(null);
+		}
+
+		// Update the AVRDUDE preview
+		updateAVRDudePreview(fTargetProps);
+	}
+
+	/**
+	 * Convert a ByteValues object to a new MCU, color the fuse bytes preview according to the
+	 * conversion results and print the results tn the console.
+	 * 
+	 * @param targetmcu
+	 *            The new MCU value
+	 * @param sourcevalues
+	 *            The <code>ByteValues</code> to convert
+	 * @return A new <code>ByteValues</code> object valid for the targetmcu.
+	 */
+	private ByteValues convertFusesTo(final String targetmcu, final ByteValues sourcevalues) {
 
 		ConversionResults results = new ConversionResults();
 		final ByteValues targetvalues = sourcevalues.convertTo(targetmcu, results);
 
-		fBytes.setByteValues(targetvalues);
-		fPreviewControl.setConversionResults(results, targetvalues);
+		fPreviewControl.setByteValuesFromConversion(targetvalues, results);
 
 		MessageConsole console = AVRPlugin.getDefault().getConsole("Fuse Byte Conversion");
 
@@ -802,9 +906,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * </p>
 	 */
 	private void readFuseBytesFromDevice() {
-		// Disable the Load Button. It is re-enabled by the load job when it finishes.
-		fReadButton.setEnabled(false);
-		fReadButton.setText(TEXT_READDEVICE_BUSY);
+		// Disable the Actions Menu. It is re-enabled by the load job when it finishes.
+		fActionsToolBar.setEnabled(false);
+		fLoadingLabel.setVisible(true);
 
 		// The Job that does the actual loading.
 		Job readJob = new Job("Reading Fuse Bytes") {
@@ -819,8 +923,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 					monitor.worked(95);
 
 					// and update the user interface
-					if (!fReadButton.isDisposed()) {
-						fReadButton.getDisplay().syncExec(new Runnable() {
+					if (!fActionsToolBar.isDisposed()) {
+						fActionsToolBar.getDisplay().syncExec(new Runnable() {
 							public void run() {
 								// Check if the mcus match
 								String projectmcu = fTargetProps.getParent().getMCUId();
@@ -828,8 +932,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 								if (!projectmcu.equals(newmcu)) {
 									// No, they don't match. Ask the user what to do
 									// "Convert to project MCU", "Accept anyway" or "Cancel"
-									Dialog dialog = new MCUMismatchDialog(fReadButton.getShell(),
-											newmcu, projectmcu);
+									Dialog dialog = new MCUMismatchDialog(fActionsToolBar
+											.getShell(), newmcu, projectmcu, getType(),
+											isPerConfig());
 									int choice = dialog.open();
 									switch (choice) {
 										case MCUMismatchDialog.CANCEL:
@@ -860,9 +965,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 					monitor.worked(5);
 				} catch (AVRDudeException ade) {
 					// Show an Error message and exit
-					if (!fReadButton.isDisposed()) {
-						UIJob messagejob = new AVRDudeErrorDialogJob(fReadButton.getDisplay(), ade,
-								fTargetProps.getProgrammerId());
+					if (!fActionsToolBar.isDisposed()) {
+						UIJob messagejob = new AVRDudeErrorDialogJob(fActionsToolBar.getDisplay(),
+								ade, fTargetProps.getProgrammerId());
 						messagejob.setPriority(Job.INTERACTIVE);
 						messagejob.schedule();
 						try {
@@ -878,12 +983,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				} finally {
 					monitor.done();
 					// Enable the Load from MCU Button
-					if (!fReadButton.isDisposed()) {
-						fReadButton.getDisplay().syncExec(new Runnable() {
+					if (!fActionsToolBar.isDisposed()) {
+						fActionsToolBar.getDisplay().syncExec(new Runnable() {
 							public void run() {
 								// Re-Enable the Button
-								fReadButton.setEnabled(true);
-								fReadButton.setText(TEXT_READDEVICE);
+								fActionsToolBar.setEnabled(true);
+								fLoadingLabel.setVisible(false);
 							}
 						});
 					}
@@ -900,56 +1005,145 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		readJob.schedule();
 	}
 
-	/**
-	 * An small Warning dialog that will be shown when the MCU for the bytes does not match the
-	 * current Project / Configuration MCU.
-	 * <p>
-	 * In addition to a fixed warning message, this dialog sports two buttons to accept the byte
-	 * values, even if they don't match, or to cancel the changes.
-	 * </p>
-	 * <p>
-	 * The open method of this dialog will returns two values
-	 * <ul>
-	 * <li><code>0</code> Accept button pressed.</li>
-	 * <li><code>1</code> Cancel button pressed.</li>
-	 * </ul>
-	 * </p>
-	 */
-	private class MCUMismatchDialog extends MessageDialog {
+	// The Images for the Actions ToolBar
+	private static final Image	IMG_EN_EDIT			= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_edit_fuses.png")
+															.createImage();
+	private static final Image	IMG_DIS_EDIT		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_edit_fuses.png")
+															.createImage();
 
-		public final static int	CONVERT	= 0;
-		public final static int	ACCEPT	= 1;
-		public final static int	CANCEL	= 2;
+	private static final Image	IMG_EN_LOADFILE		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_copy_fusefile.png")
+															.createImage();
+	private static final Image	IMG_DIS_LOADFILE	= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_copy_fusefile.png")
+															.createImage();
+
+	private static final Image	IMG_EN_READMCU		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_read_mcu.png")
+															.createImage();
+	private static final Image	IMG_DIS_READMCU		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_read_mcu.png")
+															.createImage();
+
+	private static final Image	IMG_EN_DEFAULT		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_copy_default.png")
+															.createImage();
+	private static final Image	IMG_DIS_DEFAULT		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_copy_default.png")
+															.createImage();
+
+	private static final Image	IMG_EN_ALLONES		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_0xff.png")
+															.createImage();
+	private static final Image	IMG_DIS_ALLONES		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_0xff.png")
+															.createImage();
+
+	private static final Image	IMG_EN_ALLZEROS		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_0x00.png")
+															.createImage();
+	private static final Image	IMG_DIS_ALLZEROS	= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_0x00.png")
+															.createImage();
+
+	private static final Image	IMG_EN_CLEAR		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/e_clear_bytes.png")
+															.createImage();
+	private static final Image	IMG_DIS_CLEAR		= AVRPlugin.getImageDescriptor(
+															"icons/objs16/d_clear_bytes.png")
+															.createImage();
+
+	/**
+	 * Enumeration of all Actions for the hex editor actions Toolbar.
+	 */
+	private enum ActionItem {
+		// Edit Action
+		EDIT(MENU_EDIT, IMG_EN_EDIT, IMG_DIS_EDIT) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				// TODO:
+			}
+		},
+
+		// Copy from file Action
+		COPY(MENU_COPYFILE, IMG_EN_LOADFILE, IMG_DIS_LOADFILE) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				tab.fBytes.syncFromFile();
+			}
+		},
+		// Read from MCU Action
+		READ(MENU_READDEVICE, IMG_EN_READMCU, IMG_DIS_READMCU) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				tab.readFuseBytesFromDevice();
+			}
+		},
+		// Set to default values action
+		DEFAULTS(MENU_DEFAULTS, IMG_EN_DEFAULT, IMG_DIS_DEFAULT) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				tab.fBytes.setDefaultValues();
+			}
+		},
+		// Set all bytes to 0xff
+		ALL_1(MENU_ALLONES, IMG_EN_ALLONES, IMG_DIS_ALLONES) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				setBytes(tab.fBytes, 0xff);
+			}
+		},
+		// Set all bytes to 0x00
+		ALL_0(MENU_ALLZEROS, IMG_EN_ALLZEROS, IMG_DIS_ALLZEROS) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				setBytes(tab.fBytes, 0x00);
+			}
+		},
+		// Set all bytes to -1
+		CLEAR(MENU_CLEARALL, IMG_EN_CLEAR, IMG_DIS_CLEAR) {
+			@Override
+			public void performAction(AbstractTabAVRDudeBytes tab) {
+				tab.fBytes.clearValues();
+			}
+		};
+
+		public final String	tooltipText;
+		public final Image	image;
+		public final Image	disabledImage;
+
+		private ActionItem(String text, Image image, Image disabledImage) {
+			this.tooltipText = text;
+			this.image = image;
+			this.disabledImage = disabledImage;
+		}
 
 		/**
-		 * Create a new Dialog.
-		 * <p>
-		 * The dialog will not be shown until the <code>open()</code> method has been called.
-		 * </p>
+		 * Perform the action associated with this item.
 		 * 
-		 * @param shell
-		 *            Parent <code>Shell</code>
-		 * @param newmcu
-		 *            The MCU id for the fuse bytes.
-		 * @param projectmcu
-		 *            The MCU id for the project or build configuration.
+		 * @param tab
+		 *            A reference to the parent object to get access to its internl values.
 		 */
-		public MCUMismatchDialog(Shell shell, String newmcu, String projectmcu) {
+		public abstract void performAction(AbstractTabAVRDudeBytes tab);
 
-			super(shell, "AVRDude Warning", null, "", WARNING, new String[] { "Convert", "Accept",
-					"Cancel" }, 0);
-
-			String proptype = isPerConfig() ? "build configuration" : "project";
-
-			String source = "The {3} values are valid for an {0} MCU.\n"
-					+ "This MCU is not compatible with the current {2} MCU [{1}].\n\n"
-					+ "\"Convert\" to try to convert the values to {1} {3} settings.\n"
-					+ "\"Accept\" to accept the new values anyway (and convert later).\n"
-					+ "\"Cancel\" to discard the new values.";
-
-			this.message = MessageFormat.format(source, newmcu, projectmcu, proptype,
-					getLabels()[LABEL_NAME]);
+		/**
+		 * Convenience method to set all Bytes of a <code>ByteValues</code> object to the same
+		 * value.
+		 * 
+		 * @param bytevalues
+		 *            <code>ByteValues</code> object
+		 * @param value
+		 *            The new value for all bytes
+		 */
+		private static void setBytes(BaseBytesProperties bytevalues, int value) {
+			int count = bytevalues.getValues().length;
+			for (int i = 0; i < count; i++) {
+				bytevalues.setValue(i, value);
+			}
 		}
+
 	}
 
 }

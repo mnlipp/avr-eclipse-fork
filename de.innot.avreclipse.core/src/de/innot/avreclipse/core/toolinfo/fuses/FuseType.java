@@ -34,18 +34,21 @@ package de.innot.avreclipse.core.toolinfo.fuses;
  * 
  */
 public enum FuseType {
+
 	/** Fuse byte type */
-	FUSE("fusebyte", "FUSE"),
+	FUSE("fusebyte", "FUSE", 6),
 
 	/** Lockbits byte type */
-	LOCKBITS("lockbitsbyte", "LOCKBIT");
+	LOCKBITS("lockbitsbyte", "LOCKBIT", 1);
 
-	private String	fElementName;
-	private String	fMemspaceName;
+	private final String	fElementName;
+	private final String	fMemspaceName;
+	private final int		fMaxBytes;
 
-	private FuseType(String elementname, String memspacename) {
+	private FuseType(String elementname, String memspacename, int maxbytes) {
 		fElementName = elementname;
 		fMemspaceName = memspacename;
+		fMaxBytes = maxbytes;
 	}
 
 	/**
@@ -86,6 +89,21 @@ public enum FuseType {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Gets the maximum number of bytes this type of fuse memory can support.
+	 * <p>
+	 * This method is deprecated because all code should dynamically determine the number of fuse
+	 * bytes for the current MCU instead of using this static reference which might not be enough
+	 * for future MCUs.
+	 * </p>
+	 * 
+	 * @return <code>6</code> for Fuse memory and <code>1</code> for Lockbit memory.
+	 */
+	@Deprecated
+	public int getMaxBytes() {
+		return fMaxBytes;
 	}
 
 }

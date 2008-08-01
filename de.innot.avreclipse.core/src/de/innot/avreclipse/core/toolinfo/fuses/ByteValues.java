@@ -345,6 +345,27 @@ public class ByteValues {
 	}
 
 	/**
+	 * Set all byte values of this object to their default value.
+	 * <p>
+	 * The default values come from the part description file. If the part description file did not
+	 * have any default values (like for the ATXmega series), then <code>-1</code> is set for the
+	 * byte.
+	 * </p>
+	 * <p>
+	 * The default value for Lockbits is always <code>0xff</code>, which means all locks diabled.
+	 * </p>
+	 */
+	public void setDefaultValues() {
+		IMCUDescription desc = getDescription(fMCUId);
+		List<IByteDescription> allbytes = desc.getByteDescriptions(fType);
+		for (IByteDescription bytedesc : allbytes) {
+			int value = bytedesc.getDefaultValue();
+			int index = bytedesc.getIndex();
+			setValue(index, value);
+		}
+	}
+
+	/**
 	 * Clears all values.
 	 * <p>
 	 * This method will set the value of all bytes to <code>-1</code>

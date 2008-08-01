@@ -20,6 +20,7 @@ import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * The AVRDude Lockbits Tab page.
@@ -38,9 +39,6 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  */
 public class TabAVRDudeLockbits extends AbstractTabAVRDudeBytes {
 
-	/** Max number of Lockbit bytes */
-	private final static int		MAX_LOCKBYTES	= 1;
-
 	private final static String[]	LABELS			= new String[] { "Lockbits", "lockbits" };
 
 	/** The file extensions for lockbits files. Used by the file selector. */
@@ -49,11 +47,11 @@ public class TabAVRDudeLockbits extends AbstractTabAVRDudeBytes {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getMaxBytes()
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getType()
 	 */
 	@Override
-	protected int getMaxBytes() {
-		return MAX_LOCKBYTES;
+	protected FuseType getType() {
+		return FuseType.LOCKBITS;
 	}
 
 	/*

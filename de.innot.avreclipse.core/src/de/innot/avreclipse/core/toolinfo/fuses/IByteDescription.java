@@ -38,6 +38,18 @@ public interface IByteDescription {
 	public String getName();
 
 	/**
+	 * Get the index of this byte.
+	 * <p>
+	 * The index is the address of this byte within the Fuses memory block. It is between
+	 * <code>0</code> for the first byte (usually called "low") up to the maximum number of btes
+	 * supported by the MCU.
+	 * </p>
+	 * 
+	 * @return The byte index.
+	 */
+	public int getIndex();
+
+	/**
 	 * Get the default value of this byte.
 	 * <p>
 	 * The part description files have only default settings for some MCUs. In these MCUs the return

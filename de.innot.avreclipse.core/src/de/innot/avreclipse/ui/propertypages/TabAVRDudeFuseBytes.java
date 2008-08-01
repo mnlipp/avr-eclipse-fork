@@ -20,6 +20,7 @@ import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * The AVRDude Lockbits Tab page.
@@ -38,9 +39,6 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  */
 public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 
-	/** Max number of Fuse bytes */
-	private final static int		MAX_FUSES	= 6;
-
 	/** The byte editor labels */
 	private final static String[]	FUSENAMES	= { "low", "high", "ext." };
 
@@ -52,11 +50,11 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getMaxBytes()
+	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getType()
 	 */
 	@Override
-	protected int getMaxBytes() {
-		return MAX_FUSES;
+	protected FuseType getType() {
+		return FuseType.FUSE;
 	}
 
 	/*

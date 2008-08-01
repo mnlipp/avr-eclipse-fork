@@ -164,6 +164,15 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getIndex()
+	 */
+	public int getIndex() {
+		return fIndex;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getDefaultValue()
 	 */
 	public int getDefaultValue() {
