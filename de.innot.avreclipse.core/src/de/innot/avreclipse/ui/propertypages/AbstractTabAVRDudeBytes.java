@@ -62,6 +62,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
+import de.innot.avreclipse.ui.dialogs.ByteValuesEditorDialog;
 import de.innot.avreclipse.ui.dialogs.MCUMismatchDialog;
 
 /**
@@ -1063,7 +1064,17 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		EDIT(MENU_EDIT, IMG_EN_EDIT, IMG_DIS_EDIT) {
 			@Override
 			public void performAction(AbstractTabAVRDudeBytes tab) {
-				// TODO:
+				ByteValuesEditorDialog dialog = new ByteValuesEditorDialog(tab.fActionsToolBar
+						.getShell(), tab.fBytes.getByteValues());
+				dialog.create();
+				// dialog.getShell().setSize(750, 500);
+				int result = dialog.open();
+				if (result == Dialog.OK) {
+					ByteValues newvalues = dialog.getByteValues();
+					tab.fBytes.setByteValues(newvalues);
+					tab.UpdateFields();
+				}
+
 			}
 		},
 

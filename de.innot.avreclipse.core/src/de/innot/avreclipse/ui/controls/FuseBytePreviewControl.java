@@ -577,7 +577,7 @@ public class FuseBytePreviewControl extends Composite {
 			Boolean bold = (Boolean) item.getData(TAG_BOLD);
 
 			// Set defaults if any tag was missing
-			int mask = 0x00;
+			int mask = 0xff;
 			if (bfd != null) {
 				mask = bfd.getMask();
 			}

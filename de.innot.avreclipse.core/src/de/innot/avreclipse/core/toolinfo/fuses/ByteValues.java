@@ -534,6 +534,9 @@ public class ByteValues {
 	public boolean isCompatibleWith(String mcuid) {
 		IMCUDescription ourdesc = getDescription(fMCUId);
 		IMCUDescription targetdesc = getDescription(mcuid);
+		if (ourdesc == null || targetdesc == null) {
+			return false;
+		}
 		return ourdesc.isCompatibleWith(targetdesc, fType);
 	}
 
