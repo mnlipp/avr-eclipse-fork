@@ -27,6 +27,8 @@ import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
@@ -87,52 +89,62 @@ public class FuseBytePreviewControl extends Composite {
 	/**
 	 * The results from a conversion. If not null, the results will be used to color the output.
 	 */
-	private ConversionResults		fResults		= null;
+	private ConversionResults		fResults				= null;
 
 	private ByteValues				fLastValues;
+	private ByteValues				fCurrentValues;
 
 	/** List of the root TreeItems, the items representing complete Bytes. */
-	private final List<TreeItem>	fRootItems		= new ArrayList<TreeItem>();
+	private final List<TreeItem>	fRootItems				= new ArrayList<TreeItem>();
 
 	/** The font used for the normal bitfield items */
-	private final Font				fDialogFont		= JFaceResources.getDialogFont();
+	private final Font				fDialogFont				= JFaceResources.getDialogFont();
 
 	/** The bold font used for the root items */
-	private final Font				fBoldDialogFont	= JFaceResources.getFontRegistry().getBold(
-															JFaceResources.DIALOG_FONT);
+	private final Font				fBoldDialogFont			= JFaceResources
+																	.getFontRegistry()
+																	.getBold(
+																			JFaceResources.DIALOG_FONT);
 	// The three columns used by the tree
-	private final static int		COLUMN_NAME		= 0;
-	private final static int		COLUMN_VALUE	= 1;
-	private final static int		COLUMN_BITS		= 2;
+	private final static int		COLUMN_NAME				= 0;
+	private final static int		COLUMN_VALUE			= 1;
+	private final static int		COLUMN_BITS				= 2;
+
+	// Flags to indicated if short or long column content is requested
+	private boolean					fShortName				= false;
+	private boolean					fShortValue				= false;
+
+	// And the associated column header strings
+	private final static String[]	COLUMN_HEADER_NAMES		= new String[] { "Name (short)",
+			"Name (full)"									};
+	private final static String[]	COLUMN_HEADER_VALUES	= new String[] { "Value (hex)",
+			"Value (text)"									};
 
 	// Tags used for the TreeItem.setData(String tag, value) method to pass
 	// meta-information about the item to the PaintListener
-	/** Property for the bitfield name (Integer). */
-	private final static String		TAG_NAME		= "name";
-
-	/** Property for the bitfield mask (Integer). */
-	private final static String		TAG_MASK		= "mask";
+	/** Property for the bitfield description (BitFieldDescription). */
+	private final static String		TAG_BITFIELDDESCRIPTION	= "bfd";
 
 	/** Property for the current value of the byte containing the bitfield (Integer). */
-	private final static String		TAG_VALUE		= "value";
+	private final static String		TAG_VALUE				= "value";
 
 	/**
 	 * Property to indicate that the value of this treeitem has changed. Used for the coloring of
 	 * conversions. (Boolean)
 	 */
-	private final static String		TAG_HASCHANGED	= "haschanged";
+	private final static String		TAG_HASCHANGED			= "haschanged";
 
 	/**
 	 * Property to indicate that the bits for this item should be drawn with thicker lines
 	 * (Boolean).
 	 */
-	private final static String		TAG_BOLD		= "bold";
+	private final static String		TAG_BOLD				= "bold";
 
 	/**
 	 * Used by the ToolTipListener to pass the current item to the
 	 * <code>Shell</code< showing the ToolTip (TreeItem).
 	 */
-	private final static String		TAG_TREEITEM	= "treeitem";
+	private final static String		TAG_TREEITEM			= "treeitem";
 
 	/**
 	 * Constructs a new instance of this class given its parent and a style value describing its
@@ -188,23 +200,41 @@ public class FuseBytePreviewControl extends Composite {
 		fTree.addListener(SWT.EraseItem, paintlistener);
 
 		// Add the listeners required for the (fake) tooltips
-		// Listener tooltiplistener = new ToolTipListener();
-		// fTree.addListener(SWT.Dispose, tooltiplistener);
-		// fTree.addListener(SWT.KeyDown, tooltiplistener);
-		// fTree.addListener(SWT.MouseMove, tooltiplistener);
-		// fTree.addListener(SWT.MouseHover, tooltiplistener);
+		Listener tooltiplistener = new ToolTipListener();
+		fTree.addListener(SWT.Dispose, tooltiplistener);
+		fTree.addListener(SWT.KeyDown, tooltiplistener);
+		fTree.addListener(SWT.MouseMove, tooltiplistener);
+		fTree.addListener(SWT.MouseHover, tooltiplistener);
 
 		// We have three columns for: Name, Value (as Text) and Value (as single bits)
 
-		TreeColumn namecolumn = new TreeColumn(fTree, SWT.LEFT);
+		final TreeColumn namecolumn = new TreeColumn(fTree, SWT.LEFT);
 		namecolumn.setWidth(100);
-		namecolumn.setText("Name");
-		// namecolumn.setResizable(true);
+		namecolumn.setText(COLUMN_HEADER_NAMES[fShortName ? 0 : 1]);
+		namecolumn.setResizable(true);
+		namecolumn.addSelectionListener(new SelectionAdapter() {
+			// Toggle between short and long content for the name column
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				fShortName = !fShortName;
+				namecolumn.setText(COLUMN_HEADER_NAMES[fShortName ? 0 : 1]);
+				updateTree(fCurrentValues);
+			}
+		});
 
-		TreeColumn valuecolumn = new TreeColumn(fTree, SWT.LEFT);
+		final TreeColumn valuecolumn = new TreeColumn(fTree, SWT.LEFT);
 		valuecolumn.setWidth(100);
-		valuecolumn.setText("Value");
-		// valuecolumn.setResizable(true);
+		valuecolumn.setText(COLUMN_HEADER_VALUES[fShortValue ? 0 : 1]);
+		valuecolumn.setResizable(true);
+		valuecolumn.addSelectionListener(new SelectionAdapter() {
+			// Toggle between short and long content for the values column
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				fShortValue = !fShortValue;
+				valuecolumn.setText(COLUMN_HEADER_VALUES[fShortValue ? 0 : 1]);
+				updateTree(fCurrentValues);
+			}
+		});
 
 		TreeColumn bitscolumn = new TreeColumn(fTree, SWT.LEFT);
 		bitscolumn.setWidth(100);
@@ -216,8 +246,8 @@ public class FuseBytePreviewControl extends Composite {
 		TreeColumnLayout treelayout = new TreeColumnLayout();
 		treecomposite.setLayout(treelayout);
 
-		treelayout.setColumnData(namecolumn, new ColumnWeightData(25));
-		treelayout.setColumnData(valuecolumn, new ColumnWeightData(60));
+		treelayout.setColumnData(namecolumn, new ColumnWeightData(35));
+		treelayout.setColumnData(valuecolumn, new ColumnWeightData(65));
 		treelayout.setColumnData(bitscolumn, new ColumnPixelData(item.getBounds().height * 8 + 2,
 				false, true));
 
@@ -242,6 +272,8 @@ public class FuseBytePreviewControl extends Composite {
 			fLastValues = null;
 			return;
 		}
+
+		fCurrentValues = newvalues;
 
 		String type = newvalues.getType().toString();
 		String mcu = AVRMCUidConverter.id2name(newvalues.getMCUId());
@@ -269,10 +301,27 @@ public class FuseBytePreviewControl extends Composite {
 		fTree.getColumn(COLUMN_BITS).pack(); // force redraw of the Bits column
 	}
 
-	public void setConversionResults(ConversionResults results, ByteValues target) {
-		fLastValues = target;
+	/**
+	 * Set the converted <code>ByteValues</code> to be shown in this preview control.
+	 * <p>
+	 * The BitFields in the preview are colored according to their {@link ConversionStatus}. They
+	 * remain colored as long as they are not modified. As soon as a BitField value is changed, it
+	 * is reverted to the default color (black).
+	 * </p>
+	 * <p>
+	 * If the results parameter is <code>null</code>, all colors are removed.
+	 * 
+	 * @see #setByteValues(ByteValues)
+	 * 
+	 * @param newvalues
+	 *            <code>ByteValues</code> Object.
+	 * @param results
+	 *            <code>ConversionResults</code> Object.
+	 */
+	public void setByteValuesFromConversion(ByteValues newvalues, ConversionResults results) {
+		fLastValues = newvalues;
 		fResults = results;
-		setByteValues(target);
+		setByteValues(newvalues);
 	}
 
 	/**
@@ -290,7 +339,6 @@ public class FuseBytePreviewControl extends Composite {
 		for (int value : values) {
 			TreeItem byteitem = new TreeItem(fTree, SWT.NONE);
 			byteitem.setData(TAG_VALUE, newvalues.getValue(i));
-			byteitem.setData(TAG_MASK, 0xff);
 			byteitem.setData(TAG_BOLD, true);
 			byteitem.setText(COLUMN_NAME, newvalues.getByteName(i++));
 			byteitem.setText(COLUMN_VALUE, toHex(value));
@@ -318,17 +366,16 @@ public class FuseBytePreviewControl extends Composite {
 			TreeItem newitem = new TreeItem(parent, SWT.NONE);
 			newitem.setFont(fDialogFont);
 
-			newitem.setData(TAG_MASK, bitfield.getMask());
+			newitem.setData(TAG_BITFIELDDESCRIPTION, bitfield);
 			newitem.setData(TAG_VALUE, newvalues.getValue(byteindex));
 
 			String name = bitfield.getName();
-			newitem.setData(TAG_NAME, name);
-
 			String desc = bitfield.getDescription();
-			newitem.setText(COLUMN_NAME, desc);
+			newitem.setText(COLUMN_NAME, fShortName ? name : desc);
 
 			String valuetext = newvalues.getNamedValueText(name);
-			newitem.setText(COLUMN_VALUE, valuetext);
+			int value = newvalues.getNamedValue(name);
+			newitem.setText(COLUMN_VALUE, fShortValue ? toHex(value) : valuetext);
 		}
 	}
 
@@ -357,13 +404,34 @@ public class FuseBytePreviewControl extends Composite {
 			TreeItem[] bitfielditems = byteitem.getItems();
 			for (TreeItem item : bitfielditems) {
 				item.setData(TAG_VALUE, value);
-				String name = (String) item.getData(TAG_NAME);
+				BitFieldDescription bfd = (BitFieldDescription) item
+						.getData(TAG_BITFIELDDESCRIPTION);
+				String name = bfd.getName();
+				int bitfieldvalue = newvalues.getNamedValue(name);
 				String valuetext = newvalues.getNamedValueText(name);
-				item.setText(COLUMN_VALUE, valuetext);
+				item.setText(COLUMN_NAME, fShortName ? name : bfd.getDescription());
+				item.setText(COLUMN_VALUE, fShortValue ? toHex(bitfieldvalue) : valuetext);
 			}
 		}
 	}
 
+	/**
+	 * Color the BitFields in the tree according to their {@link ConversionStatus}.
+	 * <p>
+	 * The colors used are:
+	 * <ul>
+	 * <li><em>Green</em>: The BitField was successfully converted</li>
+	 * <li><em>Yellow</em>: The BitField was converted, but the new value is different</li>
+	 * <li><em>Red</em>: The BitField did not exist in the source MCU and was set to the default
+	 * value</li>
+	 * <li><em>Black</em>: The BitField has been modified after the conversion.</li>
+	 * </ul>
+	 * 
+	 * @param values
+	 *            The <code>ByteValues</code> after the conversion.
+	 * @param results
+	 *            The <code>ConversionResults</code> of the conversion.
+	 */
 	private void colorTree(ByteValues values, ConversionResults results) {
 
 		// Get the colors used to indicate a conversion result
@@ -372,13 +440,16 @@ public class FuseBytePreviewControl extends Composite {
 		final Color colorYellow = fTree.getDisplay().getSystemColor(SWT.COLOR_DARK_YELLOW);
 		final Color colorGreen = fTree.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN);
 
+		// Iterate though all BitField items in the tree
 		for (TreeItem byteitem : fRootItems) {
 			for (TreeItem bitfielditem : byteitem.getItems()) {
 				if (results == null) {
 					bitfielditem.setForeground(colorBlack);
 					continue;
 				}
-				String bitfieldname = (String) bitfielditem.getData(TAG_NAME);
+				BitFieldDescription bfd = (BitFieldDescription) bitfielditem
+						.getData(TAG_BITFIELDDESCRIPTION);
+				String bitfieldname = bfd.getName();
 
 				// Check if the value has changed.
 				Boolean haschanged = (Boolean) bitfielditem.getData(TAG_HASCHANGED);
@@ -501,13 +572,15 @@ public class FuseBytePreviewControl extends Composite {
 		 */
 		private void paintEvent(Event event) {
 			final TreeItem item = (TreeItem) event.item;
-			Integer mask = (Integer) item.getData(TAG_MASK);
+			BitFieldDescription bfd = (BitFieldDescription) item.getData(TAG_BITFIELDDESCRIPTION);
 			Integer value = (Integer) item.getData(TAG_VALUE);
 			Boolean bold = (Boolean) item.getData(TAG_BOLD);
 
 			// Set defaults if any tag was missing
-			if (mask == null)
-				mask = 0x00;
+			int mask = 0x00;
+			if (bfd != null) {
+				mask = bfd.getMask();
+			}
 			if (value == null)
 				value = 0x00;
 			if (bold == null)
@@ -668,6 +741,29 @@ public class FuseBytePreviewControl extends Composite {
 						break;
 					}
 
+					// No ToolTips for the root items
+					if (item.getParentItem() == null) {
+						break;
+					}
+
+					// Calculate the column.
+					// Accumulate the column widths until the mouse.x lies within the column.
+					// Both columnStart and index are then used further down
+					TreeColumn[] columns = fTree.getColumns();
+					int columnStart = 0;
+					int index = 0;
+					for (index = 0; index < columns.length; index++) {
+						if (event.x < columnStart + columns[index].getWidth()) {
+							break;
+						}
+						columnStart += columns[index].getWidth();
+					}
+
+					if (index == COLUMN_BITS) {
+						// No ToolTips for the BITS column
+						break;
+					}
+
 					if (tip != null && !tip.isDisposed()) {
 						// dispose an already existing ToolTip window so we don't leave any
 						// undisposed zombie ToolTip windows behind once we create a new one.
@@ -682,8 +778,21 @@ public class FuseBytePreviewControl extends Composite {
 							.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 					label.setBackground(fTree.getDisplay()
 							.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-					label.setText((String) item.getData(TAG_NAME));
 
+					BitFieldDescription bfd = (BitFieldDescription) item
+							.getData(TAG_BITFIELDDESCRIPTION);
+					if (index == COLUMN_NAME) {
+						label.setText(!fShortName ? bfd.getName() : bfd.getDescription());
+					} else {
+						Integer value = (Integer) item.getData(TAG_VALUE);
+						if (value != null && value != -1) {
+							int bitfieldvalue = bfd.byteToBitField(value);
+							label.setText(!fShortValue ? toHex(bitfieldvalue) : bfd
+									.getValueText(bitfieldvalue));
+						} else {
+							label.setText("undefined");
+						}
+					}
 					// Add a listener to the ToolTip so that any mouse clicks can be passed
 					// through the ToolTip to the TreeItem below it. This prevents the loss of
 					// focus if a user decides to click on the ToolTip.
@@ -694,13 +803,18 @@ public class FuseBytePreviewControl extends Composite {
 
 					// Now determine the position of the ToolTip.
 					// In this case I use not the standard mouse cursor position.
-					// Instead the ToolTip is shown aligned with the right edge of
+					// Instead the ToolTip is shown aligned with the left edge of
 					// the current cell.
 					// This is non-standard but looks quite good and serves the purpose.
 					Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 					Rectangle rect = item.getBounds(0);
-					Point pt = fTree.toDisplay(rect.x + rect.width, rect.y);
-					tip.setBounds(pt.x - size.x, pt.y, size.x, size.y);
+					if (index == COLUMN_NAME) {
+						Point pt = fTree.toDisplay(rect.x + rect.width, rect.y);
+						tip.setBounds(pt.x - size.x, pt.y, size.x, size.y);
+					} else {
+						Point pt = fTree.toDisplay(columnStart, rect.y);
+						tip.setBounds(pt.x, pt.y, size.x, size.y);
+					}
 
 					// After all the setup we can finally show the ToolTip :-)
 					tip.setVisible(true);
