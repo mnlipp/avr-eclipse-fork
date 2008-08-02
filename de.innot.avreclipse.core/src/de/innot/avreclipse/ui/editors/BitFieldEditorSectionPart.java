@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -32,6 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -42,6 +44,67 @@ import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 
 /**
+ * A <code>SectionPart</code> that can edit a single BitField.
+ * <p>
+ * This class takes a JFace Form Section and adds the Widgets needed to edit the value of a
+ * BitField. Depending on the size of the BitField and the possible values from the
+ * {@link BitFieldDescription} (derived from the part description files), the Section will use
+ * different representations.
+ * <ul>
+ * <li>Single bit
+ * <p>
+ * <ul>
+ * <li>no predefined values: <em>Yes</em> and <em>No</em> Radiobuttons.</li>
+ * <li>Single bit, one predefined value: Checkbox.</li>
+ * </ul>
+ * </p>
+ * <li>Multiple bits
+ * <p>
+ * <ul>
+ * <li>no predefined values: Textbox for direct user input (decimal or hexadecimal).</li>
+ * <li>up to 6 predefined values: Radiobuttons for all values.</li>
+ * <li>up to 16 predefined values: Single drop down Combo.</li>
+ * <li>more than 16 predefined values: Two drop down Combos, values split at first ";" character.</li>
+ * </ul>
+ * </p>
+ * </ul>
+ * </p>
+ * <p>
+ * To use this class first create a new <code>Section</code> and then pass this
+ * <code>Section</code> to the constructor for this class. After the class has been instantiated
+ * it must be added to a <code>IManagedForm</code> to participate in the lifecycle management of
+ * the managed form.
+ * 
+ * <pre>
+ *     FormToolkit toolkit = ...
+ *     IManagedForm managedForm = ...
+ *     BitFieldDescription bfd = ...
+ *     Section section = toolkit.createSection(body, Section.TITLE_BAR);
+ *     section.setText(bfd.getName() + &quot; - &quot; + bfd.getDescription());
+ * 
+ *     IFormPart part = new BitFieldEditorSectionPart(section, bfd);
+ *     managedForm.addPart(part);
+ * </pre>
+ * 
+ * </p>
+ * <p>
+ * This class implements the {@link IFormPart} interface to participate in the lifecycle management
+ * of a managed form. To set the value of the BitField use
+ * 
+ * <pre>
+ *     ByteValues bytevalues = ...
+ *     managedForm.setInput(bytevalues);
+ * </pre>
+ * 
+ * The <code>ByteValues</code> passed to the managedForm is the model for this
+ * <code>SectionPart</code>. It will remain untouched until the {@link #commit(boolean)} method
+ * is called, which will write the user modified value back to the <code>ByteValues</code> model.
+ * 
+ * <pre>
+ *     managedForm.commit(...);
+ * </pre>
+ * 
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.3
@@ -49,17 +112,40 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  */
 public class BitFieldEditorSectionPart extends SectionPart {
 
+	/** The BitField this Section should take care of. */
 	private final BitFieldDescription	fBFD;
 
+	/**
+	 * The model for this <code>SectionPart</code>. Will only be written to in the
+	 * {@link #commit(boolean)} method.
+	 */
 	private ByteValues					fByteValues;
 
-	private IOptionPart					fOptionPart;
-
+	/** Current BitField value. Stores any changes until it is commited to the modell. */
 	private int							fCurrentValue	= -1;
 
 	/**
+	 * The Control that handles the different visual representations.
+	 * 
+	 * @see IOptionPart
+	 */
+	private IOptionPart					fOptionPart;
+
+	/**
+	 * Create a new <code>SectionPart</code> to handle a single BitField.
+	 * <p>
+	 * This constructor will take an existing <code>Section</code> and add some controls to its
+	 * client area to select the different values.
+	 * <p>
+	 * </p>
+	 * Note: The Section title and the LayoutData are not touched and must be set be the calling
+	 * class.
+	 * </p>
+	 * 
 	 * @param section
+	 *            a <code>Section</code>.
 	 * @param description
+	 *            <code>BitFieldDescription</code> for the BitField.
 	 */
 	public BitFieldEditorSectionPart(Section section, BitFieldDescription description) {
 		super(section);
@@ -79,32 +165,50 @@ public class BitFieldEditorSectionPart extends SectionPart {
 		Section parent = getSection();
 		FormToolkit toolkit = form.getToolkit();
 
+		// Create the Section client area.
+		// The layout of the client area is set later in the individual IOptionPart classes
 		Composite client = form.getToolkit().createComposite(parent);
 		parent.setClient(client);
 
-		// Determine the number of possible options and the list of possible values
+		// Determine the number of possible options and the list of possible values.
+		// Then create a new IOptionPart according to the rules described in the class JavaDoc.
+
 		int maxoptions = fBFD.getMaxValue();
 		List<BitFieldValueDescription> allvalues = fBFD.getValuesEnumeration();
 
 		if (maxoptions == 1 && allvalues.size() == 0) {
 			fOptionPart = new OptionYesNo();
+
 		} else if (maxoptions == 1) {
 			fOptionPart = new OptionCheckbox();
+
 		} else if (/* maxoptions > 1 && */allvalues.size() == 0) {
 			fOptionPart = new OptionText();
+
 		} else if (/* maxoptions > 1 && */allvalues.size() < 6) {
 			fOptionPart = new OptionRadioButtons();
+
 		} else {
-			boolean splitValues = allvalues.size() > 16
-					&& allvalues.get(0).getDescription().contains(";");
-			if (splitValues) {
+			// Check if all possible values are splitable. It is splitable if
+			// it contains (at least) one ';'
+			// While at the time it would be enough to just check the number of values this more
+			// expensive check is here to ensure that even future MCUs will not cause problems.
+			// (OptionDualCombo will probably fail if even a single value has no ';' in it.)
+			boolean splitable = true;
+			for (BitFieldValueDescription bfvd : allvalues) {
+				if (bfvd.getDescription().indexOf(';') == -1) {
+					splitable = false;
+					break;
+				}
+			}
+			if (splitable && allvalues.size() > 16) {
 				fOptionPart = new OptionDualCombo();
 			} else {
 				fOptionPart = new OptionSingleCombo();
 			}
 		}
-		fOptionPart.addControl(client, toolkit, fBFD);
 
+		fOptionPart.addControl(client, toolkit, fBFD);
 	}
 
 	/*
@@ -115,11 +219,11 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	@Override
 	public boolean setFormInput(Object input) {
 
-		if (input instanceof ByteValues) {
-			fByteValues = (ByteValues) input;
-		} else {
+		if (!(input instanceof ByteValues)) {
 			return false;
 		}
+
+		fByteValues = (ByteValues) input;
 
 		refresh();
 		return true;
@@ -135,31 +239,30 @@ public class BitFieldEditorSectionPart extends SectionPart {
 		int value = fByteValues.getNamedValue(fBFD.getName());
 		fCurrentValue = value;
 		fOptionPart.setValue(value);
-	}
-
-	@Override
-	public void commit(boolean onSave) {
-		fByteValues.setNamedValue(fBFD.getName(), fCurrentValue);
-
+		super.refresh();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.ui.forms.SectionPart#setFocus()
+	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
 	 */
 	@Override
-	public void setFocus() {
-		if (fCurrentValue == -1) {
-			refresh();
-			return;
-		}
-		// TODO Auto-generated method stub
-		super.setFocus();
+	public void commit(boolean onSave) {
+		fByteValues.setNamedValue(fBFD.getName(), fCurrentValue);
+		super.commit(onSave);
 	}
 
 	/**
+	 * Sets the internal temporary value.
+	 * <p>
+	 * This is called by the <code>IOptionPart</code>s when the user has changed the selection.
+	 * The new value is stored until it is commited to the model with a call to
+	 * {@link #commit(boolean)}.
+	 * </p>
+	 * 
 	 * @param newvalue
+	 *            The new value from the user selection.
 	 */
 	private void internalSetValue(int newvalue) {
 		fCurrentValue = newvalue;
@@ -167,24 +270,66 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	}
 
 	/**
-	 * @author U043192
-	 * 
+	 * A simple interface to abstract the different visual representations of a BitField.
+	 * <p>
+	 * All six different presentations are implemented as classes implementing this interface. The
+	 * parent class will instantiate one of them and then use the interface to initialize them
+	 * (generate the UI) and to set their value.
+	 * </p>
 	 */
 	private interface IOptionPart {
 
+		/**
+		 * Generate a user interface for a <code>BitFieldDescription</code>.
+		 * 
+		 * @param parent
+		 *            Composite to which the generated Widgets are added. Layout will be set by this
+		 *            method.
+		 * @param toolkit
+		 *            for the visual style of the form.
+		 * @param bfd
+		 *            source BitFieldDescription.
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd);
 
+		/**
+		 * Set the new BitField value.
+		 * <p>
+		 * The OptionPart will update itself to show the new value. The new value may be
+		 * <code>-1</code>. The implementation should try to visualize this if possible.
+		 * </p>
+		 * 
+		 * @param value
+		 *            <code>int</code> between <code>0</code> and
+		 *            {@link BitFieldDescription#getMaxValue()}. The value is not checked. Illegal
+		 *            values may cause undetermined behaviour.
+		 */
 		public void setValue(int value);
 	}
 
+	/**
+	 * <code>IOptionPart</code> to represent a single bit as "Yes" / "No" Radio buttons.
+	 * <p>
+	 * Note: a <code>0</code> is interpreted as <em>Yes</em>, while a <code>1</code> is
+	 * <em>No</em>. This is according to the Atmel definition for fuses and them being flash
+	 * memory bits, where unset means <code>1</code>.
+	 * </p>
+	 */
 	private class OptionYesNo implements IOptionPart {
 
 		private Button	fYesButton;
 		private Button	fNoButton;
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
-			parent.setLayout(new RowLayout(SWT.HORIZONTAL));
+			parent.setLayout(new GridLayout(2, false));
 
 			fYesButton = toolkit.createButton(parent, "Yes", SWT.RADIO);
 			fNoButton = toolkit.createButton(parent, "No", SWT.RADIO);
@@ -200,10 +345,12 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fNoButton.addListener(SWT.Selection, listener);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
-			if (-1 > value || value > 1) {
-				throw new IllegalArgumentException("value must be -1, 0 or 1, was " + value);
-			}
 			if (value == -1) {
 				fYesButton.setSelection(false);
 				fNoButton.setSelection(false);
@@ -213,50 +360,79 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				fNoButton.setSelection(!valueYes);
 			}
 		}
-
 	}
 
+	/**
+	 * <code>IOptionPart</code> to represent a single bit with one possible option as a CheckBox
+	 * button.
+	 * <p>
+	 * While rare, some fuses descriptions contain a single bit with a single value. If the CheckBox
+	 * is selected, then the BitField value is set to the single value. If the CheckBox is not
+	 * selected, the negation of the value is used.
+	 * </p>
+	 */
 	private class OptionCheckbox implements IOptionPart {
 
 		private Button	fCheckButton;
+		private int		fSetValue;
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
 			parent.setLayout(new FillLayout());
 
+			fSetValue = bfd.getValuesEnumeration().get(0).getValue();
 			String buttontext = bfd.getValuesEnumeration().get(0).getDescription();
 			fCheckButton = toolkit.createButton(parent, buttontext, SWT.CHECK);
 
 			Listener listener = new Listener() {
 
 				public void handleEvent(Event event) {
-					int value = fCheckButton.getSelection() ? 0x00 : 0x01;
+					int value = fCheckButton.getSelection() ? fSetValue : 0x01 & ~fSetValue;
 					internalSetValue(value);
 				}
 			};
 			fCheckButton.addListener(SWT.Selection, listener);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
-			if (-1 > value || value > 1) {
-				throw new IllegalArgumentException("value must be -1, 0 or 1, was " + value);
-			}
 			if (value == -1) {
 				// TODO: change this to a tristate checkbox when we change to SWT 3.4
 				// for now we have to leave it unset (= 1)
 				value = 1;
 			}
-			boolean valueYes = value == 0 ? true : false;
+			boolean valueYes = value == fSetValue ? true : false;
 			fCheckButton.setSelection(valueYes);
 		}
 
 	}
 
+	/**
+	 * <code>IOptionPart</code> to represent all legal values for the BitField as radio buttons.
+	 */
 	private class OptionRadioButtons implements IOptionPart {
 
 		private Button[]	fButtons;
 		private int[]		fValues;
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
 			parent.setLayout(new RowLayout(SWT.VERTICAL));
@@ -278,61 +454,99 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				}
 			};
 
-			int i = 0;
-
-			for (BitFieldValueDescription desc : allvalues) {
-				fButtons[i] = toolkit.createButton(parent, desc.getDescription(), SWT.RADIO);
+			for (int i = 0; i < allvalues.size(); i++) {
+				BitFieldValueDescription bfvd = allvalues.get(i);
+				fButtons[i] = toolkit.createButton(parent, bfvd.getDescription(), SWT.RADIO);
 				fButtons[i].addListener(SWT.Selection, listener);
-				fValues[i] = desc.getValue();
-				i++;
+				fValues[i] = bfvd.getValue();
 			}
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
-			boolean isValid = false;
-
 			for (int i = 0; i < fValues.length; i++) {
 				if (fValues[i] == value) {
 					fButtons[i].setSelection(true);
-					isValid = true;
 				} else {
 					fButtons[i].setSelection(false);
 				}
-			}
-			if (!isValid && value != -1) {
-				throw new IllegalArgumentException("Illegal value " + value);
 			}
 		}
 
 	}
 
+	/**
+	 * <code>IOptionPart</code> to represent all legal values for the BitField as two combos.
+	 * <p>
+	 * Two combos are used to split very long lists of values into two more managable lists. All
+	 * values are split at the first ';' character in their description and group according to the
+	 * first part of the description.
+	 * </p>
+	 * <p>
+	 * Whenever the first root combo changes its value, the second combo is filled with the
+	 * appropriate subitems.
+	 * </p>
+	 */
 	private class OptionDualCombo implements IOptionPart {
 
 		private Combo								fRootCombo;
 		private Combo								fSubCombo;
+
+		/**
+		 * The list of root names, once filled this is static and used as the content for the root
+		 * combo.
+		 */
 		private String[]							fRootTexts;
+
+		/**
+		 * Map for all possible values to the index of the root and the sub combo. For undefined
+		 * values this will map to <code>{-1,-1}</code>.
+		 */
 		private int[][]								fReverseLookup;
+
+		/**
+		 * Map of root names to a list of all possible sub names. This list is used to fill the sub
+		 * combo.
+		 */
 		private final Map<String, List<String>>		fRootToSubnames	= new HashMap<String, List<String>>();
+
+		/**
+		 * Map of root names to a list of values. The list is contains the value associated for the
+		 * sub name at the same index.
+		 */
 		private final Map<String, List<Integer>>	fRootToValues	= new HashMap<String, List<Integer>>();
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
-			parent.setLayout(new RowLayout());
+			parent.setLayout(new GridLayout(2, false));
 
 			List<BitFieldValueDescription> allvalues = bfd.getValuesEnumeration();
 
-			// Collections.sort(allvalues, new Comparator<BitFieldValueDescription>() {
-			// public int compare(BitFieldValueDescription o1, BitFieldValueDescription o2) {
-			// return o1.getDescription().compareTo(o2.getDescription());
-			// }
-			// });
-
+			// initialize the reverse lookup array and fill it with {-1, -1} to indicate
+			// undefined BitField values.
 			int maxvalue = bfd.getMaxValue();
 			fReverseLookup = new int[maxvalue + 1][];
 			Arrays.fill(fReverseLookup, new int[] { -1, -1 });
 
 			List<String> rootnames = new ArrayList<String>();
 
+			// iterate over all BitFieldValueDescriptions and split their names.
+			// If the first part is new, then add it to the list of rootnames.
+			// The second part and the values are added to the lists associated with the rootname
+			// from the two <code>rootTo...</code> HashMaps.
+			// Finally the value of the BitFieldValueDescription is added to the reverse lookup map
+			// with the current indices for root and sub combo.
 			String lastroottext = null;
 			for (BitFieldValueDescription bfvd : allvalues) {
 				String desc = bfvd.getDescription();
@@ -353,7 +567,7 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				List<Integer> subvalues = fRootToValues.get(firstpart);
 				subvalues.add(value);
 
-				// Map the index values of both name parts t the value, so we can get the
+				// Map the index values of both name parts to the value, so we can get the
 				// indices for a given value.
 				// As we fill the arrays sequentially we can just take the size of the arrays to
 				// get the index of the last addition (instead of the more expensive
@@ -361,9 +575,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				fReverseLookup[value] = new int[] { rootnames.size() - 1, subnames.size() - 1 };
 			}
 
-			// Convert the list(s) to arrays
+			// Convert the root list to an array usable as content for the root combo.
 			fRootTexts = rootnames.toArray(new String[rootnames.size()]);
 
+			// Now create the root combo
 			fRootCombo = new Combo(parent, SWT.READ_ONLY);
 			toolkit.adapt(fRootCombo);
 			fRootCombo.setItems(fRootTexts);
@@ -375,18 +590,31 @@ public class BitFieldEditorSectionPart extends SectionPart {
 					String name = fRootTexts[index];
 					List<String> subnames = fRootToSubnames.get(name);
 					String[] subnamesarray = subnames.toArray(new String[subnames.size()]);
+
+					// remember the last selection of the sub combo. If it is still in range for the
+					// new sub combo content then the selection index is reset to it after we have
+					// set the new content. Often the same index has the same description, so the
+					// user won't see a change in the sub combo, even though the actual BitField
+					// values are totally different.
 					int oldselection = fSubCombo.getSelectionIndex();
 					fSubCombo.setItems(subnamesarray);
 					fSubCombo.setVisibleItemCount(subnamesarray.length);
+
 					if (0 <= oldselection && oldselection < subnamesarray.length) {
 						fSubCombo.select(oldselection);
 					} else {
 						fSubCombo.select(0);
 					}
+
+					// Because the root combo does not affect the value directly we need to call the
+					// selection event handler of the sub combo so that internalSetValue() gets
+					// actually called.
+					// Combo.select(x) unfortunatly does not do this automatically.
 					fSubCombo.notifyListeners(SWT.Selection, new Event());
 				}
 			});
 
+			// ... and now the sub combo
 			fSubCombo = new Combo(parent, SWT.READ_ONLY);
 			toolkit.adapt(fSubCombo);
 			fSubCombo.addListener(SWT.Selection, new Listener() {
@@ -405,6 +633,11 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
 			if (value == -1) {
 				fRootCombo.select(-1);
@@ -413,6 +646,7 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			}
 
 			int[] indices = fReverseLookup[value];
+
 			if (indices[0] == -1) {
 				// invalid value: deselect both combos
 				fRootCombo.select(-1);
@@ -432,23 +666,52 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 	}
 
+	/**
+	 * <code>IOptionPart</code> to represent all legal values for the BitField in a drop down
+	 * combo.
+	 */
 	private class OptionSingleCombo implements IOptionPart {
 
 		private Combo		fCombo;
+
+		/**
+		 * The list of value names. Once filled this is static and used as the content for the
+		 * combo.
+		 */
 		private String[]	fTexts;
+
+		/**
+		 * List of values. Once filled this is static and used to map the index of the combo to the
+		 * actual BitField value.
+		 */
 		private Integer[]	fValues;
+
+		/**
+		 * Map for all possible values to the index of the combo. For undefined values this will map
+		 * to <code>-1</code>.
+		 */
 		private int[]		fReverseLookup;
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
 			parent.setLayout(new RowLayout(SWT.HORIZONTAL));
 
 			List<BitFieldValueDescription> allvalues = bfd.getValuesEnumeration();
 
+			// initialize the reverse lookup array and fill it with {-1} to indicate
+			// undefined BitField values.
 			int maxvalue = bfd.getMaxValue();
 			fReverseLookup = new int[maxvalue + 1];
 			Arrays.fill(fReverseLookup, -1);
 
+			// Iterate over all BitFieldValueDescriptions and extract name and value.
 			List<String> names = new ArrayList<String>();
 			List<Integer> values = new ArrayList<Integer>();
 			for (BitFieldValueDescription bfvd : allvalues) {
@@ -460,10 +723,11 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				fReverseLookup[value] = names.size() - 1;
 			}
 
-			// Convert the list(s) to arrays
+			// Convert the lists to arrays for easier use with the combo
 			fTexts = names.toArray(new String[names.size()]);
 			fValues = values.toArray(new Integer[values.size()]);
 
+			// and create the combo
 			fCombo = new Combo(parent, SWT.READ_ONLY);
 			toolkit.adapt(fCombo);
 			fCombo.setItems(fTexts);
@@ -481,6 +745,11 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
 			if (value == -1) {
 				fCombo.select(-1);
@@ -494,12 +763,35 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 	}
 
+	/**
+	 * <code>IOptionPart</code> to edit the value of a BitField directly in a text box.
+	 * <p>
+	 * The new value can be entered either as decimal, hexadecimal or (for oldtimers) as octal. The
+	 * new value is decoded by the {@link Integer#decode(String)} method, so all its features and
+	 * restrictions apply to this class.
+	 * </p>
+	 * <p>
+	 * If the entered value is illegal, either out of range or malformed, then the text is shown in
+	 * red.
+	 * </p>
+	 */
 	private class OptionText implements IOptionPart {
 
+		/**
+		 * Highest integer value that can be entered. Higher values will be ignored and the error is
+		 * visualized.
+		 */
 		private int		fMaxValue;
 
 		private Text	fText;
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#addControl(org.eclipse.swt.widgets.Composite,
+		 *      org.eclipse.ui.forms.widgets.FormToolkit,
+		 *      de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription)
+		 */
 		public void addControl(Composite parent, FormToolkit toolkit, BitFieldDescription bfd) {
 
 			parent.setLayout(new RowLayout());
@@ -510,6 +802,9 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fText.setTextLimit(5);
 			fText.setToolTipText("Decimal, Hexadecimal (0x..) or Octal (0...)");
 			fText.addListener(SWT.Modify, new Listener() {
+				// The Modify Listener checks if the value is valid.
+				// If yes then the value is set in the parent,
+				// if no then the foreground is colored red.
 				public void handleEvent(Event event) {
 					try {
 						int value = Integer.decode(fText.getText());
@@ -523,9 +818,9 @@ public class BitFieldEditorSectionPart extends SectionPart {
 					fText.setForeground(fText.getDisplay().getSystemColor(SWT.COLOR_RED));
 				}
 			});
-			// Add a verify listener to only accept hex digits and convert them to
-			// upper case
 			fText.addVerifyListener(new VerifyListener() {
+				// The verify listener to only accept (hex) digits and convert them to
+				// upper case
 				public void verifyText(VerifyEvent event) {
 					String text = event.text.toUpperCase();
 					text = text.replace('X', 'x');
@@ -538,11 +833,12 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart.IOptionPart#setValue(int)
+		 */
 		public void setValue(int value) {
-			if (-1 > value || value > fMaxValue) {
-				throw new IllegalArgumentException("value must be -1, or between 0 and "
-						+ fMaxValue + ", was " + value);
-			}
 			if (value == -1) {
 				fText.setText("");
 			} else {
