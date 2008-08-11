@@ -21,7 +21,6 @@ import java.util.List;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
-import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
@@ -57,7 +56,8 @@ public class LockbitBytesProperties extends BaseBytesProperties {
 	}
 
 	/**
-	 * Create a new LockbitBytesProperties object and copy from the given LockbitBytesProperties object.
+	 * Create a new LockbitBytesProperties object and copy from the given LockbitBytesProperties
+	 * object.
 	 * <p>
 	 * All values from the source are copied, except for the source Preferences and the Parent.
 	 * </p>
@@ -69,28 +69,19 @@ public class LockbitBytesProperties extends BaseBytesProperties {
 	 * @param source
 	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public LockbitBytesProperties(Preferences prefs, AVRDudeProperties parent, BaseBytesProperties source) {
+	public LockbitBytesProperties(Preferences prefs, AVRDudeProperties parent,
+			BaseBytesProperties source) {
 		super(prefs, parent, source);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(java.lang.String)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#getType()
 	 */
 	@Override
-	protected ByteValues createByteValuesObject(String mcuid) {
-		return new ByteValues(FuseType.LOCKBITS, mcuid);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
-	 */
-	@Override
-	protected ByteValues createByteValuesObject(ByteValues source) {
-		return new ByteValues(source);
+	protected FuseType getType() {
+		return FuseType.LOCKBITS;
 	}
 
 	/**

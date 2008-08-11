@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
+import org.eclipse.ui.forms.widgets.ColumnLayoutData;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
@@ -70,19 +71,17 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  * </ul>
  * </p>
  * <p>
- * To use this class first create a new <code>Section</code> and then pass this
- * <code>Section</code> to the constructor for this class. After the class has been instantiated
- * it must be added to a <code>IManagedForm</code> to participate in the lifecycle management of
- * the managed form.
+ * This class automatically creates a <code>Section</code> and adds it to the parent composite.
+ * After the class has been instantiated it must be added to a <code>IManagedForm</code> to
+ * participate in the lifecycle management of the managed form.
  * 
  * <pre>
+ *     Composite parent = ...
  *     FormToolkit toolkit = ...
  *     IManagedForm managedForm = ...
  *     BitFieldDescription bfd = ...
- *     Section section = toolkit.createSection(body, Section.TITLE_BAR);
- *     section.setText(bfd.getName() + &quot; - &quot; + bfd.getDescription());
- * 
- *     IFormPart part = new BitFieldEditorSectionPart(section, bfd);
+ *     
+ *     IFormPart part = new BitFieldEditorSectionPart(parent, toolkit, Section.TITLE_BAR, bfd);
  *     managedForm.addPart(part);
  * </pre>
  * 
@@ -134,23 +133,28 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	/**
 	 * Create a new <code>SectionPart</code> to handle a single BitField.
 	 * <p>
-	 * This constructor will take an existing <code>Section</code> and add some controls to its
-	 * client area to select the different values.
-	 * <p>
-	 * </p>
-	 * Note: The Section title and the LayoutData are not touched and must be set be the calling
-	 * class.
+	 * This constructor automatically creates a new section part inside the provided parent and
+	 * using the provided toolkit.
 	 * </p>
 	 * 
-	 * @param section
-	 *            a <code>Section</code>.
+	 * @param parent
+	 *            the parent
+	 * @param toolkit
+	 *            the toolkit to use
+	 * @param style
+	 *            the section widget style
 	 * @param description
 	 *            <code>BitFieldDescription</code> for the BitField.
 	 */
-	public BitFieldEditorSectionPart(Section section, BitFieldDescription description) {
-		super(section);
+	public BitFieldEditorSectionPart(Composite parent, FormToolkit toolkit, int style,
+			BitFieldDescription description) {
+		super(parent, toolkit, style);
 
 		fBFD = description;
+
+		getSection().setLayoutData(new ColumnLayoutData(200, SWT.DEFAULT));
+		getSection().setText(fBFD.getName() + " - " + fBFD.getDescription());
+
 	}
 
 	/*
@@ -167,8 +171,8 @@ public class BitFieldEditorSectionPart extends SectionPart {
 
 		// Create the Section client area.
 		// The layout of the client area is set later in the individual IOptionPart classes
-		Composite client = form.getToolkit().createComposite(parent);
-		parent.setClient(client);
+		Composite clientarea = form.getToolkit().createComposite(parent);
+		parent.setClient(clientarea);
 
 		// Determine the number of possible options and the list of possible values.
 		// Then create a new IOptionPart according to the rules described in the class JavaDoc.
@@ -208,7 +212,7 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			}
 		}
 
-		fOptionPart.addControl(client, toolkit, fBFD);
+		fOptionPart.addControl(clientarea, toolkit, fBFD);
 	}
 
 	/*
@@ -236,6 +240,9 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	 */
 	@Override
 	public void refresh() {
+		if (fByteValues == null) {
+			return;
+		}
 		int value = fByteValues.getNamedValue(fBFD.getName());
 		fCurrentValue = value;
 		fOptionPart.setValue(value);

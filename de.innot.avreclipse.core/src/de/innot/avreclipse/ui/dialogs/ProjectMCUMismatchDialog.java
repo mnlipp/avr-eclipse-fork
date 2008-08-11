@@ -40,7 +40,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * @author Thomas Holland
  * @since 2.3
  */
-public class MCUMismatchDialog extends MessageDialog {
+public class ProjectMCUMismatchDialog extends MessageDialog {
 
 	public final static int	CONVERT	= 0;
 	public final static int	ACCEPT	= 1;
@@ -64,7 +64,7 @@ public class MCUMismatchDialog extends MessageDialog {
 	 *            If <code>true</code> then "build configuration" is used in this dialog,
 	 *            "project" otherwise.
 	 */
-	public MCUMismatchDialog(Shell shell, String newmcu, String projectmcu, FuseType type,
+	public ProjectMCUMismatchDialog(Shell shell, String newmcu, String projectmcu, FuseType type,
 			boolean perconfig) {
 
 		super(shell, "AVRDude Warning", null, "", WARNING, new String[] { "Convert", "Accept",

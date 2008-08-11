@@ -135,11 +135,11 @@ public class AVRDudeProperties {
 	private static final String			DEFAULT_EEPROMFILE			= "";
 
 	/** The <code>FuseBytesProperties</code> with all fuse bytes related settings. */
-	private FuseBytesProperties					fFuseBytes;
+	private FuseBytesProperties			fFuseBytes;
 	private static final String			NODE_FUSES					= "Fuses";
 
 	/** The <code>LockbitBytesProperties</code> with all lock byte related settings. */
-	private LockbitBytesProperties				fLockbits;
+	private LockbitBytesProperties		fLockbits;
 	private static final String			NODE_LOCKS					= "Locks";
 
 	/** Other avrdude options. Free text for avrdude options not directly supported by the plugin. */
@@ -409,11 +409,42 @@ public class AVRDudeProperties {
 		}
 	}
 
-	public FuseBytesProperties getFuseBytes() {
+	/**
+	 * Get the Fuse byte properties container object.
+	 * <p>
+	 * The <code>IConfiguration</code> parameter is only used to resolve filenames for optional
+	 * fuses files. It can be <code>null</code>, but then the filename of a fuse file will be
+	 * used as is and no macro expansion takes place.
+	 * </p>
+	 * 
+	 * @param buildconfig
+	 *            The current build configuration
+	 * @return The <code>FuseByteProperties</code> container object.
+	 */
+	public FuseBytesProperties getFuseBytes(IConfiguration buildconfig) {
+		// informing the FuseByteProperties about the current build configuration here is somewhat
+		// kludgy, but this seems to be the only point where it can be set.
+		fFuseBytes.setBuildConfig(buildconfig);
 		return fFuseBytes;
 	}
 
-	public LockbitBytesProperties getLockbitBytes() {
+	/**
+	 * Get the Lockbits byte properties container object.
+	 * <p>
+	 * The <code>IConfiguration</code> parameter is only used to resolve filenames for optional
+	 * locks files. It can be <code>null</code>, but then the filename of a locks file will be
+	 * used as is and no macro expansion takes place.
+	 * </p>
+	 * 
+	 * @param buildconfig
+	 *            The current build configuration
+	 * @return The <code>FuseByteProperties</code> container object.
+	 */
+	public LockbitBytesProperties getLockbitBytes(IConfiguration buildconfig) {
+		// informing the LockbitByteProperties about the current build configuration here is
+		// somewhat
+		// kludgy, but this seems to be the only point where it can be set.
+		fLockbits.setBuildConfig(buildconfig);
 		return fLockbits;
 	}
 

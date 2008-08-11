@@ -56,6 +56,7 @@ Export-Package: de.innot.avreclipse;
  de.innot.avreclipse.core.toolinfo.fuses;
   uses:="org.eclipse.core.runtime,
    org.eclipse.ui.console,
+   org.eclipse.core.resources,
    de.innot.avreclipse.core,
    org.w3c.dom",
  de.innot.avreclipse.core.toolinfo.partdescriptionfiles;uses:="org.eclipse.core.runtime,org.w3c.dom",
@@ -72,6 +73,7 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.cdt.make.internal.core.scannerconfig2",
  de.innot.avreclipse.ui.actions;
   uses:="org.eclipse.jface.action,
+   org.eclipse.jface.resource,
    org.eclipse.ui,
    org.eclipse.ui.actions,
    org.eclipse.jface.viewers",
@@ -84,7 +86,16 @@ Export-Package: de.innot.avreclipse;
    de.innot.avreclipse.core.toolinfo.fuses,
    org.eclipse.jface.dialogs,
    org.eclipse.ui.progress",
- de.innot.avreclipse.ui.editors;uses:="org.eclipse.ui.forms,de.innot.avreclipse.core.toolinfo.fuses,org.eclipse.ui.forms.widgets",
+ de.innot.avreclipse.ui.editors;
+  uses:="org.eclipse.ui.forms.editor,
+   org.eclipse.core.runtime,
+   org.eclipse.ui,
+   org.eclipse.core.resources,
+   org.eclipse.jface.viewers,
+   org.eclipse.swt.widgets,
+   org.eclipse.ui.forms,
+   de.innot.avreclipse.core.toolinfo.fuses,
+   org.eclipse.ui.forms.widgets",
  de.innot.avreclipse.ui.preferences;
   uses:="org.eclipse.jface.preference,
    de.innot.avreclipse.core.paths,
@@ -94,7 +105,8 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.swt.widgets,
    org.eclipse.jface.dialogs",
  de.innot.avreclipse.ui.propertypages;
-  uses:="org.eclipse.cdt.managedbuilder.ui.properties,
+  uses:="org.eclipse.core.runtime,
+   org.eclipse.cdt.managedbuilder.ui.properties,
    org.eclipse.swt.events,
    de.innot.avreclipse.core.avrdude,
    org.eclipse.cdt.core.settings.model,
@@ -119,9 +131,12 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.swt.widgets,
    de.innot.avreclipse.core",
  de.innot.avreclipse.ui.wizards;
-  uses:="org.eclipse.jface.resource,
+  uses:="org.eclipse.jface.wizard,
+   org.eclipse.jface.resource,
    org.eclipse.cdt.managedbuilder.ui.wizards,
+   org.eclipse.ui,
    org.eclipse.swt.graphics,
+   org.eclipse.jface.viewers,
    org.eclipse.swt.widgets",
  de.innot.avreclipse.util;uses:="org.eclipse.core.runtime"
 Eclipse-LazyStart: true

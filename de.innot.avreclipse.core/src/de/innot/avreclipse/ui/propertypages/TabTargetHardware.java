@@ -24,6 +24,7 @@ import java.util.Set;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -349,8 +350,8 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	}
 
 	/**
-	 * Check if the FuseBytesProperties and Lockbits in the current properties are compatible with the
-	 * selected mcu. If not, a warning dialog is shown.
+	 * Check if the FuseBytesProperties and Lockbits in the current properties are compatible with
+	 * the selected mcu. If not, a warning dialog is shown.
 	 */
 	private void checkFuseBytes(String mcuid) {
 		AVRDudeProperties avrdudeprops = fTargetProps.getAVRDudeProperties();
@@ -364,18 +365,18 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		int state = 0x00;
 
 		// Check fuse bytes
-		boolean fusewrite = avrdudeprops.getFuseBytes().getWrite();
+		boolean fusewrite = avrdudeprops.getFuseBytes(getCfg()).getWrite();
 		if (fusewrite) {
-			boolean fusecompatible = avrdudeprops.getFuseBytes().isCompatibleWith(mcuid);
+			boolean fusecompatible = avrdudeprops.getFuseBytes(getCfg()).isCompatibleWith(mcuid);
 			if (!fusecompatible) {
 				state |= 0x01;
 			}
 		}
 
 		// check lockbits
-		boolean lockwrite = avrdudeprops.getLockbitBytes().getWrite();
+		boolean lockwrite = avrdudeprops.getLockbitBytes(getCfg()).getWrite();
 		if (lockwrite) {
-			boolean lockcompatible = avrdudeprops.getLockbitBytes().isCompatibleWith(mcuid);
+			boolean lockcompatible = avrdudeprops.getLockbitBytes(getCfg()).isCompatibleWith(mcuid);
 			if (!lockcompatible) {
 				state |= 0x02;
 			}
@@ -434,11 +435,10 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 					monitor.beginTask("Starting AVRDude", 100);
 
 					String mcuid = AVRDude.getDefault().getAttachedMCU(
-							fTargetProps.getAVRDudeProperties().getProgrammer());
+							fTargetProps.getAVRDudeProperties().getProgrammer(),
+							new SubProgressMonitor(monitor, 95));
 
 					fTargetProps.setMCUId(mcuid);
-
-					monitor.worked(95);
 
 					// and update the user interface
 					if (!fLoadButton.isDisposed()) {

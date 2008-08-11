@@ -16,12 +16,16 @@
 package de.innot.avreclipse.ui.propertypages;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.FocusAdapter;
@@ -63,7 +67,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 import de.innot.avreclipse.ui.dialogs.ByteValuesEditorDialog;
-import de.innot.avreclipse.ui.dialogs.MCUMismatchDialog;
+import de.innot.avreclipse.ui.dialogs.ProjectMCUMismatchDialog;
 
 /**
  * The base AVRDude Tab page for Fuses and Lockbits.
@@ -145,6 +149,10 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	private FuseBytePreviewControl	fPreviewControl;
 
+	/** List of all created Images to dispose them when this tab is disposed. */
+	private final List<Image>		fImages					= new ArrayList<Image>(ActionItem
+																	.values().length * 2);
+
 	/** The Properties that this page works with */
 	private AVRDudeProperties		fTargetProps;
 
@@ -181,8 +189,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * @throws AVRDudeException
 	 *             for any Exception thrown by avrdude
 	 */
-	protected abstract ByteValues getByteValues(AVRDudeProperties avrdudeprops)
-			throws AVRDudeException;
+	protected abstract ByteValues getByteValues(AVRDudeProperties avrdudeprops,
+			IProgressMonitor monitor) throws AVRDudeException;
 
 	/**
 	 * Get the Label text for the n-th byte.
@@ -214,6 +222,20 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	protected abstract BaseBytesProperties getByteProps(AVRDudeProperties avrdudeprops);
 
 	// The GUI stuff
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#dispose()
+	 */
+	@Override
+	public void dispose() {
+		// remove all allocated images
+		for (Image image : fImages) {
+			image.dispose();
+		}
+		super.dispose();
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -296,10 +318,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				enableFileGroup(false);
 				enableByteGroup(false);
 
-				updateAVRDudePreview(fTargetProps);
-
-				fPreviewControl.setByteValues(null);
-
+				updateFields();
 				// If the warning was active it is now made invisible
 				checkValid();
 			}
@@ -333,9 +352,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				fBytes.setUseFile(true);
 				enableFileGroup(true);
 				enableByteGroup(false);
-				updateAVRDudePreview(fTargetProps);
-				// TODO: update the Fusebytes preview
-				// Check if the file is compatible and display a warning if required
+				updateFields();
 				checkValid();
 			}
 		});
@@ -490,7 +507,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				fBytes.setByteValues(newvalues);
 
 				checkValid();
-				UpdateFields();
+				updateFields();
 			}
 		});
 
@@ -515,7 +532,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			public void widgetSelected(SelectionEvent e) {
 				ActionItem item = (ActionItem) e.widget.getData();
 				item.performAction(AbstractTabAVRDudeBytes.this);
-				UpdateFields();
+				checkValid();
+				updateFields();
 			}
 		};
 
@@ -523,11 +541,15 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 		for (ActionItem item : ActionItem.values()) {
 			ToolItem ti = new ToolItem(toolbar, SWT.PUSH);
-			ti.setImage(item.image);
-			ti.setDisabledImage(item.disabledImage);
 			ti.setToolTipText(item.tooltipText);
 			ti.setData(item);
 			ti.addSelectionListener(menuListener);
+			Image image = item.image.createImage();
+			Image disabledimage = item.disabledImage.createImage();
+			ti.setImage(image);
+			ti.setDisabledImage(disabledimage);
+			fImages.add(image);
+			fImages.add(disabledimage);
 		}
 
 		return toolbar;
@@ -708,7 +730,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			// But convert the ByteValues anyway so everything is in sync.
 			ByteValues newvalues = convertFusesTo(projectmcuid, fBytes.getByteValues());
 			fBytes.setByteValues(newvalues);
-			UpdateFields();
+			updateFields();
 
 			return;
 		}
@@ -823,7 +845,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 		}
 
-		UpdateFields();
+		updateFields();
 
 	}
 
@@ -839,7 +861,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * This method should be called whenever any fuse byte value has changed.
 	 * </p>
 	 */
-	private void UpdateFields() {
+	private void updateFields() {
 
 		// Update the Fuse Byte Editor Texts.
 		int[] values = fBytes.getValues();
@@ -919,9 +941,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				try {
 					monitor.beginTask("Starting AVRDude", 100);
 
-					final ByteValues bytevalues = getByteValues(fTargetProps);
-
-					monitor.worked(95);
+					final ByteValues bytevalues = getByteValues(fTargetProps,
+							new SubProgressMonitor(monitor, 95));
 
 					// and update the user interface
 					if (!fActionsToolBar.isDisposed()) {
@@ -933,19 +954,19 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 								if (!projectmcu.equals(newmcu)) {
 									// No, they don't match. Ask the user what to do
 									// "Convert to project MCU", "Accept anyway" or "Cancel"
-									Dialog dialog = new MCUMismatchDialog(fActionsToolBar
+									Dialog dialog = new ProjectMCUMismatchDialog(fActionsToolBar
 											.getShell(), newmcu, projectmcu, getType(),
 											isPerConfig());
 									int choice = dialog.open();
 									switch (choice) {
-										case MCUMismatchDialog.CANCEL:
+										case ProjectMCUMismatchDialog.CANCEL:
 											return;
-										case MCUMismatchDialog.ACCEPT:
+										case ProjectMCUMismatchDialog.ACCEPT:
 											// Accept the values including their MCUId.
 											// Set the properties accordingly
 											fBytes.setByteValues(bytevalues);
 											break;
-										case MCUMismatchDialog.CONVERT:
+										case ProjectMCUMismatchDialog.CONVERT:
 											// Convert the values to the current project MCU
 											ByteValues newvalues = convertFusesTo(projectmcu,
 													bytevalues);
@@ -1007,54 +1028,40 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	}
 
 	// The Images for the Actions ToolBar
-	private static final Image	IMG_EN_EDIT			= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_edit_fuses.png")
-															.createImage();
-	private static final Image	IMG_DIS_EDIT		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_edit_fuses.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_EDIT			= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_edit_fuses.png");
+	private static final ImageDescriptor	IMG_DIS_EDIT		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_edit_fuses.png");
 
-	private static final Image	IMG_EN_LOADFILE		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_copy_fusefile.png")
-															.createImage();
-	private static final Image	IMG_DIS_LOADFILE	= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_copy_fusefile.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_LOADFILE		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_copy_fusefile.png");
+	private static final ImageDescriptor	IMG_DIS_LOADFILE	= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_copy_fusefile.png");
 
-	private static final Image	IMG_EN_READMCU		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_read_mcu.png")
-															.createImage();
-	private static final Image	IMG_DIS_READMCU		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_read_mcu.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_READMCU		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_read_mcu.png");
+	private static final ImageDescriptor	IMG_DIS_READMCU		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_read_mcu.png");
 
-	private static final Image	IMG_EN_DEFAULT		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_copy_default.png")
-															.createImage();
-	private static final Image	IMG_DIS_DEFAULT		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_copy_default.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_DEFAULT		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_copy_default.png");
+	private static final ImageDescriptor	IMG_DIS_DEFAULT		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_copy_default.png");
 
-	private static final Image	IMG_EN_ALLONES		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_0xff.png")
-															.createImage();
-	private static final Image	IMG_DIS_ALLONES		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_0xff.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_ALLONES		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_0xff.png");
+	private static final ImageDescriptor	IMG_DIS_ALLONES		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_0xff.png");
 
-	private static final Image	IMG_EN_ALLZEROS		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_0x00.png")
-															.createImage();
-	private static final Image	IMG_DIS_ALLZEROS	= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_0x00.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_ALLZEROS		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_0x00.png");
+	private static final ImageDescriptor	IMG_DIS_ALLZEROS	= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_0x00.png");
 
-	private static final Image	IMG_EN_CLEAR		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/e_clear_bytes.png")
-															.createImage();
-	private static final Image	IMG_DIS_CLEAR		= AVRPlugin.getImageDescriptor(
-															"icons/objs16/d_clear_bytes.png")
-															.createImage();
+	private static final ImageDescriptor	IMG_EN_CLEAR		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/e_clear_bytes.png");
+	private static final ImageDescriptor	IMG_DIS_CLEAR		= AVRPlugin
+																		.getImageDescriptor("icons/objs16/d_clear_bytes.png");
 
 	/**
 	 * Enumeration of all Actions for the hex editor actions Toolbar.
@@ -1067,12 +1074,12 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				ByteValuesEditorDialog dialog = new ByteValuesEditorDialog(tab.fActionsToolBar
 						.getShell(), tab.fBytes.getByteValues());
 				dialog.create();
-				// dialog.getShell().setSize(750, 500);
+				// dialog.getShell().setSize(100, 100);
+				dialog.optimizeSize();
 				int result = dialog.open();
 				if (result == Dialog.OK) {
-					ByteValues newvalues = dialog.getByteValues();
+					ByteValues newvalues = dialog.getResult();
 					tab.fBytes.setByteValues(newvalues);
-					tab.UpdateFields();
 				}
 
 			}
@@ -1121,11 +1128,11 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 		};
 
-		public final String	tooltipText;
-		public final Image	image;
-		public final Image	disabledImage;
+		public final String				tooltipText;
+		public final ImageDescriptor	image;
+		public final ImageDescriptor	disabledImage;
 
-		private ActionItem(String text, Image image, Image disabledImage) {
+		private ActionItem(String text, ImageDescriptor image, ImageDescriptor disabledImage) {
 			this.tooltipText = text;
 			this.image = image;
 			this.disabledImage = disabledImage;

@@ -15,6 +15,8 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
@@ -91,7 +93,7 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	 */
 	@Override
 	protected BaseBytesProperties getByteProps(AVRDudeProperties avrdudeprops) {
-		return avrdudeprops.getFuseBytes();
+		return avrdudeprops.getFuseBytes(getCfg());
 	}
 
 	/*
@@ -100,8 +102,9 @@ public class TabAVRDudeFuseBytes extends AbstractTabAVRDudeBytes {
 	 * @see de.innot.avreclipse.ui.propertypages.AbstractTabAVRDudeBytes#getByteValues(de.innot.avreclipse.core.properties.AVRDudeProperties)
 	 */
 	@Override
-	protected ByteValues getByteValues(AVRDudeProperties avrdudeprops) throws AVRDudeException {
-		return AVRDude.getDefault().getFuseBytes(avrdudeprops.getProgrammer());
+	protected ByteValues getByteValues(AVRDudeProperties avrdudeprops, IProgressMonitor monitor)
+			throws AVRDudeException {
+		return AVRDude.getDefault().getFuseBytes(avrdudeprops.getProgrammer(), monitor);
 	}
 
 	/*

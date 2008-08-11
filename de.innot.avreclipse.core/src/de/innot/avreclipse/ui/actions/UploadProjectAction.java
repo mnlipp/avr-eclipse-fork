@@ -256,8 +256,8 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 		}
 
 		// Check that the fuses are valid (if they are to be uploaded)
-		if (props.getAVRDudeProperties().getFuseBytes().getWrite()) {
-			FuseBytesProperties fusebytes = props.getAVRDudeProperties().getFuseBytes();
+		if (props.getAVRDudeProperties().getFuseBytes(buildcfg).getWrite()) {
+			FuseBytesProperties fusebytes = props.getAVRDudeProperties().getFuseBytes(buildcfg);
 			if (!fusebytes.isCompatibleWith(props.getMCUId())) {
 				String fusesmcuid = AVRMCUidConverter.id2name(fusebytes.getMCUId());
 				String propsmcuid = AVRMCUidConverter.id2name(props.getMCUId());

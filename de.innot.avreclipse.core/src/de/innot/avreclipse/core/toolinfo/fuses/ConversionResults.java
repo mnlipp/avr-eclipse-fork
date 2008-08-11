@@ -69,6 +69,9 @@ public class ConversionResults {
 	 * @see ConversionResults#getStatusForName(String);
 	 */
 	public enum ConversionStatus {
+		/** BitField has not been converted. This is the default if no conversion has taken place yet */
+		NO_CONVERSION,
+
 		/** BitField successfully converted, value text identical. */
 		SUCCESS,
 
@@ -84,6 +87,12 @@ public class ConversionResults {
 		/** Source BitField was not copied because there was no matching BitField in the target. */
 		NOT_IN_TARGET,
 
+		/**
+		 * A new value has been assigned to the BitField (presumably by the user and he has
+		 * recognized the status).
+		 */
+		MODIFIED,
+
 		/** Status is unknown. The BitField name was not in any of the three lists. */
 		UNKNOWN;
 	}
@@ -96,6 +105,9 @@ public class ConversionResults {
 
 	/** List of all BitFields in the target, that have no match in the source. */
 	private final List<BitFieldDescription>	fUnsetFieldsList	= new ArrayList<BitFieldDescription>();
+
+	/** List of all BitFields in the target that have been modified since the last conversion. */
+	private final List<String>				fModifiedList		= new ArrayList<String>();
 
 	/** The source <code>ByteValues</code>. */
 	private ByteValues						fSource				= null;
@@ -170,6 +182,23 @@ public class ConversionResults {
 	}
 
 	/**
+	 * Adds a BitField name to the list of bitfields that have been modified since the last
+	 * conversion.
+	 * <p>
+	 * {@link #getStatusForName(String)} will return {@link ConversionStatus#MODIFIED} for these
+	 * fields.
+	 * </p>
+	 * 
+	 * @param name
+	 *            The name of a BitField. Ignored if <code>null</code>
+	 */
+	protected void setModified(String name) {
+		if (name != null) {
+			fModifiedList.add(name);
+		}
+	}
+
+	/**
 	 * Get the {@link ConversionStatus} for the BitField with the given name.
 	 * 
 	 * @param name
@@ -177,6 +206,12 @@ public class ConversionResults {
 	 * @return The conversion status for the BitField with the given name.
 	 */
 	public ConversionStatus getStatusForName(String name) {
+
+		for (String bitfieldname : fModifiedList) {
+			if (bitfieldname.equals(name)) {
+				return ConversionStatus.MODIFIED;
+			}
+		}
 
 		for (BitFieldDescription bfd : fSuccessList) {
 			if (bfd.getName().equals(name)) {

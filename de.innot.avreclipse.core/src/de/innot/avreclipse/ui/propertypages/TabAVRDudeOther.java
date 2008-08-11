@@ -18,6 +18,7 @@ package de.innot.avreclipse.ui.propertypages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -368,13 +369,12 @@ public class TabAVRDudeOther extends AbstractAVRDudePropertyTab {
 
 				if (fWrite) {
 					loadedvalue = AVRDude.getDefault().setEraseCycleCounter(
-							fTargetProps.getProgrammer(), fNewCounterValue);
+							fTargetProps.getProgrammer(), fNewCounterValue,
+							new SubProgressMonitor(monitor, 95));
 				} else {
 					loadedvalue = AVRDude.getDefault().getEraseCycleCounter(
-							fTargetProps.getProgrammer());
+							fTargetProps.getProgrammer(), new SubProgressMonitor(monitor, 95));
 				}
-
-				monitor.worked(95);
 
 				// and update the user interface
 				if (!fButton.isDisposed()) {

@@ -41,7 +41,7 @@ import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 public class AVRDudeErrorDialog extends ErrorDialog {
 
 	/**
-	 * Instatiate a new AVRDudeErrorDialog.
+	 * Instantiate a new AVRDudeErrorDialog.
 	 * <p>
 	 * The Dialog is not shown until the <code>open()</code> method has been called.
 	 * </p>
@@ -168,6 +168,10 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					message = "Invalid Build directory.\n"
 							+ "Please check the Build directory on the \"Builder settings\" tab\n"
 							+ "(Project -> Properties -> C/C++ Build)";
+					break;
+
+				case USER_CANCEL:
+					message = "Operation cancelled.\n";
 					break;
 				default:
 					message = "An unhandled Error occured while accessing AVRDude.\n\n"

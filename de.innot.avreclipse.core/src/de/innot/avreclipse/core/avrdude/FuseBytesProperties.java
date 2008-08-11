@@ -21,7 +21,6 @@ import java.util.List;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
-import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
@@ -69,28 +68,19 @@ public class FuseBytesProperties extends BaseBytesProperties {
 	 * @param source
 	 *            <code>FuseBytesProperties</code> object to copy.
 	 */
-	public FuseBytesProperties(Preferences prefs, AVRDudeProperties parent, FuseBytesProperties source) {
+	public FuseBytesProperties(Preferences prefs, AVRDudeProperties parent,
+			FuseBytesProperties source) {
 		super(prefs, parent, source);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(java.lang.String)
+	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#getType()
 	 */
 	@Override
-	protected ByteValues createByteValuesObject(String mcuid) {
-		return new ByteValues(FuseType.FUSE, mcuid);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.avrdude.BaseBytesProperties#createByteValuesObject(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)
-	 */
-	@Override
-	protected ByteValues createByteValuesObject(ByteValues source) {
-		return new ByteValues(source);
+	protected FuseType getType() {
+		return FuseType.FUSE;
 	}
 
 	/**

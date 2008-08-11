@@ -36,18 +36,20 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 public enum FuseType {
 
 	/** Fuse byte type */
-	FUSE("fusebyte", "FUSE", 6),
+	FUSE("fusebyte", "FUSE", "fuses", 6),
 
 	/** Lockbits byte type */
-	LOCKBITS("lockbitsbyte", "LOCKBIT", 1);
+	LOCKBITS("lockbitsbyte", "LOCKBIT", "locks", 1);
 
 	private final String	fElementName;
 	private final String	fMemspaceName;
+	private final String	fExtension;
 	private final int		fMaxBytes;
 
-	private FuseType(String elementname, String memspacename, int maxbytes) {
+	private FuseType(String elementname, String memspacename, String extension, int maxbytes) {
 		fElementName = elementname;
 		fMemspaceName = memspacename;
+		fExtension = extension;
 		fMaxBytes = maxbytes;
 	}
 
@@ -70,6 +72,15 @@ public enum FuseType {
 	 */
 	public String getMemspaceName() {
 		return fMemspaceName;
+	}
+
+	/**
+	 * Get the file extension used for files of this type.
+	 * 
+	 * @return The extension String without the leading dot.
+	 */
+	public String getExtension() {
+		return fExtension;
 	}
 
 	/**

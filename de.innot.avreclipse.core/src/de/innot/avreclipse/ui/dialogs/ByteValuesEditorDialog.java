@@ -15,25 +15,21 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.dialogs;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.forms.FormDialog;
-import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.widgets.ColumnLayout;
-import org.eclipse.ui.forms.widgets.ColumnLayoutData;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.ScrolledForm;
-import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.forms.widgets.TableWrapData;
+import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
-import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart;
+import de.innot.avreclipse.ui.editors.ByteValuesMainPart;
+import de.innot.avreclipse.ui.editors.ByteValuesTitlePart;
 
 /**
  * A Fuse Byte Editor as a Dialog.
@@ -56,6 +52,7 @@ import de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart;
  *     	ByteValues values = ....
  * 	   	ByteValuesEditorDialog dialog = new ByteValuesEditorDialog(getShell(), values);
  *     	dialog.create();
+ *      dialog.optimizeSize();
  *  	if (dialog.open() == Dialog.OK) {
  *  		ByteValues newvalues = dialog.getByteValues();
  *  		....
@@ -63,11 +60,10 @@ import de.innot.avreclipse.ui.editors.BitFieldEditorSectionPart;
  * </pre>
  * 
  * <p>
- * This dialog has a tendency to grab more screen space than actually needed to display the content
- * without scrollbars. The reason is under investigation and might be a bug (or feature) in the
- * <code>ColumnLayout</code> used for this dialog. If this behaviour is not desired then a fixed
- * screen size can be set by calling <code>dialog.getShell().setSize(width, height)</code> before
- * the <code>open()</code> call.
+ * Because the <code>ColumnLayout</code> used in the Dialog has some problems when its size is not
+ * constrained. It will grab to much screen space, sometimes all of it. The {@link #optimizeSize()}
+ * method contains a fix to reduce the size of the dialog to the minimum required. Alternatively a
+ * fixed size can be set with <code>dialog.getShell().setSize(int width, int height)</code>.
  * </p>
  * <p>
  * Note: there is currently an unresolved bug that when the alphabetically first BitField shown is
@@ -90,6 +86,8 @@ public class ByteValuesEditorDialog extends FormDialog {
 	private final ByteValues	fByteValues;
 
 	private IManagedForm		fForm;
+
+	private ByteValuesMainPart	fMainPart;
 
 	/**
 	 * Instantiate a new Dialog.
@@ -133,25 +131,14 @@ public class ByteValuesEditorDialog extends FormDialog {
 	protected void createFormContent(IManagedForm managedForm) {
 
 		// The general setup has already been done by the FormDialog superclass.
-		// We only set the title for the dialog, grab the Form and the toolkit and
-		// let fillBody() add the rest of the content.
-		// Once it is finished we can tell the form about the ByteValues we are supposed to edit and
-		// let it update the layout to cover changes in the width of the combos.
+		// We only set the title for the dialog and let fillBody() add the rest of the content.
+		// Once it is finished we can tell the form about the ByteValues we are supposed to edit.
 
 		this.getShell().setText(fByteValues.getType().toString() + " Editor");
 
 		fForm = managedForm;
 
-		ScrolledForm fRootForm = managedForm.getForm();
-		FormToolkit toolkit = managedForm.getToolkit();
-		fRootForm.setText(AVRMCUidConverter.id2name(fByteValues.getMCUId()) + " - "
-				+ fByteValues.getType().toString() + " settings");
-		fillBody(managedForm, toolkit);
-
-		managedForm.setInput(fByteValues);
-		managedForm.reflow(true);
-		// managedForm.refresh();
-
+		fillBody(managedForm);
 	}
 
 	/**
@@ -160,43 +147,94 @@ public class ByteValuesEditorDialog extends FormDialog {
 	 * @param managedForm
 	 * @param toolkit
 	 */
-	private void fillBody(IManagedForm managedForm, FormToolkit toolkit) {
+	private void fillBody(IManagedForm managedForm) {
 
 		Composite body = managedForm.getForm().getBody();
-		ColumnLayout layout = new ColumnLayout();
-		layout.horizontalSpacing = 10;
-		body.setLayout(layout);
+		FormToolkit toolkit = managedForm.getToolkit();
 
-		List<BitFieldDescription> allbfds = fByteValues.getBitfieldDescriptions();
+		body.setLayout(new TableWrapLayout());
 
-		// Sort the bitfield descriptions according to their name
-		Collections.sort(allbfds, new Comparator<BitFieldDescription>() {
-			public int compare(BitFieldDescription o1, BitFieldDescription o2) {
-				String name1 = o1.getName();
-				String name2 = o2.getName();
-				return name1.compareTo(name2);
-			}
-		});
+		// Add a part that will update the form title to the latest MCU.
+		ByteValuesTitlePart titlepart = new ByteValuesTitlePart();
+		managedForm.addPart(titlepart);
 
-		// Now go though all BitFieldDesriptions, create SectionParts for them and add them to the
-		// correct client.
-		for (BitFieldDescription bfd : allbfds) {
-			Section section = toolkit.createSection(body, Section.TITLE_BAR);
-			section.setLayoutData(new ColumnLayoutData(250));
-			section.setText(bfd.getName() + " - " + bfd.getDescription());
+		// The main section has all BitField sections
+		Composite main = toolkit.createComposite(body);
+		main.setLayoutData(new TableWrapData(TableWrapData.FILL));
+		ByteValuesMainPart mainpart = new ByteValuesMainPart(main, fByteValues);
+		managedForm.addPart(mainpart);
 
-			IFormPart part = new BitFieldEditorSectionPart(section, bfd);
-			managedForm.addPart(part);
+		fMainPart = mainpart;
 
-		}
+		managedForm.setInput(fByteValues);
 	}
 
 	/**
-	 * Get the <code>ByteValues</code> this Dialog works on.
+	 * Try to optimize the size of the dialog.
+	 * <p>
+	 * This is done by determining the width of the widest BitField section. This is the minimum
+	 * width of the dialog.<br>
+	 * If two sections will fit on the screen, then the width of the dialog is set to twice the the
+	 * minimum width for a two column layout.
+	 * </p>
+	 * <p>
+	 * This method must be called after {@link #create()}, but before {@link #open()}.
+	 * </p>
+	 * <p>
+	 * This method is a solution for the layout problems of the <code>ColumnLayout</code> used for
+	 * the BitField sections. If <code>ColumnLayout</code> is not constrained by the shell size it
+	 * will grab to much screen-space, usually the complete screen.
+	 * <p>
 	 * 
-	 * @return
+	 * 
 	 */
-	public ByteValues getByteValues() {
+	public void optimizeSize() {
+		//
+		// Even after single stepping thru ColumnLayout I am not sure why ColumnLayout grabs to much
+		// space. It seems like it always tries to get the width for three columns, and as those do
+		// not fit on a 1024px screen will use the maximum available while falling back to a two
+		// column layout, thus rendering the columns much wider than required.
+		//
+		// With regard to the height of a ColumnLayout I am even more at a loss what ColumnLayout is
+		// doing and why it sometimes grabs all screen space. It could be because at one point in
+		// the layout process it calculates the minimum size for each child control, which due to
+		// label wrapping will result in the minimum height of each section being much higher than
+		// actually required.
+		//
+		Point dialogareasize = getContents().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		Rectangle screensize = getShell().getDisplay().getBounds();
+
+		// Get the width of the widest Section. As this does not take borders and margins into
+		// account, I add a arbitrary 12,5% fudge-factor. This value seems to work quite well and is
+		// much easier to determine as all the margins.
+		int columnwidth = fMainPart.getMaxWidth();
+		int width = columnwidth + columnwidth / 8;
+
+		// If we can fit two columns on the screen than do it.
+		boolean twocolumn = screensize.width > width * 2;
+		width *= twocolumn ? 2 : 1;
+
+		// For the height we use the current dialogareasize, which seems to always work, regardless
+		// of a single or double column layout (I don't know why!).
+		// The 20 is a little addition for the the top and bottom border. Should try to determine
+		// this dynamically, but right now I can't be bothered to find out how to determine this.
+		// Maybe you can?
+		int height = dialogareasize.y + 20;
+
+		// Now that we have a good width and height we can set the shell of the dialog accordingly.
+		getShell().setSize(width, height);
+	}
+
+	/**
+	 * Get the <code>ByteValues</code> this Dialog has worked with.
+	 * <p>
+	 * This method should only be called after {@link #open()}, otherwise the returned ByteValues
+	 * may not reflect the latest modifications by the user.
+	 * </p>
+	 * 
+	 * @return <code>ByteValues</code> with the new settings.
+	 */
+	public ByteValues getResult() {
 		// TODO: Do we really need this?
 		// This is probably redundant, because we return a reference to an object that we got from
 		// the caller. So unless the Dialog object has been passed around the caller should still
@@ -207,5 +245,4 @@ public class ByteValuesEditorDialog extends FormDialog {
 		// time.)
 		return fByteValues;
 	}
-
 }

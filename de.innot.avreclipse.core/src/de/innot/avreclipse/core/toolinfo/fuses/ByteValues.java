@@ -26,13 +26,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import de.innot.avreclipse.AVRPlugin;
+import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatus;
 
 /**
  * A container for byte values.
  * <p>
  * This class holds the actual byte values for either the Fuse bytes or a Lockbit byte. These byte
- * values are only valid for the MCU type set at construction time. To change the MCU a new
- * ByteValue Object for the new MCU has to be created, for example with the special copy constructor ({@link #ByteValues(String, ByteValues)}).
+ * values are only valid for the current MCU type.
  * </p>
  * 
  * @author Thomas Holland
@@ -44,23 +44,35 @@ public class ByteValues {
 	/** The type of Bytes, FUSE oder LOCKBITS */
 	private final FuseType						fType;
 
-	/** The MCU for which the byte values are valid. Set during instantiation. */
-	private final String						fMCUId;
+	/** The MCU for which the byte values are valid. */
+	private String								fMCUId;
 
 	/** The number of bytes in this object */
-	private final int							fByteCount;
+	private int									fByteCount;
 
-	/** The actual byte values. The array is initialized during instantiation. */
-	private final int[]							fValues;
+	/** The actual byte values. */
+	private int[]								fValues;
 
 	/** Map of all bitfield descriptions mapped to their name for easy access */
 	private Map<String, BitFieldDescription>	fBitFieldNames	= null;
 
+	/** A user provided comment for this ByteValue object. */
+	private String								fComment;
+
+	/**
+	 * The results of the last conversion, if this <code>ByteValues</code> object has had its MCU
+	 * changed.
+	 */
+	private ConversionResults					fConversionResults;
+
 	/**
 	 * Create a new byte values container for a given MCU.
 	 * <p>
-	 * The new ByteValues object is
+	 * All values are cleared (set to <code>-1</code>).
+	 * </p>
 	 * 
+	 * @param type
+	 *            Either <code>FuseType.FUSE</code> or <code>FuseType.LOCKBITS</code>.
 	 * @param mcuid
 	 *            <code>String</code> with a MCU id value.
 	 */
@@ -71,6 +83,8 @@ public class ByteValues {
 		fByteCount = loadByteCount();
 		fValues = new int[fByteCount];
 		clearValues();
+		fComment = null;
+		fConversionResults = null;
 	}
 
 	/**
@@ -89,36 +103,8 @@ public class ByteValues {
 		fByteCount = source.fByteCount;
 		fValues = new int[fByteCount];
 		System.arraycopy(source.fValues, 0, fValues, 0, fByteCount);
-	}
-
-	/**
-	 * Create a new byte values container for the given MCU id and copies the values of the given
-	 * source ByteValues object to the new ByteValues object.
-	 * <p>
-	 * This constructor is used to change the MCU for an existing <code>ByteValues</code> object.
-	 * Because the same bit values have different meanings for different MCU and might even cause an
-	 * MCU to lock up, this constructor should be used carefully and only after review by the user.
-	 * </p>
-	 * <p>
-	 * If the source has more values, they are truncated. If it has less then the values array is
-	 * filled up with <code>-1</code> values.
-	 * </p>
-	 * 
-	 * @param mcuid
-	 *            A valid MCU id value.
-	 * @param source
-	 *            <code>ByteValues</code> object to clone.
-	 */
-	public ByteValues(String mcuid, ByteValues source) {
-		fType = source.fType;
-		fMCUId = mcuid;
-		fByteCount = loadByteCount();
-		fValues = new int[fByteCount];
-		for (int i = 0; i < fValues.length; i++) {
-			fValues[i] = -1;
-		}
-		int copycount = Math.min(fByteCount, source.fByteCount);
-		System.arraycopy(source.fValues, 0, fValues, 0, copycount);
+		fComment = source.fComment;
+		fConversionResults = source.fConversionResults;
 	}
 
 	/**
@@ -143,6 +129,36 @@ public class ByteValues {
 	}
 
 	/**
+	 * Change this <code>ByteValues</code> object to a new MCU.
+	 * <p>
+	 * 
+	 * 
+	 * @param mcuid
+	 * @param convert
+	 */
+	public void setMCUId(String mcuid, boolean convert) {
+
+		ByteValues conversioncopy = null;
+		if (convert) {
+			fConversionResults = new ConversionResults();
+			conversioncopy = convertTo(mcuid, fConversionResults);
+		}
+
+		fMCUId = mcuid;
+		fByteCount = loadByteCount();
+		fValues = new int[fByteCount];
+
+		if (conversioncopy != null) {
+			fValues = conversioncopy.getValues();
+		} else {
+			clearValues();
+		}
+
+		fBitFieldNames = null;
+
+	}
+
+	/**
 	 * Get the actual number of bytes supported by the MCU.
 	 * <p>
 	 * Depending on the type of this object either the number of fuse bytes (0 up to 6) or the
@@ -160,6 +176,10 @@ public class ByteValues {
 
 	/**
 	 * Sets the byte at the given index to a value.
+	 * <p>
+	 * If this object has been converted before, then the status of all BitFields of this Byte are
+	 * set to {@link ConversionStatus#MODIFIED}.
+	 * </p>
 	 * 
 	 * @param index
 	 *            The index of the byte to set. Must be between 0 and {@link #getByteCount()}-1.
@@ -177,6 +197,16 @@ public class ByteValues {
 		}
 
 		fValues[index] = value;
+
+		if (fConversionResults != null) {
+			IMCUDescription desc = getDescription(fMCUId);
+			IByteDescription bytedesc = desc.getByteDescription(fType, index);
+			List<BitFieldDescription> allbfds = bytedesc.getBitFieldDescriptions();
+			for (BitFieldDescription bfd : allbfds) {
+				String name = bfd.getName();
+				fConversionResults.setModified(name);
+			}
+		}
 	}
 
 	/**
@@ -276,6 +306,11 @@ public class ByteValues {
 			throw new IllegalArgumentException("Bitfield name [" + name + "] is not known.");
 		}
 
+		// clear the conversion results for this BitField (if there is one)
+		if (fConversionResults != null) {
+			fConversionResults.setModified(name);
+		}
+
 		// Test if the value is within bounds
 		if (value < 0 || desc.getMaxValue() < value) {
 			throw new IllegalArgumentException("Value [" + value + "] out of range (0..."
@@ -366,6 +401,27 @@ public class ByteValues {
 	}
 
 	/**
+	 * Gets the conversion status of a named BitField after a conversion.
+	 * <p>
+	 * Conversion is caused by a change of the MCU id for this object. If no conversion was
+	 * performed {@link ConversionStatus#NO_CONVERSION} is returned.
+	 * </p>
+	 * 
+	 * @see ConversionStatus
+	 * 
+	 * @param bitFieldName
+	 *            The name of the BitField
+	 * @return The status in regard to the last conversion applied.
+	 */
+	public ConversionStatus getConversionStatus(String bitFieldName) {
+		if (fConversionResults != null) {
+			return fConversionResults.getStatusForName(bitFieldName);
+		}
+
+		return ConversionStatus.NO_CONVERSION;
+	}
+
+	/**
 	 * Clears all values.
 	 * <p>
 	 * This method will set the value of all bytes to <code>-1</code>
@@ -427,6 +483,32 @@ public class ByteValues {
 		IMCUDescription fusesdesc = getDescription(fMCUId);
 		IByteDescription bytedesc = fusesdesc.getByteDescription(fType, index);
 		return bytedesc.getName();
+	}
+
+	/**
+	 * Get the user supplied comment for this <code>ByteValues</code> object.
+	 * <p>
+	 * The returned String may be <code>null</code> if no comment has been set.
+	 * </p>
+	 * 
+	 * @return The comment String.
+	 */
+	public String getComment() {
+		return fComment;
+	}
+
+	/**
+	 * Sets a user supplied comment for this <code>ByteValues</code> object.
+	 * <p>
+	 * This class does not do anything with the comment other than store it. It is up to subclasses
+	 * or to the caller to handle the comment.
+	 * </p>
+	 * 
+	 * @param comment
+	 *            The new comment or <code>null</code> to clear the comment.
+	 */
+	public void setComment(String comment) {
+		fComment = comment;
 	}
 
 	/**
@@ -523,9 +605,8 @@ public class ByteValues {
 	 * or at least very close.
 	 * </p>
 	 * <p>
-	 * If the two MCUs are compatible it is (hopefully) save to use the
-	 * {@link #ByteValues(String, ByteValues)} constructor to make a copy of this ByteValues object
-	 * with the new MCU.
+	 * If the two MCUs are compatible they can be converted to each other without the loss of
+	 * significant information.
 	 * </p>
 	 * 
 	 * @return <code>true</code> if the current byte values are also valid for the given MCU id.
@@ -538,6 +619,51 @@ public class ByteValues {
 			return false;
 		}
 		return ourdesc.isCompatibleWith(targetdesc, fType);
+	}
+
+	/**
+	 * Set the Byte values from the given ByteValues object.
+	 * <p>
+	 * If the source values are for an incompatible MCU type then two cases are possible as
+	 * determined by the <code>forceMCU</code> flag.
+	 * <ul>
+	 * <li><code>true</code>: The MCU of this ByteValues object is changed to the MCU of the
+	 * source ByteValues and then the values from the source are copied 1:1.</li>
+	 * <li><code>false</code>: The MCU of this ByteValues object remains the same and the source
+	 * ByteValues are first converted to this MCU and then the values are copied.</li>
+	 * </ul>
+	 * Another difference is, that in only the second case a <code>ConversionResults</code> is
+	 * generated.
+	 * </p>
+	 * 
+	 * @param sourcevalues
+	 *            An <code>ByteValues</code> object with the source values
+	 * @param forceMCU
+	 *            <code>true</code> to change this MCU to that of the source, <code>false</code>
+	 *            to convert the source values to this MCU.
+	 */
+	public void setValues(ByteValues sourcevalues, boolean forceMCU) {
+
+		if (isCompatibleWith(sourcevalues.getMCUId())) {
+			// Compatible mcu -> just copy the values and we're done
+			setValues(sourcevalues.getValues());
+			return;
+		}
+
+		if (forceMCU) {
+			// Change our MCU to that of the source values
+			setMCUId(sourcevalues.getMCUId(), false);
+			setValues(sourcevalues.getValues());
+
+		} else {
+			// Don't change our MCU -> convert the source first and then use the
+			// resulting values as our values.
+			ConversionResults results = new ConversionResults();
+			ByteValues converted = sourcevalues.convertTo(getMCUId(), results);
+			setValues(converted.getValues());
+			fConversionResults = results;
+		}
+
 	}
 
 	/**

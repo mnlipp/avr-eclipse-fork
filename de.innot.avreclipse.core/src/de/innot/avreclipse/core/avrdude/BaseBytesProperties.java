@@ -18,16 +18,25 @@ package de.innot.avreclipse.core.avrdude;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
+import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.mbs.BuildMacro;
 
 /**
- * Storage independent container for the Fuse and Locks Byte values.
+ * Storage independent container for the Fuse and Lockbits Byte values.
+ * <p>
+ * This class is the bridge between the plugin property system and the {@link ByteValues} to
+ * actually hold the data.
+ * </p>
  * <p>
  * This class has two modes. Depending on the {@link #fUseFile} flag, it will either read the fuse
  * values from a supplied file or immediate values stored in a byte values object. The mode is
@@ -84,6 +93,7 @@ public abstract class BaseBytesProperties {
 	private String					fFileName;
 	private final static String		KEY_FILENAME		= "FileName";
 	private final static String		DEFAULT_FILENAME	= "";
+	private FileByteValues			fFileByteValues		= null;
 
 	/**
 	 * The current byte values.
@@ -108,6 +118,9 @@ public abstract class BaseBytesProperties {
 	 */
 	private final AVRDudeProperties	fParent;
 
+	/** Build configuration used to resolve filenames. */
+	private IConfiguration			fBuildConfig		= null;
+
 	/** <code>true</code> if the properties have been modified and need saving. */
 	private boolean					fDirty				= false;
 
@@ -125,7 +138,7 @@ public abstract class BaseBytesProperties {
 	protected BaseBytesProperties(Preferences prefs, AVRDudeProperties parent) {
 		fPrefs = prefs;
 		fParent = parent;
-		fByteValues = createByteValuesObject(parent.getParent().getMCUId());
+		fByteValues = new ByteValues(getType(), parent.getParent().getMCUId());
 
 		load();
 	}
@@ -152,26 +165,15 @@ public abstract class BaseBytesProperties {
 
 		fWriteFlag = source.fWriteFlag;
 		fUseFile = source.fUseFile;
-		fByteValues = createByteValuesObject(source.fByteValues);
+		fByteValues = new ByteValues(source.fByteValues);
 	}
 
 	/**
-	 * Hook method for subclasses to supply a new {@link ByteValues} object.
+	 * Hook method for subclasses to supply the {@link FuseType} for the properties.
 	 * 
-	 * @param mcuid
-	 *            <code>String</code> with a MCU id value.
-	 * @return New <code>ByteValue</code> object.
+	 * @return Either <code>FuseType.FUSE</code> or <code>FuseType.LOCKBITS</code>
 	 */
-	protected abstract ByteValues createByteValuesObject(String mcuid);
-
-	/**
-	 * Hook method for subclasses to supply a new {@link ByteValues} object.
-	 * 
-	 * @param source
-	 *            <code>ByteValue</code> source object to copy.
-	 * @return New <code>ByteValue</code> object.
-	 */
-	protected abstract ByteValues createByteValuesObject(ByteValues source);
+	protected abstract FuseType getType();
 
 	/**
 	 * Get the MCU id value for which this object is valid.
@@ -180,7 +182,9 @@ public abstract class BaseBytesProperties {
 	 */
 	public String getMCUId() {
 
-		// TODO: if a file is used, return the mcuid from the file.
+		if (fUseFile) {
+			return getByteValuesFromFile().getMCUId();
+		}
 
 		return fMCUid;
 	}
@@ -204,7 +208,7 @@ public abstract class BaseBytesProperties {
 			fMCUid = mcuid;
 
 			// copy the old byte values to a new ByteValues Object for the given MCU
-			ByteValues newByteValues = createByteValuesObject(mcuid);
+			ByteValues newByteValues = new ByteValues(getType(), mcuid);
 			newByteValues.setValues(fByteValues.getValues());
 			fByteValues = newByteValues;
 
@@ -276,14 +280,34 @@ public abstract class BaseBytesProperties {
 	 * Note: The returned path may still be OS independent and needs to be converted to an OS
 	 * specific path (e.g. with <code>new Path(resolvedname).toOSString()</code>
 	 * </p>
+	 * <p>
+	 * To resolve any macros this method needs an <code>IConfiguration</code> for the macro
+	 * context. This needs to be set with the {@link #setBuildConfig(IConfiguration)} method. If no
+	 * build configuration has been set, this method will return the filename unresolved.
+	 * </p>
 	 * 
-	 * @param buildcfg
-	 *            <code>IConfiguration</code> with the macro context.
 	 * @return <code>String</code> with the resolved filename. May be empty and may not point to
 	 *         an actual or valid file.
 	 */
-	public String getFileNameResolved(IConfiguration buildcfg) {
-		return BuildMacro.resolveMacros(buildcfg, fFileName);
+	public String getFileNameResolved() {
+		if (fBuildConfig != null) {
+			return BuildMacro.resolveMacros(fBuildConfig, fFileName);
+		}
+		return fFileName;
+	}
+
+	/**
+	 * Sets the current build configuration.
+	 * <p>
+	 * This is only used to expand macros in the filename of an optional fuse/locks file. If it is
+	 * <code>null</code> filenames can not be resolved and used as is.
+	 * </p>
+	 * 
+	 * @param config
+	 *            The current build configuration.
+	 */
+	public void setBuildConfig(IConfiguration config) {
+		fBuildConfig = config;
 	}
 
 	/**
@@ -323,6 +347,11 @@ public abstract class BaseBytesProperties {
 	 * modifications are not reflected on the values in this object.
 	 * </p>
 	 * <p>
+	 * To modify the values the use of the {@link #setValue(int, int)}, {@link #setValues(int[])}
+	 * and {@link #setByteValues(ByteValues)} is required so this class can track any modifications
+	 * and set the dirty flag as required.
+	 * </p>
+	 * <p>
 	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
 	 * </p> <
 	 * 
@@ -330,11 +359,26 @@ public abstract class BaseBytesProperties {
 	 */
 	public ByteValues getByteValues() {
 		if (fUseFile) {
-			// TODO: handle files
-			return null;
+			return getByteValuesFromFile();
+		}
+		return new ByteValues(fByteValues);
+	}
+
+	public ByteValues getByteValuesFromFile() {
+
+		if (fFileByteValues == null) {
+			// We need to instantiate a new byte values from file object
+			IPath location = new Path(getFileNameResolved());
+			try {
+				fFileByteValues = new FileByteValues(location);
+			} catch (CoreException e) {
+				// in case of an error we just return null
+				return null;
+			}
 		}
 
-		return new ByteValues(fByteValues);
+		return new ByteValues(fFileByteValues.getByteValues());
+
 	}
 
 	/**
@@ -363,7 +407,7 @@ public abstract class BaseBytesProperties {
 					+ " ByteValues object");
 		}
 
-		fByteValues = createByteValuesObject(newvalues);
+		fByteValues = new ByteValues(newvalues);
 		fMCUid = newvalues.getMCUId();
 
 		fDirty = true;
@@ -511,7 +555,8 @@ public abstract class BaseBytesProperties {
 	 * Copies the byte values from the file to the object storage.
 	 */
 	public void syncFromFile() {
-		// TODO Not implemented yet
+		ByteValues source = getByteValuesFromFile();
+		setByteValues(source);
 	}
 
 	/**
