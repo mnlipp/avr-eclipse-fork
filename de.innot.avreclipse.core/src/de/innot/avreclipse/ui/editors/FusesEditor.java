@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * 
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the GNU Public License v3
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * 
+ * Contributors:
+ *     Thomas Holland - initial API and implementation
+ *     
+ * $Id$
+ *     
+ *******************************************************************************/
 package de.innot.avreclipse.ui.editors;
 
 import org.eclipse.core.resources.IFile;
@@ -28,6 +43,7 @@ import org.eclipse.ui.part.FileEditorInput;
 
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * The FuseByte File Editor.
@@ -39,6 +55,11 @@ import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
  * </ul>
  * </p>
  * 
+ * @see LockbitsEditor
+ * 
+ * @author Thomas Holland
+ * @since 2.3
+ * 
  */
 public class FusesEditor extends FormEditor implements IResourceChangeListener {
 
@@ -47,11 +68,28 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener {
 	private FileByteValues		fFileByteValues;
 
 	/**
-	 * Creates a multi-page editor example.
+	 * Creates a fuse bytes editor.
+	 * <p>
+	 * Registers this editor as an <code>ResourceChangeListener</code> to be informed about
+	 * changes of the file edited and about workbench closure.
+	 * </p>
 	 */
 	public FusesEditor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+	}
+
+	/**
+	 * Gets the type of fuse memory this Editor can edit.
+	 * <p>
+	 * Returns {@link FuseType#FUSE} for the <code>FusesEditor</code>. The {@link LockbitsEditor}
+	 * class will override this method and return {@link FuseType#LOCKBITS}.
+	 * </p>
+	 * 
+	 * @return The <code>FuseType</code> for this Editor.
+	 */
+	protected FuseType getType() {
+		return FuseType.FUSE;
 	}
 
 	/*

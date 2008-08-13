@@ -321,6 +321,14 @@
 			name="Fuses File"
 			project="false">
 		</wizard>
+		<wizard 
+			id="de.innot.avreclipse.ui.wizards.NewLockbitsWizard"
+			category="de.innot.avreclipse.ui.wizards"
+			class="de.innot.avreclipse.ui.wizards.NewLockbitsWizard"
+			icon="icons/etool16/new_lockfile_wiz.png"
+			name="Lockbits File"
+			project="false">
+		</wizard>
 	</extension>
 
 	<extension point="org.eclipse.cdt.managedbuilder.ui.newWizardPages"
@@ -348,6 +356,11 @@
 			extensions="fuses"
 			icon="icons/objs16/fuse_file_obj.png"
 			class="de.innot.avreclipse.ui.editors.FusesEditor" />
+		<editor id="de.innot.avreclipse.ui.editors.LockbitsEditor"
+			name="Lockbits Editor"
+			extensions="locks"
+			icon="icons/objs16/lock_file_obj.png"
+			class="de.innot.avreclipse.ui.editors.LockbitsEditor" />
 	</extension>
 
 <!--

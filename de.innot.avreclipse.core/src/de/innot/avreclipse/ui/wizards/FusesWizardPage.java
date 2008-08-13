@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.wizards;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
@@ -36,7 +38,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.IDialogPage;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -51,6 +53,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
@@ -63,19 +66,27 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
+import de.innot.avreclipse.ui.dialogs.SelectProgrammerDialog;
 
 /**
- * The "New Fuses File" Wizard page.
+ * The "New Fuses File" / "New Lockbits File" Wizard page.
  * <p>
- * This is the UI part of the "Fuses File" Wizard.<br>
+ * This is the UI part of the "Fuses File" Wizard. It is used for both FUSES and LOCKBITS. This is
+ * determined during instantiation by passing a {@link FuseType} to the constructor.
+ * </p>
+ * <p>
  * On this page the following properties for the new fuses file can be edited:
  * <ol>
  * <li>The parent container for the new file</li>
- * <li>The target MCU</li>
- * <li>The name of the fuses file, either without an extension or with a ".fuses" extension</li>
+ * <li>The MCU type</li>
+ * <li>The name of the fuses file, either without an extension or with a ".fuses" / ".locks"
+ * extension</li>
+ * <li>The initial content of the file: Atmel defaults or loaded from an MCU.</li>
  * </ol>
  * </p>
  * <p>
@@ -83,7 +94,7 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
  * <ul>
  * <li>{@link #getContainer()}</li>
  * <li>{@link #getFileName()}</li>
- * <li>{@link #getMCUId()}</li>
+ * <li>{@link #getByteValues()}</li>
  * </ul>
  * methods.
  * </p>
@@ -94,8 +105,13 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 
 public class FusesWizardPage extends WizardPage {
 
+	// Texts for the Load from MCU Button
 	private static final String	TEXT_LOADBUTTON			= "Load from MCU";
 	private static final String	TEXT_LOADBUTTON_BUSY	= "Loading...";
+
+	// The Page title and Description
+	private final static String	TITLE					= "New AVR{0} file";
+	private final static String	DESCRIPTION				= "This wizard creates a new AVR {0} file.";
 
 	private Text				fContainerText;
 
@@ -104,7 +120,14 @@ public class FusesWizardPage extends WizardPage {
 	private Combo				fMCUCombo;
 	private Button				fLoadButton;
 
+	private Button				fDefaultsButton;
+	private Button				fLoadedValuesButton;
+
+	private ByteValues			fLoadedValues;
+
 	private final ISelection	fSelection;
+
+	private final FuseType		fType;
 
 	/**
 	 * Constructor for FusesWizardPage.
@@ -113,15 +136,23 @@ public class FusesWizardPage extends WizardPage {
 	 *            The resource selected when the Wizard was called. Will be used to determine and
 	 *            set the parent container for the new fuses file.
 	 */
-	public FusesWizardPage(ISelection selection) {
+	public FusesWizardPage(ISelection selection, FuseType type) {
 		super("wizardPage");
-		setTitle("New AVR Fuses file");
-		setDescription("This wizard creates a new AVR fuses file.");
+
+		String title = MessageFormat.format(TITLE, type.toString());
+		setTitle(title);
+
+		String description = MessageFormat.format(DESCRIPTION, type.toString());
+		setDescription(description);
+
 		fSelection = selection;
+		fType = type;
 	}
 
-	/**
-	 * @see IDialogPage#createControl(Composite)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
@@ -133,6 +164,7 @@ public class FusesWizardPage extends WizardPage {
 		addParentFolderRow(container);
 		addMCUComboRow(container);
 		addFilenameRow(container);
+		addInitialContentRow(container);
 
 		initialize();
 		validateDialog();
@@ -192,6 +224,13 @@ public class FusesWizardPage extends WizardPage {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				validateDialog();
+				// Check if the selected MCU is still valid for any loaded values
+				if (fLoadedValues != null && fLoadedValues.isCompatibleWith(getMCUId())) {
+					fLoadedValuesButton.setEnabled(true);
+				} else {
+					fLoadedValuesButton.setEnabled(false);
+					fDefaultsButton.setSelection(true);
+				}
 			}
 		});
 
@@ -207,6 +246,23 @@ public class FusesWizardPage extends WizardPage {
 		});
 	}
 
+	private void addInitialContentRow(Composite parent) {
+		Group contentgroup = new Group(parent, SWT.NONE);
+		contentgroup.setText("Initial content");
+		contentgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		contentgroup.setLayout(new GridLayout());
+
+		fDefaultsButton = new Button(contentgroup, SWT.RADIO);
+		fDefaultsButton.setText("Use default values (if available)");
+		fDefaultsButton
+				.setToolTipText("Use the default values defined in the Atmel part description files. Missing for some MCUs.");
+		fDefaultsButton.setSelection(true);
+
+		fLoadedValuesButton = new Button(contentgroup, SWT.RADIO);
+		fLoadedValuesButton.setText("Use the values loaded from the MCU");
+		fLoadedValuesButton.setEnabled(false);
+	}
+
 	/**
 	 * Tests if the current workbench selection is a suitable container to use. Also determine the
 	 * project of the selection and, if it is an AVR project, set the MCU and the filename according
@@ -215,7 +271,7 @@ public class FusesWizardPage extends WizardPage {
 	private void initialize() {
 
 		String mcuid = "atmega16"; // The default mcu
-		String filename = "new.fuses"; // The default filename
+		String filename = "new." + fType.getExtension(); // The default filename
 
 		Object item = getSelectedItem(fSelection);
 
@@ -237,7 +293,7 @@ public class FusesWizardPage extends WizardPage {
 			ProjectPropertyManager propsmanager = getProjectPropertiesManager(project);
 			AVRProjectProperties props = propsmanager.getActiveProperties();
 			mcuid = props.getMCUId();
-			filename = mcuid + ".fuses";
+			filename = mcuid + "." + fType.getExtension();
 			if (propsmanager.isPerConfig()) {
 				// Get the name of the active configuration
 				// Get the active build configuration
@@ -261,11 +317,6 @@ public class FusesWizardPage extends WizardPage {
 		}
 		fMCUCombo.setVisibleItemCount(Math.min(mculist.size(), 20));
 		fMCUCombo.select(fMCUCombo.indexOf(AVRMCUidConverter.id2name(mcuid)));
-
-		// Disable the load button if no programmer can be extracted from the selection
-		if (getProgrammerConfig(fSelection) == null) {
-			fLoadButton.setEnabled(false);
-		}
 
 	}
 
@@ -353,7 +404,7 @@ public class FusesWizardPage extends WizardPage {
 	 * 
 	 */
 	private void validateDialog() {
-		IResource container = ResourcesPlugin.getWorkspace().getRoot().findMember(
+		IContainer container = (IContainer) ResourcesPlugin.getWorkspace().getRoot().findMember(
 				new Path(getContainerName()));
 		String fileName = getFileName();
 
@@ -378,15 +429,21 @@ public class FusesWizardPage extends WizardPage {
 			updateStatus("File name must be valid");
 			return;
 		}
-		int dotLoc = fileName.lastIndexOf('.');
-		if (dotLoc != -1) {
-			String ext = fileName.substring(dotLoc + 1);
-			if (ext.equalsIgnoreCase("fuses") == false) {
-				updateStatus("File extension must be \"fuses\"");
-				return;
-			}
+		if (!fileName.endsWith("." + fType.getExtension())) {
+			String message = MessageFormat.format("File extension must be \"{0}\"", fType
+					.getExtension());
+			updateStatus(message);
+			return;
 		}
+
+		IFile file = container.getFile(new Path(fileName));
+		if (file.exists()) {
+			updateStatus("File already exists");
+			return;
+		}
+
 		updateStatus(null);
+
 	}
 
 	/**
@@ -424,10 +481,33 @@ public class FusesWizardPage extends WizardPage {
 	 * 
 	 * @return String with mcu id
 	 */
-	public String getMCUId() {
+	private String getMCUId() {
 		String mcuname = fMCUCombo.getItem(fMCUCombo.getSelectionIndex());
 		String mcuid = AVRMCUidConverter.name2id(mcuname);
+
 		return mcuid;
+	}
+
+	/**
+	 * Get a new <code>ByteValues</code> object set up to the user selection.
+	 * <p>
+	 * The object has the correct MCU and either - depending on user choice - the default byte
+	 * values or the values loaded from an attached MCU.
+	 * 
+	 * @return New <code>ByteValues</code> object.
+	 */
+	public ByteValues getNewByteValues() {
+		String mcuid = getMCUId();
+		if (fLoadedValues != null && fLoadedValues.isCompatibleWith(mcuid)) {
+			fLoadedValues.setMCUId(mcuid, false);
+			return fLoadedValues;
+		}
+
+		// Create new ByteValues object with the default values
+		ByteValues newvalues = new ByteValues(fType, mcuid);
+		newvalues.setDefaultValues();
+
+		return newvalues;
 	}
 
 	/**
@@ -438,7 +518,18 @@ public class FusesWizardPage extends WizardPage {
 	 */
 	private void loadComboFromDevice() {
 
-		final ProgrammerConfig progcfg = getProgrammerConfig(fSelection);
+		ProgrammerConfig tmpcfg = getProgrammerConfig(fSelection);
+		if (tmpcfg == null) {
+			SelectProgrammerDialog dialog = new SelectProgrammerDialog(this.getShell(), null);
+			if (dialog.open() != IDialogConstants.OK_ID) {
+				return;
+			}
+			tmpcfg = dialog.getResult();
+			if (tmpcfg == null) {
+				return;
+			}
+		}
+		final ProgrammerConfig progcfg = tmpcfg;
 
 		// Disable the Load Button. It is re-enabled by the load job when the job finishes.
 		fLoadButton.setEnabled(false);
@@ -452,17 +543,32 @@ public class FusesWizardPage extends WizardPage {
 				try {
 					monitor.beginTask("Starting AVRDude", 100);
 
-					// Get the programmer from the project
+					// Get the current Values from the attached MCU
+					AVRDude avrdude = AVRDude.getDefault();
+					switch (fType) {
+						case FUSE:
+							fLoadedValues = avrdude.getFuseBytes(progcfg, new SubProgressMonitor(
+									monitor, 95));
+							break;
+						case LOCKBITS:
+							fLoadedValues = avrdude.getLockbits(progcfg, new SubProgressMonitor(
+									monitor, 95));
+							break;
+					}
 
-					final String mcuid = AVRDude.getDefault().getAttachedMCU(progcfg,
-							new SubProgressMonitor(monitor, 95));
+					if (fLoadedValues == null) {
+						return Status.CANCEL_STATUS;
+					}
 
-					// and update the user interface
+					// and update the user interface:
+					// Select the MCU in the combo and enable the "use loaded values" button.
 					if (!fLoadButton.isDisposed()) {
 						fLoadButton.getDisplay().syncExec(new Runnable() {
 							public void run() {
+								String mcuid = fLoadedValues.getMCUId();
 								fMCUCombo.select(fMCUCombo
 										.indexOf(AVRMCUidConverter.id2name(mcuid)));
+								fLoadedValuesButton.setEnabled(true);
 							}
 						});
 					}

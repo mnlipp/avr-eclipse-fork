@@ -41,6 +41,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
@@ -65,11 +66,25 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 	}
 
 	/**
+	 * Gets the type of fuse memory this Wizard will create a file for.
+	 * <p>
+	 * Returns {@link FuseType#FUSE} for the <code>NewFusesWizard</code>. The
+	 * {@link NewLockbitsWizard} class will override this method and return
+	 * {@link FuseType#LOCKBITS}.
+	 * </p>
+	 * 
+	 * @return The <code>FuseType</code> for this wizard.
+	 */
+	protected FuseType getType() {
+		return FuseType.FUSE;
+	}
+
+	/**
 	 * Adding the fWizardPage to the wizard.
 	 */
 	@Override
 	public void addPages() {
-		fWizardPage = new FusesWizardPage(fSelection);
+		fWizardPage = new FusesWizardPage(fSelection, getType());
 		addPage(fWizardPage);
 	}
 
@@ -82,12 +97,12 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 
 		final String containerName = fWizardPage.getContainerName();
 		final String fileName = fWizardPage.getFileName();
-		final String mcuid = fWizardPage.getMCUId();
+		final ByteValues newvalues = fWizardPage.getNewByteValues();
 
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(containerName, fileName, mcuid, monitor);
+					doFinish(containerName, fileName, newvalues, monitor);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -108,50 +123,53 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 	}
 
 	/**
-	 * The worker method. It will find the container, create the file if missing or just replace its
-	 * contents, and open the editor on the newly created file.
+	 * The worker method. It will find the container, create the file with the selected contents,
+	 * and open the editor on the newly created file.
 	 */
-	private void doFinish(String containerName, String fileName, String mcuid,
+	private void doFinish(String containerName, String fileName, ByteValues newvalues,
 			IProgressMonitor monitor) throws CoreException {
 
-		monitor.beginTask("Creating " + fileName, 2);
+		try {
+			monitor.beginTask("Creating " + fileName, 2);
 
-		// get the IContainer from the given containerName.
-		// Throw an CoreException if the container does not exist
-		// (Unlikely, because we checked this on the WizardPage already.
+			// get the IContainer from the given containerName.
+			// Throw an CoreException if the container does not exist
+			// (Unlikely, because we checked this on the WizardPage already.
 
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource resource = root.findMember(new Path(containerName));
-		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException("Container \"" + containerName + "\" does not exist.");
-		}
-		IContainer container = (IContainer) resource;
-
-		// Now get a handle for the new fuses file and write the default values for the given mcu to
-		// the file.
-		// If the file already exists we ask the user if it is OK to overwrite it.
-		final IFile file = container.getFile(new Path(fileName));
-		if (file.exists()) {
-			// TODO: Ask the user if overwriting is OK
-		}
-		final FileByteValues newfile = FileByteValues.createNewFile(file.getLocation(), mcuid,
-				FuseType.FUSE);
-		newfile.save(new SubProgressMonitor(monitor, 1));
-
-		// Now open the new file with the default editor
-		monitor.setTaskName("Opening file for editing...");
-		getShell().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-						.getActivePage();
-				try {
-					IDE.openEditor(page, newfile.getSourceFile(), true);
-				} catch (PartInitException e) {
-					// TODO: Log error message
-				}
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+			IResource resource = root.findMember(new Path(containerName));
+			if (!resource.exists() || !(resource instanceof IContainer)) {
+				throwCoreException("Container \"" + containerName + "\" does not exist.");
 			}
-		});
-		monitor.worked(1);
+			IContainer container = (IContainer) resource;
+
+			// Now get a handle for the new fuses file and write the selected values
+			// to the file.
+			// If the file already exists we ask the user if it is OK to overwrite it.
+			IFile file = container.getFile(new Path(fileName));
+			final FileByteValues newfile = FileByteValues.createNewFile(file.getLocation(),
+					newvalues.getMCUId(), FuseType.FUSE);
+			newfile.setByteValue(newvalues);
+			newfile.save(new SubProgressMonitor(monitor, 1));
+
+			// Now open the new file with the default editor
+			monitor.setTaskName("Opening file for editing...");
+			getShell().getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+							.getActivePage();
+					try {
+						IDE.openEditor(page, newfile.getSourceFile(), true);
+					} catch (PartInitException e) {
+						// TODO: Log error message
+					}
+				}
+			});
+			monitor.worked(1);
+
+		} finally {
+			monitor.done();
+		}
 	}
 
 	private void throwCoreException(String message) throws CoreException {
