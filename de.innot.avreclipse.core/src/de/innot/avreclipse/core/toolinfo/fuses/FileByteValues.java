@@ -50,8 +50,6 @@ public class FileByteValues implements IResourceChangeListener {
 
 	private ByteValues						fByteValues;
 
-	private final String					fComment	= "";
-
 	private List<IByteValuesChangeListener>	fListeners	= null;
 
 	private boolean							hasSaved	= false;
@@ -344,6 +342,8 @@ public class FileByteValues implements IResourceChangeListener {
 			sb.append(name + "=" + valuetext + "\n");
 		}
 
+		String comment = fByteValues.getComment();
+		comment = comment != null ? comment : "";
 		sb.append("summary=" + fByteValues.getComment() + "\n");
 
 		return new ByteArrayInputStream(sb.toString().getBytes());

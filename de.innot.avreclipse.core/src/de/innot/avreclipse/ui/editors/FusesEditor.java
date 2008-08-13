@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -191,11 +190,6 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener {
 				dialog.setOriginalFile(original);
 
 			dialog.create();
-
-			if (!original.exists()) {
-				dialog.setErrorMessage(null);
-				dialog.setMessage("File does not exist", IMessageProvider.WARNING);
-			}
 
 			if (dialog.open() == Window.CANCEL) {
 				return;

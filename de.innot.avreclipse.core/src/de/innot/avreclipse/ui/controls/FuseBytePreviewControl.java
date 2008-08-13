@@ -684,7 +684,8 @@ public class FuseBytePreviewControl extends Composite {
 					// Set the selection as if the mouse down event went through to the table
 					fTree.setSelection(new TreeItem[] { (TreeItem) e.item });
 					fTree.notifyListeners(SWT.Selection, e);
-					// continue and dispose the tooltip
+					shell.dispose();
+					break;
 				case SWT.MouseExit:
 					shell.dispose();
 					break;

@@ -17,6 +17,7 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
@@ -122,13 +123,12 @@ public class MCUDescription implements IMCUDescription {
 			}
 		}
 
-		// read the <fusebyte> elements and then sort them to their index.
+		// read the <fusebyte> elements
 		NodeList bytenodes = document.getElementsByTagName(FuseType.FUSE.getElementName());
 		for (int i = 0; i < bytenodes.getLength(); i++) {
 			ByteDescription bd = new ByteDescription(bytenodes.item(i));
 			fFuseByteDescList.add(bd);
 		}
-		Collections.sort(fFuseByteDescList);
 
 		// and the <lockbitsbyte> elements.
 		bytenodes = document.getElementsByTagName(FuseType.LOCKBITS.getElementName());
@@ -136,7 +136,18 @@ public class MCUDescription implements IMCUDescription {
 			ByteDescription bd = new ByteDescription(bytenodes.item(i));
 			fLockbitsByteDescList.add(bd);
 		}
-		Collections.sort(fLockbitsByteDescList);
+
+		// Sort the fuse bytes and lockbits elements according to their index
+		Comparator<ByteDescription> indexcomparator = new Comparator<ByteDescription>() {
+			public int compare(ByteDescription o1, ByteDescription o2) {
+				int index1 = o1.getIndex();
+				int index2 = o2.getIndex();
+				return index1 - index2;
+			}
+		};
+
+		Collections.sort(fFuseByteDescList, indexcomparator);
+		Collections.sort(fLockbitsByteDescList, indexcomparator);
 	}
 
 	/*

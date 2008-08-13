@@ -202,14 +202,12 @@ public class FusesWizardPage extends WizardPage {
 		label.setText("&File name:");
 
 		fFileText = new Text(parent, SWT.BORDER | SWT.SINGLE);
-		fFileText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		fFileText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		fFileText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				validateDialog();
 			}
 		});
-
-		label = new Label(parent, SWT.NULL);
 
 	}
 

@@ -35,7 +35,7 @@ import org.w3c.dom.NodeList;
  * @since 2.3
  * 
  */
-public class ByteDescription implements Comparable<ByteDescription>, IByteDescription {
+public class ByteDescription implements IByteDescription {
 
 	protected final static String			ATTR_BYTE_INDEX		= "index";
 	protected final static String			ATTR_BYTE_NAME		= "name";
@@ -287,21 +287,4 @@ public class ByteDescription implements Comparable<ByteDescription>, IByteDescri
 
 		return sb.toString();
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	public int compareTo(ByteDescription o) {
-
-		if (fIndex == o.fIndex) {
-			return 0;
-		}
-		if (fIndex > o.fIndex) {
-			return 1;
-		}
-		return -1;
-	}
-
 }
