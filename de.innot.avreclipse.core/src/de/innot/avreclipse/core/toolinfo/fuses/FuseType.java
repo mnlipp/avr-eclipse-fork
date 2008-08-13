@@ -22,8 +22,8 @@ package de.innot.avreclipse.core.toolinfo.fuses;
  * more enumeration values could be added to support e.g. calibration bytes.
  * </p>
  * <p>
- * This enum is used throughout the <code>de.innot.avreclipse.toolinfo.fuses</code> package to
- * differentiate between fuses and lockbits which are almost the same from the plugin perspective.
+ * This enum is used throughout the AVR Eclipse plugin to differentiate between fuses and lockbits
+ * which are almost the same from the plugin perspective.
  * </p>
  * 
  * @see ByteValues
@@ -36,17 +36,20 @@ package de.innot.avreclipse.core.toolinfo.fuses;
 public enum FuseType {
 
 	/** Fuse byte type */
-	FUSE("fusebyte", "FUSE", "fuses", 6),
+	FUSE("Fuse", "fusebyte", "FUSE", "fuses", 6),
 
 	/** Lockbits byte type */
-	LOCKBITS("lockbitsbyte", "LOCKBIT", "locks", 1);
+	LOCKBITS("Lockbits", "lockbitsbyte", "LOCKBIT", "locks", 1);
 
+	private final String	fName;
 	private final String	fElementName;
 	private final String	fMemspaceName;
 	private final String	fExtension;
 	private final int		fMaxBytes;
 
-	private FuseType(String elementname, String memspacename, String extension, int maxbytes) {
+	private FuseType(String stringname, String elementname, String memspacename, String extension,
+			int maxbytes) {
+		fName = stringname;
 		fElementName = elementname;
 		fMemspaceName = memspacename;
 		fExtension = extension;
@@ -115,6 +118,18 @@ public enum FuseType {
 	@Deprecated
 	public int getMaxBytes() {
 		return fMaxBytes;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Enum#toString()
+	 */
+	@Override
+	public String toString() {
+		// Return the type name in mixed case (instead of the uppercase values from the default Enum
+		// implementation).
+		return fName;
 	}
 
 }

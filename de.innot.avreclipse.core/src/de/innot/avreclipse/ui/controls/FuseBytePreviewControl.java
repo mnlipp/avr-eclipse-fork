@@ -278,7 +278,7 @@ public class FuseBytePreviewControl extends Composite {
 		String type = newvalues.getType().toString();
 		String mcu = AVRMCUidConverter.id2name(newvalues.getMCUId());
 
-		String header = MessageFormat.format("{0}  {1}s preview", mcu, type);
+		String header = MessageFormat.format("{0}  {1} preview", mcu, type);
 		fHeaderLabel.setText(header);
 
 		// Check if the mcu has changed.

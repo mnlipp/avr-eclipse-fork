@@ -233,9 +233,8 @@ public class FusesReader extends BaseReader {
 						for (IByteDescription desc : list) {
 							List<BitFieldDescription> bfdlist = desc.getBitFieldDescriptions();
 							for (BitFieldDescription bfd : bfdlist) {
-								fw.write(mcuid + "; " + type.toString() + "; " + bfd.getName()
-										+ "; \"" + bfd.getDescription() + "\"; "
-										+ bfd.getMaxValue() + "\n");
+								fw.write(mcuid + "; " + type.name() + "; " + bfd.getName() + "; \""
+										+ bfd.getDescription() + "\"; " + bfd.getMaxValue() + "\n");
 							}
 						}
 					}
