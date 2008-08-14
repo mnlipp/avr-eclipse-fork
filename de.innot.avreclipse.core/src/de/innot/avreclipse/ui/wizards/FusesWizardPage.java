@@ -269,13 +269,13 @@ public class FusesWizardPage extends WizardPage {
 	private void initialize() {
 
 		String mcuid = "atmega16"; // The default mcu
-		String filename = "new." + fType.getExtension(); // The default filename
+		String filename = "new"; // The default filename
 
 		Object item = getSelectedItem(fSelection);
 
 		// Set the container value
+		IContainer container = null;
 		if (item instanceof IResource) {
-			IContainer container;
 			if (item instanceof IContainer)
 				container = (IContainer) item;
 			else
@@ -288,22 +288,32 @@ public class FusesWizardPage extends WizardPage {
 		// Get the MCU
 
 		if (project != null) {
+			filename = project.getName();
 			ProjectPropertyManager propsmanager = getProjectPropertiesManager(project);
 			AVRProjectProperties props = propsmanager.getActiveProperties();
-			mcuid = props.getMCUId();
-			filename = mcuid + "." + fType.getExtension();
 			if (propsmanager.isPerConfig()) {
 				// Get the name of the active configuration
 				// Get the active build configuration
 				IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(project);
 				IConfiguration activecfg = bi.getDefaultConfiguration();
-				filename = activecfg.getName() + "_" + filename;
+				filename = filename + "_" + activecfg.getName();
 			}
 
 		}
 
+		// Check if the file already exists. If yes, then we use an incremental counter
+		// to get a new filename
+		String fullname = filename + "." + fType.getExtension();
+		if (container != null) {
+			IFile file = container.getFile(new Path(fullname));
+			int i = 2;
+			while (file.exists()) {
+				fullname = filename + "_" + i++ + "." + fType.getExtension();
+				file = container.getFile(new Path(fullname));
+			}
+		}
 		// Set the filename
-		fFileText.setText(filename);
+		fFileText.setText(fullname);
 
 		// Build the list of MCUs with fuses for the MCU selection combo
 		// and select the active mcu
@@ -407,12 +417,12 @@ public class FusesWizardPage extends WizardPage {
 		String fileName = getFileName();
 
 		if (getContainerName().length() == 0) {
-			updateStatus("File container must be specified");
+			updateStatus("Folder must be specified");
 			return;
 		}
 		if (container == null
 				|| (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-			updateStatus("File container must exist");
+			updateStatus("Folder must exist");
 			return;
 		}
 		if (!container.isAccessible()) {

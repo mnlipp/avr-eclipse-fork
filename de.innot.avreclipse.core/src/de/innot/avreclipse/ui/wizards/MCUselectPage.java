@@ -338,8 +338,9 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		CDTCommonProjectWizard wizz = (CDTCommonProjectWizard) pagedata.getWizardPage().getWizard();
 		IProject project = wizz.getLastProject();
 
-		ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
-		AVRProjectProperties props = projprops.getProjectProperties();
+		ProjectPropertyManager projpropsmanager = ProjectPropertyManager
+				.getPropertyManager(project);
+		AVRProjectProperties props = projpropsmanager.getProjectProperties();
 
 		// Set the Project properties according to the selected values
 
@@ -353,7 +354,7 @@ public class MCUselectPage extends MBSCustomPage implements Runnable {
 		props.setFCPU(fcpu);
 
 		try {
-			projprops.save();
+			props.save();
 		} catch (BackingStoreException e) {
 			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
 					"Could not write project properties to the preferences.", e);

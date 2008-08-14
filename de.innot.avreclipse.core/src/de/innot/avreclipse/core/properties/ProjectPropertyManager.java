@@ -27,9 +27,9 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IPreferenceNodeVisitor;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.preferences.BuildConfigurationScope;
@@ -76,15 +76,19 @@ public class ProjectPropertyManager {
 	private static Map<IProject, ProjectPropertyManager>	fsProjectMap		= new HashMap<IProject, ProjectPropertyManager>();
 
 	public static ProjectPropertyManager getPropertyManager(IProject project) {
+		ProjectPropertyManager projman = null;
 		if (fsProjectMap.containsKey(project)) {
-			return fsProjectMap.get(project);
+			projman = fsProjectMap.get(project);
+		} else {
+			projman = new ProjectPropertyManager(project);
+			fsProjectMap.put(project, projman);
+			// TODO add some kind of listener to remove projects if necessary
 		}
-		ProjectPropertyManager newmanager = new ProjectPropertyManager(project);
-		fsProjectMap.put(project, newmanager);
 
-		// TODO add some kind of listener to remove projects if necessary
+		// reload the "per config" flag
+		projman.load();
 
-		return newmanager;
+		return projman;
 	}
 
 	/**
@@ -92,16 +96,10 @@ public class ProjectPropertyManager {
 	 * build configuration.
 	 * 
 	 */
-	private boolean									fPerConfig;
+	private boolean			fPerConfig;
 
 	/** The project this description is for */
-	private final IProject							fProject;
-
-	/** Map of properties elements for each build configuration */
-	private final Map<String, AVRProjectProperties>	fConfigProperties	= new HashMap<String, AVRProjectProperties>();
-
-	/** Global project properties (used when "per config" flag is false = default */
-	private AVRProjectProperties					fProjectProps;
+	private final IProject	fProject;
 
 	/**
 	 * Instantiate Properties Description Object for the given Project.
@@ -112,8 +110,7 @@ public class ProjectPropertyManager {
 		Assert.isNotNull(project);
 
 		fProject = project;
-
-		reload();
+		load();
 	}
 
 	/**
@@ -173,7 +170,7 @@ public class ProjectPropertyManager {
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
 	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg) {
-		return getConfigurationProperties(buildcfg, false, false);
+		return getConfigurationProperties(buildcfg, false);
 	}
 
 	/**
@@ -198,21 +195,16 @@ public class ProjectPropertyManager {
 	 *            Return fresh properties, not from the cache.
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
-	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg, boolean force,
-			boolean nocache) {
+	public AVRProjectProperties getConfigurationProperties(IConfiguration buildcfg, boolean force) {
 
 		// Test if the configuration belongs to this project
 		IProject cfgproj = (IProject) buildcfg.getOwner();
-
 		if (!fProject.equals(cfgproj)) {
 			throw new IllegalArgumentException("Configuration " + buildcfg.getId()
 					+ " does not belong to project " + fProject.getName());
 		}
 
 		if (fPerConfig || force) {
-			if (!nocache && fConfigProperties.containsKey(buildcfg.getId())) {
-				return fConfigProperties.get(buildcfg.getId());
-			}
 			BuildConfigurationScope scope = new BuildConfigurationScope(buildcfg);
 
 			// Test if the node for the configuration already exists. If no, we
@@ -227,7 +219,6 @@ public class ProjectPropertyManager {
 				newconfigprops = new AVRProjectProperties(cfgprefs);
 			}
 
-			fConfigProperties.put(buildcfg.getId(), newconfigprops);
 			return newconfigprops;
 		}
 
@@ -241,10 +232,8 @@ public class ProjectPropertyManager {
 	 * @return <code>AVRProjectProperies</code> with the requested properties.
 	 */
 	public AVRProjectProperties getProjectProperties() {
-		if (fProjectProps == null) {
-			fProjectProps = new AVRProjectProperties(getProjectPreferences(fProject));
-		}
-		return fProjectProps;
+
+		return new AVRProjectProperties(getProjectPreferences(fProject));
 	}
 
 	/**
@@ -262,62 +251,26 @@ public class ProjectPropertyManager {
 	}
 
 	/**
-	 * Reloads all Properties from the property storage.
+	 * Loads the Properties from the property storage.
 	 * <p>
-	 * Called after a Cancel event to delete any pending modifications.
+	 * Currently only the "per Config" flag is loaded.
 	 * </p>
 	 */
-	public void reload() {
+	public void load() {
 		IEclipsePreferences projectprefs = getProjectPreferences(fProject);
 		fPerConfig = projectprefs.getBoolean(KEY_PER_CONFIG, DEFAULT_PER_CONFIG);
-
-		if (fProjectProps != null) {
-			fProjectProps.loadData();
-		}
-
-		for (AVRProjectProperties props : fConfigProperties.values()) {
-			props.loadData();
-		}
 	}
 
 	/**
 	 * Save all modified properties.
 	 * <p>
-	 * This will save the current "per config" flag, the global project properties (if they have
-	 * been requested) and the properties for all build configurations that have been requested.
+	 * This will save the current "per config" flag.
 	 * </p>
-	 * <p>
-	 * Also this method will synchronize our properties with the currently existing build
-	 * configurations. If build configurations have been removed, this method will remove any
-	 * associated properties.
-	 * </p>
-	 * 
-	 * @throws BackingStoreException
 	 * 
 	 * @throws BackingStoreException
 	 *             on any errors writing to the backing store.
 	 */
 	public void save() throws BackingStoreException {
-
-		savePerConfigFlag();
-
-		// Save the global project properties
-		if (fProjectProps != null) {
-			fProjectProps.save();
-		}
-
-		// save all known configuration properties
-		for (AVRProjectProperties prop : fConfigProperties.values()) {
-			prop.save();
-		}
-	}
-
-	/**
-	 * Save the current value of the "per config" flag.
-	 * 
-	 * @throws BackingStoreException
-	 */
-	public void savePerConfigFlag() throws BackingStoreException {
 		// Save the "per config" flag
 		IEclipsePreferences projectprefs = getProjectPreferences(fProject);
 		projectprefs.putBoolean(KEY_PER_CONFIG, fPerConfig);
@@ -328,32 +281,40 @@ public class ProjectPropertyManager {
 	 * Remove all configuration properties for which the referenced build configuration does not
 	 * exist anymore.
 	 */
-	public void sync(List<String> allcfgids) throws BackingStoreException {
+	public void sync(final List<String> allcfgids) throws BackingStoreException {
 		// TODO This method does not work yet.
 		// Calling it will cause some exceptions later on for reasons unknown.
 		// For now do nothing
 
-		if (false)
-			return;
+		// if (false)
+		// return;
 
 		// get list of all our configuration properties
 		IEclipsePreferences projprops = getProjectPreferences(fProject);
 
-		String[] allcfgprops = projprops.childrenNames();
-		for (String cfgname : allcfgprops) {
-			// nodes not starting with "de.innot.avreclipse" cannot be
-			// configuration property nodes
-			if (!cfgname.startsWith("de.innot.avreclipse")) {
-				break;
+		projprops.accept(new IPreferenceNodeVisitor() {
+
+			public boolean visit(IEclipsePreferences node) throws BackingStoreException {
+				String name = node.name();
+				// nodes starting with "de.innot.avreclipse" are
+				// configuration property nodes
+				if (name.startsWith("de.innot.avreclipse")) {
+					// Check if the id is in the list of all ids
+					if (!allcfgids.contains(name)) {
+						// The configuration does not exist anymore
+						// remove the node from the preferences
+						node.removeNode();
+					}
+					return false;
+				} else {
+					// try the children
+					return true;
+				}
 			}
-			if (!allcfgids.contains(cfgname)) {
-				// The configuration does not exist anymore
-				// remove the node from the preferences
-				Preferences removenode = projprops.node(cfgname);
-				removenode.removeNode();
-				projprops.flush();
-			}
-		}
+		});
+
+		projprops.flush();
+
 	}
 
 	private static IEclipsePreferences getDefaultPreferences() {

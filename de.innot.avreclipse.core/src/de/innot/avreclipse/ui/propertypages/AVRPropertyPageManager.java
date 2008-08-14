@@ -16,7 +16,9 @@
 package de.innot.avreclipse.ui.propertypages;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICResourceDescription;
@@ -61,13 +63,19 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 public class AVRPropertyPageManager {
 
 	/** List of all open Property Pages */
-	private static List<PropertyPage>		fPages	= new ArrayList<PropertyPage>();
+	private static List<PropertyPage>					fPages	= new ArrayList<PropertyPage>();
 
 	/** The Project for which the properties are edited */
-	private static IProject					fProject;
+	private static IProject								fProject;
 
 	/** The Project Property Manager for the current project */
-	private static ProjectPropertyManager	fProperties;
+	private static ProjectPropertyManager				fPropertiesManager;
+
+	/** The Project Properties for the current project */
+	private static AVRProjectProperties					fProjectProps;
+
+	/** Cache of build config Properties for the current project. */
+	private static Map<String, AVRProjectProperties>	fConfigPropertiesMap;
 
 	/**
 	 * Gets the the {@link ProjectPropertyManager} for the project and registers the given page in
@@ -88,7 +96,7 @@ public class AVRPropertyPageManager {
 		// If no pages registered start a new static session
 		if (fPages.size() == 0) {
 			fProject = null;
-			fProperties = null;
+			fPropertiesManager = null;
 		}
 
 		// Remember the page and add dispose listener to the page so we know
@@ -101,15 +109,17 @@ public class AVRPropertyPageManager {
 		// Check if a new project has been selected
 		if (fProject == null || !project.equals(fProject)) {
 			fProject = project;
-			fProperties = null;
+			fPropertiesManager = null;
 		}
 
 		// Check if a new properties object is required
-		if (fProperties == null) {
-			fProperties = ProjectPropertyManager.getPropertyManager(project);
+		if (fPropertiesManager == null) {
+			fPropertiesManager = ProjectPropertyManager.getPropertyManager(project);
+			fProjectProps = null;
+			fConfigPropertiesMap = new HashMap<String, AVRProjectProperties>();
 		}
 
-		return fProperties;
+		return fPropertiesManager;
 	}
 
 	/**
@@ -127,20 +137,30 @@ public class AVRPropertyPageManager {
 	 */
 	public static void performOK(PropertyPage page, ICConfigurationDescription[] allconfigs) {
 		try {
-			fProperties.save();
+			fPropertiesManager.save(); // saves the perConfig flag
+
+			if (fProjectProps != null) {
+				fProjectProps.save(); // Saves the global project properties
+			}
+
+			// and the config properties
+			if (fConfigPropertiesMap != null) {
+				for (AVRProjectProperties props : fConfigPropertiesMap.values()) {
+					props.save();
+				}
+			}
 
 			if (allconfigs != null) {
 				// Convert the given array of ConfigurationDescriptions into a list of configuration
-				// id
-				// values and call the ProjectPropertyManager.sync() method to remove configuration
-				// properties for deleted build configurations.
+				// id values and call the ProjectPropertyManager.sync() method to remove
+				// configuration properties for deleted build configurations.
 				List<String> allcfgids = new ArrayList<String>(allconfigs.length);
 				for (ICConfigurationDescription cfgd : allconfigs) {
 					IConfiguration cfg = ManagedBuildManager.getConfigurationForDescription(cfgd);
 					allcfgids.add(cfg.getId());
 				}
 
-				fProperties.sync(allcfgids);
+				fPropertiesManager.sync(allcfgids);
 			}
 		} catch (BackingStoreException e) {
 			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
@@ -163,7 +183,8 @@ public class AVRPropertyPageManager {
 	 *            Originating page.
 	 */
 	public static void performCancel(PropertyPage page) {
-		fProperties.reload();
+		fConfigPropertiesMap.clear();
+		fProjectProps = null;
 		removePage(page);
 	}
 
@@ -184,8 +205,10 @@ public class AVRPropertyPageManager {
 
 		if (fPages.size() == 0) {
 			// all pages have been disposed
-			fProperties = null;
+			fPropertiesManager = null;
 			fProject = null;
+			fProjectProps = null;
+			fConfigPropertiesMap = null;
 		}
 
 	}
@@ -197,14 +220,41 @@ public class AVRPropertyPageManager {
 		return fPages;
 	}
 
+	/**
+	 * Gets the project properties for a given <code>ICResourceDescription</code>.
+	 * <p>
+	 * The avr project properties object is cached so that it can be retrieved multiple times
+	 * without being sync'd with the underlying preferencestore. The first call to this method will
+	 * return a freshly sync'd object.
+	 * </p>
+	 * 
+	 * @param resdesc
+	 * @return
+	 */
 	public static AVRProjectProperties getConfigProperties(ICResourceDescription resdesc) {
 		IConfiguration buildcfg = getConfigFromConfigDesc(resdesc);
-		return fProperties.getConfigurationProperties(buildcfg);
+		AVRProjectProperties props = null;
+		// Added the cache in response to Bug 2050945: Read Back of "Enable Individual Settings ..."
+		// The ProjectPropertyManager will now always sync any property objects it hands out.
+		// Syncing means that all changes made are lost, so we cache the objects in order to keep
+		// all modifications until either the performOK() or the performCancel() method is
+		// called.
+		if (fConfigPropertiesMap.containsKey(buildcfg.getId())) {
+			props = fConfigPropertiesMap.get(buildcfg.getId());
+		} else {
+			props = fPropertiesManager.getConfigurationProperties(buildcfg);
+			fConfigPropertiesMap.put(buildcfg.getId(), props);
+		}
+		return props;
 	}
 
 	public static AVRProjectProperties getConfigPropertiesNoCache(ICResourceDescription resdesc) {
+		// This method is used in the performApply() methods of the Tabs.
+		// In order to save only the contents of a single tab it gets a new Properties object
+		// directly from the preference store. The tab can then modify its individual settings, and
+		// saves it immediately.
 		IConfiguration buildcfg = getConfigFromConfigDesc(resdesc);
-		return fProperties.getConfigurationProperties(buildcfg, false, true);
+		return fPropertiesManager.getConfigurationProperties(buildcfg, false);
 	}
 
 	/**
@@ -213,7 +263,10 @@ public class AVRPropertyPageManager {
 	 * @return
 	 */
 	public static AVRProjectProperties getProjectProperties() {
-		return fProperties.getProjectProperties();
+		if (fProjectProps == null) {
+			fProjectProps = fPropertiesManager.getProjectProperties();
+		}
+		return fProjectProps;
 	}
 
 	/**
@@ -233,22 +286,25 @@ public class AVRPropertyPageManager {
 	/**
 	 * Listener to remove disposed pages from the manager.
 	 */
-	private static DisposeListener	fDisposeListener	= new DisposeListener() {
-															public void widgetDisposed(
-																	DisposeEvent e) {
-																Widget w = e.widget;
-																for (PropertyPage page : fPages) {
-																	if (page.getControl().equals(w)) {
-																		fPages.remove(page);
-																		break;
-																	}
-																}
+	private static DisposeListener	fDisposeListener	= new MyDisposeListener();
 
-																if (fPages.size() == 0) {
-																	// all pages have been disposed
-																	fProperties = null;
-																	fProject = null;
-																}
-															}
-														};
+	private static class MyDisposeListener implements DisposeListener {
+		public void widgetDisposed(DisposeEvent e) {
+			Widget w = e.widget;
+			for (PropertyPage page : fPages) {
+				if (page.getControl().equals(w)) {
+					fPages.remove(page);
+					break;
+				}
+			}
+
+			if (fPages.size() == 0) {
+				// all pages have been disposed
+				fPropertiesManager = null;
+				fProject = null;
+				fProjectProps = null;
+				fConfigPropertiesMap = null;
+			}
+		}
+	};
 }

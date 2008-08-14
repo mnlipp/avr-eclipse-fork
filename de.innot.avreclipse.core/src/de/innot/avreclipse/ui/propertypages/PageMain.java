@@ -76,7 +76,7 @@ public class PageMain extends AbstractAVRPage {
 
 		// Save the current state of the "per Config flag", and only the flag.
 		try {
-			fPropertiesManager.savePerConfigFlag();
+			fPropertiesManager.save();
 		} catch (BackingStoreException e) {
 			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
 					"Could not write \"per config\" flag to the preferences.", e);

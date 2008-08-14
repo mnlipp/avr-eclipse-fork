@@ -98,7 +98,7 @@ public class Convert21 {
 	private static void checkOptions(IHoldsOptions optionholder, IConfiguration buildcfg) {
 
 		// Get the Project Properties for the given Configuration
-		AVRProjectProperties props = fProjProps.getConfigurationProperties(buildcfg, true, false);
+		AVRProjectProperties props = fProjProps.getConfigurationProperties(buildcfg, true);
 		boolean changeperconfig = false;
 
 		// we need to use reflections to call the private method
@@ -176,6 +176,13 @@ public class Convert21 {
 
 		if (changeperconfig) {
 			fProjProps.setPerConfig(true);
+		}
+
+		try {
+			props.save();
+		} catch (BackingStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
