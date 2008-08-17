@@ -372,7 +372,7 @@
 		<category id="de.innot.avreclipse" name="AVR" />
 		<view category="de.innot.avreclipse"
 			class="de.innot.avreclipse.ui.views.avrdevice.AVRDeviceView" 
-			icon="icons/sample.gif"
+			icon="icons/avr-icon-atmel.png"
 			id="de.innot.avreclipse.views.AVRDeviceView" 
 			name="AVR Device Explorer" />
 	</extension>
@@ -381,7 +381,7 @@
 		<category id="de.innot.avreclipse" name="AVR" />
 		<view category="de.innot.avreclipse"
 			class="de.innot.avreclipse.ui.views.supportedmcu.MCUListView" 
-			icon="icons/sample.gif"
+			icon="icons/avr-icon-atmel.png"
 			id="de.innot.avreclipse.views.supportedmcus" 
 			name="AVR Supported MCUs" />
 	</extension>
