@@ -34,9 +34,14 @@ import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatu
  * This class holds the actual byte values for either the Fuse bytes or a Lockbit byte. These byte
  * values are only valid for the current MCU type.
  * </p>
+ * <p>
+ * This class can notify registered {@link IByteValuesChangeListener}'s about changes to the value
+ * of the stored bytes.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
+ * @since 2.3 Change listeners
  * 
  */
 public class ByteValues {
@@ -54,7 +59,7 @@ public class ByteValues {
 	private int[]								fValues;
 
 	/** Map of all bitfield descriptions mapped to their name for easy access */
-	private Map<String, BitFieldDescription>	fBitFieldNames	= null;
+	private Map<String, BitFieldDescription>	fBitFieldNames;
 
 	/** A user provided comment for this ByteValue object. */
 	private String								fComment;
@@ -64,6 +69,15 @@ public class ByteValues {
 	 * changed.
 	 */
 	private ConversionResults					fConversionResults;
+
+	/** List of all registered Listeners. */
+	private List<IByteValuesChangeListener>		fListeners;
+
+	/** Name of the {@link ByteValueChangeEvent} in case the MCU has been changed. */
+	public final static String					MCU_CHANGE_EVENT		= "mcuChangeEvent";
+
+	/** Name of the {@link ByteValueChangeEvent} in case the Comment has been changed. */
+	public final static String					COMMENT_CHANGE_EVENT	= "commentChangeEvent";
 
 	/**
 	 * Create a new byte values container for a given MCU.
@@ -91,6 +105,9 @@ public class ByteValues {
 	 * Clone constructor.
 	 * <p>
 	 * Creates a new byte values container and copies all values (and the MCU id) from the source.
+	 * </p>
+	 * <p>
+	 * The list of change listeners from the source object is <em>not</em> copied.
 	 * </p>
 	 * 
 	 * @param source
@@ -148,8 +165,10 @@ public class ByteValues {
 		fByteCount = loadByteCount();
 		fValues = new int[fByteCount];
 
+		fireBitFieldChangedEvent(MCU_CHANGE_EVENT, 0, 0, 0);
+
 		if (conversioncopy != null) {
-			fValues = conversioncopy.getValues();
+			setValues(conversioncopy.getValues());
 		} else {
 			clearValues();
 		}
@@ -207,6 +226,8 @@ public class ByteValues {
 				fConversionResults.setModified(name);
 			}
 		}
+
+		fireByteChangedEvent(index, value);
 	}
 
 	/**
@@ -243,6 +264,9 @@ public class ByteValues {
 	public void setValues(int[] newvalues) {
 		int count = Math.min(newvalues.length, fValues.length);
 		System.arraycopy(newvalues, 0, fValues, 0, count);
+		for (int index = 0; index < count; index++) {
+			fireByteChangedEvent(index, fValues[index]);
+		}
 	}
 
 	/**
@@ -323,11 +347,20 @@ public class ByteValues {
 		// into the current value.
 		int bitfieldvalue = desc.bitFieldToByte(value);
 		int oldvalue = fValues[index];
-		if (oldvalue == -1)
+
+		boolean completeByte = false;
+		if (oldvalue == -1) {
 			oldvalue = 0xff;
+			completeByte = true;
+		}
 		int newvalue = oldvalue & ~desc.getMask();
 		newvalue |= bitfieldvalue;
-		fValues[index] = newvalue;
+		if (completeByte) {
+			setValue(index, newvalue); // setValue will fire the notifications
+		} else {
+			fValues[index] = newvalue;
+			fireBitFieldChangedEvent(name, value, index, newvalue);
+		}
 	}
 
 	/**
@@ -429,7 +462,7 @@ public class ByteValues {
 	 */
 	public void clearValues() {
 		for (int i = 0; i < fValues.length; i++) {
-			fValues[i] = -1;
+			setValue(i, -1); // setValue() notififies the listeners
 		}
 	}
 
@@ -509,6 +542,7 @@ public class ByteValues {
 	 */
 	public void setComment(String comment) {
 		fComment = comment;
+		fireBitFieldChangedEvent(COMMENT_CHANGE_EVENT, 0, 0, 0);
 	}
 
 	/**
@@ -600,13 +634,13 @@ public class ByteValues {
 	/**
 	 * Test if this Object is compatible with the given MCU.
 	 * <p>
-	 * The test will be successfull iff all bitfields for this and the given MCU have the same name
-	 * and the same mask. In this case we assume that the meaning of the bitfields is also the same
+	 * The test will be successful iff all BitFields for this and the given MCU have the same name
+	 * and the same mask. In this case we assume that the meaning of the BitFields is also the same
 	 * or at least very close.
 	 * </p>
 	 * <p>
-	 * If the two MCUs are compatible they can be converted to each other without the loss of
-	 * significant information.
+	 * If the two MCUs are compatible they can be converted to each other without significant loss
+	 * of information.
 	 * </p>
 	 * 
 	 * @return <code>true</code> if the current byte values are also valid for the given MCU id.
@@ -706,11 +740,11 @@ public class ByteValues {
 
 			// Check if the name matches.
 			if (fBitFieldNames.containsKey(name)) {
-				// OK, we have a matching name. Now check if the mask matches
+				// OK, we have a matching name. Now check if the size of the BitField matches
 				BitFieldDescription targetbfd = target.getBitFieldDescription(name);
 				BitFieldDescription ourbfd = fBitFieldNames.get(name);
 				if (targetbfd.getMaxValue() == ourbfd.getMaxValue()) {
-					// similar masks: now copy the value
+					// identical BitField sizes: now copy the value
 					int ourvalue = getNamedValue(name);
 					if (ourvalue == -1) {
 						// If the value is undefined we do not copy
@@ -732,5 +766,137 @@ public class ByteValues {
 		results.setReady();
 
 		return target;
+	}
+
+	/**
+	 * Registers the change listener with the ByteValues object. After registration the
+	 * <code>IByteValuesChangeListener</code> is informed about each change of the ByteValues. If
+	 * the listener is already registered nothing happens.
+	 * <p>
+	 * 
+	 * @since 2.3
+	 * 
+	 * @param listener
+	 *            The listener to be registered.
+	 */
+	public void addByteValuesChangeListener(IByteValuesChangeListener listener) {
+		Assert.isNotNull(listener);
+		if (fListeners == null) {
+			fListeners = new ArrayList<IByteValuesChangeListener>();
+		}
+
+		if (fListeners.contains(listener)) {
+			return;
+		}
+
+		fListeners.add(listener);
+	}
+
+	/**
+	 * Removes the listener from the <code>ByteValues</code> list of change listeners. If the
+	 * listener is not registered with the <code>ByteValues</code> nothing happens.
+	 * <p>
+	 * 
+	 * @since 2.3
+	 * 
+	 * @param listener
+	 *            The listener to be removed.
+	 */
+	public void removeByteValuesChangeListener(IByteValuesChangeListener listener) {
+		if (fListeners == null) {
+			return;
+		}
+
+		fListeners.remove(listener);
+	}
+
+	/**
+	 * Fire a {@link ByteValueChangeEvent} event to inform all listeners that the value of a single
+	 * BitField has changed.
+	 * 
+	 * @param name
+	 *            Name of the BitField
+	 * @param value
+	 *            Normalized value of the BitField
+	 * @param byteindex
+	 *            Index of the byte containing the BitField
+	 * @param bytevalue
+	 *            Value of the byte containing the BitField
+	 */
+	private void fireBitFieldChangedEvent(String name, int value, int byteindex, int bytevalue) {
+
+		ByteValueChangeEvent event = createEvent(name, value, byteindex, bytevalue);
+		fireEvents(new ByteValueChangeEvent[] { event });
+	}
+
+	/**
+	 * Fire an array of {@link ByteValueChangeEvent}'s event to inform all listeners that one
+	 * complete byte of this ByteValues has changed.
+	 * 
+	 * @param name
+	 *            Name of the BitField
+	 * @param value
+	 *            Normalized value of the BitField
+	 * @param byteindex
+	 *            Index of the byte containing the BitField
+	 * @param bytevalue
+	 *            Value of the byte containing the BitField
+	 */
+	private void fireByteChangedEvent(int byteindex, int bytevalue) {
+		if (fListeners == null || fListeners.size() == 0) {
+			// quick exit if we have no listeners
+			return;
+		}
+
+		List<ByteValueChangeEvent> allevents = new ArrayList<ByteValueChangeEvent>();
+		initBitFieldNames();
+		for (BitFieldDescription bfd : fBitFieldNames.values()) {
+			if (bfd.getIndex() == byteindex) {
+				String name = bfd.getName();
+				int value = bfd.byteToBitField(bytevalue);
+				ByteValueChangeEvent event = createEvent(name, value, byteindex, bytevalue);
+				allevents.add(event);
+			}
+		}
+
+		fireEvents(allevents.toArray(new ByteValueChangeEvent[allevents.size()]));
+	}
+
+	/**
+	 * Fire the given Events to all listeners.
+	 * 
+	 * @param events
+	 *            Array of Events.
+	 */
+	private void fireEvents(ByteValueChangeEvent[] events) {
+		for (IByteValuesChangeListener listener : fListeners) {
+			listener.byteValuesChanged(events);
+		}
+	}
+
+	/**
+	 * Create a new Event with the given parameters.
+	 * 
+	 * @param name
+	 *            Name of the BitField
+	 * @param value
+	 *            Normalized value of the BitField
+	 * @param byteindex
+	 *            Index of the byte containing the BitField
+	 * @param bytevalue
+	 *            Value of the byte containing the BitField
+	 * @return A new <code>ByteValueChangeEvent</code>
+	 */
+	private ByteValueChangeEvent createEvent(String name, int value, int byteindex, int bytevalue) {
+
+		ByteValueChangeEvent event = new ByteValueChangeEvent();
+		event.name = name;
+		event.bitfieldvalue = value;
+		event.byteindex = byteindex;
+		event.bytevalue = bytevalue;
+		event.source = this;
+
+		return event;
+
 	}
 }
