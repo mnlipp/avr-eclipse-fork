@@ -9,14 +9,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatus;
 
 /**
  * @author U043192
@@ -369,62 +368,96 @@ public class TestFuseByteValues {
 	@Test
 	public void testConvertTo() {
 
-		List<BitFieldDescription> successlist = new ArrayList<BitFieldDescription>();
-		List<BitFieldDescription> notcopiedlist = new ArrayList<BitFieldDescription>();
-		List<BitFieldDescription> unsetlist = new ArrayList<BitFieldDescription>();
-
 		// First test: convert from ATXmega64 to ATXmega128
 		// these two have identical fuses,
+		ConversionResults results = new ConversionResults();
 		testvalues = new ByteValues(FUSE, "atxmega64a1");
 		testvalues.setValues(values6);
 
-		ByteValues targetvalues = testvalues.convertTo("atxmega128a1", successlist, notcopiedlist,
-				unsetlist);
+		ByteValues targetvalues = testvalues.convertTo("atxmega128a1", results);
 
 		assertEquals("Wrong MCU", "atxmega128a1", targetvalues.getMCUId());
-		assertEquals("BitFields not copied", 0, notcopiedlist.size());
-		assertEquals("BitFields not set", 0, unsetlist.size());
-		assertEquals("BitFields successfully copied", testvalues.getBitfieldDescriptions().size(),
-				successlist.size());
-
-		successlist.clear();
-		notcopiedlist.clear();
-		unsetlist.clear();
+		assertEquals("Successrate not as expected", 100, results.getSuccessRate());
 
 		// Second test: convert ATmega16 to ATmega32
 		// They differ by only one bitfield: SUT_CKSEL vs. CKSEL
 		// But with the fixed description files they have identical fusebytes.
 		testvalues = new ByteValues(FUSE, "atmega16");
 		testvalues.setValues(values3);
-		targetvalues = testvalues.convertTo("atmega32", successlist, notcopiedlist, unsetlist);
+		targetvalues = testvalues.convertTo("atmega32", results);
 
 		assertEquals("Wrong MCU", "atmega32", targetvalues.getMCUId());
-		assertEquals("BitFields not copied", 0, notcopiedlist.size());
-		assertEquals("BitFields not set", 0, unsetlist.size());
-		assertEquals("BitFields successfully copied", testvalues.getBitfieldDescriptions().size(),
-				successlist.size());
-
-		successlist.clear();
-		notcopiedlist.clear();
-		unsetlist.clear();
+		assertEquals("Successrate not as expected", 100, results.getSuccessRate());
 
 		// Third test: convert ATmega16 to ATmega161
 		// They have only two common BitFields: SPIEN and BOOTRST
 		// ATmega16 add. fields: OCDEN, JTAGEN, EESAVE, BOOTSZ, CKOPT, BODLEVEL, BODEN, SUT_CKSEL
 		// ATmega161 add. fields: SUT, CKSEL
-		targetvalues = testvalues.convertTo("atmega161", successlist, notcopiedlist, unsetlist);
+		targetvalues = testvalues.convertTo("atmega161", results);
 
 		assertEquals("Wrong MCU", "atmega161", targetvalues.getMCUId());
-		assertEquals("BitFields not copied", 8, notcopiedlist.size());
-		assertEquals("BitFields not set", 2, unsetlist.size());
-		assertEquals("BitFields successfully copied", 2, successlist.size());
+		assertEquals("SPIEN not successful", ConversionStatus.SUCCESS, results
+				.getStatusForName("SPIEN"));
+		assertEquals("BOOTRST not successful", ConversionStatus.SUCCESS, results
+				.getStatusForName("BOOTRST"));
+		assertEquals("JTAGEN wrong status", ConversionStatus.NOT_IN_TARGET, results
+				.getStatusForName("JTAGEN"));
+		assertEquals("BODLEVEL wrong status", ConversionStatus.NOT_IN_TARGET, results
+				.getStatusForName("BODLEVEL"));
+		assertEquals("SUT wrong status", ConversionStatus.NOT_IN_SOURCE, results
+				.getStatusForName("SUT"));
+		assertEquals("CKSEL wrong status", ConversionStatus.NOT_IN_SOURCE, results
+				.getStatusForName("CKSEL"));
 
 		assertTrue("SUT_CKSEL illegally converted to CKSEL.",
 				testvalues.getNamedValue("SUT_CKSEL") != targetvalues.getNamedValue("CKSEL"));
 
-		successlist.clear();
-		notcopiedlist.clear();
-		unsetlist.clear();
+	}
+
+	private ByteValueChangeEvent[]	fEvents	= null;
+
+	/**
+	 * Test method for
+	 * {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#addByteValuesChangeListener}.
+	 */
+	@Test
+	public void testListener() {
+		testvalues = new ByteValues(FUSE, "atmega16");
+		testvalues.setDefaultValues();
+		testvalues.addByteValuesChangeListener(new IByteValuesChangeListener() {
+			public void byteValuesChanged(ByteValueChangeEvent[] events) {
+				fEvents = events;
+			}
+		});
+
+		// Cause a single BitField change event
+		testvalues.setNamedValue("SPIEN", 0x01);
+		assertNotNull("No Events fired", fEvents);
+		assertEquals("Wrong number of event objects", 1, fEvents.length);
+		ByteValueChangeEvent event = fEvents[0];
+		assertEquals("Wrong BitField in event", "SPIEN", event.name);
+		assertEquals("Wrong new value in event", 1, event.bitfieldvalue);
+		assertEquals("Wrong byte index", 1, event.byteindex);
+		assertEquals("Wrong byte value", 0xB9, event.bytevalue);
+
+		// cause multiple BitField change events
+		final String[] names = new String[] { "BODLEVEL", "BODEN", "SUT_CKSEL" };
+		testvalues.setValue(0, 0xC1);
+		assertNotNull("No Events fired", fEvents);
+		assertEquals("Wrong number of event objects", 3, fEvents.length);
+		for (int i = 0; i < fEvents.length; i++) {
+			assertEquals("Wrong byte index in event" + event, 0, fEvents[i].byteindex);
+			assertEquals("Wrong byte value in event" + event, 0xC1, fEvents[i].bytevalue);
+			boolean foundname = false;
+			for (String name : names) {
+				if (name.equals(fEvents[i].name)) {
+					foundname = true;
+				}
+			}
+			if (!foundname)
+				fail("None of the required names in the events");
+		}
+
 	}
 
 	private String bin(int value) {
