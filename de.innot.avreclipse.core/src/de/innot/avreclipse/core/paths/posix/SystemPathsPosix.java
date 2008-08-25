@@ -121,6 +121,10 @@ public class SystemPathsPosix {
 	private static IPath find(String file) {
 
 		for (String findpath : fSearchPaths) {
+			// TODO: use -ipath instead of -path to be case insensitive.
+			// -ipath is a GNU extension to the Posix find, so this might not be as
+			// compatible across all platforms. For the time we leave
+			// -path until someone complains.
 			IPath testpath = executeCommand("find " + findpath + " -path " + file);
 			if (!testpath.isEmpty()) {
 				return testpath;
