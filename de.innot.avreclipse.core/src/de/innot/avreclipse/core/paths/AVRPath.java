@@ -15,23 +15,37 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.paths;
 
-
 public enum AVRPath {
-	AVRGCC(true, "AVR-GCC", "Directory containing 'avr-gcc' and the other tools of the AVR-GCC toolchain", "avr-gcc"),
-	MAKE(true, "GNU make", "Directory containing 'make' executable", "make"), 
-	AVRINCLUDE(true, "AVR Header Files", "Directory containing 'avr/io.h' include file", "avr/io.h"), 
-	AVRDUDE(false, "AVRDude", "Directory containing 'avrdude' executable", "avrdude"), 
-//	AVRDUDECONFIG(false, "AVRDude.conf", "Directory containing 'avrdude.conf' configuration file", "avrdude.conf"), 
-	PDFPATH(false, "Atmel Part Description Files", "(currently unused) Directory containing the Atmel Part Description Files", "atmega16.xml");
+	// The compiler
+	AVRGCC(true, "AVR-GCC",
+			"Directory containing 'avr-gcc' and the other tools of the AVR-GCC toolchain",
+			"avr-gcc"),
 
-	private boolean fRequired;
-	private String fName;
-	private String fDescription;
-	private String fTest;
+	// Make
+	MAKE(true, "GNU make", "Directory containing 'make' executable", "make"),
+
+	// The avr header files
+	AVRINCLUDE(true, "AVR Header Files", "Directory containing 'avr/io.h' include file", "avr/io.h"),
+
+	// AVRDude executable
+	AVRDUDE(false, "AVRDude", "Directory containing 'avrdude' executable", "avrdude"),
+
+	// AVRDude config is not used - We get the path from AVRDude itself
+	// AVRDUDECONFIG(false, "AVRDude.conf", "Directory containing 'avrdude.conf' configuration
+	// file", "avrdude.conf"),
+
+	// Atmel part description files
+	PDFPATH(false, "Atmel Part Description Files",
+			"(currently unused) Directory containing the Atmel Part Description Files",
+			"ATmega16.xml");
+
+	private boolean	fRequired;
+	private String	fName;
+	private String	fDescription;
+	private String	fTest;
 
 	/**
-	 * Default Enum constructor. Sets the internal fields according to the
-	 * selected enum value.
+	 * Default Enum constructor. Sets the internal fields according to the selected enum value.
 	 */
 	AVRPath(boolean required, String name, String description, String test) {
 		fRequired = required;
@@ -51,7 +65,7 @@ public enum AVRPath {
 	public boolean isOptional() {
 		return !fRequired;
 	}
-	
+
 	public String getTest() {
 		return fTest;
 	}
