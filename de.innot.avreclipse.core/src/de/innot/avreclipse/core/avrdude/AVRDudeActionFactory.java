@@ -285,6 +285,11 @@ public class AVRDudeActionFactory {
 
 		List<AVRDudeAction> fuseactions = new ArrayList<AVRDudeAction>();
 
+		if (mcuid == null) {
+			// missing mcuid -> return empty list
+			return fuseactions;
+		}
+
 		// Test if this is a 1 Fuse or 2-3 Fuse MCU
 		int fusecount;
 		try {
@@ -371,6 +376,11 @@ public class AVRDudeActionFactory {
 	public static List<AVRDudeAction> writeLockbitBytes(String mcuid, int values[]) {
 
 		List<AVRDudeAction> actions = new ArrayList<AVRDudeAction>();
+
+		if (mcuid == null) {
+			// no mcu -> no actions
+			return actions;
+		}
 
 		// Get the number of lockbit bytes the mcu supports. Currently this will always be 1, as all
 		// current AVR MCUs have one and only one lockbit byte. However I left this code in just in
