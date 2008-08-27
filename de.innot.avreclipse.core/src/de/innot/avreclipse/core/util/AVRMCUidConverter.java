@@ -17,7 +17,7 @@ package de.innot.avreclipse.core.util;
 
 /**
  * @author Thomas Holland
- *
+ * 
  */
 public class AVRMCUidConverter {
 
@@ -25,17 +25,22 @@ public class AVRMCUidConverter {
 	 * Change the lower case mcuid into the official Name.
 	 * 
 	 * @param mcuid
-	 * @return String with UI name of the MCU or null if it should not be
-	 *         included (e.g. generic family names like 'avr2')
+	 * @return String with UI name of the MCU or <code>null</code> if the given mcuid does not
+	 *         match any of the supported name families.
 	 */
 	public static String id2name(String mcuid) {
-		// remove invalid entries
+
+		// check invalid mcu names
+		if (mcuid == null) {
+			return null;
+		}
 		if ("".equals(mcuid.trim())) {
 			return null;
 		}
+
 		// AVR Specific
 		if (mcuid.startsWith("atxmega")) {
-			return "ATXmega"+mcuid.substring(7).toUpperCase();
+			return "ATXmega" + mcuid.substring(7).toUpperCase();
 		}
 		if (mcuid.startsWith("atmega")) {
 			return "ATmega" + mcuid.substring(6).toUpperCase();
@@ -51,9 +56,9 @@ public class AVRMCUidConverter {
 			return null;
 		}
 
-		return mcuid;
+		return null;
 	}
-	
+
 	public static String name2id(String mcuname) {
 		// just convert to lowercase
 		return mcuname.toLowerCase();
