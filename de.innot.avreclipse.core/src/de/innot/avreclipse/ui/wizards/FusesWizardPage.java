@@ -290,7 +290,6 @@ public class FusesWizardPage extends WizardPage {
 		if (project != null) {
 			filename = project.getName();
 			ProjectPropertyManager propsmanager = getProjectPropertiesManager(project);
-			AVRProjectProperties props = propsmanager.getActiveProperties();
 			if (propsmanager.isPerConfig()) {
 				// Get the name of the active configuration
 				// Get the active build configuration
