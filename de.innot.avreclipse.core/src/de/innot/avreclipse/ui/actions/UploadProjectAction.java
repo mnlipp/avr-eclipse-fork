@@ -50,12 +50,13 @@ import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeSchedulingRule;
-import de.innot.avreclipse.core.avrdude.FuseBytesProperties;
+import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 import de.innot.avreclipse.mbs.BuildMacro;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
@@ -67,31 +68,35 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
  */
 public class UploadProjectAction extends ActionDelegate implements IWorkbenchWindowActionDelegate {
 
-	private final static String	TITLE_UPLOAD		= "AVRDude Upload";
+	private final static String	TITLE_UPLOAD			= "AVRDude Upload";
 
-	private final static String	SOURCE_BUILDCONFIG	= "active build configuration";
-	private final static String	SOURCE_PROJECT		= "project";
+	private final static String	SOURCE_BUILDCONFIG		= "active build configuration";
+	private final static String	SOURCE_PROJECT			= "project";
 
-	private final static String	MSG_NOPROJECT		= "The current selection does not contain anything that can be uploaded with AVRDude.";
+	private final static String	MSG_NOPROJECT			= "The current selection does not contain anything that can be uploaded with AVRDude.";
 
-	private final static String	MSG_NOPROGRAMMER	= "No Programmer has been set for the {0}.\n\n"
-															+ "Please select a Programmer in the project properties\n"
-															+ "(Properties -> AVRDude -> Programmer)";
+	private final static String	MSG_NOPROGRAMMER		= "No Programmer has been set for the {0}.\n\n"
+																+ "Please select a Programmer in the project properties\n"
+																+ "(Properties -> AVRDude -> Programmer)";
 
-	private final static String	MSG_WRONGMCU		= "AVRDude does not support the project target MCU [{0}]\n\n"
-															+ "Please select a different target MCU if you want to use AVRDude.\n"
-															+ "(Properties -> Target Hardware)";
+	private final static String	MSG_WRONGMCU			= "AVRDude does not support the project target MCU [{0}]\n\n"
+																+ "Please select a different target MCU if you want to use AVRDude.\n"
+																+ "(Properties -> Target Hardware)";
 
-	private final static String	MSG_NOACTIONS		= "The {0} has no options set to upload anything to the device.\n\n"
-															+ "Please select at least one item to upload (flash / eeprom / fuses / lockbits)";
+	private final static String	MSG_NOACTIONS			= "The {0} has no options set to upload anything to the device.\n\n"
+																+ "Please select at least one item to upload (flash / eeprom / fuses / lockbits)";
 
-	private final static String	MSG_MISSING_FILE	= "The file [{0}] for the {1} memory does not exist or is not readable\n\n"
-															+ "Maybe the project needs to be build first.";
+	private final static String	MSG_MISSING_FILE		= "The file [{0}] for the {1} memory does not exist or is not readable\n\n"
+																+ "Maybe the project needs to be build first.";
 
-	private final static String	MSG_INVALIDFUSEBYTE	= "The fuse byte(s) to upload are for an {0} MCU, "
-															+ "which is not compatible with the {2} target MCU [{1}]\n\n"
-															+ "Please check the fuse byte settings.\n"
-															+ "(Properties -> AVRDude -> Fuses)";
+	private final static String	MSG_MISSING_FUSES_FILE	= "The selected {0} file [{1}] does not exist or is not readable\n\n"
+																+ "Please select a different {0} source.\n"
+																+ "(Properties -> AVRDude -> {0}";
+
+	private final static String	MSG_INVALIDFUSEBYTE		= "The {0} byte(s) to upload are for an {1} MCU, "
+																+ "which is not compatible with the {3} target MCU [{2}]\n\n"
+																+ "Please check the fuse byte settings.\n"
+																+ "(Properties -> AVRDude -> {0})";
 
 	private IProject			fProject;
 
@@ -255,16 +260,27 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 			return false;
 		}
 
-		// Check that the fuses are valid (if they are to be uploaded)
-		if (props.getAVRDudeProperties().getFuseBytes(buildcfg).getWrite()) {
-			FuseBytesProperties fusebytes = props.getAVRDudeProperties().getFuseBytes(buildcfg);
-			if (!fusebytes.isCompatibleWith(props.getMCUId())) {
-				String fusesmcuid = AVRMCUidConverter.id2name(fusebytes.getMCUId());
-				String propsmcuid = AVRMCUidConverter.id2name(props.getMCUId());
-				String message = MessageFormat.format(MSG_INVALIDFUSEBYTE, fusesmcuid, propsmcuid,
-						source);
-				MessageDialog.openError(getShell(), TITLE_UPLOAD, message);
-				return false;
+		// Check that the fuses and locks are valid (if they are to be uploaded)
+		for (FuseType type : FuseType.values()) {
+
+			if (props.getAVRDudeProperties().getBytesProperties(type, buildcfg).getWrite()) {
+				BaseBytesProperties bytesproperties = props.getAVRDudeProperties()
+						.getBytesProperties(type, buildcfg);
+				if (bytesproperties.getMCUId() == null) {
+					// A non-existing file has been selected as source for the fuses
+					String message = MessageFormat.format(MSG_MISSING_FUSES_FILE, type.toString(),
+							bytesproperties.getFileNameResolved());
+					MessageDialog.openError(getShell(), TITLE_UPLOAD, message);
+					return false;
+				}
+				if (!bytesproperties.isCompatibleWith(props.getMCUId())) {
+					String fusesmcuid = AVRMCUidConverter.id2name(bytesproperties.getMCUId());
+					String propsmcuid = AVRMCUidConverter.id2name(props.getMCUId());
+					String message = MessageFormat.format(MSG_INVALIDFUSEBYTE, type.toString(),
+							fusesmcuid, propsmcuid, source);
+					MessageDialog.openError(getShell(), TITLE_UPLOAD, message);
+					return false;
+				}
 			}
 		}
 
