@@ -179,7 +179,7 @@ public class AVRDude implements IMCUProvider {
 		} catch (AVRDudeException e) {
 			// Something went wrong when avrdude was called. The exception has
 			// already been logged, but we wrap the Exception in an IOException
-			throw new IOException("Could not start avrdude", e);
+			throw new IOException("Could not start avrdude");
 		}
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
