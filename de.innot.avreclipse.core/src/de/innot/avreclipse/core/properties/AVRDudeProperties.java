@@ -24,11 +24,13 @@ import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
+import de.innot.avreclipse.core.avrdude.BaseBytesProperties;
 import de.innot.avreclipse.core.avrdude.FuseBytesProperties;
 import de.innot.avreclipse.core.avrdude.LockbitBytesProperties;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
+import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * Container for all AVRDude specific properties of a project.
@@ -446,6 +448,18 @@ public class AVRDudeProperties {
 		// kludgy, but this seems to be the only point where it can be set.
 		fLockbits.setBuildConfig(buildconfig);
 		return fLockbits;
+	}
+
+	public BaseBytesProperties getBytesProperties(FuseType type, IConfiguration buildconfig) {
+		switch (type) {
+			case FUSE:
+				return getFuseBytes(buildconfig);
+			case LOCKBITS:
+				return getLockbitBytes(buildconfig);
+		}
+
+		// there are no other FuseTypes than those two, so we never come here
+		return null;
 	}
 
 	public String getOtherOptions() {
