@@ -363,6 +363,21 @@
 			class="de.innot.avreclipse.ui.editors.LockbitsEditor" />
 	</extension>
 
+
+<!--
+####################################################################################### 
+#    Fuses File Document Provider                                                                            # 
+####################################################################################### 
+-->
+	<extension point="org.eclipse.ui.editors.documentProviders"> 
+		<provider 
+			extensions=".fuse,.locks" 
+			class="de.innot.avreclipse.ui.editors.FuseFileDocumentProvider" 
+			id="de.innot.avreclipse.ui.editors.FuseFileDocumentProvider"> 
+			</provider> 
+		</extension> 
+
+
 <!--
 ####################################################################################### 
 #    Views                                                                            # 

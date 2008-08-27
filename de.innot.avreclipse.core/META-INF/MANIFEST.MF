@@ -17,7 +17,8 @@ Require-Bundle:
  org.eclipse.core.filesystem,
  org.eclipse.jface.text,
  org.eclipse.ui.forms,
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ org.eclipse.ui.editors
 Export-Package: de.innot.avreclipse;
   uses:="org.eclipse.core.runtime,
    org.eclipse.jface.resource,
@@ -46,7 +47,8 @@ Export-Package: de.innot.avreclipse;
    org.osgi.service.prefs,
    org.eclipse.core.resources,
    de.innot.avreclipse.core.avrdude,
-   org.eclipse.core.runtime.preferences",
+   org.eclipse.core.runtime.preferences,
+   de.innot.avreclipse.core.toolinfo.fuses",
  de.innot.avreclipse.core.toolinfo;
   uses:="org.eclipse.core.runtime,
    org.eclipse.ui.console,
@@ -54,9 +56,10 @@ Export-Package: de.innot.avreclipse;
    de.innot.avreclipse.core,
    de.innot.avreclipse.core.toolinfo.fuses",
  de.innot.avreclipse.core.toolinfo.fuses;
-  uses:="org.eclipse.core.runtime,
+  uses:="org.eclipse.jface.text,
+   org.eclipse.ui.texteditor,
+   org.eclipse.core.runtime,
    org.eclipse.ui.console,
-   org.eclipse.core.resources,
    de.innot.avreclipse.core,
    org.w3c.dom",
  de.innot.avreclipse.core.toolinfo.partdescriptionfiles;uses:="org.eclipse.core.runtime,org.w3c.dom",
@@ -87,15 +90,17 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.jface.dialogs,
    org.eclipse.ui.progress",
  de.innot.avreclipse.ui.editors;
-  uses:="org.eclipse.ui.forms.editor,
+  uses:="org.eclipse.ui.texteditor,
    org.eclipse.core.runtime,
    org.eclipse.ui,
-   org.eclipse.core.resources,
-   org.eclipse.jface.viewers,
-   org.eclipse.swt.widgets,
    org.eclipse.ui.forms,
+   org.eclipse.ui.forms.widgets,
+   org.eclipse.ui.ide,
+   org.eclipse.ui.forms.editor,
+   org.eclipse.core.resources,
+   org.eclipse.swt.widgets,
    de.innot.avreclipse.core.toolinfo.fuses,
-   org.eclipse.ui.forms.widgets",
+   org.eclipse.ui.editors.text",
  de.innot.avreclipse.ui.preferences;
   uses:="org.eclipse.jface.preference,
    de.innot.avreclipse.core.paths,
@@ -137,7 +142,8 @@ Export-Package: de.innot.avreclipse;
    org.eclipse.ui,
    org.eclipse.swt.graphics,
    org.eclipse.jface.viewers,
-   org.eclipse.swt.widgets",
+   org.eclipse.swt.widgets,
+   de.innot.avreclipse.core.toolinfo.fuses",
  de.innot.avreclipse.util;uses:="org.eclipse.core.runtime"
 Eclipse-LazyStart: true
 Bundle-Activator: de.innot.avreclipse.AVRPlugin
