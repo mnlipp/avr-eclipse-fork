@@ -105,13 +105,6 @@ public class FuseBytesProperties extends BaseBytesProperties {
 
 		int[] fusevalues = getValues();
 
-		if (getUseFile()) {
-			// Use a fuses file
-			// Read the fusevalues from the file.
-
-			// TODO Not implemented yet
-		}
-
 		// The action factory will take of generating just the right number of
 		// actions for the MCU.
 		List<AVRDudeAction> allactions = AVRDudeActionFactory

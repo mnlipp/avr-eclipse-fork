@@ -15,21 +15,29 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.avrdude;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
-import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.mbs.BuildMacro;
+import de.innot.avreclipse.ui.editors.FuseFileDocumentProvider;
 
 /**
  * Storage independent container for the Fuse and Lockbits Byte values.
@@ -93,7 +101,7 @@ public abstract class BaseBytesProperties {
 	private String					fFileName;
 	private final static String		KEY_FILENAME		= "FileName";
 	private final static String		DEFAULT_FILENAME	= "";
-	private FileByteValues			fFileByteValues		= null;
+	private ByteValues				fFileByteValues		= null;
 
 	/**
 	 * The current byte values.
@@ -178,12 +186,18 @@ public abstract class BaseBytesProperties {
 	/**
 	 * Get the MCU id value for which this object is valid.
 	 * 
-	 * @return <code>String</code> with an mcu id.
+	 * @return <code>String</code> with an mcu id. May be <code>null</code> if a non-existing
+	 *         file has been set as source.
 	 */
 	public String getMCUId() {
 
 		if (fUseFile) {
-			return getByteValuesFromFile().getMCUId();
+			try {
+				return getByteValuesFromFile().getMCUId();
+			} catch (CoreException ce) {
+				// if the file does not exist or can not be opened we can not return a valid MCU
+				return null;
+			}
 		}
 
 		return fMCUid;
@@ -335,6 +349,7 @@ public abstract class BaseBytesProperties {
 	public void setFileName(String filename) {
 		if (!fFileName.equals(filename)) {
 			fFileName = filename;
+			fFileByteValues = null;
 			fDirty = true;
 		}
 	}
@@ -359,25 +374,35 @@ public abstract class BaseBytesProperties {
 	 */
 	public ByteValues getByteValues() {
 		if (fUseFile) {
-			return getByteValuesFromFile();
+			try {
+				return getByteValuesFromFile();
+			} catch (CoreException ce) {
+				return null;
+			}
 		}
 		return new ByteValues(fByteValues);
 	}
 
-	public ByteValues getByteValuesFromFile() {
+	public ByteValues getByteValuesFromFile() throws CoreException {
 
 		if (fFileByteValues == null) {
 			// We need to instantiate a new byte values from file object
 			IPath location = new Path(getFileNameResolved());
-			try {
-				fFileByteValues = new FileByteValues(location);
-			} catch (CoreException e) {
-				// in case of an error we just return null
-				return null;
+			IFile file = getFileFromLocation(location);
+			if (!file.exists()) {
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "File not Found ["
+						+ location.toOSString() + "]", new FileNotFoundException(file.getFullPath()
+						.toOSString()));
+				throw new CoreException(status);
 			}
+
+			FuseFileDocumentProvider provider = FuseFileDocumentProvider.getDefault();
+			provider.connect(file);
+			fFileByteValues = provider.getByteValues(file);
+			provider.disconnect(file);
 		}
 
-		return new ByteValues(fFileByteValues.getByteValues());
+		return new ByteValues(fFileByteValues);
 
 	}
 
@@ -446,8 +471,13 @@ public abstract class BaseBytesProperties {
 	 * @return Array of <code>int</code> with all byte values.
 	 */
 	public int[] getValuesFromFile() {
-		// TODO: read values from file
-		return getValuesFromImmediate();
+		try {
+			ByteValues fileByteValues = getByteValuesFromFile();
+			return fileByteValues.getValues();
+		} catch (CoreException e) {
+			// File not found / not readable
+			return new int[] {};
+		}
 	}
 
 	/**
@@ -555,8 +585,12 @@ public abstract class BaseBytesProperties {
 	 * Copies the byte values from the file to the object storage.
 	 */
 	public void syncFromFile() {
-		ByteValues source = getByteValuesFromFile();
-		setByteValues(source);
+		try {
+			ByteValues source = getByteValuesFromFile();
+			setByteValues(source);
+		} catch (CoreException ce) {
+			// do nothing if the file does not exist.
+		}
 	}
 
 	/**
@@ -621,7 +655,8 @@ public abstract class BaseBytesProperties {
 			fPrefs.put(KEY_MCUID, fMCUid);
 			fPrefs.putBoolean(KEY_WRITEFLAG, fWriteFlag);
 			fPrefs.putBoolean(KEY_USEFILE, fUseFile);
-			fPrefs.put(KEY_FILENAME, fFileName);
+			String filename = fFileName != null ? fFileName : "";
+			fPrefs.put(KEY_FILENAME, filename);
 
 			// convert the values to a single String
 			StringBuilder sb = new StringBuilder(20);
@@ -647,8 +682,14 @@ public abstract class BaseBytesProperties {
 	 */
 	public boolean isCompatibleWith(String mcuid) {
 		if (fUseFile) {
-			// TODO: Check against the file
-			return false;
+			try {
+				ByteValues fileByteValues = getByteValuesFromFile();
+				return fileByteValues.isCompatibleWith(mcuid);
+			} catch (CoreException e) {
+				// Can't read the file
+				return false;
+			}
+
 		}
 
 		return fByteValues.isCompatibleWith(mcuid);
@@ -663,6 +704,24 @@ public abstract class BaseBytesProperties {
 
 		fByteValues = fByteValues.convertTo(mcuid, results);
 		fMCUid = mcuid;
+
+	}
+
+	private IFile getFileFromLocation(IPath location) throws CoreException {
+
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot root = workspace.getRoot();
+
+		IFile[] files = root.findFilesForLocation(location);
+		if (files.length == 0) {
+			// throw a FileNotFoundException
+			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "File ["
+					+ location.toOSString() + "] not found.", new FileNotFoundException(location
+					.toOSString()));
+			throw new CoreException(status);
+		}
+
+		return files[0];
 
 	}
 
