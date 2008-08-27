@@ -15,7 +15,6 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.editors;
 
-import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * The Lockbits File Editor.
@@ -32,8 +31,8 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  */
 public class LockbitsEditor extends FusesEditor {
 
-	@Override
-	protected FuseType getType() {
-		return FuseType.LOCKBITS;
-	}
+	// @Override
+	// protected FuseType getType() {
+	// return FuseType.LOCKBITS;
+	// }
 }

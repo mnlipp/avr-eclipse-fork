@@ -363,8 +363,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			public void modifyText(ModifyEvent e) {
 				String newpath = fFileText.getText();
 				fBytes.setFileName(newpath);
-				updateAVRDudePreview(fTargetProps);
-				// TODO: update the Fusebytes preview
+				updateFields();
+				checkValid();
 			}
 		});
 
@@ -715,8 +715,20 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			return;
 		}
 
+		String ourmcuid = fBytes.getMCUId();
+		if (ourmcuid == null) {
+			// Fuses file does not exist
+			String message = MessageFormat.format(
+					"File {0} does not exist or is not a valid {1} file.", fBytes
+							.getFileNameResolved(), getType().toString());
+
+			fWarningLabel.setText(message);
+			fWarningCompo.setVisible(true);
+			return;
+		}
+
 		String projectmcuid = fTargetProps.getParent().getMCUId();
-		if (fBytes.getMCUId().equals(projectmcuid)) {
+		if (projectmcuid.equals(ourmcuid)) {
 			// Identical MCUs - hide the warning and do nothing
 			fWarningCompo.setVisible(false);
 
@@ -864,7 +876,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private void updateFields() {
 
 		// Update the Fuse Byte Editor Texts.
-		int[] values = fBytes.getValues();
+		int[] values = fBytes.getValuesFromImmediate();
 		int count = getType().getMaxBytes();
 
 		for (int i = 0; i < count; i++) {

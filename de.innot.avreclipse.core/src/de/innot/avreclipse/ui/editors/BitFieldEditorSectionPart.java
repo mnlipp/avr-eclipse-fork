@@ -42,7 +42,9 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener;
 
 /**
  * A <code>SectionPart</code> that can edit a single BitField.
@@ -96,12 +98,15 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  * </pre>
  * 
  * The <code>ByteValues</code> passed to the managedForm is the model for this
- * <code>SectionPart</code>. It will remain untouched until the {@link #commit(boolean)} method
- * is called, which will write the user modified value back to the <code>ByteValues</code> model.
- * 
- * <pre>
- *     managedForm.commit(...);
- * </pre>
+ * <code>SectionPart</code>. Unlike normal IFormParts all changes to the source ByteValues are
+ * applied immediately, because other BitFields or even other editors might be affected by the
+ * change. Therefore this class uses its own dirty / stale management and does not use the one
+ * provided by the superclass {@link SectionPart}.
+ * </p>
+ * <p>
+ * This part also adds itself as a listener for changes to the ByteValues model. If the BitField
+ * managed by this section gets changed from outside, then this part is marked as stale. The new
+ * value will be set during the refresh method.
  * 
  * </p>
  * 
@@ -109,7 +114,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  * @since 2.3
  * 
  */
-public class BitFieldEditorSectionPart extends SectionPart {
+public class BitFieldEditorSectionPart extends SectionPart implements IByteValuesChangeListener {
 
 	/** The BitField this Section should take care of. */
 	private final BitFieldDescription	fBFD;
@@ -120,8 +125,20 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	 */
 	private ByteValues					fByteValues;
 
-	/** Current BitField value. Stores any changes until it is commited to the modell. */
+	/** Last clean BitField value. Used to check if this part is currently dirty. */
+	private int							fLastCleanValue	= -1;
+
+	/** Current BitField value. Used to check if this part is currently stale. */
 	private int							fCurrentValue	= -1;
+
+	/**
+	 * Part is currently committing the value. Used to inhibit reacting to ByteValueChangeEvents
+	 * caused by this class.
+	 */
+	private boolean						fInCommit		= false;
+
+	/** Part is currently refreshing. Used to inhibit any modification listeners. */
+	private boolean						fInRefresh		= false;
 
 	/**
 	 * The Control that handles the different visual representations.
@@ -218,6 +235,19 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		if (fByteValues != null) {
+			fByteValues.removeChangeListener(this);
+		}
+		super.dispose();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#setFormInput(java.lang.Object)
 	 */
 	@Override
@@ -228,6 +258,7 @@ public class BitFieldEditorSectionPart extends SectionPart {
 		}
 
 		fByteValues = (ByteValues) input;
+		fByteValues.addChangeListener(this);
 
 		refresh();
 		return true;
@@ -240,12 +271,18 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	 */
 	@Override
 	public void refresh() {
+		// refresh() was once called before setInput(), but I am not sure if this was a bug in the
+		// Editor. I have left this test just in case, even if it is probably not required.
 		if (fByteValues == null) {
 			return;
 		}
+
 		int value = fByteValues.getNamedValue(fBFD.getName());
-		fCurrentValue = value;
+		fInRefresh = true;
 		fOptionPart.setValue(value);
+		fInRefresh = false;
+		fLastCleanValue = fCurrentValue = value;
+
 		super.refresh();
 	}
 
@@ -256,24 +293,93 @@ public class BitFieldEditorSectionPart extends SectionPart {
 	 */
 	@Override
 	public void commit(boolean onSave) {
-		fByteValues.setNamedValue(fBFD.getName(), fCurrentValue);
+		fLastCleanValue = fCurrentValue = fByteValues.getNamedValue(fBFD.getName());
 		super.commit(onSave);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
+	 */
+	@Override
+	public boolean isDirty() {
+		// This part is dirty if the source ByteValues has a different value than what it had on the
+		// last setInput(), refresh() or commit()
+		try {
+			if (fByteValues.getNamedValue(fBFD.getName()) != fLastCleanValue) {
+				return true;
+			}
+		} catch (IllegalArgumentException iae) {
+			// The ByteValues source has changed (but our parent editorpart has not yet received
+			// news about this)
+			// In this case we consider ourself to be clean as this section will be
+			// disposed of shortly.
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isStale()
+	 */
+	@Override
+	public boolean isStale() {
+		// This part is stale if the source ByteValues has a different value than what this part
+		// thinks it should have.
+		if (fByteValues.getNamedValue(fBFD.getName()) != fCurrentValue) {
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
+	 */
+	public void byteValuesChanged(ByteValueChangeEvent[] events) {
+
+		if (fInCommit) {
+			// don't listen to our own changes to the BitField
+			return;
+		}
+
+		// go through all events and if any event changes our
+		// BitField to a different value then mark ourself as (probably) stale.
+		for (ByteValueChangeEvent event : events) {
+			if (event.name.equals(fBFD.getName())) {
+				// Our stale state might have changed, depending on the new value.
+				// Inform the parent ManagedForm - it will call our isStale() implementation to get
+				// the actual state.
+				getManagedForm().staleStateChanged();
+			}
+		}
+	}
+
 	/**
-	 * Sets the internal temporary value.
+	 * Sets the value of this Section part.
 	 * <p>
 	 * This is called by the <code>IOptionPart</code>s when the user has changed the selection.
-	 * The new value is stored until it is commited to the model with a call to
-	 * {@link #commit(boolean)}.
+	 * The new value is applied immediately to the model and the parent IManagedForm is informed
+	 * that the dirty state might have changed.
 	 * </p>
 	 * 
 	 * @param newvalue
 	 *            The new value from the user selection.
 	 */
 	private void internalSetValue(int newvalue) {
+		fInCommit = true;
+		fByteValues.setNamedValue(fBFD.getName(), newvalue);
+		fInCommit = false;
+
 		fCurrentValue = newvalue;
-		markDirty();
+
+		// Our dirty state might have changed, depending on the new value.
+		// Inform the parent ManagedForm - it will call our isDirty() implementation to get the
+		// actual state.
+		getManagedForm().dirtyStateChanged();
 	}
 
 	/**
@@ -344,6 +450,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			Listener listener = new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					int value = (event.widget == fYesButton) ? 0x00 : 0x01;
 					internalSetValue(value);
 				}
@@ -401,6 +511,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			Listener listener = new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					int value = fCheckButton.getSelection() ? fSetValue : 0x01 & ~fSetValue;
 					internalSetValue(value);
 				}
@@ -451,6 +565,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			Listener listener = new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					int value = -1;
 					for (int i = 0; i < fButtons.length; i++) {
 						if (fButtons[i] == event.widget) {
@@ -593,6 +711,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fRootCombo.addListener(SWT.Selection, new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					int index = fRootCombo.getSelectionIndex();
 					String name = fRootTexts[index];
 					List<String> subnames = fRootToSubnames.get(name);
@@ -627,6 +749,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fSubCombo.addListener(SWT.Selection, new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					List<Integer> subvalues;
 					int rootindex = fRootCombo.getSelectionIndex();
 					String name = fRootTexts[rootindex];
@@ -647,8 +773,8 @@ public class BitFieldEditorSectionPart extends SectionPart {
 		 */
 		public void setValue(int value) {
 			if (value == -1) {
-				fRootCombo.select(-1);
-				fSubCombo.select(-1);
+				fRootCombo.clearSelection();
+				fSubCombo.clearSelection();
 				return;
 			}
 
@@ -742,6 +868,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fCombo.addListener(SWT.Selection, new Listener() {
 
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 
 					int index = fCombo.getSelectionIndex();
 					int newvalue = fValues[index];
@@ -759,7 +889,8 @@ public class BitFieldEditorSectionPart extends SectionPart {
 		 */
 		public void setValue(int value) {
 			if (value == -1) {
-				fCombo.select(-1);
+				fCombo.clearSelection();
+				fCombo.deselectAll();
 				return;
 			}
 
@@ -767,7 +898,6 @@ public class BitFieldEditorSectionPart extends SectionPart {
 			fCombo.select(index);
 
 		}
-
 	}
 
 	/**
@@ -813,6 +943,10 @@ public class BitFieldEditorSectionPart extends SectionPart {
 				// If yes then the value is set in the parent,
 				// if no then the foreground is colored red.
 				public void handleEvent(Event event) {
+					if (fInRefresh) {
+						// don't listen to events originating from refresh()
+						return;
+					}
 					try {
 						int value = Integer.decode(fText.getText());
 						if (value <= fMaxValue) {

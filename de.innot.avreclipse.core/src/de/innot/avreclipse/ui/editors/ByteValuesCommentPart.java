@@ -28,7 +28,9 @@ import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener;
 
 /**
  * A <code>SectionPart</code> that can edit the comment field of a <code>ByteValues</code>
@@ -58,21 +60,22 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  * </pre>
  * 
  * The <code>ByteValues</code> passed to the managedForm is the model for this
- * <code>SectionPart</code>. It will remain untouched until the {@link #commit(boolean)} method
- * is called, which will write the user modified comment back to the <code>ByteValues</code>
- * model.
- * 
- * <pre>
- *     managedForm.commit(...);
- * </pre>
- * 
+ * <code>SectionPart</code>. Unlike normal IFormParts all changes to the source ByteValues are
+ * applied immediately, because other other editors might be affected by the change. Therefore this
+ * class uses its own dirty / stale management and does not use the one provided by the superclass
+ * {@link SectionPart}
+ * </p>
+ * <p>
+ * This part also adds itself as a listener for changes to the ByteValues model. If the ByteValues
+ * comment gets changed from outside, then this part is marked as stale. The new value will be set
+ * during the refresh method.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.3
  * 
  */
-public class ByteValuesCommentPart extends SectionPart {
+public class ByteValuesCommentPart extends SectionPart implements IByteValuesChangeListener {
 
 	//
 	// This stuff could be integrated into the ByteValuesMainPart class.
@@ -93,8 +96,16 @@ public class ByteValuesCommentPart extends SectionPart {
 	/** The text control of this section. */
 	private Text		fText;
 
-	/** Current comment. Stores any changes until it is commited to the model. */
+	/** Last clean comment value. Used to check if this part is currently dirty. */
+	private String		fLastCleanComment;
+
+	/** Current comment. Used to check if this part is currently stale. */
 	private String		fCurrentComment;
+
+	/**
+	 * Part is currently refreshing the value. Used to inhibit the ModifyTextListener.
+	 */
+	private boolean		fInRefresh	= false;
 
 	/**
 	 * Create a new <code>SectionPart</code> to handle the comment of a <code>ByteValues</code>
@@ -141,11 +152,33 @@ public class ByteValuesCommentPart extends SectionPart {
 		fText.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
+				if (fInRefresh) {
+					// don't do anything if the new text value has been set in the refresh() method.
+					return;
+				}
 				fCurrentComment = fText.getText();
-				markDirty();
+				fByteValues.setComment(fCurrentComment);
+
+				// Our dirty state might have changed, depending on the new value.
+				// Inform the parent ManagedForm - it will call our isDirty() implementation to get
+				// the actual state.
+				getManagedForm().dirtyStateChanged();
 			}
 		});
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		if (fByteValues != null) {
+			fByteValues.removeChangeListener(this);
+		}
+		super.dispose();
 	}
 
 	/*
@@ -161,8 +194,9 @@ public class ByteValuesCommentPart extends SectionPart {
 		}
 
 		fByteValues = (ByteValues) input;
+		fByteValues.addChangeListener(this);
 
-		updateComment();
+		refresh();
 
 		return true;
 	}
@@ -174,7 +208,22 @@ public class ByteValuesCommentPart extends SectionPart {
 	 */
 	@Override
 	public void refresh() {
-		updateComment();
+		// refresh() was once called before setInput(), but I am not sure if this was a bug in the
+		// Editor. I have left this test just in case, even if it is probably not required.
+		if (fByteValues == null) {
+			return;
+		}
+
+		String comment = fByteValues.getComment();
+		if (comment == null) {
+			comment = "";
+		}
+		fInRefresh = true;
+		fText.setText(comment);
+		fInRefresh = false;
+
+		fLastCleanComment = fCurrentComment = comment;
+
 		super.refresh();
 	}
 
@@ -185,26 +234,78 @@ public class ByteValuesCommentPart extends SectionPart {
 	 */
 	@Override
 	public void commit(boolean onSave) {
-		fByteValues.setComment(fCurrentComment);
+
+		fLastCleanComment = fCurrentComment = fByteValues.getComment();
 
 		super.commit(onSave);
 	}
 
-	/**
-	 * Set the comment text control from the ByteValues.
+	/*
+	 * (non-Javadoc)
 	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
 	 */
-	private void updateComment() {
-		if (fByteValues == null) {
+	@Override
+	public boolean isDirty() {
+		// This part is dirty if the source ByteValues has a different value than what it had on the
+		// last setInput(), refresh() or commit()
+		String comment = fByteValues.getComment();
+		if (comment == null && fLastCleanComment == null) {
+			return false;
+		}
+		if (comment == null && fLastCleanComment != null) {
+			return true;
+		}
+		if (fByteValues.getComment().equals(fLastCleanComment)) {
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isStale()
+	 */
+	@Override
+	public boolean isStale() {
+		// This part is stale if the source ByteValues has a different value than what this part
+		// thinks it should have.
+		String comment = fByteValues.getComment();
+		if (comment == null && fCurrentComment == null) {
+			return false;
+		}
+		if (comment == null && fCurrentComment != null) {
+			return true;
+		}
+		if (fByteValues.getComment().equals(fCurrentComment)) {
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
+	 */
+	public void byteValuesChanged(ByteValueChangeEvent[] events) {
+
+		if (fInRefresh) {
+			// don't listen to our own changes to the Comment
 			return;
 		}
 
-		String comment = fByteValues.getComment();
-		if (comment == null) {
-			comment = "";
+		// go through all events and if any event changes the comment to a different value then mark
+		// ourself as stale.
+		for (ByteValueChangeEvent event : events) {
+			if (event.name.equals(ByteValues.COMMENT_CHANGE_EVENT)) {
+				// Our stale state might have changed, depending on the new value.
+				// Inform the parent ManagedForm - it will call our isStale() implementation to get
+				// the actual state.
+				getManagedForm().staleStateChanged();
+			}
 		}
-		fText.setText(comment);
-		fCurrentComment = comment;
 	}
 
 }

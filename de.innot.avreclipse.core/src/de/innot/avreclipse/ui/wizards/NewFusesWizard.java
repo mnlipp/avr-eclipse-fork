@@ -42,8 +42,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.FileByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
+import de.innot.avreclipse.ui.editors.FuseFileDocumentProvider;
 
 /**
  * This is a sample new wizard. Its role is to create a new file resource in the provided container.
@@ -145,12 +145,17 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 
 			// Now get a handle for the new fuses file and write the selected values
 			// to the file.
-			// If the file already exists we ask the user if it is OK to overwrite it.
-			IFile file = container.getFile(new Path(fileName));
-			final FileByteValues newfile = FileByteValues.createNewFile(file.getLocation(),
-					newvalues.getMCUId(), FuseType.FUSE);
-			newfile.setByteValue(newvalues);
-			newfile.save(new SubProgressMonitor(monitor, 1));
+			// The file will be overwritten if it exists, but the WizardPage only allows
+			// non-existing filenames.
+			final IFile file = container.getFile(new Path(fileName));
+			FuseFileDocumentProvider provider = FuseFileDocumentProvider.getDefault();
+			provider.connect(file);
+			provider.aboutToChange(file);
+			provider.setByteValues(file, newvalues);
+			provider.saveDocument(new SubProgressMonitor(monitor, 1), file, provider
+					.getDocument(file), true);
+			provider.changed(file);
+			provider.disconnect(file);
 
 			// Now open the new file with the default editor
 			monitor.setTaskName("Opening file for editing...");
@@ -159,12 +164,13 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 							.getActivePage();
 					try {
-						IDE.openEditor(page, newfile.getSourceFile(), true);
+						IDE.openEditor(page, file, true);
 					} catch (PartInitException e) {
 						// TODO: Log error message
 					}
 				}
 			});
+
 			monitor.worked(1);
 
 		} finally {

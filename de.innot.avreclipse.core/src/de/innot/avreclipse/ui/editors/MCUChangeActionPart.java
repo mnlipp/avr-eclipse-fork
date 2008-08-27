@@ -17,6 +17,7 @@ package de.innot.avreclipse.ui.editors;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.ui.forms.IManagedForm;
 
 import de.innot.avreclipse.ui.actions.ActionType;
 import de.innot.avreclipse.ui.dialogs.ChangeMCUDialog;
@@ -30,7 +31,7 @@ import de.innot.avreclipse.ui.dialogs.ChangeMCUDialog;
  * @since 2.3
  * 
  */
-public class MCUTypeActionPart extends AbstractActionPart {
+public class MCUChangeActionPart extends AbstractActionPart {
 
 	/*
 	 * (non-Javadoc)
@@ -48,22 +49,29 @@ public class MCUTypeActionPart extends AbstractActionPart {
 			public void run() {
 
 				// Open the "Change MCU" dialog
+				String filename = "";
+				IManagedForm mform = getManagedForm();
+				Object container = mform.getContainer();
+				if (container instanceof ByteValuesFormEditor) {
+					ByteValuesFormEditor page = (ByteValuesFormEditor) container;
+					filename = page.getFilename();
+				}
 				ChangeMCUDialog changeMCUDialog = new ChangeMCUDialog(getManagedForm().getForm()
-						.getShell(), getByteValues(), null);
+						.getShell(), getByteValues(), filename);
 
 				if (changeMCUDialog.open() == ChangeMCUDialog.OK) {
 
 					String newmcuid = changeMCUDialog.getResult();
-
-					// Commit all pending changes first, so that they can be converted correctly.
-					getManagedForm().commit(false);
+					String oldmcuid = getByteValues().getMCUId();
+					if (oldmcuid.equals(newmcuid)) {
+						return;
+					}
 
 					// Now we can change the MCU to the new type, converting the old bitfield values
 					// as far as possible.
+					// The actual form is registered as a ByteValuesChangeListener, so it will be
+					// notified about the new MCU.
 					getByteValues().setMCUId(newmcuid, true);
-
-					// And finally tell all form parts that the ByteValues have changed.
-					notifyForm();
 
 					// Mark the ByteValues dirty due to the changed MCU.
 					markDirty();

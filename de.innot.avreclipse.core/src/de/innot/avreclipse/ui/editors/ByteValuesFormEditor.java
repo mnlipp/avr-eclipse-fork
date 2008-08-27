@@ -46,10 +46,13 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
  * @since 2.3
  * 
  */
-public class FuseByteEditorPage extends FormPage {
+public class ByteValuesFormEditor extends FormPage {
 
 	/** The current <code>ByteValues</code> that this editor works with. */
 	private ByteValues	fByteValues;
+
+	/** The filename which is currently edited. May be <code>null</code>. */
+	private String		fFileName;
 
 	/**
 	 * @param editor
@@ -59,7 +62,7 @@ public class FuseByteEditorPage extends FormPage {
 	 * @param title
 	 *            The title of this editor, shown in the bottom tab of this editor.
 	 */
-	public FuseByteEditorPage(FusesEditor editor, String id, String title) {
+	public ByteValuesFormEditor(FusesEditor editor, String id, String title) {
 		super(editor, id, title);
 	}
 
@@ -72,9 +75,14 @@ public class FuseByteEditorPage extends FormPage {
 	public void initialize(FormEditor editor) {
 		if (editor instanceof FusesEditor) {
 			FusesEditor parent = (FusesEditor) editor;
-			fByteValues = parent.getByteValuesFromInput();
+			fByteValues = parent.getByteValues();
+			fFileName = parent.getSourceFilename();
 		}
 		super.initialize(editor);
+	}
+
+	public String getFilename() {
+		return fFileName;
 	}
 
 	/*
@@ -86,7 +94,7 @@ public class FuseByteEditorPage extends FormPage {
 	protected void createFormContent(IManagedForm managedForm) {
 
 		// Add the toolbar actions
-		managedForm.addPart(new MCUTypeActionPart());
+		managedForm.addPart(new MCUChangeActionPart());
 		managedForm.addPart(new MCUReadActionPart());
 		managedForm.addPart(new MCUDefaultsActionPart());
 

@@ -90,6 +90,7 @@ public class ChangeMCUDialog extends TitleAreaDialog {
 		super(shell);
 
 		fSourceValues = sourcevalues;
+		fNewMCU = sourcevalues.getMCUId();
 		fFileName = filename;
 
 	}

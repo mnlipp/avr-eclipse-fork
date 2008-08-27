@@ -1,15 +1,26 @@
-/**
+/*******************************************************************************
  * 
- */
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the GNU Public License v3
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * 
+ * Contributors:
+ *     Thomas Holland - initial API and implementation
+ *     
+ * $Id$
+ *     
+ *******************************************************************************/
 package de.innot.avreclipse.ui.editors;
 
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.forms.AbstractFormPart;
-import org.eclipse.ui.forms.IFormPart;
-import org.eclipse.ui.forms.IPartSelectionListener;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -27,10 +38,48 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @since 2.3
  * 
  */
-public class ByteValuesTitlePart extends AbstractFormPart implements IPartSelectionListener {
+public class ByteValuesTitlePart extends AbstractFormPart implements IByteValuesChangeListener {
 
 	/** Reference to the current <code>ByteValues</code>. */
 	private ByteValues	fByteValues;
+
+	/**
+	 * The current MCU of the ByteValues. If this is different than {@link #fLastCleanMCU} then this
+	 * part is stale and needs to be redrawn on the next refresh.
+	 */
+	private String		fCurrentMCU	= null;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		if (fByteValues != null) {
+			fByteValues.removeChangeListener(this);
+		}
+		super.dispose();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.AbstractFormPart#setFormInput(java.lang.Object)
+	 */
+	@Override
+	public boolean setFormInput(Object input) {
+		if (!(input instanceof ByteValues)) {
+			return false;
+		}
+
+		fByteValues = (ByteValues) input;
+		fByteValues.addChangeListener(this);
+
+		refresh();
+
+		return true;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -44,23 +93,40 @@ public class ByteValuesTitlePart extends AbstractFormPart implements IPartSelect
 		// id. Update the form title header.
 		setTitle();
 
+		fCurrentMCU = fByteValues.getMCUId();
+
 		super.refresh();
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.ui.forms.AbstractFormPart#setFormInput(java.lang.Object)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isStale()
 	 */
 	@Override
-	public boolean setFormInput(Object input) {
-		if (input instanceof ByteValues) {
-			fByteValues = (ByteValues) input;
-			setTitle();
+	public boolean isStale() {
+		if (!fByteValues.getMCUId().equals(fCurrentMCU)) {
 			return true;
 		}
-
 		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
+	 */
+	public void byteValuesChanged(ByteValueChangeEvent[] events) {
+		// go through all events and if any event changes the MCU,
+		// then mark this part as stale.
+		for (ByteValueChangeEvent event : events) {
+			if (event.name.equals(ByteValues.MCU_CHANGE_EVENT)) {
+				// Our stale state might have changed, depending on the new MCU value.
+				// Inform the parent ManagedForm - it will call our isStale() implementation to get
+				// the actual state and later refresh() if we are actually stale.
+				getManagedForm().staleStateChanged();
+			}
+		}
 	}
 
 	/**
@@ -79,19 +145,6 @@ public class ByteValuesTitlePart extends AbstractFormPart implements IPartSelect
 		ScrolledForm form = getManagedForm().getForm();
 		form.setText(newtitle);
 
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.forms.IPartSelectionListener#selectionChanged(org.eclipse.ui.forms.IFormPart,
-	 *      org.eclipse.jface.viewers.ISelection)
-	 */
-	public void selectionChanged(IFormPart part, ISelection selection) {
-		// This is (indirectly) called by the "Change MCU Type" Action.
-
-		// Set the title accordingly
-		setTitle();
 	}
 
 }
