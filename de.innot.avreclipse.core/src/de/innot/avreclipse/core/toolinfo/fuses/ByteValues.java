@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
 
 import de.innot.avreclipse.AVRPlugin;
@@ -71,7 +72,7 @@ public class ByteValues {
 	private ConversionResults					fConversionResults;
 
 	/** List of all registered Listeners. */
-	private List<IByteValuesChangeListener>		fListeners;
+	private ListenerList						fListenerList;
 
 	/** Name of the {@link ByteValueChangeEvent} in case the MCU has been changed. */
 	public final static String					MCU_CHANGE_EVENT		= "mcuChangeEvent";
@@ -155,6 +156,11 @@ public class ByteValues {
 	 */
 	public void setMCUId(String mcuid, boolean convert) {
 
+		if (fMCUId.equals(mcuid)) {
+			// do nothing if the mcu is the same
+			return;
+		}
+
 		ByteValues conversioncopy = null;
 		if (convert) {
 			fConversionResults = new ConversionResults();
@@ -164,16 +170,17 @@ public class ByteValues {
 		fMCUId = mcuid;
 		fByteCount = loadByteCount();
 		fValues = new int[fByteCount];
+		fBitFieldNames = null;
 
+		// First inform all listeners that we have a new MCU
 		fireBitFieldChangedEvent(MCU_CHANGE_EVENT, 0, 0, 0);
 
+		// and then set the new values (about which the listeners will be informed as well.
 		if (conversioncopy != null) {
 			setValues(conversioncopy.getValues());
 		} else {
 			clearValues();
 		}
-
-		fBitFieldNames = null;
 
 	}
 
@@ -779,17 +786,12 @@ public class ByteValues {
 	 * @param listener
 	 *            The listener to be registered.
 	 */
-	public void addByteValuesChangeListener(IByteValuesChangeListener listener) {
+	public void addChangeListener(IByteValuesChangeListener listener) {
 		Assert.isNotNull(listener);
-		if (fListeners == null) {
-			fListeners = new ArrayList<IByteValuesChangeListener>();
+		if (fListenerList == null) {
+			fListenerList = new ListenerList(ListenerList.IDENTITY);
 		}
-
-		if (fListeners.contains(listener)) {
-			return;
-		}
-
-		fListeners.add(listener);
+		fListenerList.add(listener);
 	}
 
 	/**
@@ -802,12 +804,12 @@ public class ByteValues {
 	 * @param listener
 	 *            The listener to be removed.
 	 */
-	public void removeByteValuesChangeListener(IByteValuesChangeListener listener) {
-		if (fListeners == null) {
+	public void removeChangeListener(IByteValuesChangeListener listener) {
+		if (fListenerList == null) {
 			return;
 		}
 
-		fListeners.remove(listener);
+		fListenerList.remove(listener);
 	}
 
 	/**
@@ -824,6 +826,10 @@ public class ByteValues {
 	 *            Value of the byte containing the BitField
 	 */
 	private void fireBitFieldChangedEvent(String name, int value, int byteindex, int bytevalue) {
+		if (fListenerList == null || fListenerList.size() == 0) {
+			// quick exit if we have no listeners
+			return;
+		}
 
 		ByteValueChangeEvent event = createEvent(name, value, byteindex, bytevalue);
 		fireEvents(new ByteValueChangeEvent[] { event });
@@ -843,7 +849,7 @@ public class ByteValues {
 	 *            Value of the byte containing the BitField
 	 */
 	private void fireByteChangedEvent(int byteindex, int bytevalue) {
-		if (fListeners == null || fListeners.size() == 0) {
+		if (fListenerList == null || fListenerList.size() == 0) {
 			// quick exit if we have no listeners
 			return;
 		}
@@ -869,8 +875,9 @@ public class ByteValues {
 	 *            Array of Events.
 	 */
 	private void fireEvents(ByteValueChangeEvent[] events) {
-		for (IByteValuesChangeListener listener : fListeners) {
-			listener.byteValuesChanged(events);
+		Object[] listeners = fListenerList.getListeners();
+		for (int i = 0; i < listeners.length; ++i) {
+			((IByteValuesChangeListener) listeners[i]).byteValuesChanged(events);
 		}
 	}
 

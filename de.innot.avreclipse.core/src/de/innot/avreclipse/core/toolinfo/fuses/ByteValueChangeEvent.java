@@ -71,4 +71,13 @@ public class ByteValueChangeEvent {
 	/** New value of the byte containing the changed BitField. */
 	public int			bytevalue;
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString() For debugging pruposes
+	 */
+	@Override
+	public String toString() {
+		return "Event[" + name + "=>" + bitfieldvalue + "]";
+	}
 }
