@@ -50,8 +50,7 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 	 *      org.eclipse.cdt.make.core.scannerconfig.ScannerInfoTypes)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public List<String> getCollectedScannerInfo(Object resource, ScannerInfoTypes type) {
+	public List<?> getCollectedScannerInfo(Object resource, ScannerInfoTypes type) {
 		// Check if the requested ScannerInfoType is TARGET_SPECIFIC_OPTION
 		// If no, let the superclass handle this.
 		// If yes, return the "-mmcu" compiler option with the project MCDU
@@ -78,7 +77,7 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 			rv.add("-mmcu=" + targetmcu);
 		}
 		String fcpu = props.getFCPU();
-		if ((fcpu != null) && (!fcpu.isEmpty())) {
+		if ((fcpu != null) && (fcpu.length() != 0)) {
 			rv.add("-DF_CPU=" + fcpu + "UL");
 		}
 
