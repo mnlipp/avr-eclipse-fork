@@ -424,7 +424,7 @@ public class TestFuseByteValues {
 	public void testListener() {
 		testvalues = new ByteValues(FUSE, "atmega16");
 		testvalues.setDefaultValues();
-		testvalues.addByteValuesChangeListener(new IByteValuesChangeListener() {
+		testvalues.addChangeListener(new IByteValuesChangeListener() {
 			public void byteValuesChanged(ByteValueChangeEvent[] events) {
 				fEvents = events;
 			}
