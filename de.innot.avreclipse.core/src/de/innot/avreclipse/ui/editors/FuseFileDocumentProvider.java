@@ -28,19 +28,42 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 
 /**
+ * Special Document Provider for fuses and locks files.
+ * <p>
+ * This Provider is based on a <code>TextFileDocumentProvider</code>. For every connected Input
+ * this provider maintains a {@link DocumentByteValuesConnector} object, which connects an
+ * <code>IDocument</code> to a <code>ByteValues</code> object. This connector is responsible for
+ * keeping the Document and the ByteValues in sync. Changes to either of them are immediatly
+ * reflected in the other.
+ * </p>
+ * <p>
+ * In addition to the <code>IDocumentProvider</code> interface this provider has two public
+ * methods to get and set the ByteValues for a given input object.
+ * </p>
+ * <p>
+ * This provider uses the singleton pattern. There is only one provider per Eclipse instance and it
+ * get be retrieved with the static {@link #getDefault()} method.
+ * </p>
+ * 
  * @author Thomas Holland
  * @since 2.3
- * 
  */
 public class FuseFileDocumentProvider extends ForwardingDocumentProvider {
 
-	private static FuseFileDocumentProvider fInstance;
+	/** Singleton provider instance. */
+	private static FuseFileDocumentProvider					fInstance;
 
-	private static Map<Object, DocumentByteValuesConnector> fConnectorsMap = new HashMap<Object, DocumentByteValuesConnector>();
-	private static Map<Object, Integer> fConnectorsCount = new HashMap<Object, Integer>();
+	/** Map of ByteValues connectors for all connected inputs. */
+	private static Map<Object, DocumentByteValuesConnector>	fConnectorsMap		= new HashMap<Object, DocumentByteValuesConnector>();
 
-	private static class InternalDocumentSetupParticipant implements
-			IDocumentSetupParticipant {
+	/** Usage counter for all connected inputs. */
+	private static Map<Object, Integer>						fConnectorsCount	= new HashMap<Object, Integer>();
+
+	/**
+	 * Dummy document setup participant. Currently only used because one is required for the
+	 * <code>ForwardingDocumentProvider</code> superclass.
+	 */
+	private static class InternalDocumentSetupParticipant implements IDocumentSetupParticipant {
 
 		public void setup(IDocument document) {
 			// nothing to setup yet
@@ -48,45 +71,73 @@ public class FuseFileDocumentProvider extends ForwardingDocumentProvider {
 		}
 	}
 
+	/**
+	 * Get the Fuse file document provider.
+	 * 
+	 * @return The instance FuseFileDocumentProvider.
+	 */
 	public static FuseFileDocumentProvider getDefault() {
 
 		if (fInstance == null) {
 			fInstance = createProvider();
 		}
-
 		return fInstance;
+	}
+
+	/**
+	 * Constructs a new fuse file document provider.
+	 * <p>
+	 * This constructor is implemented to support the "org.eclipse.ui.editors.documentProviders"
+	 * extension point defined in the plugin.xml. It should not be called directly.
+	 * </p>
+	 * 
+	 */
+	public FuseFileDocumentProvider() {
+
+		// TODO: Check if this constructor and the extension point is actually needed.
+		// The Fuse file editor uses the singleton provider from the getDefault() method.
+		super("__fuses", new InternalDocumentSetupParticipant(), new TextFileDocumentProvider());
 
 	}
 
+	/**
+	 * Private constructor for the provider. All parameters are passed on to the superclass.
+	 * 
+	 * @param partitioning
+	 *            the partitioning
+	 * @param documentSetupParticipant
+	 *            the document setup participant
+	 * @param parentProvider
+	 *            the parent document provider
+	 */
+	private FuseFileDocumentProvider(String partitioning,
+			IDocumentSetupParticipant documentSetupParticipant, IDocumentProvider parentProvider) {
+		super(partitioning, documentSetupParticipant, parentProvider);
+
+	}
+
+	/**
+	 * Create a new fuse file document provider.
+	 * <p>
+	 * The new provider uses a <code>TextFileDocumentProvider</code> as a parent provider for the
+	 * chain-of-command pattern and an empty <code>DocumentSetupParticipant</code>.
+	 * </p>
+	 * <p>
+	 * This method is only called once from the static {@link #getDefault()} method to create the
+	 * single instance.
+	 * 
+	 * @return A new document provider.
+	 */
 	private static FuseFileDocumentProvider createProvider() {
 
 		String partitioning = "__fuses"; // don't yet know what this is for
-
-		IDocumentSetupParticipant setupparticipant = new IDocumentSetupParticipant() {
-
-			public void setup(IDocument document) {
-			}
-		};
-
+		IDocumentSetupParticipant setupparticipant = new InternalDocumentSetupParticipant();
 		IDocumentProvider parentprovider = new TextFileDocumentProvider();
 
-		FuseFileDocumentProvider provider = new FuseFileDocumentProvider(
-				partitioning, setupparticipant, parentprovider);
+		FuseFileDocumentProvider provider = new FuseFileDocumentProvider(partitioning,
+				setupparticipant, parentprovider);
 
 		return provider;
-
-	}
-
-	public FuseFileDocumentProvider() {
-		super("__fuses", new InternalDocumentSetupParticipant(),
-				new TextFileDocumentProvider());
-
-	}
-
-	private FuseFileDocumentProvider(String partitioning,
-			IDocumentSetupParticipant documentSetupParticipant,
-			IDocumentProvider parentProvider) {
-		super(partitioning, documentSetupParticipant, parentProvider);
 
 	}
 
@@ -102,8 +153,7 @@ public class FuseFileDocumentProvider extends ForwardingDocumentProvider {
 
 		DocumentByteValuesConnector connector = fConnectorsMap.get(element);
 		if (connector == null) {
-			connector = new DocumentByteValuesConnector(this, element,
-					getDocument(element));
+			connector = new DocumentByteValuesConnector(this, getDocument(element), element);
 			fConnectorsMap.put(element, connector);
 			fConnectorsCount.put(element, 1);
 		} else {
@@ -146,28 +196,59 @@ public class FuseFileDocumentProvider extends ForwardingDocumentProvider {
 
 	}
 
+	/**
+	 * Get the <code>ByteValues</code> for the given element.
+	 * <p>
+	 * The returned values object is connected to the <code>IDocument</code> for the same element.
+	 * All changes to the values are immediately passed on to the source document as long as the
+	 * element remains connected. Once the element is disconnected, the <code>ByteValues</code>
+	 * can still be used, but the connection to the source document and source file is removed.
+	 * </p>
+	 * 
+	 * @param element
+	 *            the input element
+	 * @return A <code>ByteValues</code> object. Can be <code>null</code> if the object could
+	 *         not be created.
+	 * @throws CoreException
+	 *             If the <code>ByteValues</code> could not be created, e.g. a missing MCU
+	 *             property.
+	 */
 	public ByteValues getByteValues(Object element) throws CoreException {
 
 		DocumentByteValuesConnector connector = fConnectorsMap.get(element);
 		if (connector == null) {
-			// probably not connected yet
-
+			// probably not connected yet or the element was null
 			return null;
 		}
-
 		return connector.getByteValues();
-
 	}
 
+	/**
+	 * Copies the given <code>ByteValues</code> to an element.
+	 * <p>
+	 * The element must be connected before this method can be used.
+	 * </p>
+	 * <p>
+	 * This method is used to initialize new fuses / locks files. The given byte values object is
+	 * not modified. Only its values for MCU id and the current byte values are copied.<br>
+	 * The <code>IDocument</code> associated with the input element is updated immediately. But it
+	 * is up to the caller to save the document with the
+	 * {@link #saveDocument(org.eclipse.core.runtime.IProgressMonitor, Object, IDocument, boolean)}
+	 * method afterwards.
+	 * </p>
+	 * 
+	 * @param element
+	 *            the input element
+	 * @param newvalues
+	 *            Source <code>ByteValues</code>
+	 */
 	public void setByteValues(Object element, ByteValues newvalues) {
 
 		DocumentByteValuesConnector connector = fConnectorsMap.get(element);
 		if (connector == null) {
 			// probably not connected yet
-
 			return;
 		}
-		connector.writeByteValues(newvalues);
-
+		connector.setByteValues(newvalues);
 	}
 }

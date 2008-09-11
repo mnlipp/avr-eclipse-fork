@@ -35,11 +35,11 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.texteditor.IElementStateListener;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 
 /**
  * The FuseByte File Editor.
@@ -49,7 +49,27 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * <li>page 0 contains the form based editor</li>
  * <li>page 1 is a simple text editor to edit the raw file</li>
  * </ul>
+ * While the first one is a real IFormPage, the latter is only a TextEditor wrapped in an IFormPage
+ * to make the interfaces consistent.
  * </p>
+ * <p>
+ * The basic source for this editor is an <code>IFile</code>, extracted from the
+ * <code>IEditorInput</code> to this editor. With the <code>IEditorInput</code> the
+ * {@link FuseFileDocumentProvider} can provide both the <code>IDocument</code> required for the
+ * source text editor as well as the {@link ByteValues} for the form editor. Both target formats are
+ * linked internally and changes to one are also applied to the other.
+ * </p>
+ * <p>
+ * As the source file is a text document, the source editor acts as a master for this editor. The
+ * save, save as and revert user actions are sent to the source editor and handled there.
+ * </p>
+ * <p>
+ * This editor implements two listeners:
+ * <ul>
+ * <li>A resource change listener which will close the editor when the parent project is closed.</li>
+ * <li>An element state listener which will close the editor when the source file is deleted and
+ * which will update the EditorInput when the source file is renamed / moved.</li>
+ * </ul>
  * 
  * @see LockbitsEditor
  * 
@@ -58,23 +78,28 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * 
  */
 public class FusesEditor extends FormEditor implements IResourceChangeListener,
-		IElementStateListener {
+		IElementStateListener, IGotoMarker {
 
+	private final static String			FORMEDITOR_ID	= "formEditorPageId";
+	private final static String			SOURCEEDITOR_ID	= "sourceEditorPageId";
+
+	/** The form based editor for the source ByteValues. */
 	private ByteValuesFormEditor		fFuseEditor;
 
+	/** The source text editor for the source file. */
 	private ByteValuesSourceEditor		fSourceEditor;
 
-	private ByteValues					fByteValues;
-
-	private IFile						fSourceFile;
-
+	/**
+	 * The document provider for fuse file documents. Only used to add a Element state listener to
+	 * be notified when the source file is renamed, moved or deleted.
+	 */
 	private FuseFileDocumentProvider	fDocumentProvider;
 
 	/**
 	 * Creates a fuse bytes editor.
 	 * <p>
 	 * Registers this editor as an <code>ResourceChangeListener</code> to be informed about
-	 * changes of the file edited and about workbench closure.
+	 * project closure.
 	 * </p>
 	 */
 	public FusesEditor() {
@@ -82,9 +107,11 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 	}
 
-	/**
-	 * The <code>MultiPageEditorExample</code> implementation of this method checks that the input
-	 * is an instance of <code>IFileEditorInput</code>.
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.forms.editor.FormEditor#init(org.eclipse.ui.IEditorSite,
+	 *      org.eclipse.ui.IEditorInput)
 	 */
 	@Override
 	public void init(IEditorSite site, IEditorInput editorInput) throws PartInitException {
@@ -101,35 +128,19 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 			throw new PartInitException("Invalid Input: File does not exist.");
 		}
 
-		try {
+		// Get the document provider and add ourself as a listener, so we are informed if the editor
+		// input file is moved, renamed or deleted.
+		fDocumentProvider = FuseFileDocumentProvider.getDefault();
+		fDocumentProvider.addElementStateListener(this);
 
-			fSourceFile = file;
-			fDocumentProvider = FuseFileDocumentProvider.getDefault();
-			fDocumentProvider.addElementStateListener(this);
-			fDocumentProvider.connect(getEditorInput());
-			fByteValues = fDocumentProvider.getByteValues(getEditorInput());
-		} catch (CoreException ce) {
-			// Should not happen if the file exists, but log it anyway:
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "Could not open file ["
-					+ file.getFullPath() + "]", ce);
-			AVRPlugin.getDefault().log(status);
-			throw new PartInitException("Invalid Input: Could not open file");
-		}
+		// Use the file name as a part name
+		setPartName(editorInput.getName());
+
+		// Description is not required as it should be obvious to the user what he is editing.
+		// setContentDescription("Edit Fuse Bytes");
 
 	}
 
-	/**
-	 * Gets the type of fuse memory this Editor can edit.
-	 * <p>
-	 * Returns {@link FuseType#FUSE} for the <code>FusesEditor</code>. The {@link LockbitsEditor}
-	 * class will override this method and return {@link FuseType#LOCKBITS}.
-	 * </p>
-	 * 
-	 * @return The <code>FuseType</code> for this Editor.
-	 */
-	// protected FuseType getType() {
-	// return FuseType.FUSE;
-	// }
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -137,28 +148,16 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 	 */
 	@Override
 	protected void addPages() {
-		setPartName(getSourceFile().getName());
-		// setContentDescription("Edit Fuse Bytes");
 		try {
-			fFuseEditor = new ByteValuesFormEditor(this, "editorFormPage", "BitFields");
+			fFuseEditor = new ByteValuesFormEditor(this, FORMEDITOR_ID, "BitFields");
 			addPage(fFuseEditor);
-			fSourceEditor = new ByteValuesSourceEditor(this, "sourceEditorPage", "Source");
+			fSourceEditor = new ByteValuesSourceEditor(this, SOURCEEDITOR_ID, "Source");
 			addPage(fSourceEditor, getEditorInput());
-		} catch (PartInitException e) {
-			// TODO: log the exception
+		} catch (PartInitException pie) {
+			IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
+					"Could not add editor page to the FusesEditor", pie);
+			AVRPlugin.getDefault().log(status);
 		}
-	}
-
-	public IFile getSourceFile() {
-		return fSourceFile;
-	}
-
-	public ByteValues getByteValues() {
-		return fByteValues;
-	}
-
-	public String getSourceFilename() {
-		return getSourceFile().getName();
 	}
 
 	/*
@@ -168,7 +167,6 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 	 */
 	@Override
 	public void dispose() {
-		fDocumentProvider.disconnect(getEditorInput());
 		fDocumentProvider.removeElementStateListener(this);
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		super.dispose();
@@ -207,18 +205,17 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 	@Override
 	public void doSaveAs() {
 		{
-			IEditorInput oldinput = getEditorInput();
+			// TODO: implement our own Save As dialog to inhibit changes to the extension.
+			// The current implementation lets the source text editor do the save as operation and
+			// gets the new IEditorInput from the source editor.
+			// However, if the user changes the extension the file will not be recognized as a
+			// fuse/locks anymore once the editor is closed. This side effect has to be document in
+			// the user guide, but it still would be nicer if the user could not change the
+			// extension at all.
+
 			fSourceEditor.doSaveAs();
 			IEditorInput newinput = fSourceEditor.getEditorInput();
-			if (!newinput.equals(oldinput)) {
-				try {
-					fDocumentProvider.disconnect(oldinput);
-					fDocumentProvider.connect(newinput);
-					fByteValues = fDocumentProvider.getByteValues(newinput);
-					fFuseEditor.selectReveal(fByteValues);
-				} catch (CoreException ce) {
-				}
-			}
+			fFuseEditor.setEditorInput(newinput);
 			setInput(newinput);
 			editorDirtyStateChanged();
 			IFileEditorInput newfileinput = (IFileEditorInput) newinput;
@@ -228,31 +225,30 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 	}
 
 	/*
-	 * (non-Javadoc) Method declared on IEditorPart
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.ide.IGotoMarker#gotoMarker(org.eclipse.core.resources.IMarker)
 	 */
 	public void gotoMarker(IMarker marker) {
+		// The only markers we create are the problem markers from the source editor. So we activate
+		// this editor if the user wants to go to a marker.
 		// Change to the source editor and goto to the marker
-		setActivePage(1);
-		IDE.gotoMarker(getEditor(1), marker);
-	}
-
-	/*
-	 * (non-Javadoc) Method declared on IEditorPart.
-	 */
-	@Override
-	public boolean isSaveAsAllowed() {
-		return true;
+		setActivePage(SOURCEEDITOR_ID);
+		IDE.gotoMarker(fSourceEditor, marker);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.ui.forms.editor.FormEditor#pageChange(int)
+	 * @see org.eclipse.ui.part.EditorPart#isSaveAsAllowed()
 	 */
 	@Override
-	protected void pageChange(int newPageIndex) {
-		super.pageChange(newPageIndex);
+	public boolean isSaveAsAllowed() {
+		// see #doSaveAs() above for the caveat with "save as"
+		return true;
 	}
+
+	// ---- Resource Change Listener Method ------
 
 	/*
 	 * (non-Javadoc)
@@ -265,15 +261,34 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 			case IResourceChangeEvent.PRE_CLOSE:
 				handleCloseEvent(event);
 				break;
+			case IResourceChangeEvent.POST_CHANGE:
+				// We could try to listen for resource move / rename / delete events here. However I
+				// found it easier to listen to the element change events from the document
+				// provider, because these events work with IEditorInput objects directly. OTOH the
+				// resource change events only have IPaths and its a bit tedious to go from an IPath
+				// to an IEditorInput.
+				break;
+			default:
+				// Other types of Resource change events are ignored.
 		}
 	}
 
+	/**
+	 * Handle a <code>PRE_CLOSE</code> resource change event.
+	 * <p>
+	 * This method will go through all workbench pages, test if they are for the project to be
+	 * closed, and close the Editor of the page.
+	 * </p>
+	 * 
+	 * @param event
+	 */
 	private void handleCloseEvent(final IResourceChangeEvent event) {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				IWorkbenchPage[] pages = getSite().getWorkbenchWindow().getPages();
 				for (int i = 0; i < pages.length; i++) {
-					if (getSourceFile().getProject().equals(event.getResource())) {
+					IFile sourcefile = (IFile) getEditorInput().getAdapter(IFile.class);
+					if (sourcefile != null && sourcefile.getProject().equals(event.getResource())) {
 						IEditorPart editorPart = pages[i].findEditor(getEditorInput());
 						pages[i].closeEditor(editorPart, true);
 					}
@@ -284,30 +299,70 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 
 	// ---- DocumentProvider Element Change Listener Methods ------
 
-	public void elementContentAboutToBeReplaced(Object element) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void elementContentReplaced(Object element) {
-		// TODO Auto-generated method stub
-
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementDeleted(java.lang.Object)
+	 */
 	public void elementDeleted(Object element) {
+
+		// Close the editor if the file has been deleted.
+
+		// If there are unsaved changed the source file editor will inhibit the closure of this
+		// editor and will ask the user to save the changes to a different file once the editor is
+		// closed by the user.
+
 		if (element != null && element.equals(getEditorInput())) {
 			close(true);
 		}
 	}
 
-	public void elementDirtyStateChanged(Object element, boolean isDirty) {
-		// TODO Auto-generated method stub
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementMoved(java.lang.Object,
+	 *      java.lang.Object)
+	 */
+	public void elementMoved(Object originalElement, Object movedElement) {
 
+		// sou
+
+		if (movedElement == null) {
+			// An element has been moved to file nirvana. Handle this as a delete.
+			elementDeleted(originalElement);
+		}
+
+		// Check that our source file has been moved
+		IEditorInput original = null;
+		IEditorInput moved = null;
+
+		if (originalElement instanceof IEditorInput) {
+			original = (IEditorInput) originalElement;
+		}
+		if (movedElement instanceof IEditorInput) {
+			moved = (IEditorInput) movedElement;
+		}
+
+		if (original != null && original.equals(getEditorInput())) {
+			// OK - our source file has moved.
+			// The source editor has its own listener, so we don't need to tell him.
+			// Just tell the form editor and update the filename.
+			fFuseEditor.setEditorInput(moved);
+			setPartName(moved.getName());
+			setInputWithNotify(moved);
+		}
 	}
 
-	public void elementMoved(Object originalElement, Object movedElement) {
-		// TODO Auto-generated method stub
+	public void elementContentAboutToBeReplaced(Object element) {
+		// no actions required
+	}
 
+	public void elementContentReplaced(Object element) {
+		// no actions required
+	}
+
+	public void elementDirtyStateChanged(Object element, boolean isDirty) {
+		// no actions required
 	}
 
 }

@@ -143,10 +143,10 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 			}
 			IContainer container = (IContainer) resource;
 
-			// Now get a handle for the new fuses file and write the selected values
-			// to the file.
+			// Now get a handle for the new fuses file and use the FuseFileDocumentProvider to
+			// create the file with the elected values.
 			// The file will be overwritten if it exists, but the WizardPage only allows
-			// non-existing filenames.
+			// non-existing filenames anyway.
 			final IFile file = container.getFile(new Path(fileName));
 			FuseFileDocumentProvider provider = FuseFileDocumentProvider.getDefault();
 			provider.connect(file);
@@ -157,7 +157,7 @@ public class NewFusesWizard extends Wizard implements INewWizard {
 			provider.changed(file);
 			provider.disconnect(file);
 
-			// Now open the new file with the default editor
+			// Open the new file with the default editor
 			monitor.setTaskName("Opening file for editing...");
 			getShell().getDisplay().asyncExec(new Runnable() {
 				public void run() {

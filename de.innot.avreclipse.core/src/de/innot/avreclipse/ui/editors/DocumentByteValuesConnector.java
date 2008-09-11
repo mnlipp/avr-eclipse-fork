@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.editors;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
@@ -53,6 +55,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener;
  */
 public class DocumentByteValuesConnector {
 
+	/** Reference to the parent DocumentProvider to add and remove Element State Change Listener. */
 	private final IDocumentProvider			fProvider;
 
 	/** Source of the Document. Used to set / clear problem markers. */
@@ -62,38 +65,59 @@ public class DocumentByteValuesConnector {
 	private final IDocument					fDocument;
 
 	/** The ByteValues created from and synchronized with the source IDocument. */
-	private ByteValues						fByteValues			= null;
+	private ByteValues						fByteValues				= null;
 
 	/**
 	 * <code>true</code> while the source IDocument is modified from this class, so the document
 	 * change listener can ignore the resulting change events.
 	 */
-	private boolean							fInDocumentChange	= false;
+	private boolean							fInDocumentChange		= false;
 
 	/**
 	 * <code>true</code> while the ByteValues are modified from this class, so the ByteValues
 	 * change listener can ignore the resulting change events.
 	 */
-	private boolean							fInByteValuesChange	= false;
+	private boolean							fInByteValuesChange		= false;
 
 	private final IDocumentListener			fDocumentListener;
 	private final IByteValuesChangeListener	fByteValuesListener;
 	private final IElementStateListener		fElementStateListener;
 
-	private final Map<String, String>		fKeyValueMap		= new HashMap<String, String>();
-	private final Map<String, Integer>		fKeyLineMap			= new HashMap<String, Integer>();
-	private final Map<String, Position>		fKeyRegionMap		= new HashMap<String, Position>();
-	private final Map<String, Position>		fKeyValueRegionMap	= new HashMap<String, Position>();
+	/** The current value of a key. */
+	private final Map<String, String>		fKeyValueMap			= new HashMap<String, String>();
 
-	private final static String				KEY_MCU				= "MCU";
-	private final static String				KEY_COMMENT			= "summary";
+	/** The current linenumber of a key. */
+	private final Map<String, Integer>		fKeyLineMap				= new HashMap<String, Integer>();
 
-	private final static Pattern			fCommentPattern		= Pattern.compile("\\s*#.*");
-	private final static Pattern			fPropertyPattern	= Pattern
-																		.compile("\\s*(\\w*)\\s*=(.*)");
+	/** The <code>Position</code> of a key in the document. */
+	private final Map<String, Position>		fKeyPositionMap			= new HashMap<String, Position>();
 
+	/** The <code>Position</code> of a key value in the document. */
+	private final Map<String, Position>		fKeyValuePositionMap	= new HashMap<String, Position>();
+
+	/** MCU property key string. */
+	private final static String				KEY_MCU					= "MCU";
+
+	/** Comment property key string. Called 'summary' to be compatible with AVR32 Studio file format. */
+	private final static String				KEY_COMMENT				= "summary";
+
+	/** RegEx pattern for comment lines. Comments are all lines starting with "#". */
+	private final static Pattern			fCommentPattern			= Pattern.compile("\\s*#.*");
+
+	/** RegEx pattern for property lines. Properties match the "key=value" pattern. */
+	private final static Pattern			fPropertyPattern		= Pattern
+																			.compile("\\s*(\\w*)\\s*=(.*)");
+
+	// ------------ IDocumentListener -------------------
+
+	/**
+	 * Listener to listen for Document change events.
+	 * <p>
+	 * Whenever the document is changed, e.g. by the TextEditor, the document is parsed and the
+	 * associated ByteValues object is updated.
+	 * </p>
+	 */
 	private class MyDocumentListener implements IDocumentListener {
-		// ------------ IDocumentListener -------------------
 
 		/*
 		 * (non-Javadoc)
@@ -118,13 +142,21 @@ public class DocumentByteValuesConnector {
 			// This is sub-optimal (but easy):
 			// For each modification of the document we parse the complete document again.
 			// Not very efficient, but the fuses files are small and even on my
-			// old and slow Laptop this was easily finished between two keystrokes.
-			readFromDocument();
+			// old and slow Notebook this takes less than one millisecond.
+			updateByteValuesFromDocument();
 		}
 	}
 
+	// ------------ IByteValuesChangedListener -------------------
+
+	/**
+	 * Listener for ByteValues change events.
+	 * <p>
+	 * Whenever the <code>ByteValues</code> object has been changed, e.g. by the form editor, the
+	 * document is updated accordingly.
+	 * </p>
+	 */
 	private class MyByteValuesChangedListener implements IByteValuesChangeListener {
-		// ------------ IByteValuesChangedListener -------------------
 
 		/*
 		 * (non-Javadoc)
@@ -141,17 +173,16 @@ public class DocumentByteValuesConnector {
 			for (ByteValueChangeEvent event : events) {
 				String key = event.name;
 				if (key.equals(ByteValues.MCU_CHANGE_EVENT)) {
+					// If the MCU has changed we clear the document and rewrite it completely
 					clearDocument();
-					writeToDocument(fByteValues);
+					updateDocumentFromByteValues(fByteValues);
 				} else if (key.equals(ByteValues.COMMENT_CHANGE_EVENT)) {
+					// The comment has changed
 					String comment = fByteValues.getComment();
-					if (comment == null) {
-						comment = "";
-					}
-					comment = comment.replace("\r\n", "\\n");
-					comment = comment.replace("\n", "\\n");
-					setDocumentValue(KEY_COMMENT, comment);
+					setDocumentComment(comment);
 				} else {
+					// a single value has changed. Update the property or remove it if the value has
+					// become undefined (-1)
 					if (event.bytevalue != -1) {
 						setDocumentValue(key, event.bitfieldvalue);
 					} else {
@@ -163,24 +194,17 @@ public class DocumentByteValuesConnector {
 
 	}
 
+	// ---- DocumentProvider Element Change Listener Methods ------
+
+	/**
+	 * Listener for Element State change events.
+	 * <p>
+	 * This is used to listen for move / rename events to track the source file, so that problem
+	 * markers can be set and removed.
+	 * </p>
+	 * 
+	 */
 	private class MyElementStateListener implements IElementStateListener {
-		// ---- DocumentProvider Element Change Listener Methods ------
-
-		public void elementContentAboutToBeReplaced(Object element) {
-			// Nothing to do
-		}
-
-		public void elementContentReplaced(Object element) {
-			// Nothing to do
-		}
-
-		public void elementDeleted(Object element) {
-			// Nothing to do
-		}
-
-		public void elementDirtyStateChanged(Object element, boolean isDirty) {
-			// Nothing to do
-		}
 
 		public void elementMoved(Object originalElement, Object movedElement) {
 
@@ -196,20 +220,62 @@ public class DocumentByteValuesConnector {
 				fSource = movedfile;
 			}
 		}
-	}
 
-	public void writeByteValues(ByteValues sourcevalues) {
-		writeToDocument(sourcevalues);
+		public void elementDeleted(Object element) {
+			// Nothing to do
+			// Even if the source file has been deleted, the Document and therefore the ByteValues
+			// object is still valid and it might be saved under a different name.
+		}
+
+		public void elementContentAboutToBeReplaced(Object element) {
+			// Nothing to do
+		}
+
+		public void elementContentReplaced(Object element) {
+			// Nothing to do
+		}
+
+		public void elementDirtyStateChanged(Object element, boolean isDirty) {
+			// Nothing to do
+		}
+
 	}
 
 	/**
+	 * Create a new DocumentByteValuesConnector.
+	 * <p>
+	 * The new connector takes the given document and registers as a listener to all changes of the
+	 * document. The synchronized ByteValues object is created lazily with the getByteValues() or
+	 * setByteValues() methods.
+	 * </p>
+	 * <p>
+	 * The connector also registers itself as a listener to the provider to be informed if the
+	 * source file is moved or renamed. The source element, which needs to be adaptable to
+	 * <code>IFile</code> is used to determine the type of the ByteValues (FUSE or LOCKBITS) via
+	 * the file extension. The file is also needed to create the <code>IMarker</code>s for all
+	 * problems parsing the file.
+	 * </p>
+	 * <p>
+	 * The connector needs to be disposed when it is not needed anymore to remove the listeners.
+	 * </p>
+	 * 
 	 * @param provider
-	 * @param element
+	 *            An <code>IDocumentProvider</code>
 	 * @param document
+	 *            The source <code>IDocument</code>
+	 * @param element
+	 *            The source file as an object that can be adapted to an <code>IFile</code>, e.g.
+	 *            an <code>IFileEditorInput</code>
 	 * @throws CoreException
+	 *             if the element is not adaptable to <code>IFile</code>.
 	 */
-	public DocumentByteValuesConnector(IDocumentProvider provider, Object element, IDocument document)
-			throws CoreException {
+	public DocumentByteValuesConnector(IDocumentProvider provider, IDocument document,
+			Object element) throws CoreException {
+
+		// Note: With the provider and the source element we could determine the document ourself.
+		// But then we would either depend on the caller to connect the source element for us, or
+		// connect ourself and risk infinite loops as the constructor is called from the connect()
+		// method of the FuseFileDocumentProvider.
 
 		fSource = getFileFromAdaptable(element);
 		if (fSource == null) {
@@ -218,19 +284,31 @@ public class DocumentByteValuesConnector {
 			throw new CoreException(status);
 		}
 
+		// Create the listener objects
 		fDocumentListener = new MyDocumentListener();
 		fByteValuesListener = new MyByteValuesChangedListener();
 		fElementStateListener = new MyElementStateListener();
 
+		// and add the listener to the provider and the document
 		fProvider = provider;
 		fProvider.addElementStateListener(fElementStateListener);
 		fDocument = document;
 		fDocument.addDocumentListener(fDocumentListener);
 
-		// The ByteValues object will be created lazily, i.e. when actually required.
+		// The ByteValues object will be created lazily, i.e. when actually requested with the
+		// getByteValues() method.
 		fByteValues = null;
 	}
 
+	// ------- Public Methods -------
+
+	/**
+	 * Disposes the Connector.
+	 * <p>
+	 * This method will remove the document, provider and ByteValues listeners. After calling this
+	 * method changes to either the document or the ByteValues are not synchronized anymore.
+	 * </p>
+	 */
 	public void dispose() {
 		fDocument.removeDocumentListener(fDocumentListener);
 		fProvider.removeElementStateListener(fElementStateListener);
@@ -240,24 +318,59 @@ public class DocumentByteValuesConnector {
 		}
 	}
 
-	// ------- Public Methods -------
+	/**
+	 * Connects the given <code>ByteValues</code> to the source Document / File, copying all its
+	 * values to the document.
+	 * <p>
+	 * The new values object replaces any previously generated values object. The previous values
+	 * object is disconnected and will not be updated anymore.
+	 * </p>
+	 * 
+	 * @param newvalues
+	 *            A <code>ByteValues</code> object to connect to the source document. Must not be
+	 *            <code>null</code>.
+	 */
+	public void setByteValues(ByteValues newvalues) {
 
+		Assert.isNotNull(newvalues);
+
+		updateDocumentFromByteValues(newvalues);
+
+		if (fByteValues != null) {
+			fByteValues.removeChangeListener(fByteValuesListener);
+		}
+		fByteValues = newvalues;
+		fByteValues.addChangeListener(fByteValuesListener);
+	}
+
+	/**
+	 * @return A <code>ByteValues</code> object connected to the source document.
+	 */
 	public ByteValues getByteValues() {
 		if (fByteValues == null) {
 			fByteValues = createByteValues();
-			readFromDocument();
+			updateByteValuesFromDocument();
 		}
 		return fByteValues;
 	}
 
+	// ------- Private Methods -------
+
+	/**
+	 * Create a new ByteValues object from the source document.
+	 * 
+	 * @return Valid <code>ByteValues</code> object or <code>null</code> if either the source
+	 *         file has an unknown extension or there is 'MCU' property tag in the source document.
+	 */
 	private ByteValues createByteValues() {
 
 		FuseType type = null;
 		try {
 			type = getTypeFromFileExtension(fSource);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (CoreException ce) {
+			// Exception is thrown if the file extension is neither ".fuses" or ".locks".
+			// This should not happen, so we log the message and return null.
+			AVRPlugin.getDefault().log(ce.getStatus());
 			return null;
 		}
 
@@ -265,7 +378,7 @@ public class DocumentByteValuesConnector {
 
 		String mcuid = fKeyValueMap.get(KEY_MCU);
 		if (mcuid == null) {
-			setMissingMCUMarker("MCU");
+			setMissingMCUMarker();
 			return null;
 		}
 
@@ -273,7 +386,7 @@ public class DocumentByteValuesConnector {
 		newvalues.addChangeListener(fByteValuesListener);
 		if (newvalues.getByteCount() == 0) {
 			// unknown MCU
-			setIllegalValue("MCU", mcuid);
+			setIllegalValueMarker("MCU", mcuid);
 		} else {
 			clearMarker("MCU");
 		}
@@ -281,15 +394,15 @@ public class DocumentByteValuesConnector {
 
 	}
 
-	private void readFromDocument() {
+	/**
+	 * Parse the source document and copy all applicable properties to the <code>ByteValues</code>
+	 * object.
+	 */
+	private void updateByteValuesFromDocument() {
 
 		if (fByteValues == null) {
-			fByteValues = createByteValues();
-			if (fByteValues == null) {
-				// The MCU tag is still missing. No need to continue until the user has added a
-				// MCU=... line to the document.
-				return;
-			}
+			// no need to waste cycles until the ByteValues have been created.
+			return;
 		}
 
 		parseDocument();
@@ -305,12 +418,12 @@ public class DocumentByteValuesConnector {
 					// so just restart from the beginning.
 					// On the second iteration the MCUs will match, so no
 					// danger of recursion.
-					readFromDocument();
+					updateByteValuesFromDocument();
 					return;
 				}
 				if (fByteValues.getByteCount() == 0) {
 					// unknown MCU
-					setIllegalValue("MCU", value);
+					setIllegalValueMarker("MCU", value);
 				} else {
 					clearMarker("MCU");
 				}
@@ -324,7 +437,7 @@ public class DocumentByteValuesConnector {
 			}
 
 			if (fByteValues.getBitFieldDescription(key) == null) {
-				setInvalidKey(key);
+				setInvalidKeyMarker(key);
 				continue;
 			}
 			try {
@@ -332,16 +445,22 @@ public class DocumentByteValuesConnector {
 				fByteValues.setNamedValue(key, intvalue);
 				clearMarker(key);
 			} catch (NumberFormatException nfe) {
-				setIllegalValue(key, value);
+				setIllegalValueMarker(key, value);
 			} catch (IllegalArgumentException iae) {
-				setIllegalValue(key, value);
+				setIllegalValueMarker(key, value);
 			}
 		}
 		fInByteValuesChange = false;
 
 	}
 
-	public void writeToDocument(ByteValues newvalues) {
+	/**
+	 * Clears the document (removing all non-comment lines) and writes all values from the
+	 * <code>ByteValues</code> object to the document.
+	 * 
+	 * @param newvalues
+	 */
+	private void updateDocumentFromByteValues(ByteValues newvalues) {
 
 		clearDocument();
 
@@ -358,20 +477,55 @@ public class DocumentByteValuesConnector {
 		}
 
 		String comment = newvalues.getComment();
+		setDocumentComment(comment);
+	}
+
+	/**
+	 * Sets the comment property of the document.
+	 * <p>
+	 * This method converts the given comment to a single line form, escaping all new line
+	 * characters.
+	 * </p>
+	 * 
+	 * @param comment
+	 *            The new comment, may be <code>null</code>
+	 */
+	private void setDocumentComment(String comment) {
 		if (comment == null) {
 			comment = "";
 		}
+
+		// Escape all new line characters. The comment must stay on one line because the parser only
+		// works with single lines.
 		comment = comment.replace("\r\n", "\\n");
 		comment = comment.replace("\n", "\\n");
+		comment = comment.replace("\r", "\\n");
 		setDocumentValue(KEY_COMMENT, comment);
-
 	}
 
+	/**
+	 * Sets the document property with the given key to a new integer value. The value is converted
+	 * to a hex string and prepended with "0x".
+	 * 
+	 * @param key
+	 *            The property key
+	 * @param value
+	 *            The new integer value
+	 */
 	private void setDocumentValue(String key, int value) {
 		String textvalue = "0x" + Integer.toHexString(value);
 		setDocumentValue(key, textvalue);
 	}
 
+	/**
+	 * Sets the document property with the given key to a new string value.
+	 * 
+	 * @param key
+	 *            The property key
+	 * @param value
+	 *            The new string value. Must not contain new line characters but can be
+	 *            <code>null</code>
+	 */
 	private void setDocumentValue(String key, String value) {
 		try {
 
@@ -393,9 +547,9 @@ public class DocumentByteValuesConnector {
 
 			} else {
 				// Key exists - replace value;
-				Position region = fKeyValueRegionMap.get(key);
-				offset = region.getOffset();
-				length = region.getLength();
+				Position position = fKeyValuePositionMap.get(key);
+				offset = position.getOffset();
+				length = position.getLength();
 				text = value;
 				fInDocumentChange = true;
 				fDocument.replace(offset, length, text);
@@ -403,70 +557,110 @@ public class DocumentByteValuesConnector {
 				// remove the key from all maps so that it can be re-read
 				fKeyValueMap.remove(key);
 				fKeyLineMap.remove(key);
-				fDocument.removePosition(fKeyRegionMap.get(key));
-				fDocument.removePosition(fKeyValueRegionMap.get(key));
-				fKeyRegionMap.remove(key);
-				fKeyValueRegionMap.remove(key);
+				fDocument.removePosition(fKeyPositionMap.get(key));
+				fDocument.removePosition(fKeyValuePositionMap.get(key));
+				fKeyPositionMap.remove(key);
+				fKeyValuePositionMap.remove(key);
 			}
 			// (re)read the line to update the internal maps
 			parseLine(linenumber);
 			clearMarker(key);
 
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (BadLocationException ble) {
+			// This exception probably means that there is a bug in the code above, in other words
+			// it should not happen.
+			// The Exception is logged, but otherwise we ignore it. It should be thrown, but then we
+			// would have to throw it all the way up to the ByteValues.setValue() method, breaking
+			// lots of stuff on the way.
+			IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+					"Bug in setDocumentValue(). Please contact the plugin author.", ble);
+			AVRPlugin.getDefault().log(status);
+
+			// Because our stored meta information about the document might have become foul we
+			// parse the document again just in case
+			parseDocument();
 		} finally {
 			fInDocumentChange = false;
 		}
 	}
 
+	/**
+	 * Remove the line containing the given key from the document.
+	 * <p>
+	 * If the key does not exist in the document nothing is changed.
+	 * </p>
+	 * 
+	 * @param key
+	 *            The key which is to be completely removed from the document.
+	 */
 	private void removeDocumentValue(String key) {
+
+		// This method is called from the ByteValues change listener
+		// when a BitField has been set to -1, i.e. it has been undefined.
+
 		try {
 			Integer linenumber = fKeyLineMap.get(key);
-			if (linenumber != null) {
-				// first remove the key from all lists
-				fKeyValueMap.remove(key);
-				fKeyLineMap.remove(key);
-				fDocument.removePosition(fKeyRegionMap.get(key));
-				fDocument.removePosition(fKeyValueRegionMap.get(key));
-				fKeyRegionMap.remove(key);
-				fKeyValueRegionMap.remove(key);
-				clearMarker(key);
-
-				// then update the list of lines
-				for (String otherkey : fKeyLineMap.keySet()) {
-					int otherline = fKeyLineMap.get(otherkey);
-					if (otherline > linenumber) {
-						fKeyLineMap.put(otherkey, otherline - 1);
-					}
-				}
-
-				// then remove the line from the document
-				IRegion lineregion = fDocument.getLineInformation(linenumber);
-				String delimiter = fDocument.getLineDelimiter(linenumber);
-				int offset = lineregion.getOffset();
-				int length = lineregion.getLength() + delimiter.length();
-				fInDocumentChange = true;
-				fDocument.replace(offset, length, null);
+			if (linenumber == null) {
+				// document did not contain the key.
+				// do nothing and return
+				return;
 			}
+
+			// first remove the key from all lists
+			fKeyValueMap.remove(key);
+			fKeyLineMap.remove(key);
+			fDocument.removePosition(fKeyPositionMap.get(key));
+			fDocument.removePosition(fKeyValuePositionMap.get(key));
+			fKeyPositionMap.remove(key);
+			fKeyValuePositionMap.remove(key);
+			clearMarker(key);
+
+			// then update the list of lines, moving all lines behind the one to remove up by one.
+			for (String otherkey : fKeyLineMap.keySet()) {
+				int otherline = fKeyLineMap.get(otherkey);
+				if (otherline > linenumber) {
+					fKeyLineMap.put(otherkey, otherline - 1);
+				}
+			}
+
+			// finally remove the line from the document
+			IRegion lineregion = fDocument.getLineInformation(linenumber);
+			String delimiter = fDocument.getLineDelimiter(linenumber);
+			int offset = lineregion.getOffset();
+			int length = lineregion.getLength() + delimiter.length();
+			fInDocumentChange = true;
+			fDocument.replace(offset, length, null);
+
 		} catch (BadLocationException ble) {
-			// ignore
+			// This exception probably means that there is a bug in the code above, in other words
+			// it should not happen.
+			// The Exception is logged, but otherwise we ignore it. It should be thrown, but then we
+			// would have to throw it all the way up to the ByteValues.setValue() method, breaking
+			// lots of stuff on the way.
+			IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+					"Bug in removeDocumentValue(). Please contact the plugin author.", ble);
+			AVRPlugin.getDefault().log(status);
+
+			// Because our stored meta information about the document might have become foul we
+			// parse the document again just in case
+			parseDocument();
 		} finally {
 			fInDocumentChange = false;
 		}
 
 	}
 
+	/**
+	 * Remove all lines with valid properties from the document. After calling this method only the
+	 * comments and lines without an '=' remain.
+	 */
 	private void clearDocument() {
 
 		clearAllMarkers();
 
 		// remove all lines with keys in them
-		for (String key : fKeyRegionMap.keySet()) {
-			Position position = fKeyRegionMap.get(key);
+		for (String key : fKeyPositionMap.keySet()) {
+			Position position = fKeyPositionMap.get(key);
 			if (!position.isDeleted) {
 				try {
 					int line = fDocument.getLineOfOffset(position.offset);
@@ -474,49 +668,101 @@ public class DocumentByteValuesConnector {
 					int length = fDocument.getLineLength(line);
 					fInDocumentChange = true;
 					fDocument.replace(offset, length, null);
-				} catch (BadLocationException e) {
-					// TODO log exception
-					e.printStackTrace();
+				} catch (BadLocationException ble) {
+					// This exception probably means that there is a bug in the code above, in other
+					// words it should not happen.
+					// The Exception is logged, but otherwise we ignore it.
+					IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+							"Bug in clearDocument(). Please contact the plugin author.", ble);
+					AVRPlugin.getDefault().log(status);
+
 				} finally {
 					fInDocumentChange = false;
 				}
 			}
 		}
 		fKeyLineMap.clear();
-		fKeyRegionMap.clear();
+		fKeyPositionMap.clear();
 		fKeyValueMap.clear();
-		fKeyValueRegionMap.clear();
+		fKeyValuePositionMap.clear();
 
 	}
 
-	private void setMissingMCUMarker(String key) {
-		String message = "Required Property 'MCU' missing";
-		createMarker(key, IMarker.SEVERITY_ERROR, -1, 0, 0, message);
+	/**
+	 * Create an error marker to inform the user that the document has no valid "MCU" property.
+	 */
+	private void setMissingMCUMarker() {
+		String message = MessageFormat.format("Required Property '{0}' missing", KEY_MCU);
+		createMarker(KEY_MCU, IMarker.SEVERITY_ERROR, -1, 0, 0, message);
 	}
 
-	private void setInvalidKey(String key) {
-		Position keyRegion = fKeyRegionMap.get(key);
-		int start = keyRegion.getOffset();
-		int end = start + keyRegion.getLength();
+	/**
+	 * Create a warning marker to inform the user that a property key was not valid.
+	 * 
+	 * @param key
+	 *            Property key
+	 */
+	private void setInvalidKeyMarker(String key) {
+		Position keyPosition = fKeyPositionMap.get(key);
+		int start = keyPosition.getOffset();
+		int end = start + keyPosition.getLength();
 		int linenumber = fKeyLineMap.get(key);
-		String message = "Invalid BitField name '" + key + "'";
+		String message = MessageFormat.format("Invalid BitField name '{0}'", key);
 		createMarker(key, IMarker.SEVERITY_WARNING, linenumber, start, end, message);
 	}
 
-	private void setIllegalValue(String key, String value) {
-		Position valueRegion = fKeyValueRegionMap.get(key);
-		int start = valueRegion.getOffset();
-		int end = start + valueRegion.getLength();
+	/**
+	 * Create a warning marker to inform the user that a property has an invalid value.
+	 * 
+	 * @param key
+	 *            Property key
+	 * @param value
+	 *            the invalid value
+	 */
+	private void setIllegalValueMarker(String key, String value) {
 		int linenumber = fKeyLineMap.get(key);
-		String message = key + ": Invalid value '" + value + "'";
+		Position valuePosition = fKeyValuePositionMap.get(key);
+		int start = valuePosition.getOffset();
+		int end = start + valuePosition.getLength();
+		String message = MessageFormat.format("{0}: Invalid value [{1}]", key, value);
 		createMarker(key, IMarker.SEVERITY_WARNING, linenumber, start, end, message);
 	}
 
-	private void setDuplicateKey(String key, int linenumber, int start, int end) {
-		String message = "Duplicate BitField name " + key;
+	/**
+	 * Create a warning marker to inform the user that there is a duplicate key in the file.
+	 * 
+	 * @param key
+	 *            The duplicate key
+	 * @param linenumber
+	 *            The line number of the duplicate
+	 * @param start
+	 *            Start offset of the duplicate key in the document
+	 * @param end
+	 *            End offset of the duplicate key in the document
+	 */
+	private void setDuplicateKeyMarker(String key, int linenumber, int start, int end) {
+		String message = MessageFormat.format("Duplicate BitField name {0}", key);
 		createMarker(null, IMarker.SEVERITY_WARNING, linenumber, start, end, message);
 	}
 
+	/**
+	 * Creates a new <code>IMarker</code> and sets the given attibutes.
+	 * 
+	 * @param key
+	 *            The property key of the marker. Used to find and remove the marker once the
+	 *            problem has been solved. May be <code>null</code>
+	 * @param severity
+	 *            One of the IMarker.SEVERITY_xxx levels
+	 * @param linenumber
+	 *            Linenumber of the Problem, or <code>-1</code> if the problem is not bound to a
+	 *            single line
+	 * @param start
+	 *            The offset in the document where the problem starts
+	 * @param end
+	 *            The offset in the document where the problem ends.
+	 * @param message
+	 *            A human readable description of the problem
+	 */
 	private void createMarker(String key, int severity, int linenumber, int start, int end,
 			String message) {
 
@@ -536,6 +782,14 @@ public class DocumentByteValuesConnector {
 		}
 	}
 
+	/**
+	 * Removes all markers that may exist for a given key.
+	 * <p>
+	 * This method is called when the parser determines that a line is completely valid.
+	 * </p>
+	 * 
+	 * @param key
+	 */
 	private void clearMarker(String key) {
 		if (fSource.exists()) {
 			// find all markers with the SOURCE_ID with the given key
@@ -549,32 +803,52 @@ public class DocumentByteValuesConnector {
 					}
 				}
 
-			} catch (CoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (CoreException ce) {
+				// This Exception would be thrown if the resource does not exist (but we check that
+				// it exists) or when the project is not open. The first case should not happen, the
+				// latter case is just logged but otherwise ignored.
+				IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+						"Could not clear marker for key '" + key + "'", ce);
+				AVRPlugin.getDefault().log(status);
 			}
 		}
 	}
 
+	/**
+	 * Clear all markers associated with the source file.
+	 */
 	private void clearAllMarkers() {
 		if (fSource.exists()) {
 			try {
 				fSource.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-			} catch (CoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (CoreException ce) {
+				// This Exception would be thrown if the resource does not exist (but we check that
+				// it exists), when Resource changes are not allowed, or the project is not open.
+				// The first two cases should not happen and the last case is just logged but
+				// otherwise ignored.
+				IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+						"Could not clear markers", ce);
+				AVRPlugin.getDefault().log(status);
 			}
 		}
 	}
 
+	/**
+	 * Parses the source document.
+	 * <p>
+	 * Parses the document line by line. Once this method has finished, all internal metadata about
+	 * the source document is up to date.
+	 * </p>
+	 * 
+	 */
 	private void parseDocument() {
 
 		int lines = fDocument.getNumberOfLines();
 
 		// Clear all maps
 		fKeyLineMap.clear();
-		fKeyRegionMap.clear();
-		fKeyValueRegionMap.clear();
+		fKeyPositionMap.clear();
+		fKeyValuePositionMap.clear();
 		fKeyValueMap.clear();
 		clearAllMarkers();
 
@@ -583,17 +857,32 @@ public class DocumentByteValuesConnector {
 				parseLine(linenumber);
 			}
 		} catch (BadLocationException ble) {
-			// Should not happen
-			// TODO: log an error
-			ble.printStackTrace();
-		} catch (CoreException ce) {
-			// Could not set marker
-			// TODO: log a error
-			ce.printStackTrace();
+			// This exception probably means that there is a bug in the parseLine() method, in other
+			// words it should not happen.
+			// The Exception is logged, but otherwise we ignore it.
+			IStatus status = new Status(IStatus.WARNING, AVRPlugin.PLUGIN_ID,
+					"Bug in parseLine(). Please contact the plugin author.", ble);
+			AVRPlugin.getDefault().log(status);
+
 		}
 	}
 
-	private void parseLine(int linenumber) throws BadLocationException, CoreException {
+	/**
+	 * Parses a single line of the source document.
+	 * <p>
+	 * Reads the line with the given line number from the source document and determines if it is
+	 * either a comment, a valid key/value pair, an empty line or an invalid line. In the last case
+	 * a problem marker is created immediatley.
+	 * </p>
+	 * <p>
+	 * If it is a key/value pair, then its information is added to the internal document metadata,
+	 * like the value or the <code>Position</code> of both the key and the value.
+	 * </p>
+	 * 
+	 * @param linenumber
+	 * @throws BadLocationException
+	 */
+	private void parseLine(int linenumber) throws BadLocationException {
 
 		IRegion lineregion = fDocument.getLineInformation(linenumber);
 
@@ -610,18 +899,19 @@ public class DocumentByteValuesConnector {
 			String value = matcher.group(2).trim();
 			if (fKeyValueMap.containsKey(key)) {
 				// duplicate key -> marks as error
-				setDuplicateKey(key, linenumber, offset + matcher.start(1), offset + matcher.end(1));
+				setDuplicateKeyMarker(key, linenumber, offset + matcher.start(1), offset
+						+ matcher.end(1));
 			}
 			fKeyValueMap.put(key, value);
 			fKeyLineMap.put(key, linenumber);
 
 			int keyoffset = offset + matcher.start(1);
 			int keylength = offset + matcher.end(1) - keyoffset;
-			fKeyRegionMap.put(key, addPosition(keyoffset, keylength));
+			fKeyPositionMap.put(key, addPosition(keyoffset, keylength));
 
 			int valueoffset = offset + matcher.start(2);
 			int valuelength = offset + matcher.end(2) - valueoffset;
-			fKeyValueRegionMap.put(key, addPosition(valueoffset, valuelength));
+			fKeyValuePositionMap.put(key, addPosition(valueoffset, valuelength));
 			return;
 
 		}
@@ -642,18 +932,36 @@ public class DocumentByteValuesConnector {
 		return;
 	}
 
-	private Position addPosition(int offset, int length) {
+	/**
+	 * Creates a new <code>Position</code> object and adds it to the source document.
+	 * <p>
+	 * The new position is tracked by the document and updated whenever document changes affect the
+	 * Position.
+	 * </p>
+	 * 
+	 * @param offset
+	 *            start of the position range
+	 * @param length
+	 *            number of chars in the position range
+	 * @return New <code>Position</code> object.
+	 * @throws BadLocationException
+	 *             if the given range is not contained within the source document.
+	 */
+	private Position addPosition(int offset, int length) throws BadLocationException {
 		Position position = new Position(offset, length);
-		try {
-			fDocument.addPosition(position);
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+		fDocument.addPosition(position);
 		return position;
 	}
 
+	/**
+	 * Gets the <code>FuseType</code> from the extension of a file.
+	 * 
+	 * @param file
+	 *            File with a valid file extension
+	 * @return Either {@link FuseType#FUSE} or {@link FuseType#LOCKBITS}
+	 * @throws CoreException
+	 *             if the given file has no or an unrecognized extension.
+	 */
 	private FuseType getTypeFromFileExtension(IFile file) throws CoreException {
 
 		// First get the type of file from the extension
@@ -663,13 +971,24 @@ public class DocumentByteValuesConnector {
 		} else if (FuseType.LOCKBITS.getExtension().equalsIgnoreCase(extension)) {
 			return FuseType.LOCKBITS;
 		} else {
-			// TODO: set a problem marker
 			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "File ["
 					+ file.getFullPath().toOSString() + "] has an unrecognized extension.", null);
 			throw new CoreException(status);
 		}
 	}
 
+	/**
+	 * Get an <code>IFile</code> from an adaptable element.
+	 * <p>
+	 * In the normal use of this class the object element will be an <code>IFileEditorInput</code>,
+	 * but other adaptable objects would be accepted if they are adaptable to an <code>IFile</code>.
+	 * </p>
+	 * 
+	 * @param element
+	 *            an <code>IAdaptable</code> object that can be adapted to an <code>IFile</code>.
+	 * @return the <code>IFile</code> from the given element or <code>null</code> if the element
+	 *         could not be adapted.
+	 */
 	private IFile getFileFromAdaptable(Object element) {
 		if (element instanceof IAdaptable) {
 			IAdaptable adaptable = (IAdaptable) element;

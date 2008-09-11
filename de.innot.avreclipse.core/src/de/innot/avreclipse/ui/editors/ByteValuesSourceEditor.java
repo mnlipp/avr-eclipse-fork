@@ -1,9 +1,20 @@
-/**
+/*******************************************************************************
  * 
- */
+ * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+ * 
+ * This program and the accompanying materials are made
+ * available under the terms of the GNU Public License v3
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * 
+ * Contributors:
+ *     Thomas Holland - initial API and implementation
+ *     
+ * $Id$
+ *     
+ *******************************************************************************/
 package de.innot.avreclipse.ui.editors;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -12,27 +23,42 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.ide.IGotoMarker;
 
 /**
- * @author U043192
+ * Plain <code>TextEditor</code> wrapped in a IFormPart.
+ * <p>
+ * While the {@link FusesEditor} would accept an <code>TextEditor</code> directly, we use this
+ * wrapper for two reasons:
+ * <ul>
+ * <li>To make the interface consistent with the {@link ByteValuesFormEditor}</li>
+ * <li>To have control over the part name, which is always set to the filename by a
+ * <code>TextEditor</code>, but which should be "source" (see {@link #doSetInput(IEditorInput)})</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Thomas Holland
+ * @since 2.3
  * 
  */
-public class ByteValuesSourceEditor extends TextEditor implements IFormPage, IGotoMarker {
+public class ByteValuesSourceEditor extends TextEditor implements IFormPage {
 
+	/** Id of this editor. Set by the parent <code>FusesEditor</code> to "sourceEditorPageId". */
 	private final String	fId;
 
+	/** Parent editor. */
 	private FormEditor		fParentEditor;
 
+	/** Tab page index of this editor. */
 	private int				fIndex;
 
+	/** Part name for this editor. Set by the parent <code>FusesEditor</code> to "source". */
 	private final String	fTitle;
 
+	/** The SWT control for this editor page. */
 	private Control			fPartControl;
 
 	/**
-	 * A constructor that creates the page and initializes it with the editor.
+	 * A constructor that creates the editor page and initializes it.
 	 * 
 	 * @param editor
 	 *            the parent editor
@@ -123,6 +149,9 @@ public class ByteValuesSourceEditor extends TextEditor implements IFormPage, IGo
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
+
+		// Assume that the last child control of the parent is the one just created by the call to
+		// out superclass (TextEditor).
 		Control[] children = parent.getChildren();
 		fPartControl = children[children.length - 1];
 	}
@@ -170,10 +199,7 @@ public class ByteValuesSourceEditor extends TextEditor implements IFormPage, IGo
 	 * @see org.eclipse.ui.forms.editor.IFormPage#selectReveal(java.lang.Object)
 	 */
 	public boolean selectReveal(Object object) {
-		if (object instanceof IMarker) {
-			IDE.gotoMarker(this, (IMarker) object);
-			return true;
-		}
+		// not supported
 		return false;
 	}
 
