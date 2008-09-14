@@ -61,7 +61,7 @@ public final class SystemPathHelper {
 			// Check if the path is already in the instance cache
 			if (fPathCache.containsKey(avrpath)) {
 				IPath cachedpath = fPathCache.get(avrpath);
-				if (cachedpath != null) {
+				if (cachedpath != null && !cachedpath.isEmpty()) {
 					return cachedpath;
 				}
 			}

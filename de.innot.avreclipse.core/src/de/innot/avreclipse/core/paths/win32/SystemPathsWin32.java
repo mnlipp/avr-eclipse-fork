@@ -102,7 +102,6 @@ public class SystemPathsWin32 {
 		if (fWinAVRPath != null) {
 			return fWinAVRPath;
 		}
-		fWinAVRPath = fEmptyPath;
 		// get the last installed version of winAVR.
 		// There may be multiple versions of winAVR installed.
 		// This assumes, that the version keys in the Registry
@@ -122,9 +121,36 @@ public class SystemPathsWin32 {
 					winavrkey);
 			if (winavr != null) {
 				fWinAVRPath = new Path(winavr);
+				return fWinAVRPath;
 			}
 		}
 
+		// No "HKML\Software\WinAVR" key in the registry
+		// Lets try another location: "HKLM\Software\Free Software Foundation\WinAVR-xxxxx"
+		// 
+
+		i = 0;
+		do {
+			nextkey = WindowsRegistry.getRegistry().getLocalMachineKeyName(
+					"SOFTWARE\\Free Software Foundation", i);
+			if (nextkey != null) {
+				winavrkey = nextkey;
+				i++;
+			}
+		} while (nextkey != null);
+
+		if (winavrkey != null) {
+			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue(
+					"SOFTWARE\\Free Software Foundation\\" + winavrkey, "GCC");
+			if (winavr != null) {
+				fWinAVRPath = new Path(winavr);
+				return fWinAVRPath;
+			}
+		}
+
+		// Couldn't find anything, so just return an empty path.
+		// This will cause errors pointing the user to set the paths manually.
+		fWinAVRPath = fEmptyPath;
 		return fWinAVRPath;
 	}
 
