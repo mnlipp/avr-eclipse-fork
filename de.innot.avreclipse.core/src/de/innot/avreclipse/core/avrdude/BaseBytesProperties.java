@@ -16,6 +16,7 @@
 package de.innot.avreclipse.core.avrdude;
 
 import java.io.FileNotFoundException;
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -60,9 +61,14 @@ import de.innot.avreclipse.ui.editors.FuseFileDocumentProvider;
  */
 public abstract class BaseBytesProperties {
 
+	public final static int			FILE_NOT_FOUND				= 200;
+	public final static int			FILE_MCU_PROPERTY_MISSING	= 201;
+	public final static int			FILE_WRONG_TYPE				= 202;
+	public final static int			FILE_INVALID_FILENAME		= 203;
+
 	/** The MCU id for which the current fuse byte values are valid */
 	private String					fMCUid;
-	private static final String		KEY_MCUID			= "MCUid";
+	private static final String		KEY_MCUID					= "MCUid";
 
 	/**
 	 * Write flag
@@ -72,8 +78,8 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 */
 	private boolean					fWriteFlag;
-	private final static String		KEY_WRITEFLAG		= "Write";
-	private final static boolean	DEFAULT_WRITEFLAG	= false;
+	private final static String		KEY_WRITEFLAG				= "Write";
+	private final static boolean	DEFAULT_WRITEFLAG			= false;
 
 	/**
 	 * Use file flag.
@@ -85,8 +91,8 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 */
 	private boolean					fUseFile;
-	private final static String		KEY_USEFILE			= "UseFile";
-	private final static boolean	DEFAULT_USEFILE		= false;
+	private final static String		KEY_USEFILE					= "UseFile";
+	private final static boolean	DEFAULT_USEFILE				= false;
 
 	/**
 	 * The name of the file.
@@ -99,9 +105,9 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 */
 	private String					fFileName;
-	private final static String		KEY_FILENAME		= "FileName";
-	private final static String		DEFAULT_FILENAME	= "";
-	private ByteValues				fFileByteValues		= null;
+	private final static String		KEY_FILENAME				= "FileName";
+	private final static String		DEFAULT_FILENAME			= "";
+	private ByteValues				fFileByteValues				= null;
 
 	/**
 	 * The current byte values.
@@ -110,8 +116,8 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 */
 	private ByteValues				fByteValues;
-	private final static String		KEY_BYTEVALUES		= "ByteValues";
-	private final static String		SEPARATOR			= ":";
+	private final static String		KEY_BYTEVALUES				= "ByteValues";
+	private final static String		SEPARATOR					= ":";
 
 	/**
 	 * The <code>Preferences</code> used to read / save the current properties.
@@ -127,10 +133,10 @@ public abstract class BaseBytesProperties {
 	private final AVRDudeProperties	fParent;
 
 	/** Build configuration used to resolve filenames. */
-	private IConfiguration			fBuildConfig		= null;
+	private IConfiguration			fBuildConfig				= null;
 
 	/** <code>true</code> if the properties have been modified and need saving. */
-	private boolean					fDirty				= false;
+	private boolean					fDirty						= false;
 
 	/**
 	 * Create a new FuseBytesProperties object and load the properties from the Preferences.
@@ -386,20 +392,56 @@ public abstract class BaseBytesProperties {
 	public ByteValues getByteValuesFromFile() throws CoreException {
 
 		if (fFileByteValues == null) {
-			// We need to instantiate a new byte values from file object
-			IPath location = new Path(getFileNameResolved());
+			// First get the IFile of the file and check that it exists
+			String filename = getFileNameResolved();
+			if (filename == null || filename.length() == 0) {
+				String message = MessageFormat.format("Invalid filename [{0}]", getFileName());
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+						FILE_INVALID_FILENAME, message, new FileNotFoundException(filename));
+				throw new CoreException(status);
+			}
+			IPath location = new Path(filename);
 			IFile file = getFileFromLocation(location);
-			if (!file.exists()) {
-				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "File not Found ["
-						+ location.toOSString() + "]", new FileNotFoundException(file.getFullPath()
-						.toOSString()));
+			if (file == null || !file.exists()) {
+				String message = MessageFormat
+						.format("File not found [{0}]", location.toOSString());
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, FILE_NOT_FOUND,
+						message, new FileNotFoundException(file.getFullPath().toOSString()));
 				throw new CoreException(status);
 			}
 
+			// then use the FuseFileDocumentProvider to get a ByteValues object for the file.
+			// The input file is immediately disconnected, because this class does not have a
+			// dispose method where the the disconnection could take place.
+			// This means that any changes to the file are not synchronized. Therefore the
+			// ByteValues object returned by this method should not be used for prolonged periods.
 			FuseFileDocumentProvider provider = FuseFileDocumentProvider.getDefault();
 			provider.connect(file);
 			fFileByteValues = provider.getByteValues(file);
 			provider.disconnect(file);
+
+			// If the fFileByteValues are null, then the file could not be read.
+			// probably the 'MCU' Property is missing.
+			if (fFileByteValues == null) {
+				String message = MessageFormat.format(
+						"{0} is not a valid {1} file (probably the MCU=xxxx property is missing)",
+						file.getFullPath(), getType());
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
+						FILE_MCU_PROPERTY_MISSING, message, null);
+				throw new CoreException(status);
+			}
+
+			// Check if the file actually has the right type.
+			if (!getType().equals(fFileByteValues.getType())) {
+				// No! Discard the object and throw an Exception
+				String message = MessageFormat.format(
+						"{0} is a {1} file, but expected a {2} file.", file.getFullPath(),
+						fFileByteValues.getType(), getType());
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, FILE_WRONG_TYPE,
+						message, null);
+				fFileByteValues = null;
+				throw new CoreException(status);
+			}
 		}
 
 		return new ByteValues(fFileByteValues);
