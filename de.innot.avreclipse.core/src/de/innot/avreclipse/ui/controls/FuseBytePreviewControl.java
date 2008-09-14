@@ -48,7 +48,6 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import de.innot.avreclipse.core.toolinfo.fuses.BitFieldDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
-import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatus;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
@@ -86,12 +85,6 @@ public class FuseBytePreviewControl extends Composite {
 	 */
 	private String					fMCUid;
 
-	/**
-	 * The results from a conversion. If not null, the results will be used to color the output.
-	 */
-	private ConversionResults		fResults				= null;
-
-	private ByteValues				fLastValues;
 	private ByteValues				fCurrentValues;
 
 	/** List of the root TreeItems, the items representing complete Bytes. */
@@ -127,12 +120,6 @@ public class FuseBytePreviewControl extends Composite {
 
 	/** Property for the current value of the byte containing the bitfield (Integer). */
 	private final static String		TAG_VALUE				= "value";
-
-	/**
-	 * Property to indicate that the value of this treeitem has changed. Used for the coloring of
-	 * conversions. (Boolean)
-	 */
-	private final static String		TAG_HASCHANGED			= "haschanged";
 
 	/**
 	 * Property to indicate that the bits for this item should be drawn with thicker lines
@@ -268,8 +255,6 @@ public class FuseBytePreviewControl extends Composite {
 		if (newvalues == null) {
 			clearTree();
 			fHeaderLabel.setText("No values set");
-			fResults = null;
-			fLastValues = null;
 			return;
 		}
 
@@ -290,7 +275,7 @@ public class FuseBytePreviewControl extends Composite {
 			updateTree(newvalues);
 		}
 
-		colorTree(newvalues, fResults);
+		colorTree(newvalues);
 
 		// Expand all tree items and repack the columns so that always all information is
 		// shown (even if this means that the scrollbars have to be used).
@@ -299,29 +284,6 @@ public class FuseBytePreviewControl extends Composite {
 		}
 
 		fTree.getColumn(COLUMN_BITS).pack(); // force redraw of the Bits column
-	}
-
-	/**
-	 * Set the converted <code>ByteValues</code> to be shown in this preview control.
-	 * <p>
-	 * The BitFields in the preview are colored according to their {@link ConversionStatus}. They
-	 * remain colored as long as they are not modified. As soon as a BitField value is changed, it
-	 * is reverted to the default color (black).
-	 * </p>
-	 * <p>
-	 * If the results parameter is <code>null</code>, all colors are removed.
-	 * 
-	 * @see #setByteValues(ByteValues)
-	 * 
-	 * @param newvalues
-	 *            <code>ByteValues</code> Object.
-	 * @param results
-	 *            <code>ConversionResults</code> Object.
-	 */
-	public void setByteValuesFromConversion(ByteValues newvalues, ConversionResults results) {
-		fLastValues = newvalues;
-		fResults = results;
-		setByteValues(newvalues);
 	}
 
 	/**
@@ -429,10 +391,8 @@ public class FuseBytePreviewControl extends Composite {
 	 * 
 	 * @param values
 	 *            The <code>ByteValues</code> after the conversion.
-	 * @param results
-	 *            The <code>ConversionResults</code> of the conversion.
 	 */
-	private void colorTree(ByteValues values, ConversionResults results) {
+	private void colorTree(ByteValues values) {
 
 		// Get the colors used to indicate a conversion result
 		final Color colorBlack = fTree.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
@@ -443,33 +403,11 @@ public class FuseBytePreviewControl extends Composite {
 		// Iterate though all BitField items in the tree
 		for (TreeItem byteitem : fRootItems) {
 			for (TreeItem bitfielditem : byteitem.getItems()) {
-				if (results == null) {
-					bitfielditem.setForeground(colorBlack);
-					continue;
-				}
 				BitFieldDescription bfd = (BitFieldDescription) bitfielditem
 						.getData(TAG_BITFIELDDESCRIPTION);
 				String bitfieldname = bfd.getName();
 
-				// Check if the value has changed.
-				Boolean haschanged = (Boolean) bitfielditem.getData(TAG_HASCHANGED);
-				if (haschanged != null) {
-					bitfielditem.setForeground(colorBlack);
-					continue;
-				}
-
-				int newvalue = values.getNamedValue(bitfieldname);
-				int oldvalue = fLastValues.getNamedValue(bitfieldname);
-				if (newvalue != oldvalue) {
-					// value has changed: remove the color
-					bitfielditem.setForeground(colorBlack);
-					bitfielditem.setData(TAG_HASCHANGED, Boolean.TRUE);
-					continue;
-				}
-
-				// OK, the value of the BitField is unchanged.
-				// So lets color it according to the ConversionStatus of this BitField
-				ConversionStatus status = results.getStatusForName(bitfieldname);
+				ConversionStatus status = values.getConversionStatus(bitfieldname);
 				switch (status) {
 					case SUCCESS:
 						bitfielditem.setForeground(colorGreen);
@@ -481,6 +419,9 @@ public class FuseBytePreviewControl extends Composite {
 					case NOT_IN_TARGET:
 						bitfielditem.setForeground(colorRed);
 						break;
+					case MODIFIED:
+					case NO_CONVERSION:
+					case UNKNOWN:
 					default:
 						bitfielditem.setForeground(colorBlack);
 				}

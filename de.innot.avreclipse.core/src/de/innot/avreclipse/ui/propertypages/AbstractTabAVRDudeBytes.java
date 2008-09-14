@@ -19,6 +19,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -101,7 +102,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String		TEXT_IMMEDIATE			= "direct hex value{0}";
 
 	private final static String		WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
-																	+ "This is not compatible with the {2} MCU setting [{1}]. Please edit the file or select a different file.";
+																	+ "This is not compatible with the {2} MCU setting [{1}].\n"
+																	+ "Please edit the file or select a different file.";
 	private final static String		WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
 																	+ "This is not compatible with the {2} MCU setting [{1}].";
 	private final static String		WARN_BUTTON_CONVERT		= "Convert";
@@ -130,6 +132,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	private Button					fUploadFileButton;
 	private Text					fFileText;
+	private Composite				fFileWarningCompo;
+	private Label					fFileWarningLabel;
 	private Button					fWorkplaceButton;
 	private Button					fFilesystemButton;
 	private Button					fVariableButton;
@@ -143,7 +147,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private Text[]					fValueTexts;
 	private Label[]					fFuseLabels;
 
-	private Composite				fWarningCompo;
+	private Composite				fHexWarningCompo;
 	private Label					fWarningLabel;
 	private Button					fConvertButton;
 
@@ -348,11 +352,18 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		fUploadFileButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if (fUploadFileButton.getSelection() == false) {
+					// Button was deselected (another button has been selected
+					// The other button will handle everything
+					return;
+				}
 				fBytes.setWrite(true);
 				fBytes.setUseFile(true);
 				enableFileGroup(true);
 				enableByteGroup(false);
 				updateFields();
+				updateAVRDudePreview(fTargetProps);
+				fPreviewControl.setByteValues(fBytes.getByteValues());
 				checkValid();
 			}
 		});
@@ -368,16 +379,27 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 		});
 
-		// The three File Dialog Buttons (and a alignment/filler Label),
-		// all wrapped in a composite.
+		// The next line in the GUI consists of a Warning composite and three file dialog buttons,
+		// all wrapped in one composite.
 		Composite compo = new Composite(parent, SWT.NONE);
 		compo.setBackgroundMode(SWT.INHERIT_FORCE);
 		compo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 4, 1));
 		compo.setLayout(new GridLayout(4, false));
 
-		Label dummy = new Label(compo, SWT.NONE); // Filler
-		dummy.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		// Warning composite
+		fFileWarningCompo = new Composite(compo, SWT.NONE);
+		fFileWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+		fFileWarningCompo.setLayout(new GridLayout(2, false));
 
+		Label warnicon = new Label(fFileWarningCompo, SWT.LEFT);
+		warnicon.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+		warnicon.setImage(IMG_WARN);
+
+		fFileWarningLabel = new Label(fFileWarningCompo, SWT.WRAP);
+		fFileWarningLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		fFileWarningLabel.setText("");
+
+		// The three buttons
 		fWorkplaceButton = setupWorkplaceButton(compo, fFileText);
 		fFilesystemButton = setupFilesystemButton(compo, fFileText, getFileExtensions());
 		fVariableButton = setupVariableButton(compo, fFileText);
@@ -408,12 +430,16 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		fImmediateButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if (fImmediateButton.getSelection() == false) {
+					// Button was deselected (another button has been selected
+					// The other button will handle everything
+					return;
+				}
 				fBytes.setWrite(true);
 				fBytes.setUseFile(false);
 				enableFileGroup(false);
 				enableByteGroup(true);
-				updateAVRDudePreview(fTargetProps);
-				fPreviewControl.setByteValues(fBytes.getByteValues());
+				updateFields();
 
 				// Check if the byte values are compatible and display a warning if required
 				checkValid();
@@ -478,24 +504,24 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private void addWarningSection(Composite parent) {
 
 		// The Warning Composite
-		fWarningCompo = new Composite(parent, SWT.NONE);
-		fWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
+		fHexWarningCompo = new Composite(parent, SWT.NONE);
+		fHexWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
 		GridLayout gl = new GridLayout(3, false);
 		gl.marginHeight = 0;
 		gl.marginWidth = 0;
 		gl.verticalSpacing = 0;
 		gl.horizontalSpacing = 0;
-		fWarningCompo.setLayout(gl);
+		fHexWarningCompo.setLayout(gl);
 
-		Label warnicon = new Label(fWarningCompo, SWT.LEFT);
+		Label warnicon = new Label(fHexWarningCompo, SWT.LEFT);
 		warnicon.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 		warnicon.setImage(IMG_WARN);
 
-		fWarningLabel = new Label(fWarningCompo, SWT.LEFT | SWT.WRAP);
+		fWarningLabel = new Label(fHexWarningCompo, SWT.LEFT | SWT.WRAP);
 		fWarningLabel.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
-		fWarningLabel.setText(WARN_FILEINCOMPATIBLE);
+		fWarningLabel.setText("");
 
-		fConvertButton = new Button(fWarningCompo, SWT.PUSH);
+		fConvertButton = new Button(fHexWarningCompo, SWT.PUSH);
 		fConvertButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 		fConvertButton.setText(WARN_BUTTON_CONVERT);
 		fConvertButton.addSelectionListener(new SelectionAdapter() {
@@ -511,7 +537,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			}
 		});
 
-		fWarningCompo.setVisible(false);
+		fHexWarningCompo.setVisible(false);
 
 	}
 
@@ -709,41 +735,78 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 */
 	private void checkValid() {
 
-		if (!fBytes.getWrite()) {
-			// No write - no warning
-			fWarningCompo.setVisible(false);
-			return;
-		}
-
-		String ourmcuid = fBytes.getMCUId();
-		if (ourmcuid == null) {
-			// Fuses file does not exist
-			String message = MessageFormat.format(
-					"File {0} does not exist or is not a valid {1} file.", fBytes
-							.getFileNameResolved(), getType().toString());
-
-			fWarningLabel.setText(message);
-			fWarningCompo.setVisible(true);
-			return;
-		}
+		// clear all warnings
+		fFileWarningCompo.setVisible(false);
+		fHexWarningCompo.setVisible(false);
 
 		String projectmcuid = fTargetProps.getParent().getMCUId();
+
+		if (!fBytes.getWrite()) {
+			// No write - no warning
+			return;
+		}
+
+		if (fBytes.getUseFile()) {
+			// Check if the file is valid.
+			// If not the FileWarningCompo is activated
+			ByteValues filebv = null;
+			String message = null;
+			try {
+				filebv = fBytes.getByteValuesFromFile();
+				if (filebv == null) {
+					message = "Could not access the file";
+				} else if (!filebv.isCompatibleWith(projectmcuid)) {
+					String filemcu = AVRMCUidConverter.id2name(filebv.getMCUId());
+					String projectmcu = AVRMCUidConverter.id2name(projectmcuid);
+					message = MessageFormat.format(
+							"File is for an {0} MCU,\nincompatible with {2} MCU [{1}]", filemcu,
+							projectmcu, isPerConfig() ? WARN_FROMCONFIG : WARN_FROMPROJECT);
+				}
+
+			} catch (CoreException ce) {
+				IStatus status = ce.getStatus();
+				int code = status.getCode();
+				switch (code) {
+					case BaseBytesProperties.FILE_NOT_FOUND:
+						message = "File not found";
+						break;
+					case BaseBytesProperties.FILE_MCU_PROPERTY_MISSING:
+						message = "File has no 'MCU=xxx' property";
+						break;
+					case BaseBytesProperties.FILE_WRONG_TYPE:
+						message = MessageFormat.format("File is not a {0} file", getType()
+								.toString());
+						break;
+					case BaseBytesProperties.FILE_INVALID_FILENAME:
+						message = "Invalid filename";
+						break;
+					default:
+						message = "Internal error accessing the file.";
+				}
+			}
+
+			if (message != null) {
+				fFileWarningLabel.setText(message);
+				fFileWarningCompo.pack();
+				fFileWarningCompo.setVisible(true);
+			}
+			return;
+		}
+
+		// Immediate values are used
+
+		String ourmcuid = fBytes.getMCUId();
 		if (projectmcuid.equals(ourmcuid)) {
 			// Identical MCUs - hide the warning and do nothing
-			fWarningCompo.setVisible(false);
-
 			return;
 		}
 
 		if (fBytes.isCompatibleWith(projectmcuid)) {
 			// Compatible - no warning
-			fWarningCompo.setVisible(false);
-
 			// But convert the ByteValues anyway so everything is in sync.
 			ByteValues newvalues = convertFusesTo(projectmcuid, fBytes.getByteValues());
 			fBytes.setByteValues(newvalues);
 			updateFields();
-
 			return;
 		}
 
@@ -752,12 +815,13 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 		String valuesmcu = AVRMCUidConverter.id2name(fBytes.getMCUId());
 		String projectmcu = AVRMCUidConverter.id2name(projectmcuid);
 
-		String message = MessageFormat.format(fBytes.getUseFile() ? WARN_FILEINCOMPATIBLE
-				: WARN_BYTESINCOMPATIBLE, valuesmcu, projectmcu, isPerConfig() ? WARN_FROMCONFIG
-				: WARN_FROMPROJECT);
+		String message = MessageFormat.format(WARN_BYTESINCOMPATIBLE, valuesmcu, projectmcu,
+				isPerConfig() ? WARN_FROMCONFIG : WARN_FROMPROJECT);
 
 		fWarningLabel.setText(message);
-		fWarningCompo.setVisible(true);
+		fConvertButton.setVisible(true);
+		fHexWarningCompo.pack();
+		fHexWarningCompo.setVisible(true);
 	}
 
 	/*
@@ -844,13 +908,13 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			fNoUploadButton.setSelection(false);
 			if (fBytes.getUseFile()) {
 				// b) write bytes - use supplied file
-				// fUploadFileButton.setSelection(true);
+				fUploadFileButton.setSelection(true);
 				fImmediateButton.setSelection(false);
 				enableFileGroup(true);
 				enableByteGroup(false);
 			} else {
 				// c) write bytes - use immediate bytes
-				// fUploadFileButton.setSelection(false);
+				fUploadFileButton.setSelection(false);
 				fImmediateButton.setSelection(true);
 				enableFileGroup(false);
 				enableByteGroup(true);
@@ -893,8 +957,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 			} else {
 				// byte value index > than max. supported by the current Fuse MCU.
 				// hide the editor compo
-				fValueTexts[i].setText("");
 				fByteCompos[i].setVisible(false);
+				fValueTexts[i].setText("");
 			}
 		}
 
@@ -912,7 +976,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/**
 	 * Convert a ByteValues object to a new MCU, color the fuse bytes preview according to the
-	 * conversion results and print the results tn the console.
+	 * conversion results and print the results to the console.
 	 * 
 	 * @param targetmcu
 	 *            The new MCU value
@@ -922,16 +986,15 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 */
 	private ByteValues convertFusesTo(final String targetmcu, final ByteValues sourcevalues) {
 
-		ConversionResults results = new ConversionResults();
-		final ByteValues targetvalues = sourcevalues.convertTo(targetmcu, results);
+		sourcevalues.setMCUId(targetmcu, true);
+		fPreviewControl.setByteValues(sourcevalues);
 
-		fPreviewControl.setByteValuesFromConversion(targetvalues, results);
-
-		MessageConsole console = AVRPlugin.getDefault().getConsole("Fuse Byte Conversion");
-
-		results.printToConsole(console);
-
-		return targetvalues;
+		ConversionResults results = sourcevalues.getConversionResults();
+		if (results != null) {
+			MessageConsole console = AVRPlugin.getDefault().getConsole("Fuse Byte Conversion");
+			results.printToConsole(console);
+		}
+		return sourcevalues;
 	}
 
 	/**
