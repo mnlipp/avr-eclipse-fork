@@ -8,6 +8,11 @@
 $Id$
 
 ================================================================================
+Version 2.3.0
+
+No release notes yet. Please refer to changelog.txt for the changes.
+
+================================================================================
 Version 2.2.0 release date: 18 June 2008
 
 This is a major release with some new features.

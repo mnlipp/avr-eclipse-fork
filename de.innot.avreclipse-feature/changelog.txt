@@ -8,36 +8,60 @@
 $Id$
 
 ================================================================================
-Version 2.3.0
+Version 2.3.0 Beta 1 [15. September 2008]
 
 New:
 -----------------------------
+* Support for Fuses / LockBits files
+  - Two new wizards to create fuse and lockbit files (New -> Other -> AVR -> ....)
+  - An editor to edit these files.
+  - The files can be selected as the fuses / lockbits source on the AVRDude property
+    Fuses / Lockbits pages.
+
+* Detailed preview of the selected fuse bytes on the project 
+  AVRDude property Fuses / Lockbits pages. 
+
 
 Changed / Improved:
 -----------------------------
-* ATXmega processors are now fully supported. (Except for the avrdude related
-  parts because avrdude does not yet support the ATXmega line.)
+* ATXmega processors are now fully supported. (Except for the upload with 
+  avrdude because avrdude does not yet support the ATXmega line.)
   
 * The AVRDude project properties now have a new field "other options" to add
   avrdude options not supported by the plugin. (As of version 2.3 the plugin
   supports all options for avrdude version 5.5).
 
+* Improved path handling.
+  All system paths are now saved in a persistent cache, so they need to be
+  searched only once. 
+  By default the plugin will still search all paths at startup, but this can
+  be inhibited on the AVR preference page. Once inhibited any system 
+  reconfigurations (like a new avr-gcc toolchain in a different directory) 
+  are not automatically recognized any more.
+  In this case the new "Rescan" button on the AVR path preferences can be 
+  used to look for the new path.
+
 Fixes:
 -----------------------------
-* Bug 1962594: Searching for System Paths slow on Linux.
-  Discovered System paths are now persisted on Posix platforms. 
-  This should improve startup time, but changes to the system paths are not 
-  recognized on startup anymore. In this case the new "Rescan" button on the 
-  AVR path preferences modification dialog needs to be used.
 
-* Bug 2008171: Build System ignores .c files in C++ project
-  Fixed.
+* Bug 1962594: Searching for System Paths slow on Linux.
+  See above for a description of the fix.
+
+* Bug 2008171: Build System ignores .c files in C++ project - Fixed.
   
 * Bug 2011424: Added a descriptive error message when the build directory is
   not valid.
   
 * Bug 2020689: avrdude option -D (Disable auto erase for flash) missing.
-  Fixed: added option to inhibit auto erase.
+  Fixed: added option to inhibit auto erase. 
+  
+* Bug 2050945: Read Back of "Enable Individual Settings ..."
+  Fixed: removed internal caching of project setting.
+  
+* Bug 2071415: Timing issue on Linux / USB / AVR Dragon
+  Fixed by adding a user selectable delay between avrdude programming calls.
+  The value is set on the Programmer Configuration dialog
+  (Window -> Preferences -> AVR -> AVRDude -> Programmer configurations -> Edit...)
 
 ================================================================================
 Version 2.2.0 [18-June-2008]
