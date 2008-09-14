@@ -165,6 +165,8 @@ public class ByteValues {
 		if (convert) {
 			fConversionResults = new ConversionResults();
 			conversioncopy = convertTo(mcuid, fConversionResults);
+		} else {
+			fConversionResults = null;
 		}
 
 		fMCUId = mcuid;
@@ -462,6 +464,16 @@ public class ByteValues {
 	}
 
 	/**
+	 * Gets the complete ConversionResults from the last conversion applied to this ByteValues
+	 * object.
+	 * 
+	 * @return
+	 */
+	public ConversionResults getConversionResults() {
+		return fConversionResults;
+	}
+
+	/**
 	 * Clears all values.
 	 * <p>
 	 * This method will set the value of all bytes to <code>-1</code>
@@ -736,10 +748,10 @@ public class ByteValues {
 		// Create a new ByteValues Object for the target mcu
 		ByteValues target = new ByteValues(fType, mcuid);
 
-		// Init the results with all our bitfields.
-		// Later we will remove those entries that have been converted successfully,
-		// so that at the end only the BitFields not copied will remain in the results object.
-		results.init(this, target);
+		// Init the results object.
+		// We use a copy of ourself as the source, because the setMCUId() method will copy the
+		// results of this method to this object, effectively making the target the source.
+		results.init(new ByteValues(this), target);
 
 		List<String> targetbfdnames = target.getBitfieldNames();
 
