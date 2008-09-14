@@ -73,7 +73,7 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 	private final static String	SOURCE_BUILDCONFIG		= "active build configuration";
 	private final static String	SOURCE_PROJECT			= "project";
 
-	private final static String	MSG_NOPROJECT			= "The current selection does not contain anything that can be uploaded with AVRDude.";
+	private final static String	MSG_NOPROJECT			= "No AVR project selected";
 
 	private final static String	MSG_NOPROGRAMMER		= "No Programmer has been set for the {0}.\n\n"
 																+ "Please select a Programmer in the project properties\n"
