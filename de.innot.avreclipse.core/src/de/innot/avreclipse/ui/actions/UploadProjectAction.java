@@ -64,6 +64,7 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 /**
  * @author Thomas Holland
  * @since 2.2
+ * @since 2.3 Added optional delay between avrdude invocations
  * 
  */
 public class UploadProjectAction extends ActionDelegate implements IWorkbenchWindowActionDelegate {
@@ -146,8 +147,6 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 	public void run(IAction action) {
 
 		// Check that we have a AVR Project
-		// This is just a safety check, because the popupMenu definitions add
-		// this Action only to Projects which have the avrnature set.
 		try {
 			if (fProject == null || !fProject.hasNature("de.innot.avreclipse.core.avrnature")) {
 				MessageDialog.openError(getShell(), TITLE_UPLOAD, MSG_NOPROJECT);
@@ -289,12 +288,6 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 	}
 
 	/**
-	 * The current ProgrammerConfiguration id. Used in the UploadJob for some error messages when
-	 * avrdude fails.
-	 */
-	private String	fProgrammerId;
-
-	/**
 	 * Start the AVRDude UploadJob.
 	 * 
 	 * @param buildcfg
@@ -312,16 +305,15 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 		// get a list of actions
 		List<String> actionargs = avrdudeprops.getActionArguments(buildcfg, true);
 
-		// Get the ProgrammerConfigId in case we need to display an error
+		// Get the ProgrammerConfig in case we need to display an error
 		// message
 		ProgrammerConfig programmer = avrdudeprops.getProgrammer();
-		fProgrammerId = programmer.getId();
 
 		// Set the working directory to the CWD of the active build config, so that
 		// relative paths are resolved correctly.
 		IPath cwdunresolved = buildcfg.getBuildData().getBuilderCWD();
 		IPath cwd = new Path(BuildMacro.resolveMacros(buildcfg, cwdunresolved.toString()));
-		Job uploadjob = new UploadJob(optionargs, actionargs, cwd);
+		Job uploadjob = new UploadJob(optionargs, actionargs, cwd, programmer);
 
 		uploadjob.setRule(new AVRDudeSchedulingRule(programmer));
 		uploadjob.setPriority(Job.LONG);
@@ -337,16 +329,18 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 	 */
 	private class UploadJob extends Job {
 
-		private final List<String>	fOptions;
-		private final List<String>	fActions;
-		private final IPath			fCwd;
+		private final List<String>		fOptions;
+		private final List<String>		fActions;
+		private final IPath				fCwd;
+		private final ProgrammerConfig	fProgrammerConfig;
 
-		public UploadJob(List<String> options, List<String> actions, IPath cwd) {
+		public UploadJob(List<String> options, List<String> actions, IPath cwd,
+				ProgrammerConfig programmer) {
 			super("AVRDude Upload");
 			fOptions = options;
 			fActions = actions;
 			fCwd = cwd;
-
+			fProgrammerConfig = programmer;
 		}
 
 		@Override
@@ -364,12 +358,22 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 
 				AVRDude avrdude = AVRDude.getDefault();
 
+				// Get the optional post avrdude delay value
+				int delay = 0;
+				String delayvalue = fProgrammerConfig.getPostAvrdudeDelay();
+				if (delayvalue != null && delayvalue.length() > 0) {
+					delay = Integer.decode(delayvalue);
+				}
+
 				// Add one entry to the options which will be filled with each
 				// action to perform
 				fOptions.add("");
 				int lastindex = fOptions.lastIndexOf("");
 
 				for (String actionoption : fActions) {
+					if (monitor.isCanceled()) {
+						break;
+					}
 
 					// Get the action from the actionoption
 					String subtask;
@@ -387,12 +391,32 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 					// Now avrdude can be started.
 					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd);
 
+					// delay for some milliseconds if required
+					// To allow user cancel during long delays we check the monitor every 10
+					// milliseconds.
+					// This is the fix for Bug 2071415
+					int delaymillis = 0;
+					while (delaymillis < delay) {
+						if (monitor.isCanceled()) {
+							break;
+						}
+						long presleepmillis = System.currentTimeMillis();
+						Thread.sleep(10);
+						long postsleepmillis = System.currentTimeMillis();
+						delaymillis += postsleepmillis - presleepmillis;
+					}
 				}
+			} catch (InterruptedException e) {
+				// External interruption while the thread was sleeping. Handle as if the
+				// Progressmonitor has been canceled.
+				monitor.setCanceled(true);
+				return Status.CANCEL_STATUS;
 			} catch (AVRDudeException ade) {
 				// Show an Error message and exit
 				Display display = PlatformUI.getWorkbench().getDisplay();
 				if (display != null && !display.isDisposed()) {
-					UIJob messagejob = new AVRDudeErrorDialogJob(display, ade, fProgrammerId);
+					UIJob messagejob = new AVRDudeErrorDialogJob(display, ade, fProgrammerConfig
+							.getId());
 					messagejob.setPriority(Job.INTERACTIVE);
 					messagejob.schedule();
 					try {

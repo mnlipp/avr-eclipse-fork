@@ -25,74 +25,92 @@ import org.osgi.service.prefs.Preferences;
 /**
  * Container class for all Programmer specific options of AVRDude.
  * <p>
- * This class also acts as an Interface to the preference store. It knows how to
- * save and delete configurations.
+ * This class also acts as an Interface to the preference store. It knows how to save and delete
+ * configurations.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
+ * @since 2.3 added invocation delay option
  * 
  */
 public class ProgrammerConfig {
 
 	/** The unique identifier for this configuration */
-	private String fId;
-	public final static String KEY_ID = "id";
+	private final String		fId;
+	public final static String	KEY_ID						= "id";
 
 	/** The unique name of this configuration */
-	private String fName;
-	public final static String KEY_NAME = "name";
+	private String				fName;
+	public final static String	KEY_NAME					= "name";
 
 	/** A custom description of this configuration */
-	private String fDescription;
-	public final static String KEY_DESCRIPTION = "description";
-	public final static String DEFAULT_DESCRIPTION = "Default AVRDude Programmer Configuration. Change for your setup";
+	private String				fDescription;
+	public final static String	KEY_DESCRIPTION				= "description";
+	public final static String	DEFAULT_DESCRIPTION			= "Default AVRDude Programmer Configuration. Modify as required for your setup.";
 
 	/** The avrdude id of the programmer for this configuration */
-	private String fProgrammer;
-	public final static String KEY_PROGRAMMER = "programmer";
-	public final static String DEFAULT_PROGRAMMER = "stk500v2";
+	private String				fProgrammer;
+	public final static String	KEY_PROGRAMMER				= "programmer";
+	public final static String	DEFAULT_PROGRAMMER			= "stk500v2";
 
 	/**
-	 * The port for this configuration. If empty it will not be included in the
-	 * command line arguments.
+	 * The port for this configuration. If empty it will not be included in the command line
+	 * arguments.
 	 */
-	private String fPort;
-	public final static String KEY_PORT = "port";
+	private String				fPort;
+	public final static String	KEY_PORT					= "port";
 
 	/**
-	 * The baudrate for this configuration. If empty it will not be included in
-	 * the command line arguments.
+	 * The baudrate for this configuration. If empty it will not be included in the command line
+	 * arguments.
 	 */
-	private String fBaudrate;
-	public final static String KEY_BAUDRATE = "baudrate";
+	private String				fBaudrate;
+	public final static String	KEY_BAUDRATE				= "baudrate";
 
 	/**
-	 * The Exitspec for the resetline. If empty it will not be included in the
-	 * command line arguments.
+	 * The Exitspec for the resetline. If empty it will not be included in the command line
+	 * arguments.
 	 * <p>
 	 * Valid values are "reset", "noreset" and ""
 	 * </p>
 	 */
-	private String fExitReset;
-	public final static String KEY_EXITSPEC_RESET = "ppresetline";
+	private String				fExitReset;
+	public final static String	KEY_EXITSPEC_RESET			= "ppresetline";
 
 	/**
-	 * The Exitspec for the Vcc lines. If empty or <code>null</code> it will
-	 * not be included in the command line arguments.
+	 * The Exitspec for the Vcc lines. If empty or <code>null</code> it will not be included in
+	 * the command line arguments.
 	 * <p>
 	 * Valid values are "vcc", "novcc" and ""
 	 * </p>
 	 */
-	private String fExitVcc;
-	public final static String KEY_EXITSPEC_VCC = "ppvccline";
-
-	/** Flag to mark modifications of this config */
-	private boolean fDirty;
+	private String				fExitVcc;
+	public final static String	KEY_EXITSPEC_VCC			= "ppvccline";
 
 	/**
-	 * Constructs a ProgrammerConfig with the given id and set the default
-	 * values.
+	 * The optional delay in milliseconds to delay multiple successive calls to avrdude.
+	 * <p>
+	 * To be used if avrdude does not release its output port fast enough, causing "port blocked"
+	 * failures.
+	 * </p>
+	 * <p>
+	 * May be <code>null</code> or empty. If not empty it must contain an integer number.
+	 * </p>
+	 * <p>
+	 * Unlike the other parameters in this class this is not used on the avrdude command line. But
+	 * all classes that make successive calls to avrdude must respect this delay.
+	 * </p>
+	 * 
+	 */
+	private String				fPostAVRDudeDelay;
+	public final static String	KEY_POSTAVRDUDE_DELAY_MS	= "postAvrdudeDelayMs";
+
+	/** Flag to mark modifications of this config */
+	private boolean				fDirty;
+
+	/**
+	 * Constructs a ProgrammerConfig with the given id and set the default values.
 	 * 
 	 * @param id
 	 *            Unique id of the configuration.
@@ -104,8 +122,8 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * Constructs a ProgrammerConfig with the given id and load its values from
-	 * the given <code>Preferences</code>.
+	 * Constructs a ProgrammerConfig with the given id and load its values from the given
+	 * <code>Preferences</code>.
 	 * 
 	 * @param id
 	 *            Unique id of the configuration.
@@ -123,8 +141,7 @@ public class ProgrammerConfig {
 	 * <p>
 	 * The copy does not reflect any changes of the original or vv.
 	 * </p>
-	 * Note: This copy can be saved, even when the given original has been
-	 * deleted.
+	 * Note: This copy can be saved, even when the given original has been deleted.
 	 * </p>
 	 * 
 	 * @param config
@@ -141,8 +158,7 @@ public class ProgrammerConfig {
 	 * </p>
 	 * 
 	 * @throws BackingStoreException
-	 *             If this configuration cannot be written to the preference
-	 *             storage area.
+	 *             If this configuration cannot be written to the preference storage area.
 	 */
 	protected synchronized void save(Preferences prefs) throws BackingStoreException {
 
@@ -155,6 +171,7 @@ public class ProgrammerConfig {
 			prefs.put(KEY_BAUDRATE, fBaudrate);
 			prefs.put(KEY_EXITSPEC_RESET, fExitReset);
 			prefs.put(KEY_EXITSPEC_VCC, fExitVcc);
+			prefs.put(KEY_POSTAVRDUDE_DELAY_MS, fPostAVRDudeDelay);
 
 			// flush the Preferences to the persistent storage
 			prefs.flush();
@@ -162,8 +179,8 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * @return A <code>List&lt;Strings&gt;</code> with all avrdude options as
-	 *         defined by this configuration
+	 * @return A <code>List&lt;Strings&gt;</code> with all avrdude options as defined by this
+	 *         configuration
 	 */
 	public List<String> getArguments() {
 
@@ -207,8 +224,8 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the name of this configuration.
 	 * <p>
-	 * The name must not contain any slashes ('/'), as this would cause problems
-	 * with the preference store.
+	 * The name must not contain any slashes ('/'), as this would cause problems with the preference
+	 * store.
 	 * </p>
 	 * 
 	 * @param name
@@ -248,8 +265,8 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the avrdude programmer id of this configuration.
 	 * <p>
-	 * The programmer id is not checked for validity. It is up to the caller to
-	 * ensure that the given id is valid.
+	 * The programmer id is not checked for validity. It is up to the caller to ensure that the
+	 * given id is valid.
 	 * </p>
 	 * 
 	 * @param name
@@ -270,13 +287,13 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the port of this configuration.
 	 * <p>
-	 * The port name is not checked for validity. It is up to the caller to
-	 * ensure that the port name is valid.
+	 * The port name is not checked for validity. It is up to the caller to ensure that the port
+	 * name is valid.
 	 * </p>
 	 * 
 	 * @param name
-	 *            <code>String</code> with the new port, may be an empty
-	 *            String to use the avrdude default port.
+	 *            <code>String</code> with the new port, may be an empty String to use the avrdude
+	 *            default port.
 	 */
 	public void setPort(String port) {
 		fPort = port;
@@ -284,8 +301,7 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * @return The current port of this configuration, empty if default is to be
-	 *         used.
+	 * @return The current port of this configuration, empty if default is to be used.
 	 */
 	public String getPort() {
 		return fPort;
@@ -294,13 +310,13 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the baudrate of this configuration.
 	 * <p>
-	 * The baudrate is not checked for validity. It is up to the caller to
-	 * ensure that the baudrate is a valid integer (or empty).
+	 * The baudrate is not checked for validity. It is up to the caller to ensure that the baudrate
+	 * is a valid integer (or empty).
 	 * </p>
 	 * 
 	 * @param name
-	 *            <code>String</code> with the new baudrate, may be an empty
-	 *            String to use the avrdude default baudrate.
+	 *            <code>String</code> with the new baudrate, may be an empty String to use the
+	 *            avrdude default baudrate.
 	 */
 	public void setBaudrate(String baudrate) {
 		fBaudrate = baudrate;
@@ -308,8 +324,7 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * @return The current baudrate of this configuration, empty if default is
-	 *         to be used.
+	 * @return The current baudrate of this configuration, empty if default is to be used.
 	 */
 	public String getBaudrate() {
 		return fBaudrate;
@@ -318,13 +333,13 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the reset line ExitSpec of this configuration.
 	 * <p>
-	 * Only the values "reset", "noreset" and "" (empty String) are valid. It is
-	 * up to the caller to ensure that the given value is valid.
+	 * Only the values "reset", "noreset" and "" (empty String) are valid. It is up to the caller to
+	 * ensure that the given value is valid.
 	 * </p>
 	 * 
 	 * @param name
-	 *            <code>String</code> with the resetline ExitSpec, may be an
-	 *            empty String to use the avrdude default.
+	 *            <code>String</code> with the resetline ExitSpec, may be an empty String to use
+	 *            the avrdude default.
 	 */
 	public void setExitspecResetline(String resetline) {
 		fExitReset = resetline;
@@ -332,8 +347,8 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * @return The current reset line ExitSpec of this configuration, empty if
-	 *         default is to be used.
+	 * @return The current reset line ExitSpec of this configuration, empty if default is to be
+	 *         used.
 	 */
 	public String getExitspecResetline() {
 		return fExitReset;
@@ -342,13 +357,13 @@ public class ProgrammerConfig {
 	/**
 	 * Sets the Vcc lines ExitSpec of this configuration.
 	 * <p>
-	 * Only the values "vcc", "novcc" and "" (empty String) are valid.It is up
-	 * to the caller to ensure that the given value is valid.
+	 * Only the values "vcc", "novcc" and "" (empty String) are valid.It is up to the caller to
+	 * ensure that the given value is valid.
 	 * </p>
 	 * 
 	 * @param name
-	 *            <code>String</code> with the resetline ExitSpec, may be an
-	 *            empty String to use the avrdude default.
+	 *            <code>String</code> with the resetline ExitSpec, may be an empty String to use
+	 *            the avrdude default.
 	 */
 	public void setExitspecVCCline(String vccline) {
 		fExitVcc = vccline;
@@ -356,17 +371,41 @@ public class ProgrammerConfig {
 	}
 
 	/**
-	 * @return The current Vcc lines ExitSpec of this configuration, empty if
-	 *         default is to be used.
+	 * @return The current Vcc lines ExitSpec of this configuration, empty if default is to be used.
 	 */
 	public String getExitspecVCCline() {
 		return fExitVcc;
 	}
 
 	/**
+	 * Sets the post avrdude delay value in milliseconds.
+	 * <p>
+	 * The delay value is not checked for validity. It is up to the caller to ensure that the value
+	 * is a valid integer (or empty).
+	 * </p>
+	 * 
+	 * @param delay
+	 *            String with integer value.
+	 */
+	public void setPostAvrdudeDelay(String delay) {
+		fPostAVRDudeDelay = delay;
+		fDirty = true;
+	}
+
+	/**
+	 * Get the selected post avrdude delay value in milliseconds.
+	 * 
+	 * @return Selected delay value or an empty string if no delay is required.
+	 */
+	public String getPostAvrdudeDelay() {
+		return fPostAVRDudeDelay;
+	}
+
+	/**
 	 * Load the values of this Configuration from the preference storage area.
 	 * 
-	 * @param prefs <code>Preferences</code> node for this configuration
+	 * @param prefs
+	 *            <code>Preferences</code> node for this configuration
 	 */
 	private void loadFromPrefs(Preferences prefs) {
 		fName = prefs.get(KEY_NAME, "");
@@ -376,12 +415,14 @@ public class ProgrammerConfig {
 		fBaudrate = prefs.get(KEY_BAUDRATE, "");
 		fExitReset = prefs.get(KEY_EXITSPEC_RESET, "");
 		fExitVcc = prefs.get(KEY_EXITSPEC_VCC, "");
+		fPostAVRDudeDelay = prefs.get(KEY_POSTAVRDUDE_DELAY_MS, "");
 	}
 
 	/**
 	 * Load the values of this Configuration from the given <code>ProgrammerConfig</code>.
 	 * 
-	 * @param prefs Source <code>ProgrammerConfig</code>.
+	 * @param prefs
+	 *            Source <code>ProgrammerConfig</code>.
 	 */
 	protected void loadFromConfig(ProgrammerConfig config) {
 		fName = config.fName;
@@ -392,8 +433,9 @@ public class ProgrammerConfig {
 		fExitReset = config.fExitReset;
 		fExitVcc = config.fExitVcc;
 		fDirty = config.fDirty;
+		fPostAVRDudeDelay = config.fPostAVRDudeDelay;
 	}
-	
+
 	/**
 	 * Reset this Configuration to the default values.
 	 * <p>

@@ -61,60 +61,57 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 /**
  * Dialog to edit a AVRDude Programmer Configuration.
  * <p>
- * This dialog is self contained and is used to edit a AVRDude Programmer
- * configuration. Only the AVRDude options specific to a programmer are
- * included, as defined in the {@link ProgrammerConfig} class.
+ * This dialog is self contained and is used to edit a AVRDude Programmer configuration. Only the
+ * AVRDude options specific to a programmer are included, as defined in the {@link ProgrammerConfig}
+ * class.
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
+ * @since 2.3 Added optional post avrdude invocation delay
  * 
  */
 public class AVRDudeConfigEditor extends StatusDialog {
 
 	/** The working copy of the given source Configuration */
-	private ProgrammerConfig fConfig;
+	private final ProgrammerConfig		fConfig;
 
 	/** Map of all Programmer IDs to their ConfigEntry. */
-	private Map<String, ConfigEntry> fConfigIDMap;
+	private Map<String, ConfigEntry>	fConfigIDMap;
 
 	/** Map of all Programmer names to their ConfigEntry */
-	private Map<String, ConfigEntry> fConfigNameMap;
+	private Map<String, ConfigEntry>	fConfigNameMap;
 
 	/**
-	 * List of all existing configurations to avoid duplicate names
-	 * (configuration names need to be unique)
+	 * List of all existing configurations to avoid duplicate names (configuration names need to be
+	 * unique)
 	 */
-	private Set<String> fAllConfigs;
+	private final Set<String>			fAllConfigs;
 
-	private Text fPreviewText;
+	private Text						fPreviewText;
 
 	/**
 	 * Constructor for a new Configuration Editor.
 	 * <p>
-	 * The passed <code>ProgrammerConfig</code> is copied and not touched. The
-	 * modified <code>ProgrammerConfig</code> can be retrieved with the
-	 * {@link #getResult()} method.
+	 * The passed <code>ProgrammerConfig</code> is copied and not touched. The modified
+	 * <code>ProgrammerConfig</code> can be retrieved with the {@link #getResult()} method.
 	 * </p>
 	 * <p>
-	 * The Set of all known configurations is required to prevent duplicate
-	 * names.
+	 * The Set of all known configurations is required to prevent duplicate names.
 	 * </p>
 	 * 
 	 * @param parent
 	 *            Parent <code>Shell</code>
 	 * @param config
-	 *            The <code>ProgrammerConfig</code> to edit. It is copied and
-	 *            not modified directly.
+	 *            The <code>ProgrammerConfig</code> to edit. It is copied and not modified
+	 *            directly.
 	 * @param allconfigs
-	 *            A <code>Set&lt;String&gt;</code> of all known configuration
-	 *            names.
+	 *            A <code>Set&lt;String&gt;</code> of all known configuration names.
 	 */
 	/**
 	 * @param parent
 	 */
-	public AVRDudeConfigEditor(Shell parent, ProgrammerConfig config,
-			Set<String> allconfigs) {
+	public AVRDudeConfigEditor(Shell parent, ProgrammerConfig config, Set<String> allconfigs) {
 		super(parent);
 
 		setTitle("Edit AVRDude Programmer Configuration " + config.getName());
@@ -123,8 +120,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 
 		// make a copy of the given Configuration that we can modify as required
-		fConfig = ProgrammerConfigManager.getDefault()
-				.getConfigEditable(config);
+		fConfig = ProgrammerConfigManager.getDefault().getConfigEditable(config);
 
 		// Remove the current name from the list of all names
 		fAllConfigs = allconfigs;
@@ -140,11 +136,9 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			// a selected programmer
 			Set<String> programmers = AVRDude.getDefault().getProgrammersList();
 			fConfigIDMap = new HashMap<String, ConfigEntry>(programmers.size());
-			fConfigNameMap = new HashMap<String, ConfigEntry>(programmers
-					.size());
+			fConfigNameMap = new HashMap<String, ConfigEntry>(programmers.size());
 			for (String progid : programmers) {
-				ConfigEntry entry = AVRDude.getDefault().getProgrammerInfo(
-						progid);
+				ConfigEntry entry = AVRDude.getDefault().getProgrammerInfo(progid);
 				fConfigIDMap.put(progid, entry);
 				fConfigNameMap.put(entry.description, entry);
 			}
@@ -178,6 +172,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		addBaudrateControl(composite);
 
 		addExitspecComposite(composite);
+
+		addPostAVRDudeDelayControl(composite);
 
 		addCommandlinePreview(composite);
 
@@ -225,8 +221,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 					AVRDudeConfigEditor.this.updateStatus(status);
 				} else if (fAllConfigs.contains(newname)) {
 					Status status = new Status(Status.ERROR, "AVRDude",
-							"Configuration with the same name already exists",
-							null);
+							"Configuration with the same name already exists", null);
 					AVRDudeConfigEditor.this.updateStatus(status);
 				} else {
 					AVRDudeConfigEditor.this.updateStatus(Status.OK_STATUS);
@@ -262,8 +257,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		label.setText("Description");
 		final Text description = new Text(parent, SWT.BORDER);
 		description.setText(fConfig.getDescription());
-		description.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false,
-				2, 1));
+		description.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 		description.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
@@ -280,8 +274,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	/**
 	 * Adds the Programmers selection controls.
 	 * <p>
-	 * This composite edits the
-	 * <code>ProgrammerConfig<code> programmer property.
+	 * This composite edits the <code>ProgrammerConfig<code> programmer property.
 	 * </p>
 	 * <p>
 	 * It consists of a List with all available programmers and a Textbox showing the definition of the selected programmer from the avrdude configuration file
@@ -293,8 +286,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 		Group listgroup = new Group(parent, SWT.SHADOW_ETCHED_IN);
 		listgroup.setText("Programmer Hardware (-c)");
-		listgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3,
-				1));
+		listgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		FillLayout fl = new FillLayout();
 		fl.marginHeight = 5;
 		fl.marginWidth = 5;
@@ -303,16 +295,14 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		SashForm sashform = new SashForm(listgroup, SWT.HORIZONTAL);
 		sashform.setLayout(new GridLayout(2, false));
 
-		final List list = new List(sashform, SWT.BORDER | SWT.V_SCROLL
-				| SWT.H_SCROLL);
+		final List list = new List(sashform, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		list.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		String[] allprogrammers = getProgrammers();
 		list.setItems(allprogrammers);
 
 		Composite devicedetails = new Composite(sashform, SWT.NONE);
 		devicedetails.setLayout(new GridLayout());
-		devicedetails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false,
-				false));
+		devicedetails.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 
 		final Text fromtext = new Text(devicedetails, SWT.NONE);
 		fromtext.setEditable(false);
@@ -384,13 +374,10 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		Label label = new Label(parent, SWT.NONE);
 		label.setText("Override default baudrate (-b)");
 
-		final Combo baudrate = new Combo(parent, SWT.BORDER);
-		baudrate.setText(fConfig.getDescription());
-		baudrate.setLayoutData(new GridData(SWT.LEFT, SWT.NONE, true, false, 2,
-				1));
-		baudrate.add("default");
-		baudrate.setItems(new String[] { "", "1200", "2400", "4800", "9600",
-				"19200", "38400", "57600", "115200", "230400", "460800" });
+		final Combo baudrate = new Combo(parent, SWT.BORDER | SWT.RIGHT);
+		baudrate.setLayoutData(new GridData(SWT.LEFT, SWT.NONE, true, false, 2, 1));
+		baudrate.setItems(new String[] { "", "1200", "2400", "4800", "9600", "19200", "38400",
+				"57600", "115200", "230400", "460800" });
 		baudrate.select(baudrate.indexOf(fConfig.getBaudrate()));
 
 		baudrate.addModifyListener(new ModifyListener() {
@@ -425,8 +412,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	/**
 	 * Adds the Exitspec controls.
 	 * <p>
-	 * This contains two groups of radio buttons, one for the Reset line
-	 * options, one for the Vcc line options.
+	 * This contains two groups of radio buttons, one for the Reset line options, one for the Vcc
+	 * line options.
 	 * </p>
 	 * <p>
 	 * These two groups are wrapped in another Group.
@@ -436,12 +423,10 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 */
 	private void addExitspecComposite(Composite parent) {
 		Group groupcontainer = new Group(parent, SWT.SHADOW_IN);
-		groupcontainer
-				.setText("State of Parallel Port lines after AVRDude exit");
+		groupcontainer.setText("State of Parallel Port lines after AVRDude exit");
 		groupcontainer.setForeground(parent.getForeground());
 
-		groupcontainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false,
-				false, 3, 1));
+		groupcontainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
 		FillLayout containerlayout = new FillLayout(SWT.HORIZONTAL);
 		containerlayout.spacing = 10;
 		containerlayout.marginWidth = 10;
@@ -534,10 +519,58 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	}
 
 	/**
+	 * Add the post AVRDude invocation delay control.
+	 * 
+	 * @param parent
+	 */
+	private void addPostAVRDudeDelayControl(Composite parent) {
+		Label label = new Label(parent, SWT.NONE);
+		label.setText("Delay between avrdude invocations");
+
+		final Text delay = new Text(parent, SWT.BORDER | SWT.RIGHT);
+		GridData gd = new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1);
+		gd.widthHint = 60;
+		delay.setLayoutData(gd);
+		delay.setTextLimit(8);
+		delay.setText(fConfig.getPostAvrdudeDelay());
+
+		delay.addModifyListener(new ModifyListener() {
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 */
+			public void modifyText(ModifyEvent e) {
+				String newdelay = delay.getText();
+				fConfig.setPostAvrdudeDelay(newdelay);
+			}
+		});
+
+		// Add a Verify Listener to suppress all non digits
+		delay.addVerifyListener(new VerifyListener() {
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
+			 */
+			public void verifyText(VerifyEvent event) {
+				String text = event.text;
+				if (!text.matches("[0-9]*")) {
+					event.doit = false;
+				}
+			}
+		});
+
+		label = new Label(parent, SWT.NONE);
+		label.setText("milliseconds");
+
+	}
+
+	/**
 	 * Add a Preview Control.
 	 * <p>
-	 * The preview control shows the current avrdude options commandline. The
-	 * content is set in the {@link #updateCommandPreview()} method.
+	 * The preview control shows the current avrdude options commandline. The content is set in the
+	 * {@link #updateCommandPreview()} method.
 	 * </p>
 	 * 
 	 * @param parent
@@ -547,8 +580,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		label.setText("Command line preview");
 		fPreviewText = new Text(parent, SWT.BORDER);
 		fPreviewText.setEditable(false);
-		fPreviewText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true,
-				false, 2, 1));
+		fPreviewText.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));
 	}
 
 	/**
@@ -557,9 +589,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * It will return a ProgrammerConfig with the updated items.
 	 * </p>
 	 * <p>
-	 * This should only be called when <code>open()</code> returned
-	 * <code>OK</code> (OK Button clicked). Otherwise canceled changes will be
-	 * returned.
+	 * This should only be called when <code>open()</code> returned <code>OK</code> (OK Button
+	 * clicked). Otherwise canceled changes will be returned.
 	 * </p>
 	 * 
 	 * @return The ProgrammerConfig with the modified values.
@@ -571,8 +602,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	/**
 	 * Gets a list of all Programmer names.
 	 * 
-	 * @return an Array of <code>String</code> with the names of all known
-	 *         Programmers, sorted alphabetically
+	 * @return an Array of <code>String</code> with the names of all known Programmers, sorted
+	 *         alphabetically
 	 */
 	private String[] getProgrammers() {
 
@@ -583,8 +614,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	}
 
 	/**
-	 * Update the Preview Text to show the current configuration as an avrdude
-	 * options commandline.
+	 * Update the Preview Text to show the current configuration as an avrdude options commandline.
 	 */
 	private void updateCommandPreview() {
 
@@ -609,8 +639,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 *            The multiline <code>Text</code> control for the details
 	 */
 	private void updateDetails(ConfigEntry entry, Text from, Text details) {
-		from.setText("Programmer details from ["
-				+ entry.configfile.toOSString() + ":" + entry.linenumber + "]");
+		from.setText("Programmer details from [" + entry.configfile.toOSString() + ":"
+				+ entry.linenumber + "]");
 		Job job = new UpdateDetailsJob(entry, details);
 		job.setSystem(true);
 		job.setPriority(Job.SHORT);
@@ -620,13 +650,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	/**
 	 * Internal Job to update the programmer detail area.
 	 * <p>
-	 * This is done as a Job, because calls to
-	 * {@link AVRDude#getConfigDetailInfo(ConfigEntry)} can take some time to
-	 * load the avrdude configuration file (currently at 429KByte).
+	 * This is done as a Job, because calls to {@link AVRDude#getConfigDetailInfo(ConfigEntry)} can
+	 * take some time to load the avrdude configuration file (currently at 429KByte).
 	 * </p>
 	 * <p>
-	 * The job is instantiated with the ConfigEntry for which to display the
-	 * details and the multiline Text control into which to print the data.
+	 * The job is instantiated with the ConfigEntry for which to display the details and the
+	 * multiline Text control into which to print the data.
 	 * </p>
 	 * 
 	 * @see AVRDude#getConfigDetailInfo(ConfigEntry)
@@ -634,13 +663,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 */
 	private static class UpdateDetailsJob extends Job {
 
-		private ConfigEntry fConfigEntry;
-		private Text fTextControl;
+		private final ConfigEntry	fConfigEntry;
+		private final Text			fTextControl;
 
 		/**
 		 * @param entry
-		 *            The <code>ConfigEntry</code> for which to display the
-		 *            details
+		 *            The <code>ConfigEntry</code> for which to display the details
 		 * @param textcontrol
 		 *            The multiline <code>Text</code> control for the details
 		 */
@@ -664,8 +692,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				}
 				// Get the preformatted info String from the AVRDude class and
 				// update the details Text control in the UI thread.
-				final String content = AVRDude.getDefault()
-						.getConfigDetailInfo(fConfigEntry);
+				final String content = AVRDude.getDefault().getConfigDetailInfo(fConfigEntry);
 				Display display = fTextControl.getDisplay();
 				if (display != null && !display.isDisposed()) {
 					display.syncExec(new Runnable() {
