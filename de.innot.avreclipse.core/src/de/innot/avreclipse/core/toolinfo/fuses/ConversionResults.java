@@ -266,6 +266,8 @@ public class ConversionResults {
 					IOConsoleOutputStream iocos = console.newOutputStream();
 					iocos.setActivateOnWrite(true);
 
+					iocos.write("----------------------------------------\n");
+
 					String sourcemcuname = AVRMCUidConverter.id2name(fSource.getMCUId());
 					String targetmcuname = AVRMCUidConverter.id2name(fTarget.getMCUId());
 					String message = MessageFormat.format(
