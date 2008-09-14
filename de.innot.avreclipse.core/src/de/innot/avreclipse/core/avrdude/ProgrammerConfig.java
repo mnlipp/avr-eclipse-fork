@@ -450,6 +450,7 @@ public class ProgrammerConfig {
 		fBaudrate = "";
 		fExitReset = "";
 		fExitVcc = "";
+		fPostAVRDudeDelay = "";
 	}
 
 	/*
