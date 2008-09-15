@@ -697,25 +697,25 @@ public class ByteValues {
 	 */
 	public void setValues(ByteValues sourcevalues, boolean forceMCU) {
 
+		if (forceMCU) {
+			// Change our MCU to that of the source values
+			setMCUId(sourcevalues.getMCUId(), false);
+			setValues(sourcevalues.getValues());
+			return;
+		}
+
 		if (isCompatibleWith(sourcevalues.getMCUId())) {
 			// Compatible mcu -> just copy the values and we're done
 			setValues(sourcevalues.getValues());
 			return;
 		}
 
-		if (forceMCU) {
-			// Change our MCU to that of the source values
-			setMCUId(sourcevalues.getMCUId(), false);
-			setValues(sourcevalues.getValues());
-
-		} else {
-			// Don't change our MCU -> convert the source first and then use the
-			// resulting values as our values.
-			ConversionResults results = new ConversionResults();
-			ByteValues converted = sourcevalues.convertTo(getMCUId(), results);
-			setValues(converted.getValues());
-			fConversionResults = results;
-		}
+		// Don't change our MCU -> convert the source first and then use the
+		// resulting values as our values.
+		ConversionResults results = new ConversionResults();
+		ByteValues converted = sourcevalues.convertTo(getMCUId(), results);
+		setValues(converted.getValues());
+		fConversionResults = results;
 
 	}
 

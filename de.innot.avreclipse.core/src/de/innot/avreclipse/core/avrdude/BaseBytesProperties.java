@@ -65,6 +65,7 @@ public abstract class BaseBytesProperties {
 	public final static int			FILE_MCU_PROPERTY_MISSING	= 201;
 	public final static int			FILE_WRONG_TYPE				= 202;
 	public final static int			FILE_INVALID_FILENAME		= 203;
+	public final static int			FILE_EMPTY_FILENAME			= 204;
 
 	/** The MCU id for which the current fuse byte values are valid */
 	private String					fMCUid;
@@ -393,6 +394,13 @@ public abstract class BaseBytesProperties {
 
 		if (fFileByteValues == null) {
 			// First get the IFile of the file and check that it exists
+			String rawfilename = getFileName();
+			if (rawfilename == null || rawfilename.length() == 0) {
+				String message = "Empty Filename";
+				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, FILE_EMPTY_FILENAME,
+						message, null);
+				throw new CoreException(status);
+			}
 			String filename = getFileNameResolved();
 			if (filename == null || filename.length() == 0) {
 				String message = MessageFormat.format("Invalid filename [{0}]", getFileName());

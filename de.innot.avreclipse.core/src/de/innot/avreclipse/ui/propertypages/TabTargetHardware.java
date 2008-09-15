@@ -434,7 +434,7 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 				try {
 					monitor.beginTask("Starting AVRDude", 100);
 
-					String mcuid = AVRDude.getDefault().getAttachedMCU(
+					final String mcuid = AVRDude.getDefault().getAttachedMCU(
 							fTargetProps.getAVRDudeProperties().getProgrammer(),
 							new SubProgressMonitor(monitor, 95));
 
@@ -445,6 +445,18 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 						fLoadButton.getDisplay().syncExec(new Runnable() {
 							public void run() {
 								updateData(fTargetProps);
+
+								// Check if supported by avrdude and set the errorpane as
+								// required
+								checkAVRDude(mcuid);
+
+								// Check fuse byte settings and pop a message if the settings
+								// are not compatible
+								checkFuseBytes(mcuid);
+
+								// Set the rebuild flag for the configuration
+								getCfg().setRebuildState(true);
+
 							}
 						});
 					}

@@ -72,7 +72,7 @@ public class ProjectMCUMismatchDialog extends MessageDialog {
 
 		String proptype = perconfig ? "build configuration" : "project";
 
-		String source = "The {3} values are valid for an {0} MCU.\n"
+		String source = "The loaded {3} values are valid for an {0} MCU.\n"
 				+ "This MCU is not compatible with the current {2} MCU [{1}].\n\n"
 				+ "\"Convert\" to try to convert the values to {1} {3} settings.\n"
 				+ "\"Accept\" to accept the new values anyway (and convert them later).\n"

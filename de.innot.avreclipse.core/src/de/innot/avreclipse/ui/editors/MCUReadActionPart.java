@@ -122,7 +122,11 @@ public class MCUReadActionPart extends AbstractActionPart {
 							String projectmcu = getByteValues().getMCUId();
 							String newmcu = newvalues.getMCUId();
 
-							if (!current.isCompatibleWith(newmcu)) {
+							if (current.isCompatibleWith(newmcu)) {
+								// Compatible MCUs
+								// Change the MCU type anyway to be consistent
+								forceMCU = true;
+							} else {
 								// No, they are not compatible. Ask the user what to do
 								// "Convert", "Change" or "Cancel"
 								Dialog dialog = new FileMCUMismatchDialog(form.getShell(), newmcu,
@@ -132,7 +136,7 @@ public class MCUReadActionPart extends AbstractActionPart {
 									case FileMCUMismatchDialog.CANCEL:
 										return;
 									case FileMCUMismatchDialog.CHANGE:
-										// Change our ByteValues to the new MCU and then copy
+										// Change project ByteValues to the new MCU and then copy
 										// the values
 										forceMCU = true;
 										break;

@@ -767,6 +767,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 				IStatus status = ce.getStatus();
 				int code = status.getCode();
 				switch (code) {
+					case BaseBytesProperties.FILE_EMPTY_FILENAME:
+						message = "Empty filename";
+						break;
 					case BaseBytesProperties.FILE_NOT_FOUND:
 						message = "File not found";
 						break;
@@ -1026,7 +1029,7 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 								// Check if the mcus match
 								String projectmcu = fTargetProps.getParent().getMCUId();
 								String newmcu = bytevalues.getMCUId();
-								if (!projectmcu.equals(newmcu)) {
+								if (!bytevalues.isCompatibleWith(projectmcu)) {
 									// No, they don't match. Ask the user what to do
 									// "Convert to project MCU", "Accept anyway" or "Cancel"
 									Dialog dialog = new ProjectMCUMismatchDialog(fActionsToolBar
@@ -1049,12 +1052,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 											break;
 									}
 								} else {
-									// MCUs are the same.
-									// Clear the current bytes and transfer the new values
-									fBytes.clearValues();
-									fBytes.setValues(bytevalues.getValues());
+									// MCUs are compatible.
+									fBytes.setByteValues(bytevalues);
 								}
-								checkValid();
 								updateData(fTargetProps);
 							}
 						});
