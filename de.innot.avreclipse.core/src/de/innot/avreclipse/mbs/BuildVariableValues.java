@@ -15,6 +15,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.mbs;
 
+import java.io.File;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -30,33 +31,29 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
 /**
  * This <code>Enum</code> contains a list of all available variable names.
  * <p>
- * Each Variable knows how to extract its current value from an
- * {@link AVRProjectProperties} object, respectively from an
- * {@link IConfiguration}.
+ * Each Variable knows how to extract its current value from an {@link AVRProjectProperties} object,
+ * respectively from an {@link IConfiguration}.
  * </p>
  * <p>
  * Currently these Environment Variables are handled:
  * <ul>
- * <li><code>$(AVRTARGETMCU)</code>: The target MCU id value as selected by
- * the user</li>
- * <li><code>$(AVRTARGETFCPU)</code>: The target MCU FCPU value as selected
- * by the user</li>
- * <li><code>$(AVRDUDEOPTIONS)</code>: The command line options for avrdude,
- * except for any action options (<em>-U</em> options)</li>
- * <li><code>$(AVRDUDEACTIONOPTIONS)</code>: The command line options for
- * avrdude to execute all actions requested by the user. (<em>-U</em>
- * options)</li>
- * <li><code>$(BUILDARTIFACT)</code>: name of the target build artifact (the
- * .elf file)</li>
- * <li><code>$(PATH)</code>: The current path prepended with the paths to
- * the avr-gcc executable and the make executable. This, together with the
- * selection of the paths on the preference page, allows for multiple avr-gcc
- * toolchains on one computer</li>
+ * <li><code>$(AVRTARGETMCU)</code>: The target MCU id value as selected by the user</li>
+ * <li><code>$(AVRTARGETFCPU)</code>: The target MCU FCPU value as selected by the user</li>
+ * <li><code>$(AVRDUDEOPTIONS)</code>: The command line options for avrdude, except for any
+ * action options (<em>-U</em> options)</li>
+ * <li><code>$(AVRDUDEACTIONOPTIONS)</code>: The command line options for avrdude to execute all
+ * actions requested by the user. (<em>-U</em> options)</li>
+ * <li><code>$(BUILDARTIFACT)</code>: name of the target build artifact (the .elf file)</li>
+ * <li><code>$(PATH)</code>: The current path prepended with the paths to the avr-gcc executable
+ * and the make executable. This, together with the selection of the paths on the preference page,
+ * allows for multiple avr-gcc toolchains on one computer</li>
+ * <li><code>$(AVRDUDEPATH)</code>: The current path to the avrdude executable.</li>
  * </ul>
  * </p>
  * 
  * @author Thomas Holland
  * @since 2.2
+ * @since 2.3 Added AVRDUDEPATH variable (fix for Bug 2136888)
  */
 public enum BuildVariableValues {
 
@@ -89,7 +86,7 @@ public enum BuildVariableValues {
 			if (props == null)
 				return "";
 			List<String> avrdudeoptions = props.getAVRDudeProperties().getArguments();
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			for (String option : avrdudeoptions) {
 				sb.append(option + " ");
 			}
@@ -104,7 +101,7 @@ public enum BuildVariableValues {
 			if (props == null)
 				return "";
 			List<String> avrdudeoptions = props.getAVRDudeProperties().getActionArguments(buildcfg);
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			for (String option : avrdudeoptions) {
 				sb.append(option + " ");
 			}
@@ -134,21 +131,31 @@ public enum BuildVariableValues {
 		@Override
 		public String getValue(IConfiguration buildcfg) {
 			// Get the paths to "avr-gcc" and "make" from the PathProvider
-			// and return the two paths, separated with a System specific path
-			// separator
+			// and return the paths, separated with a System specific path
+			// separator.
+			// The path to the avrdude executable is handled as a separate
+			// variable because at least with WinAVR avr-gcc and avrdude are
+			// in the same directory and adding the path to avrdude to the
+			// global path would have no effect as the avrdude executable
+			// from the gccpath would be used anyway.
+
+			StringBuilder paths = new StringBuilder();
+
 			IPathProvider gccpathprovider = new AVRPathProvider(AVRPath.AVRGCC);
 			String gccpath = gccpathprovider.getPath().toOSString();
+			if (gccpath != null && !("".equals(gccpath))) {
+				paths.append(gccpath);
+				paths.append(PATH_SEPARATOR);
+			}
+
 			IPathProvider makepathprovider = new AVRPathProvider(AVRPath.MAKE);
 			String makepath = makepathprovider.getPath().toOSString();
-
 			if (makepath != null && !("".equals(makepath))) {
-				gccpath += PATH_SEPARATOR;
-				gccpath += makepath;
+				paths.append(makepath);
+				paths.append(PATH_SEPARATOR);
 			}
-			if (gccpath != null && !("".equals(gccpath))) {
-				return gccpath;
-			}
-			return null;
+
+			return paths.toString();
 		}
 
 		@Override
@@ -163,24 +170,35 @@ public enum BuildVariableValues {
 			return false;
 		}
 
+	},
+
+	AVRDUDEPATH() {
+		@Override
+		public String getValue(IConfiguration buildcfg) {
+			IPathProvider avrdudepathprovider = new AVRPathProvider(AVRPath.AVRDUDE);
+			String avrdudepath = avrdudepathprovider.getPath().toOSString();
+			if (avrdudepath != null && !("".equals(avrdudepath))) {
+
+				return avrdudepath + File.separator;
+			}
+			return "";
+		}
 	};
 
 	/** System default Path Separator. On Windows ";", on Posix ":" */
-	private final static String PATH_SEPARATOR = System.getProperty("path.separator");
+	private final static String	PATH_SEPARATOR	= System.getProperty("path.separator");
 
 	/**
 	 * Get the current variable value for the given Configuration
 	 * 
 	 * @param buildcfg
-	 *            <code>IConfiguration</code> for which to get the variable
-	 *            value.
+	 *            <code>IConfiguration</code> for which to get the variable value.
 	 * @return <code>String</code> with the current value of the variable.
 	 */
 	public abstract String getValue(IConfiguration buildcfg);
 
 	/**
-	 * @return <code>true</code> if this variable is supported as a build
-	 *         macro.
+	 * @return <code>true</code> if this variable is supported as a build macro.
 	 */
 	public boolean isMacro() {
 		// This method is overridden in some Enum values
@@ -188,8 +206,7 @@ public enum BuildVariableValues {
 	}
 
 	/**
-	 * @return <code>true</code> if this variable is supported as an
-	 *         environment variable.
+	 * @return <code>true</code> if this variable is supported as an environment variable.
 	 */
 	public boolean isVariable() {
 		// This method could be overridden in some Enum values.
@@ -199,8 +216,7 @@ public enum BuildVariableValues {
 	/**
 	 * Get the Operation code for environment variables.
 	 * <p>
-	 * Most Variables will return
-	 * {@link IBuildEnvironmentVariable#ENVVAR_REPLACE}. However the
+	 * Most Variables will return {@link IBuildEnvironmentVariable#ENVVAR_REPLACE}. However the
 	 * <code>PATH</code> environment variable will return
 	 * {@link IBuildEnvironmentVariable#ENVVAR_PREPEND}.
 	 * </p>
@@ -225,7 +241,7 @@ public enum BuildVariableValues {
 	 */
 	private static AVRProjectProperties getPropsFromConfig(IConfiguration buildcfg) {
 		ProjectPropertyManager manager = ProjectPropertyManager
-		        .getPropertyManager((IProject) buildcfg.getOwner());
+				.getPropertyManager((IProject) buildcfg.getOwner());
 		AVRProjectProperties props = manager.getConfigurationProperties(buildcfg);
 		return props;
 	}

@@ -1820,7 +1820,7 @@
 -->
 		<tool id="de.innot.avreclipse.tool.avrdude" 
 			name="AVRDude"
-			command="avrdude"
+			command="${AVRDUDEPATH}avrdude"
 			commandLinePattern="${COMMAND} ${FLAGS}" >
 
 			<supportedProperties>
