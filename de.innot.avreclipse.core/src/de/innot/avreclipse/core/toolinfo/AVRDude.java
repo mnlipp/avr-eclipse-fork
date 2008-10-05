@@ -837,6 +837,12 @@ public class AVRDude implements IMCUProvider {
 			try {
 				fAbortReason = null;
 				int result = avrdude.launch(new SubProgressMonitor(monitor, 80));
+
+				// Test if avrdude was aborted
+				if (fAbortReason != null) {
+					throw new AVRDudeException(fAbortReason, fAbortLine);
+				}
+
 				if (result == -1) {
 					throw new AVRDudeException(Reason.USER_CANCEL, "");
 				}
@@ -844,11 +850,6 @@ public class AVRDude implements IMCUProvider {
 				// Something didn't work while running the external command
 				throw new AVRDudeException(Reason.NO_AVRDUDE_FOUND,
 						"Cannot run AVRDude executable. Please check the AVR path preferences.", e);
-			}
-
-			// Test if avrdude was aborted
-			if (fAbortReason != null) {
-				throw new AVRDudeException(fAbortReason, fAbortLine);
 			}
 
 			// Everything was fine: get the ooutput from avrdude and return it
