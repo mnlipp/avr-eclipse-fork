@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Whats new in the AVR Eclipse Plugin</title>
+<title>What's new in the AVR Eclipse Plugin</title>
 <link href="../book.css" rel="stylesheet" type="text/css">
 <style type="text/css">
 td {
@@ -20,17 +20,15 @@ tr {
 ul {
 	padding-left: 1.2em;
 }
-.style1 {
-	font-size: 80%
-}
 </style>
 </head>
 <body bgcolor="#FFFFFF">
-<h2>Whats new in 2.2</h2>
+<h2>What's new in 2.3</h2>
 <p>This document contains descriptions of the significant features new to AVR Eclipse Plugin version 2.2.</p>
 <ul>
-  <li><a href="#avrdude">AVRDude Support</a></li>
-  <li><a href="#other">Other new &amp; improced features</a></li>
+  <li><a href="#fusesettings">Fuses and Lockbits Settings</a></li>
+  <li><a href="#fusefiles">Fuses and Lockbits Files</a></li>
+  <li><a href="#other">Other new &amp; improved features</a></li>
 </ul>
 <p>&nbsp;</p>
 <table cellpadding="10" cellspacing="0">
@@ -39,104 +37,82 @@ ul {
   <col width="80%">
   </colgroup>
   <tbody>
+    
     <tr>
-      <td colspan="2"><h2><a name="avrdude"></a>AVRDude Support</h2>
-        <p>This has been the most requested feature of all. Starting with version 2.2 the plugin has direct support for avrdude to upload a project to a target MCU.</p></td>
+      <td colspan="2"><h2><a name="fusesettings"></a>Fuse and Lockbits Settings</h2></td>
     </tr>
     <tr>
-      <td><p align="right"><strong>AVRDude Preferences</strong></p></td>
-      <td><p>Global avrdude settings are managed via the Eclipse preferences (<strong>Window &gt; Preferences...</strong>)</p>
-        <p>The preferences contains:</p>
+      <td><p align="right"><strong>Fuses / Lockbits Preview</strong></p></td>
+      <td><p>There is now a descriptive preview of the selected fuses / lockbits. </p>
+      <p><img src="images/WhatsNew2.3_fuses_preview.png" alt="Fuses Preview" width="720" height="518"></p>      </td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Fuse / Lockbits tools</strong></p></td>
+      <td><p>The direct hex values can now be </p>
         <ul>
-          <li>Option to show the output of avrdude on the console for internal calls.<br>
-            The plugin executes avrdude multiple times in the background, for example to get the list of supported MCUs. This can be used for debugging and to see what is going on behind the curtain.<br>
-            Avrdude output for a project upload is always shown on the console, regardless of this option.</li>
-          <li>Select a custom configuration file for avrdude.</li>
-          <li>Manage the list of Programmers connected to the development system.<br>
-            Using avrdude with the plugin requires at least one Programmer Configuration. An unlimited number of Programmer Configurations can be defined. </li>
-        </ul>
-        <p><img src="images/WhatsNew2.2_avrdude_prefs.png" alt="AVRDude Prferences" width="626" height="402"></p></td>
+          <li> <img src="images/e_edit_fuses.png" alt="edit icon" width="16" height="16" align="top"> edited,</li>
+          <li><img src="images/e_copy_fusefile.png" alt="copy icon" width="16" height="16" align="top"> copied from the selected fuse / lockbits file,</li>
+          <li><img src="images/e_read_mcu.png" alt="read from mcu icon" width="16" height="16" align="top"> read from an attached MCU,</li>
+          <li><img src="images/e_copy_default.png" alt="defaults icon" width="16" height="16" align="top"> set to a reasonable default value (derived from the Atmel part description files, not available for some MCUs), or</li>
+          <li> set to all 1s (<img src="images/e_0xff.png" alt="all ones icon" width="16" height="16" align="top">), all 0s (<img src="images/e_0x00.png" alt="all zeros icon" width="16" height="16" align="top">) or to nothing (<img src="images/e_clear_bytes.png" alt="clear icon" width="16" height="16" align="top">)</li>
+      </ul></td>
     </tr>
     <tr>
-      <td><p align="right"><strong>Programmer Configuration Dialog</strong></p>
-        <p align="right">&nbsp;</p></td>
-      <td><p>All settings for a avrdude Programmer are handled in a dialog which has a list of all programmers the currently active avrdude executable supports and some other options like the I/O port the programmer is on. </p>
-        <p><img src="images/WhatsNew2.2_avrdude_prog_config_dialog.png" alt="Programmer Config Dialog" width="857" height="590"></p></td>
+      <td><p align="right"><strong>Fuse and Lockbits Editor</strong></p>      </td>
+      <td><p>If the direct hex values are edited, a new and simple to use fuse editor dialog can be used:</p>
+      <p><img src="images/WhatsNew2.3_fuses_editor_1.png" alt="Fuses editor" width="1021" height="483"></p>      </td>
     </tr>
     <tr>
-      <td><p align="right"><strong>Project / build config specific avrdude options</strong></p></td>
-      <td><p>Other than the programmer settings, all avrdude options are set on the project properties and can be either global for the project or separate for each build configuration.</p>
-        <p>The AVRDude properties comprises five tabs to:</p>
-        <ul>
-          <li>Set the Programmer for the project / build configuration</li>
-          <li>Set the flash and eeprom images</li>
-          <li>Set the fuse bytes</li>
-          <li>Set the Lockbits</li>
-          <li>Set some advanced options like disabeling the automatic verify check</li>
-        </ul>
-        <p><img src="images/WhatsNew2.2_avrdude_project_properties.png" alt="AVRDude Project Properties" width="837" height="611"></p></td>
+      <td colspan="2"><h2><a name="fusefiles" id="fusefiles"></a>Fuses files and Lockbits files </h2>        </td>
     </tr>
     <tr>
-      <td><p align="right"><strong>Upload Project to target MCU with avrdude</strong></p></td>
-      <td><p>There are multiple ways to upload a project to a target MCU.</p>
-        <ol>
-          <li>Automatic upload after a build. Avrdude can be included in the build toolchain for any build configuration via the project properties.<br>
-            <br>
-            <img src="images/WhatsNew2.2_avrdude_in_toolchain.png" alt="AVRDude in toolchain" width="836" height="292"><br>
-            <br>
-          </li>
-          <li>Manual upload. There are multiple ways to start the upload manually:
-            <ul>
-              <li>Via the project context menu (right click on an AVR project).<br>
-                <br>
-                <img src="images/WhatsNew2.2_avrdude_upload_via_projectmenu.png" alt="avrdude via project menu" width="436" height="196"><br>
-                <br>
-              </li>
-              <li>With an AVR project selected, the upload can be started with a toolbar button or via the AVR main menu.<br>
-                <br>
-                <img src="images/WhatsNew2.2_avrdude_upload_via_toolbar.png" alt="upload via toolbar" width="546" height="64"><br>
-                <br>
-              </li>
-              <li>With the Hotkey &quot;Ctrl + Alt + U&quot;*, again with an AVR project selected.<br>
-                <span class="style1">* Hotkey might be different, depending on the Platform. It can be changed with on the Keys preference page (<strong>Preferences</strong> &gt; <strong>General</strong> &gt; <strong>Keys</strong>)</span></li>
-            </ul>
-          </li>
-        </ol>
-        <p class="style1">&nbsp;</p></td>
+      <td>&nbsp;</td>
+      <td><p>To reuse the same fuse and lockbits settings for multiple build configurations and even multiple projects, they can now be stored in special files and shared as appropriate. Fuses files have the file extension <strong>.fuses</strong>, while lockbits file end with <strong>.locks</strong>.</p>
+      <p>These files can be used instead of the direct hex values on the fuses / lockbits tab of the AVRDude project property settings page.</p>
+      <p><img src="images/WhatsNew2.3_fuses_file_selection.png" alt="fuses file selection" width="626" height="145"></p></td>
     </tr>
+    <tr>
+      <td><p align="right"><strong>Fuse / Lockbits File Wizard</strong></p></td>
+      <td><p>There are two (identical) wizards to create new fuses and lockbits files.</p>
+        <p><img src="images/WhatsNew2.3_fuses_wizard.png" alt="fuse file wizard" width="723" height="417"></p>      </td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Fuse / Lockbits File Editor</strong></p>        </td>
+      <td><p>Fuse files and lockbits files can be edited with the same easy-to-use editor as the direct hex values.</p>
+        <p><img src="images/WhatsNew2.3_fuses_file_editor.png" alt="lockbits file editor" width="758" height="402"></p>      </td>
+    </tr>
+    
     <tr>
       <td colspan="2"><h2><a name="other"></a>Other new / improved features</h2></td>
     </tr>
     <tr>
-      <td><p align="right"><strong>Target Hardware settings for each build configuration</strong></p></td>
-      <td><p>The target hardware setting of a project can now be defined separatly for each build configuration.</p>
-        <p>To enable this set the <strong>Enable individual settings for Build Configurations</strong> flag on the AVR property page for an AVR project. The default is off, resulting in all AVRDude and target hardware settings to be global  to the project and used for all build configurations (like in Plugin version 2.1).</p>
-        <p><img src="images/WhatsNew2.2_per_config_flag.png" alt="Enable per Config Flag" width="607" height="226"></p>
-        <p>Once the flag is set, a build configuration can be selected on both the <strong>AVRDude</strong> and the <strong>Target Hardware</strong> property pages. All property changes will  only apply to the selected build configuration. The previous project settings are neither used nor directly accessible, but they are still kept in the project metadata storage and can be copied to the settings for the current build configuration with the <strong>Copy Project Settings</strong> button.</p>
-        <p><img src="images/WhatsNew2.2_per_config_settings.png" alt="Per Config Settings" width="718" height="360"></p>
-        <p>&nbsp;</p></td>
+      <td><p align="right"><strong>New AVRDude Options</strong></p></td>
+      <td><p>The <code>-D</code> option to inhibit the auto chip erase has been added.</p>
+        <p><img src="images/WhatsNew2.3_avrdude_-D_option.png" alt="avrdude -D option" width="626" height="138"></p>
+        <p>While the AVR Eclipse Plugin now supports all options of the current AVRDude version 5.5, there is a new field to add future avrdude options not yet covered by the plugin.</p>
+      <p><img src="images/WhatsNew2.3_avrdude_other.png" alt="avrdude other" width="627" height="128"></p></td>
     </tr>
     <tr>
-      <td><p align="right"><strong>New &quot;Supported&nbsp;MCUs&quot; View</strong></p></td>
-      <td><p>The plugin has a new view. This view can be opened via <strong>Window</strong> &gt; <strong>Show View</strong> &gt; <strong>Other...</strong> &gt; <strong>AVR</strong> &gt; <strong>AVR Supported MCUs</strong>. </p>
-        <p>This view shows a list of all MCUs known to the plugin and whether or not they</p>
-        <ul>
-          <li>are supported by the different tools of the active toolchain (<strong>avr-gcc</strong> and <strong>avrdude</strong> columns)</li>
-          <li>are included in the Atmel <em>Part Description Files</em> (<strong>AVR Studio</strong> column)</li>
-          <li>have fuse and/or lockbit definitions (<strong>Fuses</strong> column)</li>
-        </ul>
-        <p>The <strong>Signature</strong> column is just for info because there was still some space left in the table.</p>
-        <p>Those MCUs for which datasheets are available on the <a href="http://www.atmel.com/dyn/products/datasheets.asp?family_id=607">Atmel website</a> are displayed as hyperlinks. Clicking on them will download and open the datasheet.</p>
-        <p><img src="images/WhatsNew2.2_supportedmcus_view.png" alt="Supported MCUs View" width="780" height="313"></p></td>
+      <td><p align="right"><strong>AVRDude Invocation Delay</strong></p></td>
+      <td><p>The plugin often executes avrdude repeatedly. This sometimes causes problems with USB programmer devices when the USB port is not released quickly enough by the previous avrdude invocation.</p>
+          <p>A new delay option has been added to the programmer configuration dialog to instruct the plugin to wait the specified amount of milliseconds between avrdude invocations  order to give the USB port more time to close.</p>
+          <p><img src="images/WhatsNew2.3_avrdude_delay.png" alt="avrdude delay option" width="604" height="116"></p></td>
     </tr>
     <tr>
-      <td><p align="right"><strong>Views are now workbench selection providers and listeners</strong></p></td>
-      <td><p>The <strong>AVR Device Explorer</strong> view and the new <strong>AVR Supported MCUs</strong> view are synchronized and will also show the MCU of the currently selected project.</p></td>
+      <td><p align="right"><strong>ATXmega Support</strong></p></td>
+      <td><p>The plugin now supports the ATXmega series of AVR MCUs. The extend of the support depends on the installed avr-gcc toolchain. ATXmega MCUs are supported with avr-gcc 4.3.0 or later, but the current avrdude release 5.5 is still lacking ATXmega capabilities.</p>
+        <p><img src="images/WhatsNew2.3_atxmega_support.png" alt="atxmega support" width="735" height="107"></p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Improved Path Handling</strong></p></td>
+      <td><p>On non-Windows systems startup time of the plugin was very slow on large systems, because large parts of the filesystem were scanned to find the installed avr-gcc toolchain. With version 2.3 of the Plugin, the system is scanned only once and the found paths are stored and used on the next startup. This greatly reduces the plugin startup time.</p>
+        <p>There is an option in the AVR paths preferences to restore the old behavior of scanning the system each time Eclipse is started.<img src="images/WhatsNew2.3_path_autoscan.png" alt="path preferences" width="699" height="265"></p>
+        <p>Note: on Windows Systems this option is by default off (= autoscan on), because on Windows the registry is used to look up the paths, which takes a negligible amount of time.</p>        </td>
     </tr>
   </tbody>
 </table>
 <p class="lineabove">&nbsp;</p>
-<p class="lineabove"><a href="whatsnew_2.1.html"><img src="../images/ngnext.gif" alt="Next" width="16" height="16"></a><a href="whatsnew_2.1.html">What's New for previous versions</a></p>
+<p class="lineabove"><a href="whatsnew_2.2.html"><img src="../images/ngnext.gif" alt="Next" width="16" height="16"></a><a href="whatsnew_2.2.html">What's New for previous versions</a></p>
 <div class="copyright">&copy; 2007, 2008 Thomas Holland</div>
 </body>
 </html>

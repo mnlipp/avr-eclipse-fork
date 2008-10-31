@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>What's new in the AVR Eclipse Plugin</title>
+<link href="../book.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+td {
+	border-top: solid thin black;
+}
+td table tbody tr td {
+	border-top: none;
+} /* no border for nested tables */
+img[alt] {
+	background-color:#ffdddd;
+}
+tr {
+	vertical-align: top;
+}
+ul {
+	padding-left: 1.2em;
+}
+.style1 {
+	font-size: 80%
+}
+</style>
+</head>
+<body bgcolor="#FFFFFF">
+<h2>What's new in 2.2</h2>
+<p>This document contains descriptions of the significant features new to AVR Eclipse Plugin version 2.2.</p>
+<ul>
+  <li><a href="#avrdude">AVRDude Support</a></li>
+  <li><a href="#other">Other new &amp; improved features</a></li>
+</ul>
+<p>&nbsp;</p>
+<table cellpadding="10" cellspacing="0">
+  <colgroup>
+  <col width="20%">
+  <col width="80%">
+  </colgroup>
+  <tbody>
+    <tr>
+      <td colspan="2"><h2><a name="avrdude"></a>AVRDude Support</h2>
+        <p>This has been the most requested feature of all. Starting with version 2.2 the plugin has direct support for avrdude to upload a project to a target MCU.</p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>AVRDude Preferences</strong></p></td>
+      <td><p>Global avrdude settings are managed via the Eclipse preferences (<strong>Window &gt; Preferences...</strong>)</p>
+        <p>The preferences contains:</p>
+        <ul>
+          <li>Option to show the output of avrdude on the console for internal calls.<br>
+            The plugin executes avrdude multiple times in the background, for example to get the list of supported MCUs. This can be used for debugging and to see what is going on behind the curtain.<br>
+            Avrdude output for a project upload is always shown on the console, regardless of this option.</li>
+          <li>Select a custom configuration file for avrdude.</li>
+          <li>Manage the list of Programmers connected to the development system.<br>
+            Using avrdude with the plugin requires at least one Programmer Configuration. An unlimited number of Programmer Configurations can be defined. </li>
+        </ul>
+        <p><img src="images/WhatsNew2.2_avrdude_prefs.png" alt="AVRDude Prferences" width="626" height="402"></p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Programmer Configuration Dialog</strong></p>
+        <p align="right">&nbsp;</p></td>
+      <td><p>All settings for a avrdude Programmer are handled in a dialog which has a list of all programmers the currently active avrdude executable supports and some other options like the I/O port the programmer is on. </p>
+        <p><img src="images/WhatsNew2.2_avrdude_prog_config_dialog.png" alt="Programmer Config Dialog" width="857" height="590"></p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Project / build config specific avrdude options</strong></p></td>
+      <td><p>Other than the programmer settings, all avrdude options are set on the project properties and can be either global for the project or separate for each build configuration.</p>
+        <p>The AVRDude properties comprises five tabs to:</p>
+        <ul>
+          <li>Set the Programmer for the project / build configuration</li>
+          <li>Set the flash and eeprom images</li>
+          <li>Set the fuse bytes</li>
+          <li>Set the Lockbits</li>
+          <li>Set some advanced options like disabling the automatic verify check</li>
+        </ul>
+        <p><img src="images/WhatsNew2.2_avrdude_project_properties.png" alt="AVRDude Project Properties" width="837" height="611"></p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Upload Project to target MCU with avrdude</strong></p></td>
+      <td><p>There are multiple ways to upload a project to a target MCU.</p>
+        <ol>
+          <li>Automatic upload after a build. Avrdude can be included in the build toolchain for any build configuration via the project properties.<br>
+            <br>
+            <img src="images/WhatsNew2.2_avrdude_in_toolchain.png" alt="AVRDude in toolchain" width="836" height="292"><br>
+            <br>
+          </li>
+          <li>Manual upload. There are multiple ways to start the upload manually:
+            <ul>
+              <li>Via the project context menu (right click on an AVR project).<br>
+                <br>
+                <img src="images/WhatsNew2.2_avrdude_upload_via_projectmenu.png" alt="avrdude via project menu" width="436" height="196"><br>
+                <br>
+              </li>
+              <li>With an AVR project selected, the upload can be started with a toolbar button or via the AVR main menu.<br>
+                <br>
+                <img src="images/WhatsNew2.2_avrdude_upload_via_toolbar.png" alt="upload via toolbar" width="546" height="64"><br>
+                <br>
+              </li>
+              <li>With the Hotkey &quot;Ctrl + Alt + U&quot;*, again with an AVR project selected.<br>
+                <span class="style1">* Hotkey might be different, depending on the Platform. It can be changed with on the Keys preference page (<strong>Preferences</strong> &gt; <strong>General</strong> &gt; <strong>Keys</strong>)</span></li>
+            </ul>
+          </li>
+        </ol>
+        <p class="style1">&nbsp;</p></td>
+    </tr>
+    <tr>
+      <td colspan="2"><h2><a name="other"></a>Other new / improved features</h2></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Target Hardware settings for each build configuration</strong></p></td>
+      <td><p>The target hardware setting of a project can now be defined separately for each build configuration.</p>
+        <p>To enable this set the <strong>Enable individual settings for Build Configurations</strong> flag on the AVR property page for an AVR project. The default is off, resulting in all AVRDude and target hardware settings to be global  to the project and used for all build configurations (like in Plugin version 2.1).</p>
+        <p><img src="images/WhatsNew2.2_per_config_flag.png" alt="Enable per Config Flag" width="607" height="226"></p>
+        <p>Once the flag is set, a build configuration can be selected on both the <strong>AVRDude</strong> and the <strong>Target Hardware</strong> property pages. All property changes will  only apply to the selected build configuration. The previous project settings are neither used nor directly accessible, but they are still kept in the project metadata storage and can be copied to the settings for the current build configuration with the <strong>Copy Project Settings</strong> button.</p>
+        <p><img src="images/WhatsNew2.2_per_config_settings.png" alt="Per Config Settings" width="718" height="360"></p>
+        <p>&nbsp;</p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>New &quot;Supported&nbsp;MCUs&quot; View</strong></p></td>
+      <td><p>The plugin has a new view. This view can be opened via <strong>Window</strong> &gt; <strong>Show View</strong> &gt; <strong>Other...</strong> &gt; <strong>AVR</strong> &gt; <strong>AVR Supported MCUs</strong>. </p>
+        <p>This view shows a list of all MCUs known to the plugin and whether or not they</p>
+        <ul>
+          <li>are supported by the different tools of the active toolchain (<strong>avr-gcc</strong> and <strong>avrdude</strong> columns)</li>
+          <li>are included in the Atmel <em>Part Description Files</em> (<strong>AVR Studio</strong> column)</li>
+          <li>have fuse and/or lockbit definitions (<strong>Fuses</strong> column)</li>
+        </ul>
+        <p>The <strong>Signature</strong> column is just for info because there was still some space left in the table.</p>
+        <p>Those MCUs for which datasheets are available on the <a href="http://www.atmel.com/dyn/products/datasheets.asp?family_id=607">Atmel website</a> are displayed as hyperlinks. Clicking on them will download and open the datasheet.</p>
+        <p><img src="images/WhatsNew2.2_supportedmcus_view.png" alt="Supported MCUs View" width="780" height="313"></p></td>
+    </tr>
+    <tr>
+      <td><p align="right"><strong>Views are now workbench selection providers and listeners</strong></p></td>
+      <td><p>The <strong>AVR Device Explorer</strong> view and the new <strong>AVR Supported MCUs</strong> view are synchronized and will also show the MCU of the currently selected project.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p class="lineabove">&nbsp;</p>
+<p class="lineabove"><a href="whatsnew_2.1.html"><img src="../images/ngnext.gif" alt="Next" width="16" height="16"></a><a href="whatsnew_2.1.html">What's New for previous versions</a></p>
+<div class="copyright">&copy; 2007, 2008 Thomas Holland</div>
+</body>
+</html>
