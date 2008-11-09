@@ -11,9 +11,8 @@
 <p>The plugin needs to know the paths to the avr-gcc toolchain and some other files on the development system. Usually these paths are included in the <em>$PATH</em> environment variable, however, especially on Linux distributions the included avr-gcc toolchain might be out of date or multiple versions of the avr-gcc toolchain might be installed.</p>
 <p>The plugin tries to determine all required paths at runtime. Refer to <a href="../concepts/avr_path_management.html">AVR Plugin Path Management</a> to see how the system paths are determined.</p>
 <p>If you need to change the determined defaults, e.g. because you use multiple toolchain versions or the no default could be determined, you can change the paths manually.</p>
-<p>&nbsp;</p>
-<p class="UILabel">Select <em class="UILabel">Window &gt; Preferences...</em> and select the <EM class="UILabel">AVR</em> tree item</p>
-<p><img src="images/path_preference_page1.png" alt="Path Preference Page" ></p>
+<p class="UILabel">Select <em class="UILabel">Window &gt; Preferences...</em> and select the <EM class="UILabel">AVR &gt; Paths</em> tree item</p>
+<p><img src="images/path_preference_page1.png" alt="Path Preference Page" width="716" height="364" ></p>
 <p>Here all Paths are at their system default. Note that all entries are paths, even if they refer to a single file. In these cases they refer to the parent directory of the file.</p>
 <p>Two different icons show warnings and errors:</p>
 <table border="1" cellspacing="1" cellpadding="3">
@@ -42,7 +41,7 @@
     <td valign="top"><p>Bundled</p>
     <p>&nbsp;</p></td>
     <td valign="top"><p>Select a bundled AVR GCC Toolchain</p>
-      <p><strong>Note: </strong>Not yet supported in the 2.1 version of the plugin      </p>
+      <p><strong>Note: </strong>Not yet supported in the 2.3 version of the plugin      </p>
     </td>
   </tr>
   <tr>

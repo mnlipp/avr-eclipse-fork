@@ -5,6 +5,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>AVR Plugin path management</title>
 <link rel="stylesheet" type="text/css" href="../book.css">
+<style type="text/css">
+<!--
+.style1 {color: #000000}
+-->
+</style>
 </head>
 <body>
 <h1>AVR Plugin path management</h1>
@@ -12,7 +17,7 @@
 <p>Early versions of the AVR Eclipse Plugin (prior 2.1) relied on the system path of the development system to execute the required tools (<em>avr-gcc</em>, <em>avr-size</em>, <em>make</em> etc.)</p>
 <p>This had some drawbacks. </p>
 <ul>
-  <li>On non-Windows platforms the avr-gcc toolchain supplied by the distributions is often out-of-date and does not contain the latest patches. Therefore many AVR developers will probable compile the avr-gcc toolchain themself, but keep it in a seperate location from the distribution supplied toolchain.</li>
+  <li>On non-Windows platforms the avr-gcc toolchain supplied by the distributions is often out-of-date and does not contain the latest patches. Therefore many AVR developers will probable compile the avr-gcc toolchain themselves, but keep it in a separate location from the distribution supplied toolchain.</li>
   <li>On Windows the winAVR toolchain is the de-facto standard and it is usually up-to-date. But even here the user might want to install multiple versions of winAVR, for example to try out newer versions while keeping the previous version. Besides this, the winAVR installer asks if the user wants to include winAVR in the system paths, which he might decline for some reason.</li>
 </ul>
 <p>In both cases, the system path might not point to the toolchain the plugin user actually wants to use.</p>
@@ -28,7 +33,7 @@
 <p>The paths are taken from the Windows registry for the <em>winAVR</em> and <em>AVR Tools</em> applications.</p>
 <h4>non-Windows</h4>
 <p>The plugin currently assumes that all non-Windows platforms are Posix based. </p>
-<p>Each path has a test file associated with it, which will be searched for. To find this test file the following external commands are executed in order until a successfull match is found:</p>
+<p>Each path has a test file associated with it, which will be searched for. To find this test file the following external commands are executed in order until a successful match is found:</p>
 <ol>
   <li><em>which</em> command: Test if the test file is on the system $PATH</li>
   <li><em>find</em> command: if the test file is not on the system $PATH, then the plugin will start searching the following directories (and their subdirectories)  in  order:<br>  
@@ -57,12 +62,14 @@
       </tr>
     </table>
   </li>
-  <li>If all searches were unsuccessfull an empty path is used.</li>
+  <li>If all searches were unsuccessful an empty path is used.</li>
 </ol>
-<p>As these searches may take some time, they are performed upon plugin startup and run in the background. However, if the searches have not been finished by the time the results are actually used, Eclipse will block until finished.</p>
+<p>As these searches may take some time, they are performed at plugin startup and run in the background. However, if the searches have not been finished by the time the results are actually used, Eclipse will block until finished.<br>
+  <br>
+As this startup delay can get quite long on large development systems, it can be inhibited on the path preference page.</p>
   </li>
-<li><h3>Bundle paths</h3>
-<p>As of version 2.1 this is not yet implemented.</p>
+  <li><h3>Bundle paths</h3>
+<p>As of version 2.3 this is not yet implemented.</p>
 </li>
 <li>
 <h3>Custom paths</h3>
@@ -82,73 +89,44 @@
     <th valign="top" scope="col">Test File</th>
   </tr>
   <tr>
-    <td valign="top" nowrap><p>AVR-GCC</p>
-    </td>
+    <td valign="top" nowrap><p>AVR-GCC</p>    </td>
     <td valign="top"><p>Path to the directory containing the AVR-GCC toolchain.</p>
     <p>This directory must contain the avr-gcc compiler and all other used tools like avr-objdump, avr-size etc.</p></td>
     <td valign="top"><p>yes</p>    </td>
-    <td valign="top"><p>avr-gcc(.exe)</p>
-    </td>
+    <td valign="top"><p>avr-gcc(.exe)</p>    </td>
   </tr>
   <tr>
-    <td valign="top" nowrap><p>GNU make</p>
-    </td>
-    <td valign="top"><p>Path to the directory containing a GNU make. This is mainly used on Windows, where make is part of the winAVR distribution</p>
-    </td>
-    <td valign="top"><p>yes</p>
-    </td>
-    <td valign="top"><p>make(.exe)</p>
-    </td>
+    <td valign="top" nowrap><p>GNU make</p>    </td>
+    <td valign="top"><p>Path to the directory containing a GNU make. This is mainly used on Windows, where make is part of the winAVR distribution</p>    </td>
+    <td valign="top"><p>yes</p>    </td>
+    <td valign="top"><p>make(.exe)</p>    </td>
   </tr>
   <tr>
-    <td valign="top" nowrap><p>AVR Header Files</p>
-    </td>
-    <td valign="top"><p>Path to the directory containg the avr includes. This is currently only used for the AVR Device Explorer view to locate the &lt;avr/io.h&gt; file. It is not used for the compiler, as the avr-gcc compiler usually knows where to find its header files.</p>
-    </td>
-    <td valign="top"><p>no</p>
-    </td>
-    <td valign="top"><p>avr/io.h</p>
-    </td>
+    <td valign="top" nowrap><p>AVR Header Files</p>    </td>
+    <td valign="top"><p>Path to the directory containing the avr includes. This is currently only used for the AVR Device Explorer view to locate the &lt;avr/io.h&gt; file. It is not used for the compiler, as the avr-gcc compiler usually knows where to find its header files.</p>    </td>
+    <td valign="top"><p>no</p>    </td>
+    <td valign="top"><p>avr/io.h</p>    </td>
   </tr>
   <tr>
-    <td valign="top" nowrap><p class="unused">AVRDude*</p>
-    </td>
-    <td valign="top"><p class="unused">Path to the directory containing the avrdude executable.</p>
-    </td>
-    <td valign="top"><p class="unused">no</p>
-    </td>
-    <td valign="top"><p class="unused">avrdude(.exe)</p>
-    </td>
+    <td valign="top" nowrap><p class="unused style1">AVRDude</p>    </td>
+    <td valign="top"><p class="unused style1">Path to the directory containing the avrdude executable.</p>    </td>
+    <td valign="top"><p class="unused style1">no</p>    </td>
+    <td valign="top"><p class="unused style1">avrdude(.exe)</p>    </td>
   </tr>
   <tr>
-    <td valign="top" nowrap><p class="unused">AVRDude.conf*</p>
-    </td>
-    <td valign="top"><p class="unused">Path to the directory containing the avrdude configuration file.</p>
-    </td>
-    <td valign="top"><p class="unused">no</p>
-    </td>
-    <td valign="top"><p class="unused">avrdude.conf</p>
-    </td>
-  </tr>
-  <tr>
-    <td valign="top" nowrap><p class="unused">Atmel Part Description Files*</p>
-    </td>
-    <td valign="top"><p class="unused">Path to the partdescriptionfiles directory, which is part of the AVR Tools application from Atmel</p>
-    </td>
-    <td valign="top"><p class="unused">no</p>
-    </td>
-    <td valign="top"><p class="unused">atmega16.xml</p>
-    </td>
+    <td valign="top" nowrap><p class="unused">Atmel Part Description Files*</p>    </td>
+    <td valign="top"><p class="unused">Path to the part description files directory, which is part of the AVR Tools application from Atmel</p>    </td>
+    <td valign="top"><p class="unused">no</p>    </td>
+    <td valign="top"><p class="unused">atmega16.xml</p>    </td>
   </tr>
 </table>
-<p>*unused in version 2.1 of the plugin. These paths will be used in future versions of the plugin</p>
+<p>*unused in version 2.3 of the plugin. This path will be used in future versions of the plugin</p>
   <p>&nbsp;</p>
   <p><a href="concepts.html"><img src="../images/ngback.gif" alt="backarrow"></a> <a href="concepts.html"><strong>Back: Concepts</strong></a></p>
   <div class="categoryrelated">Related Tasks</div>
   <a href="../tasks/task_path_preferences.html">AVR Paths Preferences</a>
 <p>&nbsp;</p>
-<div class="copyright">
-    <p>&copy; 2007 Thomas Holland</p>
+<div class="copyright">&copy; 2007, 2008 Thomas Holland
 </div>
 </body>
 </html>
