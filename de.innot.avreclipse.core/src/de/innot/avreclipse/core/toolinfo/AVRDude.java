@@ -38,6 +38,10 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
 
 import de.innot.avreclipse.AVRPlugin;
@@ -104,6 +108,13 @@ public class AVRDude implements IMCUProvider {
 	private final IPathProvider				fPathProvider		= new AVRPathProvider(
 																		AVRPath.AVRDUDE);
 
+	private long							fLastAvrdudeFinish	= 0L;
+
+	private final static Color				CONSOLE_BLUE		= PlatformUI.getWorkbench()
+																		.getDisplay()
+																		.getSystemColor(
+																				SWT.COLOR_BLUE);
+
 	/**
 	 * A cache of one or more avrdude config files. The config files are stored as
 	 * List&lt;String&gt; with one entry per line
@@ -152,7 +163,6 @@ public class AVRDude implements IMCUProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUInfo(java.lang.String)
 	 */
 	public String getMCUInfo(String mcuid) {
@@ -169,7 +179,6 @@ public class AVRDude implements IMCUProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#getMCUList()
 	 */
 	public Set<String> getMCUList() throws IOException {
@@ -187,7 +196,6 @@ public class AVRDude implements IMCUProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.IMCUProvider#hasMCU(java.lang.String)
 	 */
 	public boolean hasMCU(String mcuid) {
@@ -219,8 +227,8 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param programmerid
 	 *            <code>String</code> with the avrdude id of the programmer
-	 * @return <code>ConfigEntry</code> containing all known information extracted from the
-	 *         avrdude executable
+	 * @return <code>ConfigEntry</code> containing all known information extracted from the avrdude
+	 *         executable
 	 * @throws AVRDudeException
 	 */
 	public ConfigEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
@@ -299,7 +307,7 @@ public class AVRDude implements IMCUProvider {
 			List<String> configoptions = config.getArguments();
 			configoptions.add("-pm16");
 
-			List<String> stdout = runCommand(configoptions, monitor, false, null);
+			List<String> stdout = runCommand(configoptions, monitor, false, null, config);
 			if (stdout == null) {
 				return null;
 			}
@@ -349,10 +357,14 @@ public class AVRDude implements IMCUProvider {
 			monitor.beginTask("Reading Fuse Bytes", 100);
 			// First get the attached MCU
 			String mcuid = getAttachedMCU(config, new SubProgressMonitor(monitor, 20));
-			
+
 			// Check if the found MCU is actually supported by avrdude
 			if (!hasMCU(mcuid)) {
-				throw new AVRDudeException(Reason.UNKNOWN_MCU, "Found "+AVRMCUidConverter.id2name(mcuid)+" MCU signature. This MCU is not supported by the selected version of avrdude.");
+				throw new AVRDudeException(
+						Reason.UNKNOWN_MCU,
+						"Found "
+								+ AVRMCUidConverter.id2name(mcuid)
+								+ " MCU signature. This MCU is not supported by the selected version of avrdude.");
 			}
 
 			ByteValues values = new ByteValues(FuseType.FUSE, mcuid);
@@ -369,7 +381,8 @@ public class AVRDude implements IMCUProvider {
 				args.add(action.getArgument());
 			}
 
-			List<String> stdout = runCommand(args, new SubProgressMonitor(monitor, 80), false, null);
+			List<String> stdout = runCommand(args, new SubProgressMonitor(monitor, 80), false,
+					null, config);
 			if (stdout == null) {
 				return null;
 			}
@@ -436,7 +449,11 @@ public class AVRDude implements IMCUProvider {
 
 			// Check if the found MCU is actually supported by avrdude
 			if (!hasMCU(mcuid)) {
-				throw new AVRDudeException(Reason.UNKNOWN_MCU, "Found "+AVRMCUidConverter.id2name(mcuid)+" MCU signature. This MCU is not supported by the selected version of avrdude.");
+				throw new AVRDudeException(
+						Reason.UNKNOWN_MCU,
+						"Found "
+								+ AVRMCUidConverter.id2name(mcuid)
+								+ " MCU signature. This MCU is not supported by the selected version of avrdude.");
 			}
 
 			ByteValues values = new ByteValues(FuseType.LOCKBITS, mcuid);
@@ -453,7 +470,7 @@ public class AVRDude implements IMCUProvider {
 				args.add(action.getArgument());
 			}
 
-			List<String> stdout = runCommand(args, monitor, false, null);
+			List<String> stdout = runCommand(args, monitor, false, null, config);
 			if (stdout == null) {
 				return null;
 			}
@@ -506,8 +523,7 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param config
 	 *            <code>ProgrammerConfig</code> with the Programmer to query.
-	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not
-	 *         set.
+	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not set.
 	 * @throws AVRDudeException
 	 */
 	public int getEraseCycleCounter(ProgrammerConfig config, IProgressMonitor monitor)
@@ -521,7 +537,8 @@ public class AVRDude implements IMCUProvider {
 			List<String> args = new ArrayList<String>(config.getArguments());
 			args.add("-p" + getMCUInfo(mcuid));
 
-			List<String> stdout = runCommand(args, new SubProgressMonitor(monitor, 80), false, null);
+			List<String> stdout = runCommand(args, new SubProgressMonitor(monitor, 80), false,
+					null, config);
 			if (stdout == null) {
 				return -1;
 			}
@@ -555,8 +572,7 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 * @param config
 	 *            <code>ProgrammerConfig</code> with the Programmer to query.
-	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not
-	 *         set.
+	 * @return <code>int</code> with the values or <code>-1</code> if the counter value is not set.
 	 * @throws AVRDudeException
 	 */
 	public int setEraseCycleCounter(ProgrammerConfig config, int newcounter,
@@ -571,7 +587,7 @@ public class AVRDude implements IMCUProvider {
 			args.add("-p" + getMCUInfo(mcuid));
 			args.add("-Y" + (newcounter & 0xffff));
 
-			runCommand(args, new SubProgressMonitor(monitor, 60), false, null);
+			runCommand(args, new SubProgressMonitor(monitor, 60), false, null, config);
 
 			// return the current value of the device as a crosscheck.
 			return getEraseCycleCounter(config, new SubProgressMonitor(monitor, 20));
@@ -775,7 +791,7 @@ public class AVRDude implements IMCUProvider {
 			arglist.add(arg);
 		}
 
-		return runCommand(arglist, new NullProgressMonitor(), false, null);
+		return runCommand(arglist, new NullProgressMonitor(), false, null, null);
 	}
 
 	/**
@@ -798,16 +814,20 @@ public class AVRDude implements IMCUProvider {
 	 *            If <code>true</code> all output is copied to the console, regardless of the "use
 	 *            console" flag.
 	 * @param cwd
-	 *            <code>IPath</code> with a current working directory or <code>null</code> to
-	 *            use the default working directory (usually the one defined with the system
-	 *            property <code>user.dir</code). May not be empty.
+	 *            <code>IPath</code> with a current working directory or <code>null</code> to use
+	 *            the default working directory (usually the one defined with the system property
+	 *            <code>user.dir</code). May not be empty.
+	 * @param programmerconfig
+	 *            The AVRDude Programmer configuration currently is use. Required for the AVRDude
+	 *            invocation delay value. If <code>null</code> no invocation delay will be done.
 	 * @return A list of all output lines, or <code>null</code> if the command could not be
 	 *         launched.
 	 * @throws AVRDudeException
 	 *             when avrdude cannot be started or when avrdude returned an error errors.
 	 */
 	public List<String> runCommand(List<String> arglist, IProgressMonitor monitor,
-			boolean forceconsole, IPath cwd) throws AVRDudeException {
+			boolean forceconsole, IPath cwd, ProgrammerConfig programmerconfig)
+			throws AVRDudeException {
 
 		try {
 			monitor.beginTask("Running avrdude", 100);
@@ -833,16 +853,20 @@ public class AVRDude implements IMCUProvider {
 			ExternalCommandLauncher avrdude = new ExternalCommandLauncher(command, arglist, cwd);
 			avrdude.redirectErrorStream(true);
 
+			MessageConsole console = null;
 			// Set the Console (if requested by the user in the preferences)
 			if (fPrefsStore.getBoolean(AVRDudePreferences.KEY_USECONSOLE) || forceconsole) {
-				MessageConsole console = AVRPlugin.getDefault().getConsole("AVRDude");
+				console = AVRPlugin.getDefault().getConsole("AVRDude");
 				avrdude.setConsole(console);
 			}
 
 			ICommandOutputListener outputlistener = new OutputListener(monitor);
 			avrdude.setCommandOutputListener(outputlistener);
 
-			monitor.worked(10);
+			// This will delay the actual avrdude call if the previous call finished less than the
+			// user provided time in milliseconds
+			avrdudeInvocationDelay(programmerconfig, console, new SubProgressMonitor(monitor, 10));
+
 			// Run avrdude
 			try {
 				fAbortReason = null;
@@ -863,8 +887,7 @@ public class AVRDude implements IMCUProvider {
 			}
 
 			// Everything was fine: get the ooutput from avrdude and return it
-			// to
-			// the caller
+			// to the caller
 			List<String> stdout = avrdude.getStdOut();
 
 			monitor.worked(10);
@@ -872,6 +895,110 @@ public class AVRDude implements IMCUProvider {
 			return stdout;
 		} finally {
 			monitor.done();
+			fLastAvrdudeFinish = System.currentTimeMillis();
+		}
+	}
+
+	/**
+	 * Delay for the user specified invocation delay time.
+	 * <p>
+	 * This method will take the user supplied delay value from the given ProgrammerConfig, check
+	 * how much time has passed since the last avrdude call finished and - if actually required -
+	 * wait for the remaining milliseconds.
+	 * </p>
+	 * <p>
+	 * While sleeping this method will wake up every 10 ms to check if the user has cancelled, in
+	 * which case an {@link AVRDudeException} with {@link Reason#USER_CANCEL} is thrown.
+	 * </p>
+	 * 
+	 * @param programmerconfig
+	 *            contains the delay value. if <code>null</code> this method returns immediatly.
+	 * @param console
+	 *            If not <code>null</code>, then the start and end of the delay is logged on the
+	 *            console.
+	 * @param monitor
+	 *            polled for user cancel event.
+	 * @throws AVRDudeException
+	 *             when the user cancelles the delay.
+	 */
+	private void avrdudeInvocationDelay(final ProgrammerConfig programmerconfig,
+			MessageConsole console, IProgressMonitor monitor) throws AVRDudeException {
+
+		// return if no ProgrammerConfig is available
+		if (programmerconfig == null) {
+			return;
+		}
+
+		// Get the optional avrdude invocation delay value
+		String delayvalue = programmerconfig.getPostAvrdudeDelay();
+		if (delayvalue == null || delayvalue.length() == 0) {
+			return;
+		}
+		final int delay = Integer.decode(delayvalue);
+		if (delay == 0) {
+			return;
+		}
+
+		IOConsoleOutputStream ostream = null;
+		if (console != null) {
+			ostream = console.newOutputStream();
+			ostream.setColor(CONSOLE_BLUE);
+		}
+
+		final long targetmillis = fLastAvrdudeFinish + delay;
+
+		// Quick exit if the delay has already expired
+		int targetdelay = (int) (targetmillis - System.currentTimeMillis());
+		if (targetdelay < 1) {
+			return;
+		}
+
+		try {
+			monitor.beginTask("delay", targetdelay);
+
+			writeOutput(ostream, "\navrdude invocation delay: " + targetdelay + " milliseconds\n");
+
+			// delay for specified amount of milliseconds
+			// To allow user cancel during long delays we check the monitor every 10
+			// milliseconds.
+			// This is the fix for Bug 2071415
+			while (System.currentTimeMillis() < targetmillis) {
+				if (monitor.isCanceled()) {
+					writeOutput(ostream, "avrdude invocation delay: cancelled\n");
+					throw new AVRDudeException(Reason.USER_CANCEL, "User cancelled");
+				}
+				Thread.sleep(10);
+			}
+			writeOutput(ostream, "avrdude invocation delay: finished\n");
+
+		} catch (InterruptedException e) {
+			throw new AVRDudeException(Reason.USER_CANCEL, "System interrupt");
+		} catch (IOException e) {
+			// ignore exception
+		} finally {
+			if (ostream != null) {
+				try {
+					ostream.close();
+				} catch (IOException e) {
+					// ignore exception
+				}
+			}
+			monitor.done();
+		}
+
+	}
+
+	/**
+	 * Convenience method to print a message to the given stream. This method checks that the stream
+	 * exists.
+	 * 
+	 * @param ostream
+	 * @param message
+	 * @throws IOException
+	 */
+	private void writeOutput(IOConsoleOutputStream ostream, String message) throws IOException {
+		if (ostream != null) {
+			ostream.write(message);
 		}
 	}
 
@@ -945,6 +1072,9 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.endsWith("execution aborted")) {
 				abort = true;
 				fAbortReason = Reason.USER_CANCEL;
+			} else if (line.contains("usbdev_open")) {
+				abort = true;
+				fAbortReason = Reason.NO_USB;
 			}
 
 			if (abort) {

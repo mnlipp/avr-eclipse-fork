@@ -158,6 +158,16 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					message = MessageFormat.format(source, port, programmer);
 					break;
 
+				case NO_USB:
+					source = "Could not open the USB device with the port name {0}.\n\n"
+							+ "Please check that\n"
+							+ " - the programmer device is connected an switched on\n\n"
+							+ "Also check in the configuration for programmer {1} that\n"
+							+ " - the port name is correct\n"
+							+ " - the \"Delay between avrdude invocations\" is set to a sufficently high value";
+					message = MessageFormat.format(source, port, programmer);
+					break;
+
 				case PARSE_ERROR:
 					message = "Could not understand the output from AVRDude.\n"
 							+ "You probably have newer AVRDude version with a changed output format.\n\n"

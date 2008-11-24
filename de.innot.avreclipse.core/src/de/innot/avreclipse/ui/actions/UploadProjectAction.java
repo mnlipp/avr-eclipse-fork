@@ -358,13 +358,6 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 
 				AVRDude avrdude = AVRDude.getDefault();
 
-				// Get the optional post avrdude delay value
-				int delay = 0;
-				String delayvalue = fProgrammerConfig.getPostAvrdudeDelay();
-				if (delayvalue != null && delayvalue.length() > 0) {
-					delay = Integer.decode(delayvalue);
-				}
-
 				// Add one entry to the options which will be filled with each
 				// action to perform
 				fOptions.add("");
@@ -389,28 +382,10 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 					fOptions.set(lastindex, actionoption);
 
 					// Now avrdude can be started.
-					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd);
+					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd,
+							fProgrammerConfig);
 
-					// delay for some milliseconds if required
-					// To allow user cancel during long delays we check the monitor every 10
-					// milliseconds.
-					// This is the fix for Bug 2071415
-					int delaymillis = 0;
-					while (delaymillis < delay) {
-						if (monitor.isCanceled()) {
-							break;
-						}
-						long presleepmillis = System.currentTimeMillis();
-						Thread.sleep(10);
-						long postsleepmillis = System.currentTimeMillis();
-						delaymillis += postsleepmillis - presleepmillis;
-					}
 				}
-			} catch (InterruptedException e) {
-				// External interruption while the thread was sleeping. Handle as if the
-				// Progressmonitor has been canceled.
-				monitor.setCanceled(true);
-				return Status.CANCEL_STATUS;
 			} catch (AVRDudeException ade) {
 				// Show an Error message and exit
 				Display display = PlatformUI.getWorkbench().getDisplay();
@@ -444,7 +419,6 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#init(org.eclipse.ui.IWorkbenchWindow)
 	 */
 	public void init(IWorkbenchWindow window) {
