@@ -349,6 +349,11 @@ public class AVRDude implements IMCUProvider {
 			monitor.beginTask("Reading Fuse Bytes", 100);
 			// First get the attached MCU
 			String mcuid = getAttachedMCU(config, new SubProgressMonitor(monitor, 20));
+			
+			// Check if the found MCU is actually supported by avrdude
+			if (!hasMCU(mcuid)) {
+				throw new AVRDudeException(Reason.UNKNOWN_MCU, "Found "+AVRMCUidConverter.id2name(mcuid)+" MCU signature. This MCU is not supported by the selected version of avrdude.");
+			}
 
 			ByteValues values = new ByteValues(FuseType.FUSE, mcuid);
 
@@ -428,6 +433,11 @@ public class AVRDude implements IMCUProvider {
 			monitor.beginTask("Reading Lockbits", 100);
 			// First get the attached MCU
 			String mcuid = getAttachedMCU(config, new SubProgressMonitor(monitor, 20));
+
+			// Check if the found MCU is actually supported by avrdude
+			if (!hasMCU(mcuid)) {
+				throw new AVRDudeException(Reason.UNKNOWN_MCU, "Found "+AVRMCUidConverter.id2name(mcuid)+" MCU signature. This MCU is not supported by the selected version of avrdude.");
+			}
 
 			ByteValues values = new ByteValues(FuseType.LOCKBITS, mcuid);
 

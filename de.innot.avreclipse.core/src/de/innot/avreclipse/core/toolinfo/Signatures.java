@@ -20,8 +20,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -136,6 +138,8 @@ public class Signatures implements IMCUProvider {
 
 	/**
 	 * Get the MCU id for the given Signature.
+	 * <p>
+	 * If multiple MCUs share the same signature (e.g. ATmega169 and ATmega169p), then the one with the shortest name is returned.
 	 * 
 	 * @param signature
 	 *            String with a signature in hex ("0x123456")
@@ -146,17 +150,39 @@ public class Signatures implements IMCUProvider {
 		// iterate over all mcuids to find the one with the given signature
 		// I do not use a reverse lookup map because this method will not be
 		// called often and a reverse map would add code complexity.
+		
+		// However there is a problem
 		Enumeration<?> keyset = fProps.propertyNames();
+		List<String> allMCUs = new ArrayList<String>();
 		while (keyset.hasMoreElements()) {
 			Object mcukey = keyset.nextElement();
 			if (mcukey != null && mcukey instanceof String) {
 				String mcuid = (String) mcukey;
 				if (fProps.getProperty(mcuid).equalsIgnoreCase(signature)) {
-					return mcuid;
+					allMCUs.add(mcuid);
 				}
 			}
 		}
-		return null;
+		if (allMCUs.size() == 0) {
+			// No matching MCU found
+			return null;
+		}
+		if (allMCUs.size() == 1) {
+			// Only one found
+			return allMCUs.get(0);
+		}
+		
+		// more than one MCU matched the signature.
+		// find the one with the shortest name and return it.
+		String bestmcu = null;
+		int bestmculength = 99;
+		for (String currmcu : allMCUs) {
+			if (currmcu.length() < bestmculength) {
+				bestmcu = currmcu;
+				bestmculength = currmcu.length();
+			}
+		}
+		return bestmcu;
 	}
 
 	/**
