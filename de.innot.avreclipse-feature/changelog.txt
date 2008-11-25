@@ -63,6 +63,15 @@ Fixes:
   The value is set on the Programmer Configuration dialog
   (Window -> Preferences -> AVR -> AVRDude -> Programmer configurations -> Edit...)
 
+  Fixed since 2.3 Beta 1:
+  
+* Bug 2136888: Custom path to avrdude executable not honored in build.
+  Fixed: The build process now takes custom avrdude paths into account.
+  
+* Bug 2347110: AVRDude "Upload to target hardware" fails silently when the project
+  name contains an "-U".
+  Fixed.
+  
 ================================================================================
 Version 2.2.0 [18-June-2008]
 
