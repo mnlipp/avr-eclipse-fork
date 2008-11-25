@@ -196,7 +196,7 @@ public class AVRDudeAction {
 		return sb.toString();
 	}
 
-	private final static Pattern	fRemoveTrim	= Pattern.compile(".*-U\\s*(.*?)");
+	private final static Pattern	fRemoveTrim	= Pattern.compile(".*?-U\\s*(.*)");
 
 	/**
 	 * Create an action for the given argument.
@@ -206,7 +206,8 @@ public class AVRDudeAction {
 	 * </p>
 	 * <p>
 	 * The current implementation requires that the filetype at the end is set, otherwise it will
-	 * not parse
+	 * not parse.
+	 * </p>
 	 * 
 	 * @param argument
 	 * @return
