@@ -58,10 +58,14 @@ Fixes:
 * Bug 2050945: Read Back of "Enable Individual Settings ..."
   Fixed: removed internal caching of project setting.
   
-* Bug 2071415: Timing issue on Linux / USB / AVR Dragon
+* Bug 2071415: Timing issue with USB / AVR Dragon
   Fixed by adding a user selectable delay between avrdude programming calls.
   The value is set on the Programmer Configuration dialog
   (Window -> Preferences -> AVR -> AVRDude -> Programmer configurations -> Edit...)
+  
+* Signature based autorecognition of attached MCU will now use the MCU with the shortest
+  name when multiple MCUs share the same signature (e.g. ATmega169 / ATmega169P).
+  This makes working with the AVR Butterfly easier.
 
   Fixed since 2.3 Beta 1:
   
