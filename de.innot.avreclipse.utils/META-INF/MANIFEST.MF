@@ -9,5 +9,6 @@ Bundle-Vendor: Thomas Holland
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  de.innot.avreclipse.core
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Export-Package: de.innot.avreclipse.devutils;uses:="org.eclipse.ui.plugin,org.eclipse.equinox.app,org.osgi.framework"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
