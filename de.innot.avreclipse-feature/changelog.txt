@@ -8,7 +8,7 @@
 $Id$
 
 ================================================================================
-Version 2.3.0 Beta 1 [15. September 2008]
+Version 2.3.0 [01. December 2008]
 
 New:
 -----------------------------
@@ -25,7 +25,7 @@ New:
 Changed / Improved:
 -----------------------------
 * ATXmega processors are now fully supported. (Except for the upload with 
-  avrdude because avrdude does not yet support the ATXmega line.)
+  avrdude because avrdude 5.5 does not yet support the ATXmega line.)
   
 * The AVRDude project properties now have a new field "other options" to add
   avrdude options not supported by the plugin. (As of version 2.3 the plugin
@@ -40,6 +40,16 @@ Changed / Improved:
   are not automatically recognized any more.
   In this case the new "Rescan" button on the AVR path preferences can be 
   used to look for the new path.
+  
+  Improved since 2.3 Beta 1
+
+* "Upload to Target Hardware" method now uploads all memory segments with one call
+  to avrdude. This should speed up the upload significantly for most configurations.
+  
+* Fuse description files now based on AVR Tools 4.15 Build 623
+
+* Updated links to the datasheets.
+
 
 Fixes:
 -----------------------------
