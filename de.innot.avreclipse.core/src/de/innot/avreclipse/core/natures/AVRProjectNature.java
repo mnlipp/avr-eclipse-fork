@@ -15,31 +15,26 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  */
 public class AVRProjectNature implements IProjectNature {
 
-	private IProject fProject = null;
+	private IProject	fProject	= null;
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.core.resources.IProjectNature#configure()
 	 */
-	@SuppressWarnings("unused")
 	public void configure() throws CoreException {
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
 	 */
-	@SuppressWarnings("unused")
 	public void deconfigure() throws CoreException {
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.core.resources.IProjectNature#getProject()
 	 */
 	public IProject getProject() {
@@ -48,8 +43,8 @@ public class AVRProjectNature implements IProjectNature {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
+	 * @see
+	 * org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
 	 */
 	public void setProject(IProject project) {
 		fProject = project;

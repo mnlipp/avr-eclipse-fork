@@ -85,15 +85,15 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 	private final Composite			fParent;
 
 	/**
-	 * List of all child <code>Sections</code>. Used to clear the parent composite for a redraw
-	 * and to determine the widest section.
+	 * List of all child <code>Sections</code>. Used to clear the parent composite for a redraw and
+	 * to determine the widest section.
 	 */
-	private final List<Control>		fControls		= new ArrayList<Control>();
+	private final List<Control>		fControls	= new ArrayList<Control>();
 
 	/**
 	 * List of all child <code>IFormPart</code>. Used to clear to ManagedForm for a redraw.
 	 */
-	private final List<IFormPart>	fPFormParts		= new ArrayList<IFormPart>();
+	private final List<IFormPart>	fPFormParts	= new ArrayList<IFormPart>();
 
 	/**
 	 * The model for this <code>IFormPart</code>. Will not be modified in this class, but in the
@@ -105,13 +105,7 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 	 * The current MCU of the ByteValues. If this is different than {@link #fLastCleanMCU} then this
 	 * part is stale and needs to be redrawn on the next refresh.
 	 */
-	private String					fCurrentMCU		= null;
-
-	/**
-	 * The MCU for which the form is valid. If the MCU is changed this part is marked as stale and
-	 * redrawn on the next refresh.
-	 */
-	private final String			fLastCleanMCU	= null;
+	private String					fCurrentMCU	= null;
 
 	/**
 	 * Create a new <code>IFormPart</code> to handle all BitFields in a <code>ByteValues</code>.
@@ -139,7 +133,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#initialize(org.eclipse.ui.forms.IManagedForm)
 	 */
 	@Override
@@ -188,7 +181,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
 	 */
 	@Override
@@ -201,7 +193,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#setFormInput(java.lang.Object)
 	 */
 	@Override
@@ -220,7 +211,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#refresh()
 	 */
 	@Override
@@ -240,7 +230,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
 	 */
 	@Override
@@ -251,7 +240,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
 	 */
 	@Override
@@ -263,7 +251,6 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.forms.AbstractFormPart#isStale()
 	 */
 	@Override
@@ -279,8 +266,9 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot
+	 * .avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
 	 */
 	public void byteValuesChanged(ByteValueChangeEvent[] events) {
 		// go through all events and if any event changes the MCU then redraw this part for the new
@@ -316,8 +304,8 @@ public class ByteValuesMainPart extends AbstractFormPart implements IByteValuesC
 	}
 
 	/**
-	 * Clear the form by removing all child <code>SectionPart</code>s from the parent composite
-	 * and all <code>IFormParts</code> from the parent ManagedForm.
+	 * Clear the form by removing all child <code>SectionPart</code>s from the parent composite and
+	 * all <code>IFormParts</code> from the parent ManagedForm.
 	 * <p>
 	 * Used to prepare this form for a redraw for a different MCU.
 	 * </p>

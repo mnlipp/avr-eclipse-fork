@@ -60,17 +60,17 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 public class MCUListView extends ViewPart {
 
 	// The parent Composite of this Viewer
-	private Composite fViewParent;
+	private Composite					fViewParent;
 
-	private TableViewer fTable;
+	private TableViewer					fTable;
 
-	private List<MCUListColumn> fColumns = new ArrayList<MCUListColumn>();
+	private final List<MCUListColumn>	fColumns	= new ArrayList<MCUListColumn>();
 
 	// private IMemento fMemento;
 
-	private ISelectionListener fWorkbenchSelectionListener;
+	private ISelectionListener			fWorkbenchSelectionListener;
 
-	private SupportedContentProvider fContentProvider;
+	private SupportedContentProvider	fContentProvider;
 
 	public enum LabelStyle {
 		SHOW_STRING, SHOW_YESNO, SHOW_URL;
@@ -107,6 +107,7 @@ public class MCUListView extends ViewPart {
 	/**
 	 * Create, layout and initialize the controls of this viewer
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public void createPartControl(Composite parent) {
 
@@ -132,6 +133,7 @@ public class MCUListView extends ViewPart {
 			fColumns.add(provider);
 		}
 
+		// setUpOwnerDraw has been deprecated in Eclipse 3.4, but we still support 3.3
 		OwnerDrawLabelProvider.setUpOwnerDraw(fTable);
 		ColumnViewerToolTipSupport.enableFor(fTable, ToolTip.NO_RECREATE);
 
@@ -142,7 +144,7 @@ public class MCUListView extends ViewPart {
 
 		// Activate the Workbench selection listener
 		getSite().getWorkbenchWindow().getSelectionService().addPostSelectionListener(
-		        fWorkbenchSelectionListener);
+				fWorkbenchSelectionListener);
 
 		for (MCUListColumn mlc : fColumns) {
 			mlc.updateColumn();
@@ -152,7 +154,6 @@ public class MCUListView extends ViewPart {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
 	@Override
@@ -162,33 +163,30 @@ public class MCUListView extends ViewPart {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
 	 */
 	@Override
 	public void dispose() {
 		// remove the listeners from their objects
 		getSite().getWorkbenchWindow().getSelectionService().removePostSelectionListener(
-		        fWorkbenchSelectionListener);
+				fWorkbenchSelectionListener);
 		super.dispose();
 	}
 
 	/**
 	 * Handle Selection Change Events.
 	 * <p>
-	 * This is called by the workbench selection services to inform this viewer,
-	 * that something has been selected on the workbench. If something with an
-	 * AVR MCU type has been selected (Project), then the viewer will show the
-	 * description of the associated mcu.
+	 * This is called by the workbench selection services to inform this viewer, that something has
+	 * been selected on the workbench. If something with an AVR MCU type has been selected
+	 * (Project), then the viewer will show the description of the associated mcu.
 	 * </p>
 	 */
 	private class WorkbenchSelectionListener implements ISelectionListener {
 
 		/*
 		 * (non-Javadoc)
-		 * 
 		 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
-		 *      org.eclipse.jface.viewers.ISelection)
+		 * org.eclipse.jface.viewers.ISelection)
 		 */
 		public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
 			// we ignore our own selections
@@ -262,18 +260,15 @@ public class MCUListView extends ViewPart {
 		/**
 		 * Get the mcu id from the given structured selection.
 		 * <p>
-		 * If the first element of the selection is an AVR project, the mcu type
-		 * is taken from the properties of the active build configuration.
+		 * If the first element of the selection is an AVR project, the mcu type is taken from the
+		 * properties of the active build configuration.
 		 * </p>
 		 * <p>
-		 * If the selection did not contain a valid mcu type <code>null</code>
-		 * is returned
+		 * If the selection did not contain a valid mcu type <code>null</code> is returned
 		 * 
 		 * @param selection
-		 *            <code>IStructuredSelection</code> from the Eclipse
-		 *            Selection Services
-		 * @return String with the mcu id or
-		 *         <code>null</null> if no mcu id was found.
+		 *            <code>IStructuredSelection</code> from the Eclipse Selection Services
+		 * @return String with the mcu id or <code>null</null> if no mcu id was found.
 		 */
 		private String getMCUId(IStructuredSelection selection) {
 
@@ -299,7 +294,8 @@ public class MCUListView extends ViewPart {
 						// This is an AVR Project
 						// Get the AVR properties for the active build
 						// configuration and fetch the mcu id from it.
-						ProjectPropertyManager projprops = ProjectPropertyManager.getPropertyManager(project);
+						ProjectPropertyManager projprops = ProjectPropertyManager
+								.getPropertyManager(project);
 						AVRProjectProperties props = projprops.getActiveProperties();
 						return props.getMCUId();
 					}
