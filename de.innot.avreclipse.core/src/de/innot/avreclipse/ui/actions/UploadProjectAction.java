@@ -358,34 +358,20 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 
 				AVRDude avrdude = AVRDude.getDefault();
 
-				// Add one entry to the options which will be filled with each
-				// action to perform
-				fOptions.add("");
-				int lastindex = fOptions.lastIndexOf("");
+				// Append all requested actions
+				// The reason this is done here is because in earlier versions
+				// of the plugin each action was send separately to avrdude to better
+				// track the progress.
+				// However some users complained that this slows the whole upload process down.
+				// So now we sent all actions in one go, as the user can monitor the progress
+				// in the console anyway.
+				fOptions.addAll(fActions);
+				monitor.subTask("Running AVRDude");
 
-				for (String actionoption : fActions) {
-					if (monitor.isCanceled()) {
-						break;
-					}
+				// Now avrdude can be started.
+				avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd,
+						fProgrammerConfig);
 
-					// Get the action from the actionoption
-					String subtask;
-					AVRDudeAction action = AVRDudeAction.getActionForArgument(actionoption);
-					if (action != null) {
-						subtask = "avrdude: " + action.toString();
-					} else {
-						subtask = "avrdude: " + actionoption;
-					}
-
-					monitor.subTask(subtask);
-
-					fOptions.set(lastindex, actionoption);
-
-					// Now avrdude can be started.
-					avrdude.runCommand(fOptions, new SubProgressMonitor(monitor, 1), true, fCwd,
-							fProgrammerConfig);
-
-				}
 			} catch (AVRDudeException ade) {
 				// Show an Error message and exit
 				Display display = PlatformUI.getWorkbench().getDisplay();
