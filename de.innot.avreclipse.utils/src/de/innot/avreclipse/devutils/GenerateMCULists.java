@@ -16,7 +16,7 @@
 package de.innot.avreclipse.devutils;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -152,9 +152,9 @@ public class GenerateMCULists implements IApplication {
 			File signaturefile = statelocation.append("signature.properties").toFile();
 
 			try {
-				FileWriter writer = new FileWriter(signaturefile);
-				fSignatureProperties.store(writer, "# Created by GenerateMCULists - do not edit");
-				writer.close();
+				FileOutputStream ostream = new FileOutputStream(signaturefile);
+				fSignatureProperties.store(ostream, "# Created by GenerateMCULists - do not edit");
+				ostream.close();
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
@@ -177,7 +177,6 @@ public class GenerateMCULists implements IApplication {
 		 * 
 		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#start()
 		 */
-		@Override
 		public void start() {
 			// Load the previous datasheet props from the core plugin
 			Properties oldDatasheetProps = new Properties();
@@ -218,7 +217,6 @@ public class GenerateMCULists implements IApplication {
 		 * 
 		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#finish()
 		 */
-		@Override
 		public void finish() {
 			// Write the signature properties to the file "datasheet.properties"
 			// in the de.innot.avreclipse.utils state storage area
@@ -227,9 +225,9 @@ public class GenerateMCULists implements IApplication {
 			File datasheetfile = statelocation.append("datasheet.properties").toFile();
 
 			try {
-				FileWriter writer = new FileWriter(datasheetfile);
-				fDatasheetProps.store(writer, "# Add datasheet URLs as available");
-				writer.close();
+				FileOutputStream ostream = new FileOutputStream(datasheetfile);
+				fDatasheetProps.store(ostream, "# Add datasheet URLs as available");
+				ostream.close();
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
