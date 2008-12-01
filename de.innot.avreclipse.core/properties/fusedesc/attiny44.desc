@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 31.07.08 15:47-->
+<!--Date: 01.12.08 15:27-->
 <!--Based on: Atmel Part Description File "ATtiny44.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="attiny44">

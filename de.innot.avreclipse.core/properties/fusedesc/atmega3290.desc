@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 31.07.08 15:47-->
+<!--Date: 01.12.08 15:27-->
 <!--Based on: Atmel Part Description File "ATmega3290.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega3290">
-<version build="166" status="RELEASED"/>
+<version build="167" status="RELEASED"/>
 <fusebyte default="0xFF" index="2" name="EXTENDED">
 <bitfield default="0x03" desc="Brown-out Detector trigger level" mask="0x06" name="BODLEVEL">
 <value desc="Brown-out detection disabled" val="0x03"/>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 31.07.08 15:47-->
+<!--Date: 01.12.08 15:27-->
 <!--Based on: Atmel Part Description File "ATmega165P.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega165p">
-<version build="38" status="RELEASED"/>
+<version build="39" status="RELEASED"/>
 <fusebyte default="0xFF" index="2" name="EXTENDED">
 <bitfield default="0x07" desc="Brown-out Detector trigger level" mask="0x0E" name="BODLEVEL">
 <value desc="Brown-out Detection Disabled" val="0x07"/>

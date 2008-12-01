@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 31.07.08 15:47-->
+<!--Date: 01.12.08 15:27-->
 <!--Based on: Atmel Part Description File "ATmega162.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega162">
@@ -11,6 +11,7 @@
 <bitfield default="0x07" desc="Brown out detector trigger level" mask="0x0E" name="BODLEVEL">
 <value desc="Brown-out detection disabled" val="0x07"/>
 <value desc="Brown-out detection at VCC=1.8 V" val="0x06"/>
+<value desc="Brown-out detection at VCC=2.3 V" val="0x03"/>
 <value desc="Brown-out detection at VCC=2.7 V" val="0x05"/>
 <value desc="Brown-out detection at VCC=4.3 V" val="0x04"/>
 </bitfield>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 31.07.08 15:47-->
+<!--Date: 01.12.08 15:27-->
 <!--Based on: Atmel Part Description File "ATmega32U4.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega32u4">
-<version build="1" status="RELEASED"/>
+<version build="5" status="RELEASED"/>
 <fusebyte default="0xFF" index="2" name="EXTENDED">
 <bitfield default="0x07" desc="Brown-out Detector trigger level" mask="0x07" name="BODLEVEL">
 <value desc="Brown-out detection disabled; [BODLEVEL=111]" val="0x07"/>
@@ -26,10 +26,10 @@
 <bitfield default="0x01" desc="Watchdog timer always on" mask="0x10" name="WDTON"/>
 <bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
 <bitfield default="0x00" desc="Select Boot Size" mask="0x06" name="BOOTSZ">
-<value desc="Boot Flash size=512 words start address=$3E00" val="0x03"/>
-<value desc="Boot Flash size=1024 words start address=$3C00" val="0x02"/>
-<value desc="Boot Flash size=2048 words start address=$3800" val="0x01"/>
-<value desc="Boot Flash size=4096 words start address=$3000" val="0x00"/>
+<value desc="Boot Flash size=256 words start address=$3F00" val="0x03"/>
+<value desc="Boot Flash size=512 words start address=$3E00" val="0x02"/>
+<value desc="Boot Flash size=1024 words start address=$3C00" val="0x01"/>
+<value desc="Boot Flash size=2048 words start address=$3800" val="0x00"/>
 </bitfield>
 <bitfield default="0x01" desc="Boot Reset vector Enabled" mask="0x01" name="BOOTRST"/>
 </fusebyte>
