@@ -101,9 +101,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	private final static String		TEXT_FROMFILE			= "from {0} file";
 	private final static String		TEXT_IMMEDIATE			= "direct hex value{0}";
 
-	private final static String		WARN_FILEINCOMPATIBLE	= "The selected file is for an {0} MCU.\n"
-																	+ "This is not compatible with the {2} MCU setting [{1}].\n"
-																	+ "Please edit the file or select a different file.";
 	private final static String		WARN_BYTESINCOMPATIBLE	= "These hex values are for an {0} MCU.\n"
 																	+ "This is not compatible with the {2} MCU setting [{1}].";
 	private final static String		WARN_BUTTON_CONVERT		= "Convert";

@@ -209,11 +209,8 @@ public class FuseFileDocumentProvider extends ForwardingDocumentProvider {
 	 *            the input element
 	 * @return A <code>ByteValues</code> object. Can be <code>null</code> if the object could
 	 *         not be created.
-	 * @throws CoreException
-	 *             If the <code>ByteValues</code> could not be created, e.g. a missing MCU
-	 *             property.
 	 */
-	public ByteValues getByteValues(Object element) throws CoreException {
+	public ByteValues getByteValues(Object element) {
 
 		DocumentByteValuesConnector connector = fConnectorsMap.get(element);
 		if (connector == null) {

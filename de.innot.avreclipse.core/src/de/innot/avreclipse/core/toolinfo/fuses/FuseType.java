@@ -115,7 +115,7 @@ public enum FuseType {
 	 * 
 	 * @return <code>6</code> for Fuse memory and <code>1</code> for Lockbit memory.
 	 */
-	@Deprecated
+	// @Deprecated
 	public int getMaxBytes() {
 		return fMaxBytes;
 	}

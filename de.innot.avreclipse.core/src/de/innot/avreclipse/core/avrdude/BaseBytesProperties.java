@@ -414,7 +414,8 @@ public abstract class BaseBytesProperties {
 				String message = MessageFormat
 						.format("File not found [{0}]", location.toOSString());
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, FILE_NOT_FOUND,
-						message, new FileNotFoundException(file.getFullPath().toOSString()));
+						message, new FileNotFoundException(file != null ? file.getFullPath()
+								.toOSString() : null));
 				throw new CoreException(status);
 			}
 

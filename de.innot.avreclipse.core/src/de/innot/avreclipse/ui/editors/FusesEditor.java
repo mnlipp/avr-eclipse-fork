@@ -182,7 +182,7 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 
 		IWorkspaceRunnable batchSave = new IWorkspaceRunnable() {
 
-			public void run(IProgressMonitor monitor) throws CoreException {
+			public void run(IProgressMonitor monitor) {
 				// Commit the pages
 				fFuseEditor.doSave(monitor);
 				fSourceEditor.doSave(monitor);
@@ -343,7 +343,7 @@ public class FusesEditor extends FormEditor implements IResourceChangeListener,
 			moved = (IEditorInput) movedElement;
 		}
 
-		if (original != null && original.equals(getEditorInput())) {
+		if (moved != null && original != null && original.equals(getEditorInput())) {
 			// OK - our source file has moved.
 			// The source editor has its own listener, so we don't need to tell him.
 			// Just tell the form editor and update the filename.

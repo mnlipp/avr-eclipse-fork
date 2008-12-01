@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -72,8 +70,8 @@ public class SelectProgrammerDialog extends TitleAreaDialog {
 	 *            of the given Shell.
 	 * @param preselect
 	 *            A <code>ProgrammerConfig</code> which will be preselected when the dialog is
-	 *            opened. May be <code>null</code>, in which case the first programmer in the list
-	 *            will be preselected.
+	 *            opened. May be <code>null</code>, in which case the first programmer in the
+	 *            list will be preselected.
 	 */
 	public SelectProgrammerDialog(Shell shell, ProgrammerConfig preselect) {
 		super(shell);
@@ -88,15 +86,14 @@ public class SelectProgrammerDialog extends TitleAreaDialog {
 
 	/*
 	 * (non-Javadoc)
-	 * @see
-	 * org.eclipse.jface.dialogs.TitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+	 * 
+	 * @see org.eclipse.jface.dialogs.TitleAreaDialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
 	protected Control createDialogArea(Composite parent) {
 
 		String title = "Select Programmer to read the MCU";
 		setTitle(title);
-		
 
 		// create the top level composite for the dialog area
 		Composite composite = new Composite(parent, SWT.NONE);
@@ -119,12 +116,13 @@ public class SelectProgrammerDialog extends TitleAreaDialog {
 		if (fAllNames.length == 0) {
 			// Show an error message when no programmers are available
 			setErrorMessage("No programmer configurations available.");
-			
+
 			Label errorlabel = new Label(body, SWT.WRAP);
-			errorlabel.setText("Please go to the AVRDude preferences and add at least one programmer configuration.\n\n"
-					+"(Window > Preferences... > AVR > AVRDude)." );
-			errorlabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.TOP, true, true,2,1));
-			
+			errorlabel
+					.setText("Please go to the AVRDude preferences and add at least one programmer configuration.\n\n"
+							+ "(Window > Preferences... > AVR > AVRDude).");
+			errorlabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.TOP, true, true, 2, 1));
+
 			return composite;
 		}
 

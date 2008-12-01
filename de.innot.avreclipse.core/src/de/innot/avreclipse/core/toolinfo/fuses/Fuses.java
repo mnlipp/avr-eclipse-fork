@@ -75,19 +75,19 @@ import de.innot.avreclipse.core.IMCUProvider;
 public class Fuses implements IMCUProvider {
 
 	// paths to the default and instance properties files
-	private final static String						DEFAULTFOLDER			= "/properties/fusedesc";
-	private final static String						INSTANCEFOLDER			= "fusedesc";
+	private final static String					DEFAULTFOLDER			= "/properties/fusedesc";
+	private final static String					INSTANCEFOLDER			= "fusedesc";
 
 	/** File name extension for <code>IMCUDescription</code> objects. */
-	private final static String						DESCRIPTION_EXTENSION	= ".desc";
+	private final static String					DESCRIPTION_EXTENSION	= ".desc";
 
 	/** Cache of accessed <code>IMCUDescription</code> objects */
 	private final Map<String, IMCUDescription>	fCache;
 
 	/** List of all MCU id values for which Descriptions exist */
-	private Set<String>								fMCUList				= null;
+	private Set<String>							fMCUList				= null;
 
-	private static Fuses							fInstance				= null;
+	private static Fuses						fInstance				= null;
 
 	/**
 	 * Get the default instance of the Fuses class
@@ -105,13 +105,12 @@ public class Fuses implements IMCUProvider {
 	}
 
 	/**
-	 * Get the {@link IMCUDescription} with the fuse and lockbits descriptions for the given MCU
-	 * id.
+	 * Get the {@link IMCUDescription} with the fuse and lockbits descriptions for the given MCU id.
 	 * 
 	 * @param mcuid
 	 *            <code>String</code> with a valid MCU id
-	 * @return <code>IMCUDescription</code> for the MCU or <code>null</code> if the given MCU
-	 *         id is unknown.
+	 * @return <code>IMCUDescription</code> for the MCU or <code>null</code> if the given MCU id
+	 *         is unknown.
 	 * @throws IOException
 	 *             if either the storage locations can't be accessed or a file exists, but can't be
 	 *             accessed.
@@ -354,9 +353,6 @@ public class Fuses implements IMCUProvider {
 			// Parser with specified options can't be built
 			pce.printStackTrace();
 
-		} catch (IOException ioe) {
-			// I/O error
-			ioe.printStackTrace();
 		}
 
 		// we end up here if an Exception was thrown.

@@ -306,10 +306,9 @@ public class ProjectPropertyManager {
 						node.removeNode();
 					}
 					return false;
-				} else {
-					// try the children
-					return true;
 				}
+				// try the children
+				return true;
 			}
 		});
 
