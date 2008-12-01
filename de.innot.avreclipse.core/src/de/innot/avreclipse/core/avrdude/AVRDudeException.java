@@ -18,6 +18,8 @@ package de.innot.avreclipse.core.avrdude;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
+
 /**
  * Wrapper for all Exceptions that may be thrown when accessing avrdude.
  * <p>
@@ -30,16 +32,12 @@ import java.io.IOException;
  * @since 2.2
  * 
  */
-/**
- * @author Thomas
- * 
- */
 public class AVRDudeException extends Exception {
 
 	private static final long	serialVersionUID	= 1L;
 
 	public enum Reason {
-		UNKNOWN, NO_AVRDUDE_FOUND, CANT_ACCESS_AVRDUDE, CONFIG_NOT_FOUND, UNKNOWN_MCU, UNKNOWN_PROGRAMMER, NO_PROGRAMMER, PORT_BLOCKED, NO_USB, TIMEOUT, PARSE_ERROR, INVALID_CWD, USER_CANCEL;
+		UNKNOWN, NO_AVRDUDE_FOUND, CANT_ACCESS_AVRDUDE, CONFIG_NOT_FOUND, UNKNOWN_MCU, UNKNOWN_PROGRAMMER, NO_PROGRAMMER, PORT_BLOCKED, NO_USB, TIMEOUT, PARSE_ERROR, INVALID_CWD, USER_CANCEL, SYNC_FAIL, INIT_FAIL, NO_TARGET_POWER;
 	}
 
 	/** The Reason for the exception */
@@ -68,8 +66,8 @@ public class AVRDudeException extends Exception {
 	 *            <code>getMessage()</code> method).
 	 * @param cause
 	 *            the cause (which is saved for later retrieval by the <code>getCause()</code>
-	 *            method). (A <code>null</code> value is permitted, and indicates that the cause
-	 *            is nonexistent or unknown.)
+	 *            method). (A <code>null</code> value is permitted, and indicates that the cause is
+	 *            nonexistent or unknown.)
 	 */
 	public AVRDudeException(Reason reason, String message, Throwable cause) {
 		super(message, cause);

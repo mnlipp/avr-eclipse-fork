@@ -169,11 +169,14 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					break;
 
 				case PARSE_ERROR:
-					message = "Could not understand the output from AVRDude.\n"
-							+ "You probably have newer AVRDude version with a changed output format.\n\n"
-							+ "Please contact the AVR Eclipse Plugin maintainer to have this fixed.\n"
+					message = "Could not understand the output from AVRDude.\n\n"
+							+ " - Either avrdude returned an error message that is not covered by the AVR Eclipse Pluguin\n"
+							+ " - or you have a newer AVRDude version with a changed output format.\n\n"
+							+ "In either case check the AVRDude return message below and contact\n"
+							+ "the AVR Eclipse Plugin maintainers to have this fixed.\n"
 							+ "https://sourceforge.net/projects/avr-eclipse/";
 					break;
+
 				case INVALID_CWD:
 					message = "Invalid Build directory.\n"
 							+ "Please check the Build directory on the \"Builder settings\" tab\n"
@@ -183,6 +186,25 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 				case USER_CANCEL:
 					message = "Operation cancelled.\n";
 					break;
+
+				case SYNC_FAIL:
+					source = "Programmer {0} could not connect to the target hardware.\n\n"
+							+ "Please check that the target hardware is connected correctly.";
+					message = MessageFormat.format(source, programmer);
+					break;
+
+				case INIT_FAIL:
+					source = "Programmer {0} could not initialize the target hardware.\n\n"
+							+ "Please check that the target hardware is connected correctly.";
+					message = MessageFormat.format(source, programmer);
+					break;
+
+				case NO_TARGET_POWER:
+					source = "Target Hardware is not powered.\n\n"
+							+ "Please check that the target hardware is connected correctly and has power.";
+					message = MessageFormat.format(source, programmer);
+					break;
+
 				default:
 					message = "An unhandled Error occured while accessing AVRDude.\n\n"
 							+ "See below for details and report this error the the Plugin maintainer.\n"

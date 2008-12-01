@@ -1075,8 +1075,16 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.contains("usbdev_open")) {
 				abort = true;
 				fAbortReason = Reason.NO_USB;
+			} else if (line.contains("failed to sync with")) {
+				abort = true;
+				fAbortReason = Reason.SYNC_FAIL;
+			} else if (line.contains("initialization failed")) {
+				abort = true;
+				fAbortReason = Reason.INIT_FAIL;
+			} else if (line.contains("NO_TARGET_POWER")) {
+				abort = true;
+				fAbortReason = Reason.NO_TARGET_POWER;
 			}
-
 			if (abort) {
 				fProgressMonitor.setCanceled(true);
 				fAbortLine = line;
