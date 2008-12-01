@@ -34,14 +34,13 @@ import de.innot.avreclipse.util.URLDownloadManager;
 public class TestURLDownloadManager {
 
 	@Before
-	public void setupTest() throws MalformedURLException {
+	public void setupTest() {
 		// clear the cache
 		URLDownloadManager.clearCache();
 	}
 
 	/**
-	 * Test method for
-	 * {@link URLDownloadManager#download(URL, IProgressMonitor)}.
+	 * Test method for {@link URLDownloadManager#download(URL, IProgressMonitor)}.
 	 * 
 	 * @throws MalformedURLException
 	 */
@@ -49,7 +48,7 @@ public class TestURLDownloadManager {
 	@Ignore
 	public void testNormalDownload() throws MalformedURLException {
 		URL testurl = new URL(
-		        "http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");
+				"http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");
 
 		try {
 			long starttime = System.currentTimeMillis();
@@ -60,7 +59,7 @@ public class TestURLDownloadManager {
 			// This might fail on very fast internet connections with download
 			// speeds > 8 Mytes/sec.
 			assertFalse("First download to fast (out of the cache?) [actual:" + runningtime
-			        + "ms < 100ms]", runningtime < 100);
+					+ "ms < 100ms]", runningtime < 100);
 
 			// Download should be OK
 			assertNotNull("Returned null File", file);
@@ -80,7 +79,7 @@ public class TestURLDownloadManager {
 
 			// This might fail on very very slow systems.
 			assertFalse("Download cached item took to long. [actual:" + runningtime + "ms > 10ms]",
-			        runningtime > 10);
+					runningtime > 10);
 
 			assertNotNull("Returned null File from cache", file);
 
@@ -94,8 +93,7 @@ public class TestURLDownloadManager {
 	}
 
 	/**
-	 * Test method for
-	 * {@link URLDownloadManager#download(URL, IProgressMonitor)}.
+	 * Test method for {@link URLDownloadManager#download(URL, IProgressMonitor)}.
 	 * 
 	 * @throws MalformedURLException
 	 */
@@ -126,8 +124,7 @@ public class TestURLDownloadManager {
 	}
 
 	/**
-	 * Test method for
-	 * {@link URLDownloadManager#download(URL, IProgressMonitor)}.
+	 * Test method for {@link URLDownloadManager#download(URL, IProgressMonitor)}.
 	 * 
 	 * @throws MalformedURLException
 	 * @throws InterruptedException
@@ -136,7 +133,7 @@ public class TestURLDownloadManager {
 	@Ignore
 	public void testCanceledDownload() throws MalformedURLException, InterruptedException {
 		final URL testurl = new URL(
-		        "http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");
+				"http://downloads.sourceforge.net/avr-eclipse/de.innot.avreclipse-2.1.0.20080210PRD.zip");
 
 		final IProgressMonitor testmonitor = new NullProgressMonitor();
 
@@ -156,7 +153,7 @@ public class TestURLDownloadManager {
 			Thread.sleep(10);
 		}
 		assertTrue("Download not in internal list of downloads", URLDownloadManager
-		        .isDownloading(testurl));
+				.isDownloading(testurl));
 
 		// cancel the Job and wait for it to finish
 		testmonitor.setCanceled(true);

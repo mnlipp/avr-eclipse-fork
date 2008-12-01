@@ -22,13 +22,13 @@ import org.junit.Test;
  */
 public class TestDatasheets {
 
-	private Datasheets fDatasheets = null;
-	
+	private Datasheets	fDatasheets	= null;
+
 	@BeforeClass
 	public static void showProgressView() throws PartInitException {
 		// Open the progress view
-		IViewPart progressview = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-		        "org.eclipse.ui.views.ProgressView");
+		IViewPart progressview = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+				.getActivePage().showView("org.eclipse.ui.views.ProgressView");
 		progressview.getSite().getPage().activate(progressview);
 	}
 
@@ -48,17 +48,16 @@ public class TestDatasheets {
 	@Test
 	public void testGetMCUInfo() {
 		// test a few MCUs
-		assertTrue("getMCUInfo(\"at86rf401\") != \"\"", fDatasheets.getMCUInfo("at86rf401").equals(
-		        ""));
+		assertTrue("getMCUInfo(\"attiny43u\") != \"\"", fDatasheets.getMCUInfo("attiny43u").equals(
+				""));
 		assertTrue("getMCUInfo(\"at90pwm2b\") not correct", fDatasheets.getMCUInfo("at90pwm2b")
-		        .equals("http://www.atmel.com/dyn/resources/prod_documents/doc4317.pdf"));
+				.equals("http://www.atmel.com/dyn/resources/prod_documents/doc4317.pdf"));
 		assertTrue("getMCUInfo(\"attiny861\") not correct", fDatasheets.getMCUInfo("attiny861")
-		        .equals("http://www.atmel.com/dyn/resources/prod_documents/doc2588.pdf"));
+				.equals("http://www.atmel.com/dyn/resources/prod_documents/doc2588.pdf"));
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.Datasheets#getMCUList()}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.Datasheets#getMCUList()}.
 	 */
 	@Test
 	public void testGetMCUList() {
@@ -66,14 +65,13 @@ public class TestDatasheets {
 		assertNotNull("getMCUList() returned null", allsheets);
 		// at least a few sigs should be present
 		assertTrue("getMCUList() list has only " + allsheets.size() + " items",
-		        allsheets.size() > 5);
+				allsheets.size() > 5);
 		// and good old atmega16 should be present
 		assertTrue("getMCUList() atmega16 missing", allsheets.contains("atmega16"));
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.Datasheets#hasMCU(java.lang.String)}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.Datasheets#hasMCU(java.lang.String)}.
 	 */
 	@Test
 	public void testHasMCU() {

@@ -23,12 +23,12 @@ import de.innot.avreclipse.AVRPlugin;
 
 /**
  * @author U043192
- *
+ * 
  */
 public class TestSignatures {
 
-	private Signatures fSigs = null;
-	
+	private Signatures	fSigs	= null;
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -38,14 +38,18 @@ public class TestSignatures {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.Signatures#getMCUInfo(java.lang.String)}.
+	 * Test method for
+	 * {@link de.innot.avreclipse.core.toolinfo.Signatures#getMCUInfo(java.lang.String)}.
 	 */
 	@Test
 	public void testGetMCUInfo() {
 		// test a few MCUs
-		assertTrue("getMCUInfo(\"at86rf401\") != \"0x1E9181\"", fSigs.getMCUInfo("at86rf401").equals("0x1E9181"));
-		assertTrue("getMCUInfo(\"at90pwm324\") != \"0x1E9584\"", fSigs.getMCUInfo("at90pwm324").equals("0x1E9584"));
-		assertTrue("getMCUInfo(\"attiny861\") != \"0x1E930D\"", fSigs.getMCUInfo("attiny861").equals("0x1E930D"));
+		assertTrue("getMCUInfo(\"at86rf401\") != \"0x1E9181\"", fSigs.getMCUInfo("at86rf401")
+				.equals("0x1E9181"));
+		assertTrue("getMCUInfo(\"at90pwm324\") != \"0x1E9584\"", fSigs.getMCUInfo("at90pwm324")
+				.equals("0x1E9584"));
+		assertTrue("getMCUInfo(\"attiny861\") != \"0x1E930D\"", fSigs.getMCUInfo("attiny861")
+				.equals("0x1E930D"));
 	}
 
 	/**
@@ -56,7 +60,7 @@ public class TestSignatures {
 		Set<String> allsigs = fSigs.getMCUList();
 		assertNotNull("getMCUList() returned null", allsigs);
 		// at least a few sigs should be present
-		assertTrue("getMCUList() list has only " + allsigs.size() + " items", allsigs.size()>5);
+		assertTrue("getMCUList() list has only " + allsigs.size() + " items", allsigs.size() > 5);
 		// and good old atmega16 should be present
 		assertTrue("getMCUList() atmega16 missing", allsigs.contains("atmega16"));
 	}
@@ -75,29 +79,34 @@ public class TestSignatures {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.Signatures#getMCUfromSignature(java.lang.String)}.
+	 * Test method for
+	 * {@link de.innot.avreclipse.core.toolinfo.Signatures#getMCUfromSignature(java.lang.String)}.
 	 */
 	@Test
 	public void testGetMCU() {
 		// test a few signatures
 		String mcu = fSigs.getMCU("0x1E9781");
-		assertTrue("getMCU(\"0x1E9781\") == \""+mcu+"\" (expected \"at90can128\")", mcu.equals("at90can128"));
+		assertTrue("getMCU(\"0x1E9781\") == \"" + mcu + "\" (expected \"at90can128\")", mcu
+				.equals("at90can128"));
 		mcu = fSigs.getMCU("0x1E9405");
-		assertTrue("getMCU(\"0x1E9405\") == \""+mcu+"\" (expected \"atmega169p\")", mcu.equals("atmega169p"));
+		assertTrue("getMCU(\"0x1E9405\") == \"" + mcu + "\" (expected \"atmega169\")", mcu
+				.equals("atmega169"));
 		mcu = fSigs.getMCU("0x1E9510");
-		assertTrue("getMCU(\"0x1E9510\") == \""+mcu+"\" (expected \"atmega32hvb\")", mcu.equals("atmega32hvb"));
+		assertTrue("getMCU(\"0x1E9510\") == \"" + mcu + "\" (expected \"atmega32hvb\")", mcu
+				.equals("atmega32hvb"));
 	}
 
-	private final static IPath INSTANCEPROPSFILE = new Path("signatures.properties");
+	private final static IPath	INSTANCEPROPSFILE	= new Path("signatures.properties");
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.Signatures#addSignatures(java.lang.String)}.
+	 * Test method for
+	 * {@link de.innot.avreclipse.core.toolinfo.Signatures#addSignatures(java.lang.String)}.
 	 */
 	@Test
 	public void testAddSignatures() throws IOException {
 		fSigs.addSignature("test1", "0x123456");
 		fSigs.addSignature("test2", "0x654321");
-		
+
 		assertTrue(fSigs.getMCUInfo("test1").equals("0x123456"));
 		assertTrue(fSigs.getMCU("0x654321").equals("test2"));
 
@@ -105,10 +114,9 @@ public class TestSignatures {
 		// contain the two new entries
 		fSigs.addSignature("atmega16", "0x1E9403"); // default value, should not be stored
 		fSigs.storeSignatures();
-		
+
 		Properties signatureprops = new Properties();
-		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(
-		        INSTANCEPROPSFILE);
+		IPath propslocation = AVRPlugin.getDefault().getStateLocation().append(INSTANCEPROPSFILE);
 		File propsfile = propslocation.toFile();
 		assertTrue("Signature Properties not created", propsfile.exists());
 		assertTrue("Signature Properties not readable", propsfile.canRead());
@@ -118,8 +126,8 @@ public class TestSignatures {
 		is.close();
 
 		assertFalse("Stored properties empty", signatureprops.isEmpty());
-		int numprops = signatureprops.stringPropertyNames().size();
-		assertTrue(numprops + " properties stored (expected 2)",  numprops == 2);
+		int numprops = signatureprops.keySet().size();
+		assertTrue(numprops + " properties stored (expected 2)", numprops == 2);
 		assertTrue("test1 signature wrong", signatureprops.getProperty("test1").equals("0x123456"));
 		assertTrue("test2 mcuid missing", signatureprops.containsValue("0x654321"));
 		assertFalse("atmega16 should not be there", signatureprops.containsKey("atmega16"));
