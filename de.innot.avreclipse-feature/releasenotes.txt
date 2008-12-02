@@ -10,8 +10,46 @@ $Id$
 ================================================================================
 Version 2.3.0
 
-No release notes yet. Please refer to changelog.txt for the changes.
+This is a major release with some new features
 
+1. What's new
+
+	* Support for Fuses / LockBits files
+		- Two new wizards to create fuse and lockbit files (New -> Other -> AVR -> ....)
+		- An editor to edit these files.
+		- The files can be selected as the fuses / lockbits source on the AVRDude property
+		  Fuses / Lockbits pages.
+
+	* Detailed preview of the selected fuse bytes on the project 
+	  AVRDude property Fuses / Lockbits pages. 
+
+	* Some improvements "under the hood" and some bugfixes. See the changelog for details.
+
+2. Information
+
+2.1. System Requirements
+
+   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
+    * CDT 4.0.x (Eclipse 3.3 [Europa]) or
+    * CDT 5.0.x (Eclipse 3.4 [Ganymede])
+   
+   older versions of the JRE or of Eclipse / CDT are not supported.
+   
+   It has been tested with
+   	- Windows XP + winAVR 20081124rc3 / 20080610
+   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
+   	
+   	- avrdude support has been tested against avrdude 5.5. Older version are untested.
+   	
+   	It should run on all platforms meeting the system requirements.
+
+2.2 Known issues
+
+	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
+	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
+	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
+	  The same goes for discovered include paths in case the toolchain is changed.
+	  
 ================================================================================
 Version 2.2.0 release date: 18 June 2008
 
@@ -34,27 +72,7 @@ This is a major release with some new features.
 	  
 	* Some improvements "under the hood" and some bugfixes. See the changelog for details.
 
-2. Information
 
-2.1. System Requirements
-
-   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
-    * CDT 4.0.x (Eclipse 3.3) 
-   
-   older versions of the JRE or of Eclipse / CDT are not supported.
-   CDT 5.0 (Eclipse 3.4 - Ganymede) has not yet been tested and may or may not work.
-   
-   It has been tested with
-   	- Windows XP + winAVR 20071221 / 20070525
-   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
-   	
-   	It should run on all platforms meeting the system requirements.
-
-2.2 Known issues
-
-	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
-	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
-	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
 
 ================================================================================
 Version 2.1.1 release date: 25 March 2008
