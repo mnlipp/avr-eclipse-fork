@@ -38,9 +38,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
 
@@ -109,11 +106,6 @@ public class AVRDude implements IMCUProvider {
 																		AVRPath.AVRDUDE);
 
 	private long							fLastAvrdudeFinish	= 0L;
-
-	private final static Color				CONSOLE_BLUE		= PlatformUI.getWorkbench()
-																		.getDisplay()
-																		.getSystemColor(
-																				SWT.COLOR_BLUE);
 
 	/**
 	 * A cache of one or more avrdude config files. The config files are stored as
@@ -942,7 +934,6 @@ public class AVRDude implements IMCUProvider {
 		IOConsoleOutputStream ostream = null;
 		if (console != null) {
 			ostream = console.newOutputStream();
-			ostream.setColor(CONSOLE_BLUE);
 		}
 
 		final long targetmillis = fLastAvrdudeFinish + delay;
@@ -956,7 +947,8 @@ public class AVRDude implements IMCUProvider {
 		try {
 			monitor.beginTask("delay", targetdelay);
 
-			writeOutput(ostream, "\navrdude invocation delay: " + targetdelay + " milliseconds\n");
+			writeOutput(ostream, "\n>>> avrdude invocation delay: " + targetdelay
+					+ " milliseconds\n");
 
 			// delay for specified amount of milliseconds
 			// To allow user cancel during long delays we check the monitor every 10
@@ -964,12 +956,12 @@ public class AVRDude implements IMCUProvider {
 			// This is the fix for Bug 2071415
 			while (System.currentTimeMillis() < targetmillis) {
 				if (monitor.isCanceled()) {
-					writeOutput(ostream, "avrdude invocation delay: cancelled\n");
+					writeOutput(ostream, ">>> avrdude invocation delay: cancelled\n");
 					throw new AVRDudeException(Reason.USER_CANCEL, "User cancelled");
 				}
 				Thread.sleep(10);
 			}
-			writeOutput(ostream, "avrdude invocation delay: finished\n");
+			writeOutput(ostream, ">>> avrdude invocation delay: finished\n");
 
 		} catch (InterruptedException e) {
 			throw new AVRDudeException(Reason.USER_CANCEL, "System interrupt");
