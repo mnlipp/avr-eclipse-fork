@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: TargetHardwareOptionsHandler.java 190 2008-02-08 09:15:54Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 

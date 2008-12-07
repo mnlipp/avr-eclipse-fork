@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRTargetBuildMacroSupplier.java 441 2008-04-28 10:08:03Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.mbs;

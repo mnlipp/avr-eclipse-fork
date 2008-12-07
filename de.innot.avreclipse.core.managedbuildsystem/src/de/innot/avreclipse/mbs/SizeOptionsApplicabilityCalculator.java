@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: SizeOptionsApplicabilityCalculator.java 190 2008-02-08 09:15:54Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.mbs;

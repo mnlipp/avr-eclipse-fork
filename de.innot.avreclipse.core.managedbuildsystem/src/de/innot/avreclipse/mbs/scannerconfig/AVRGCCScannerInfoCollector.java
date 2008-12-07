@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRGCCScannerInfoCollector.java 602 2008-08-27 20:38:44Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.mbs.scannerconfig;

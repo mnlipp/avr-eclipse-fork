@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRTargetEnvvarSupplier.java 379 2008-03-30 22:04:15Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.mbs;

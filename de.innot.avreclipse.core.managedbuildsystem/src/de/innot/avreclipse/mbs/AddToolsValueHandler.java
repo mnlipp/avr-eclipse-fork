@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AddToolsValueHandler.java 334 2008-02-28 17:20:40Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.mbs;
