@@ -18,14 +18,12 @@ package de.innot.avreclipse.core.avrdude;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
-
 /**
  * Wrapper for all Exceptions that may be thrown when accessing avrdude.
  * <p>
  * This Exceptions contains a reason, set when creating the Exception and readable with
- * {@link #getReason()}. This is used by the {@link AVRDudeErrorDialog} to display a human readable
- * detailed description of the error.
+ * {@link #getReason()}. This is used by the <code>AVRDudeErrorDialog</code> to display a human
+ * readable detailed description of the error.
  * </p>
  * 
  * @author Thomas Holland

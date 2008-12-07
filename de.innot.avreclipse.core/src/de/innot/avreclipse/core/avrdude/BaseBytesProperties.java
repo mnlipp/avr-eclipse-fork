@@ -35,10 +35,10 @@ import org.osgi.service.prefs.Preferences;
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.properties.AVRDudeProperties;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
+import de.innot.avreclipse.core.toolinfo.fuses.ByteValuesFactory;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.mbs.BuildMacro;
-import de.innot.avreclipse.ui.editors.FuseFileDocumentProvider;
 
 /**
  * Storage independent container for the Fuse and Lockbits Byte values.
@@ -127,8 +127,8 @@ public abstract class BaseBytesProperties {
 	private final Preferences		fPrefs;
 
 	/**
-	 * The Parent <code>AVRDudeProperties</code>. Can be <code>null</code> if this class is
-	 * used in stand alone mode.
+	 * The Parent <code>AVRDudeProperties</code>. Can be <code>null</code> if this class is used in
+	 * stand alone mode.
 	 * 
 	 */
 	private final AVRDudeProperties	fParent;
@@ -193,8 +193,8 @@ public abstract class BaseBytesProperties {
 	/**
 	 * Get the MCU id value for which this object is valid.
 	 * 
-	 * @return <code>String</code> with an mcu id. May be <code>null</code> if a non-existing
-	 *         file has been set as source.
+	 * @return <code>String</code> with an mcu id. May be <code>null</code> if a non-existing file
+	 *         has been set as source.
 	 */
 	public String getMCUId() {
 
@@ -269,8 +269,8 @@ public abstract class BaseBytesProperties {
 	 * @see #getValue(int)
 	 * @see #getValues()
 	 * 
-	 * @return <code>true</code> if the byte values are taken from a file, <code>false</code> if
-	 *         the values stored in this object are used.
+	 * @return <code>true</code> if the byte values are taken from a file, <code>false</code> if the
+	 *         values stored in this object are used.
 	 */
 	public boolean getUseFile() {
 		return fUseFile;
@@ -302,13 +302,13 @@ public abstract class BaseBytesProperties {
 	 * specific path (e.g. with <code>new Path(resolvedname).toOSString()</code>
 	 * </p>
 	 * <p>
-	 * To resolve any macros this method needs an <code>IConfiguration</code> for the macro
-	 * context. This needs to be set with the {@link #setBuildConfig(IConfiguration)} method. If no
-	 * build configuration has been set, this method will return the filename unresolved.
+	 * To resolve any macros this method needs an <code>IConfiguration</code> for the macro context.
+	 * This needs to be set with the {@link #setBuildConfig(IConfiguration)} method. If no build
+	 * configuration has been set, this method will return the filename unresolved.
 	 * </p>
 	 * 
-	 * @return <code>String</code> with the resolved filename. May be empty and may not point to
-	 *         an actual or valid file.
+	 * @return <code>String</code> with the resolved filename. May be empty and may not point to an
+	 *         actual or valid file.
 	 */
 	public String getFileNameResolved() {
 		if (fBuildConfig != null) {
@@ -364,7 +364,8 @@ public abstract class BaseBytesProperties {
 	/**
 	 * Get all current byte values as a <code>ByteValues</code> object.
 	 * <p>
-	 * Get all bytes according to the current setting either from a file or from the object storage.<br>
+	 * Get all bytes according to the current setting either from a file or from the object storage.
+	 * <br>
 	 * The returned <code>ByteValues</code> object is a copy of the internal values and any
 	 * modifications are not reflected on the values in this object.
 	 * </p>
@@ -375,7 +376,8 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 * <p>
 	 * All values are either a valid bytes (0 - 255) or <code>-1</code> if no value was set.
-	 * </p> <
+	 * </p>
+	 * <
 	 * 
 	 * @return
 	 */
@@ -424,10 +426,7 @@ public abstract class BaseBytesProperties {
 			// dispose method where the the disconnection could take place.
 			// This means that any changes to the file are not synchronized. Therefore the
 			// ByteValues object returned by this method should not be used for prolonged periods.
-			FuseFileDocumentProvider provider = FuseFileDocumentProvider.getDefault();
-			provider.connect(file);
-			fFileByteValues = provider.getByteValues(file);
-			provider.disconnect(file);
+			fFileByteValues = ByteValuesFactory.createByteValues(file);
 
 			// If the fFileByteValues are null, then the file could not be read.
 			// probably the 'MCU' Property is missing.
@@ -577,8 +576,8 @@ public abstract class BaseBytesProperties {
 	 * 
 	 * @param index
 	 *            The byte to read. Must be between 0 and <code>getMaxBytes() - 1</code>
-	 * @return <code>int</code> with the byte value or <code>-1</code> if the value was not set
-	 *         or the index is out of bounds.
+	 * @return <code>int</code> with the byte value or <code>-1</code> if the value was not set or
+	 *         the index is out of bounds.
 	 */
 	public int getValue(int index) {
 		if (!(0 <= index && index < fByteValues.getByteCount())) {
@@ -598,8 +597,8 @@ public abstract class BaseBytesProperties {
 	 * </p>
 	 * 
 	 * @param index
-	 *            The byte to set. Must be between 0 and <code>getByteCount() - 1</code>,
-	 *            otherwise the value is ignored.
+	 *            The byte to set. Must be between 0 and <code>getByteCount() - 1</code>, otherwise
+	 *            the value is ignored.
 	 * @param value
 	 *            <code>int</code> with the byte value (0-255) or <code>-1</code> to unset the
 	 *            value.

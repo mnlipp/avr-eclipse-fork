@@ -87,6 +87,24 @@ public enum FuseType {
 	}
 
 	/**
+	 * Get the <code>FuseType</code> for a given extension.
+	 * 
+	 * @param extension
+	 *            <code>String</code> without the leading dot, e.g. "fuses".
+	 * @return The matching <code>FuseType</code> or <code>null</code> if no match.
+	 */
+	public static FuseType getTypeFromExtension(String extension) {
+
+		for (FuseType type : FuseType.values()) {
+			if (type.fExtension.equalsIgnoreCase(extension)) {
+				return type;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Convert a memspace attribute from the part description file to a FuseType enum value.
 	 * 
 	 * @param memspace
@@ -122,7 +140,6 @@ public enum FuseType {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Enum#toString()
 	 */
 	@Override
