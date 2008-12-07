@@ -12,13 +12,12 @@ package de.innot.avreclipse;
 
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
@@ -26,7 +25,7 @@ import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class AVRPlugin extends AbstractUIPlugin {
+public class AVRPlugin extends Plugin {
 
 	// The plug-in ID
 	public static final String	PLUGIN_ID		= "de.innot.avreclipse.core";
@@ -43,7 +42,6 @@ public class AVRPlugin extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
 	@Override
@@ -57,7 +55,6 @@ public class AVRPlugin extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	@Override
@@ -73,17 +70,6 @@ public class AVRPlugin extends AbstractUIPlugin {
 	 */
 	public static AVRPlugin getDefault() {
 		return plugin;
-	}
-
-	/**
-	 * Returns an image descriptor for the image file at the given plug-in relative path
-	 * 
-	 * @param path
-	 *            the path
-	 * @return the image descriptor
-	 */
-	public static ImageDescriptor getImageDescriptor(String path) {
-		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
 	/**
@@ -129,8 +115,8 @@ public class AVRPlugin extends AbstractUIPlugin {
 	 * </p>
 	 * <p>
 	 * If the console already exists, a reference is returned, otherwise a new
-	 * <code>MessageConsole</code> with the given name is created, added to the ConsoleManager,
-	 * and returned.
+	 * <code>MessageConsole</code> with the given name is created, added to the ConsoleManager, and
+	 * returned.
 	 * </p>
 	 * 
 	 * @param name
