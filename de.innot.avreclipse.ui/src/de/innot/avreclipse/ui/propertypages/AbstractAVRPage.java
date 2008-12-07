@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AbstractAVRPage.java 412 2008-04-19 18:05:35Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;

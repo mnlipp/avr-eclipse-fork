@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AbstractTabAVRDudeBytes.java 676 2008-12-07 12:03:46Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;

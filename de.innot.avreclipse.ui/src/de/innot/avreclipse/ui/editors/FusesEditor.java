@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: FusesEditor.java 639 2008-12-01 23:23:01Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.editors;

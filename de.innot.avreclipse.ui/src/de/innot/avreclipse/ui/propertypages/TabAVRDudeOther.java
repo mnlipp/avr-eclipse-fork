@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: TabAVRDudeOther.java 579 2008-08-11 22:16:46Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;

@@ -10,7 +10,7 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *     
- * $Id: AVRDudeConfigEditor.java 612 2008-09-14 18:41:25Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 

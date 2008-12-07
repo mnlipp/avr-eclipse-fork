@@ -11,7 +11,7 @@
  *	   Manuel Stahl - original idea and some remaining code fragments
  *     Thomas Holland - rewritten to be compatible with Eclipse 3.3 and the rest of the plugin
  *     
- * $Id: MCUselectPage.java 583 2008-08-14 22:46:07Z innot $
+ * $Id$
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.wizards;
