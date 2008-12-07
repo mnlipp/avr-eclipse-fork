@@ -65,6 +65,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
+import de.innot.avreclipse.ui.AVRUIPlugin;
 import de.innot.avreclipse.ui.controls.FuseBytePreviewControl;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialogJob;
 import de.innot.avreclipse.ui.dialogs.ByteValuesEditorDialog;
@@ -226,7 +227,6 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#dispose()
 	 */
 	@Override
@@ -240,8 +240,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite)
+	 * @see
+	 * org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite
+	 * )
 	 */
 	@Override
 	public void createControls(Composite parent) {
@@ -586,8 +587,8 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	 * </p>
 	 * <p>
 	 * The Text control will only accept (up to) 2 hex digits (converted to uppercase). The value is
-	 * stored as an <code>int</code> in the target properties, with <code>-1</code> representing
-	 * an empty value.
+	 * stored as an <code>int</code> in the target properties, with <code>-1</code> representing an
+	 * empty value.
 	 * </p>
 	 * <p>
 	 * The Editor uses a <code>FillLayout</code> to pack both elements tightly. It is up to the
@@ -826,8 +827,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse
+	 * .core.preferences.AVRProjectProperties)
 	 */
 	@Override
 	protected void performApply(AVRDudeProperties dstprops) {
@@ -854,8 +856,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse
+	 * .core.preferences.AVRProjectProperties)
 	 */
 	@Override
 	protected void performCopy(AVRDudeProperties srcprops) {
@@ -874,8 +877,9 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse
+	 * .core.preferences.AVRProjectProperties)
 	 */
 	@Override
 	protected void updateData(AVRDudeProperties props) {
@@ -1100,39 +1104,39 @@ public abstract class AbstractTabAVRDudeBytes extends AbstractAVRDudePropertyTab
 	}
 
 	// The Images for the Actions ToolBar
-	private static final ImageDescriptor	IMG_EN_EDIT			= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_EDIT			= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_edit_fuses.png");
-	private static final ImageDescriptor	IMG_DIS_EDIT		= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_EDIT		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_edit_fuses.png");
 
-	private static final ImageDescriptor	IMG_EN_LOADFILE		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_LOADFILE		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_copy_fusefile.png");
-	private static final ImageDescriptor	IMG_DIS_LOADFILE	= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_LOADFILE	= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_copy_fusefile.png");
 
-	private static final ImageDescriptor	IMG_EN_READMCU		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_READMCU		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_read_mcu.png");
-	private static final ImageDescriptor	IMG_DIS_READMCU		= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_READMCU		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_read_mcu.png");
 
-	private static final ImageDescriptor	IMG_EN_DEFAULT		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_DEFAULT		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_copy_default.png");
-	private static final ImageDescriptor	IMG_DIS_DEFAULT		= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_DEFAULT		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_copy_default.png");
 
-	private static final ImageDescriptor	IMG_EN_ALLONES		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_ALLONES		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_0xff.png");
-	private static final ImageDescriptor	IMG_DIS_ALLONES		= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_ALLONES		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_0xff.png");
 
-	private static final ImageDescriptor	IMG_EN_ALLZEROS		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_ALLZEROS		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_0x00.png");
-	private static final ImageDescriptor	IMG_DIS_ALLZEROS	= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_ALLZEROS	= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_0x00.png");
 
-	private static final ImageDescriptor	IMG_EN_CLEAR		= AVRPlugin
+	private static final ImageDescriptor	IMG_EN_CLEAR		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/e_clear_bytes.png");
-	private static final ImageDescriptor	IMG_DIS_CLEAR		= AVRPlugin
+	private static final ImageDescriptor	IMG_DIS_CLEAR		= AVRUIPlugin
 																		.getImageDescriptor("icons/objs16/d_clear_bytes.png");
 
 	/**

@@ -18,7 +18,7 @@ package de.innot.avreclipse.ui.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-import de.innot.avreclipse.AVRPlugin;
+import de.innot.avreclipse.ui.AVRUIPlugin;
 
 /**
  * Convenience Enum to collect the user interface elements of all ByteValues actions in one class.
@@ -57,12 +57,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_change_mcu.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_change_mcu.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_change_mcu.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_change_mcu.png");
 		}
 	},
 
@@ -80,12 +80,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_edit_fuses.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_edit_fuses.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_edit_fuses.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_edit_fuses.png");
 		}
 	},
 
@@ -103,12 +103,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_copy_fusefile.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_copy_fusefile.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_copy_fusefile.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_copy_fusefile.png");
 		}
 
 	},
@@ -127,12 +127,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_read_mcu.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_read_mcu.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_read_mcu.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_read_mcu.png");
 		}
 
 	},
@@ -151,12 +151,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_copy_default.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_copy_default.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_copy_default.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_copy_default.png");
 		}
 
 	},
@@ -175,12 +175,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_0xff.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_0xff.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_0xff.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_0xff.png");
 		}
 
 	},
@@ -199,12 +199,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_0x00.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_0x00.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_0x00.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_0x00.png");
 		}
 
 	},
@@ -223,12 +223,12 @@ public enum ActionType {
 
 		@Override
 		public ImageDescriptor getImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/e_clear_bytes.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/e_clear_bytes.png");
 		}
 
 		@Override
 		public ImageDescriptor getDisabledImage() {
-			return AVRPlugin.getImageDescriptor("icons/objs16/d_clear_bytes.png");
+			return AVRUIPlugin.getImageDescriptor("icons/objs16/d_clear_bytes.png");
 		}
 
 	};

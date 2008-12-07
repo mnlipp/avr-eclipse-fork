@@ -21,15 +21,14 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 
-import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.IMCUProvider;
+import de.innot.avreclipse.ui.AVRUIPlugin;
 
 /**
- * A special LabelProvider that draws a checkmark or a cross, depending on
- * whether a MCU is supported or not.
+ * A special LabelProvider that draws a checkmark or a cross, depending on whether a MCU is
+ * supported or not.
  * <p>
- * Extends {@link OwnerDrawLabelProvider} to draw the symbol centered in the
- * cell.
+ * Extends {@link OwnerDrawLabelProvider} to draw the symbol centered in the cell.
  * </p>
  * 
  * @author Thomas Holland
@@ -38,17 +37,16 @@ import de.innot.avreclipse.core.IMCUProvider;
 public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 
 	/**
-	 * The provider of the yes/no information. The
-	 * {@link IMCUProvider#hasMCU(String)} method of the provider is called to
-	 * determine what image to draw
+	 * The provider of the yes/no information. The {@link IMCUProvider#hasMCU(String)} method of the
+	 * provider is called to determine what image to draw
 	 */
-	private IMCUProvider fProvider = null;
+	private IMCUProvider	fProvider	= null;
 
 	/** The image for a supported MCU */
-	private Image fYesImage;
+	private final Image		fYesImage;
 
 	/** The image for an unsupported MCU */
-	private Image fNoImage;
+	private final Image		fNoImage;
 
 	/**
 	 * Initialize this ColumnLabelProvider with an IMCUProvider
@@ -60,13 +58,12 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 		fProvider = provider;
 
 		// Load the images
-		fYesImage = AVRPlugin.getImageDescriptor("icons/viewer16/yes.png").createImage();
-		fNoImage = AVRPlugin.getImageDescriptor("icons/viewer16/no.png").createImage();
+		fYesImage = AVRUIPlugin.getImageDescriptor("icons/viewer16/yes.png").createImage();
+		fNoImage = AVRUIPlugin.getImageDescriptor("icons/viewer16/no.png").createImage();
 	}
 
 	/**
-	 * Disposes the allocated images and calls the superclass to dispose an
-	 * other resources.
+	 * Disposes the allocated images and calls the superclass to dispose an other resources.
 	 * 
 	 * @see OwnerDrawLabelProvider#dispose();
 	 */
@@ -79,9 +76,8 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.jface.viewers.OwnerDrawLabelProvider#measure(org.eclipse.swt.widgets.Event,
-	 *      java.lang.Object)
+	 * java.lang.Object)
 	 */
 	@Override
 	protected void measure(Event event, Object element) {
@@ -94,9 +90,8 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.jface.viewers.OwnerDrawLabelProvider#paint(org.eclipse.swt.widgets.Event,
-	 *      java.lang.Object)
+	 * java.lang.Object)
 	 */
 	@Override
 	protected void paint(Event event, Object element) {
@@ -123,8 +118,7 @@ public class BooleanColumnLabelProvider extends OwnerDrawLabelProvider {
 	/**
 	 * Handle the erase event.
 	 * <p>
-	 * This method does nothing and is only here to prevent the superclass from
-	 * messing up
+	 * This method does nothing and is only here to prevent the superclass from messing up
 	 * </p>
 	 */
 	@Override
