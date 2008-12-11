@@ -10,7 +10,7 @@
 -->
 	<!-- C Projects -->
 	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
-		id="AVRGCCManagedMakePerProjectProfileC"
+		id="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC"
 		name="AVR-GCC managed project profile (C)">
 		<scannerInfoCollector
             class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
@@ -30,7 +30,7 @@
 
 	<!-- C++ Projects -->
 	<extension point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile"
-		id="AVRGCCManagedMakePerProjectProfileCPP"
+		id="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileCPP"
 		name="AVR-GCC managed project profile (C++)">
 		<scannerInfoCollector
             class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
