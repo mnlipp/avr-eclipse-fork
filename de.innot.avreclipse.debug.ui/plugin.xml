@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="de.innot.avreclipse.debug.lcTypeAVRGDBHardware"
+            icon="icons/obj16/avr_app.gif"
+            id="de.innot.avreclipse.debug.ui.launchCfgAVRGDBHardwareImage">
+      </launchConfigurationTypeImage>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="de.innot.avreclipse.debug.ui.AVRGDBHardwareTabGroup"
+            description="Special launch configuration for debugging AVR projects with AVaRICE as the gdbserver"
+            id="de.innot.avreclipse.debug.ui.launchCfgAVRGDBHardwareTabGroup"
+            type="de.innot.avreclipse.debug.lcTypeAVRGDBHardware">
+      </launchConfigurationTabGroup>
+	</extension>
+	
+	
+	<extension point="org.eclipse.debug.ui.launchShortcuts">
+		<shortcut
+			class="de.innot.avreclipse.debug.ui.LaunchShortcutDebugHardware"
+			description="Debug AVR application on Hardware with AVaRICE"
+			icon="icons/obj16/avr_app.gif"
+			id="de.innot.avreclipse.debug.ui.launchShortcutHardware"
+			label="AVR Hardware"
+			modes="debug">
+			<contextualLaunch>
+				<enablement>
+					<with variable="selection">
+						<count value="1"/>
+						<iterate>
+							<and>
+							    <test
+							    	property="org.eclipse.debug.ui.projectNature"
+							    	value="de.innot.avreclipse.core.avrnature" />        	   	
+							               
+								<or>
+									<instanceof value="org.eclipse.cdt.core.model.IBinary"/>
+									<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+									<test
+										forcePluginActivation="true"
+										property="org.eclipse.cdt.launch.isExecutable"/>
+									<test
+										forcePluginActivation="true"
+										property="org.eclipse.cdt.launch.isCProject"/>
+									<and>
+										<instanceof value="org.eclipse.ui.IFileEditorInput"/>
+										<adapt type="org.eclipse.core.resources.IResource">
+											<adapt type="org.eclipse.cdt.core.model.ICElement"/>
+										</adapt>
+									</and>
+								</or>
+							</and>
+						</iterate>
+					</with>
+				</enablement>
+			</contextualLaunch>
+		</shortcut>
+	</extension>
+
+</plugin>
