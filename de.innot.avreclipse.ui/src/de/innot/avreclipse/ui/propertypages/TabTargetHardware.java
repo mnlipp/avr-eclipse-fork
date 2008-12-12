@@ -21,6 +21,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.cdt.build.core.scannerconfig.CfgInfoContext;
+import org.eclipse.cdt.build.internal.core.scannerconfig.CfgDiscoveredPathManager;
+import org.eclipse.cdt.make.core.MakeCorePlugin;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -111,8 +115,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite)
+	 * @see
+	 * org.eclipse.cdt.ui.newui.AbstractCPropertyTab#createControls(org.eclipse.swt.widgets.Composite
+	 * )
 	 */
 	@Override
 	public void createControls(Composite parent) {
@@ -262,9 +267,10 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse.core.preferences.AVRConfigurationProperties,
-	 *      de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performApply(de.innot.avreclipse
+	 * .core.preferences.AVRConfigurationProperties,
+	 * de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
 	 */
 	@Override
 	protected void performApply(AVRProjectProperties dst) {
@@ -284,12 +290,24 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		fOldMCUid = newMCUid;
 		fOldFCPU = newFCPU;
+
+		// Now we need to invalidate all discovered Symbols, because they still contain infos about
+		// the previous MCU.
+		// TODO: check if a rebuild is actually required
+		if (false) { // This does not work
+			IProject project = (IProject) getCfg().getManagedProject().getOwner();
+			MakeCorePlugin.getDefault().getDiscoveryManager().removeDiscoveredInfo(project);
+			CfgDiscoveredPathManager.getInstance().removeDiscoveredInfo(
+					(IProject) getCfg().getManagedProject().getOwner(),
+					new CfgInfoContext(getCfg()));
+		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse.core.preferences.AVRProjectProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#performDefaults(de.innot.avreclipse
+	 * .core.preferences.AVRProjectProperties)
 	 */
 	@Override
 	protected void performCopy(AVRProjectProperties defaults) {
@@ -300,7 +318,6 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performOK()
 	 */
 	@Override
@@ -312,8 +329,9 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse.core.preferences.AVRConfigurationProperties)
+	 * @see
+	 * de.innot.avreclipse.ui.propertypages.AbstractAVRPropertyTab#updateData(de.innot.avreclipse
+	 * .core.preferences.AVRConfigurationProperties)
 	 */
 	@Override
 	protected void updateData(AVRProjectProperties cfg) {
