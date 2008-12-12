@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
+		<launchConfigurationType
+			delegate="de.innot.avreclipse.debug.core.AVRGDBLaunchConfigurationDelegate"
+			id="de.innot.avreclipse.debug.lcTypeAVRGDBHardware"
+			modes="debug"
+			name="AVR Hardware Debugging"
+			public="true"
+			sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
+			sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer">
+		</launchConfigurationType>
+	</extension>
+	
+	
+	<extension point="org.eclipse.cdt.debug.core.CDebugger">
+		<debugger
+			id="de.innot.avreclipse.debug.core.AVRGDBDebugger"
+			class="de.innot.avreclipse.debug.core.AVRGDBDebugger"
+			platform="*"
+			name="avr-gdb debugger"
+			modes="run"
+			cpu="*"
+		/>
+	</extension>
+	
+	
+	
+	<extension point="org.eclipse.cdt.debug.mi.core.commandFactories">
+		<commandFactory id="de.innot.avreclipse.debug.core.AvariceCommandFactory"
+			class="de.innot.avreclipse.debug.core.AvariceCommandFactory"
+			debuggerID="de.innot.avreclipse.debug.core.AVRGDBDebugger"
+			miVersions="mi,mi1,mi2"
+			name="avr-gdb for AVaRICE"
+			platforms="*" 
+		/>
+	</extension>
+
+</plugin>
