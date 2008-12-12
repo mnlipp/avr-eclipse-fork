@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests for the de.innot.avreclipse.debug.core and .ui plugins
+Bundle-SymbolicName: de.innot.avreclipse.debug.tests;singleton:=true
+Bundle-Version: 0.0.0
+Bundle-Vendor: avr-eclipse project
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: org.junit4,
+ de.innot.avreclipse.debug.core;bundle-version="0.0.0",
+ de.innot.avreclipse.debug.ui;bundle-version="0.0.0",
+ org.eclipse.cdt.core,
+ org.eclipse.cdt.launch,
+ org.eclipse.cdt.debug.core,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.debug.ui,
+ org.eclipse.ui,
+ org.eclipse.ui.ide
+Export-Package: de.innot.avreclipse.debug.ui
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: de.innot.avreclipse.debug.DebugTestPlugin
