@@ -39,17 +39,19 @@ public interface IAVRGDBConstants {
 	// TODO: change this to false for a non-beta release
 	public final static boolean	DEFAULT_VERBOSE_MODE			= true;
 
-	public static final boolean	DEFAULT_USE_REMOTE_GDBSERVER	= false;
-	public static final String	DEFAULT_IP_ADDRESS				= "localhost";
-	public static final int		DEFAULT_PORT_NUMBER				= 4242;
+	// The common attributes for the gdbserver selection.
+	// Other attributes for the gdbserver are handled by the specific extensions
+	public static final String	DEFAULT_GDBSERVER_ID			= "de.innot.avreclipse.debug.gdbservers.avarice";
+	public static final String	DEFAULT_GDBSERVER_IP_ADDRESS	= "localhost";
+	public static final int		DEFAULT_GDBSERVER_PORT_NUMBER	= 4242;
 
-	public static final String	ATTR_USE_REMOTE_GDBSERVER		= Activator.PLUGIN_ID
-																		+ ".useRemoteGDBSerer";
+	public static final String	ATTR_GDBSERVER_ID				= AVRDebugPlugin.PLUGIN_ID
+																		+ ".gdbserverID";
 
-	public static final String	ATTR_IP_ADDRESS					= Activator.PLUGIN_ID
+	public static final String	ATTR_GDBSERVER_IP_ADDRESS		= AVRDebugPlugin.PLUGIN_ID
 																		+ ".ipAddress";
 
-	public static final String	ATTR_PORT_NUMBER				= Activator.PLUGIN_ID
+	public static final String	ATTR_GDBSERVER_PORT_NUMBER		= AVRDebugPlugin.PLUGIN_ID
 																		+ ".portNumber";
 
 }

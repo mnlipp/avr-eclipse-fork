@@ -22,7 +22,7 @@ public class AVRGDBLaunchConfigurationDelegate extends AbstractCLaunchDelegate {
 	 */
 	@Override
 	protected String getPluginID() {
-		return Activator.PLUGIN_ID;
+		return AVRDebugPlugin.PLUGIN_ID;
 	}
 
 	/*
