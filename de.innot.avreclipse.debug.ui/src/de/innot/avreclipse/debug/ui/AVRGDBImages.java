@@ -41,6 +41,10 @@ public class AVRGDBImages {
 	public final static String		TAB_STARTUP_IMG		= "tab_startup";
 	private final static String		TAB_STARTUP_SRC		= "icons/eview16/startup_tab.gif";
 
+	/** Key for the GDBServer Tab image */
+	public final static String		TAB_GDBSERVER_IMG	= "tab_gdbserver";
+	private final static String		TAB_GDBSERVER_SRC	= "icons/eview16/startup_tab.gif";
+
 	/**
 	 * @return the <code>Image</code> identified by the given key, or <code>null</code> if it does
 	 *         not exist.
@@ -76,6 +80,7 @@ public class AVRGDBImages {
 
 		loadImageToRegistry(TAB_DEBUGGER_IMG, TAB_DEBUGGER_SRC);
 		loadImageToRegistry(TAB_STARTUP_IMG, TAB_STARTUP_SRC);
+		loadImageToRegistry(TAB_GDBSERVER_IMG, TAB_GDBSERVER_SRC);
 	}
 
 	/**

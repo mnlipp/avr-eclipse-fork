@@ -30,7 +30,8 @@ import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
  * <li>The Main Tab: uses the standard CDT tab to select the project</li>
  * <li>The Debugger Tab: Some general information incl. the gdb command (avr-gdb)</li>
  * <li>The Startup Tab: All settings to initialize the debug session</li>
- * <li>The AVaRICE Tab: The settings for the avarice gdbserver</li>
+ * <li>The Image Loader Tab: Selection of the image load method to use</li>
+ * <li>The GDBServer Tab: Selection of and settings for the gdbserver (avarice or simulavr)</li>
  * <li>The Source Lookup Tab: Standard Eclipse Debug issue</li>
  * <li>The Common Tab: Again, standard Eclipse Debug style</li>
  * </ol>
@@ -50,9 +51,9 @@ public class AVRGDBHardwareTabGroup extends AbstractLaunchConfigurationTabGroup 
 
 		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] {
 				new CMainTab(CMainTab.DONT_CHECK_PROGRAM), //
-				new AVRGDBDebuggerTab(), //
-				// new AVRGDBStartupTab(), //
-				// new AvariceTab(), //
+				new TabDebugger(), //
+				new TabImageLoader(), //
+				new TabGDBServer(), //
 				new SourceLookupTab(), //
 				new CommonTab() };
 		setTabs(tabs);
