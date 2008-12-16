@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="de.innot.avreclipse.debug.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="de.innot.avreclipse.debug.ui" id="gdbserverSettingsPage" name="GDBServerSettingsPage"/>
+      </appinfo>
+      <documentation>
+         Extension to this extension point implement the the GUI settings for a gdbserver suitable for debugging AVR applications.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="settingspage"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="settingspage">
+      <complexType>
+         <attribute name="gdbserverid" type="string" use="required">
+            <annotation>
+               <documentation>
+                  ID of the gdbserver to which this settings page extension applies.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="description" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Contains a descriptive name for the gdbserver. The value is presented on the user interface when the user selects a gdbserver.
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Class implementing the IGDBServerSettingsPage interface.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":de.innot.avreclipse.debug.ui.IGDBServerSettingsPage"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         2.4
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         TODO once the API has been finished
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="apiinfo"/>
+      </appinfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="implementation"/>
+      </appinfo>
+      <documentation>
+         [Enter information about supplied implementation of this extension point.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="copyright"/>
+      </appinfo>
+      <documentation>
+         Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+
+This file and the accompanying materials are made
+available under the terms of the GNU Public License v3
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+
+      </documentation>
+   </annotation>
+
+</schema>
