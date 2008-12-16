@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="de.innot.avreclipse.debug.ui.gdbserverSettingsPage">
+      <settingspage
+            class="de.innot.avreclipse.debug.gdbservers.avarice.AvariceSettingsPage"
+            description="Local AVaRICE gdbserver"
+            gdbserverid="de.innot.avreclipse.debug.gdbservers.avarice">
+      </settingspage>
+      <settingspage
+            class="de.innot.avreclipse.debug.gdbservers.simulavr.SimulavrSettingsPage"
+            description="Local SimulAVR gdbserver"
+            gdbserverid="de.innot.avreclipse.debug.gdbservers.simulavr">
+      </settingspage>
+      <settingspage
+            class="de.innot.avreclipse.debug.gdbservers.remote.RemoteSettingsPage"
+            description="Remote gdbserver"
+            gdbserverid="de.innot.avreclipse.debug.gdbservers.remote">
+      </settingspage>
+      
+   </extension>
+
+</plugin>
