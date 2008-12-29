@@ -428,8 +428,7 @@
 				valueType="enumerated" >
 				<enumeratedOptionValue command=""
 					id="de.innot.avreclipse.compiler.option.std.default"
-					name="Compiler Default (ISO C90 + GNU extensions)"
-					isDefault="true" />
+					name="Compiler Default (ISO C90 + GNU extensions)" />
 				<enumeratedOptionValue command="-ansi"
 					id="de.innot.avreclipse.compiler.option.std.c90"
 					name="ISO C90 (-ansi)" />
@@ -438,7 +437,8 @@
 					name="ISO C99 (-std=c99)" />
 				<enumeratedOptionValue command="-std=gnu99"
 					id="de.innot.avreclipse.compiler.option.std.gnu99"
-					name="ISO C99 + GNU Extensions (-std=gnu99)" />
+					name="ISO C99 + GNU Extensions (-std=gnu99)"
+					isDefault="true" />
 			</option>
 			<option id="de.innot.avreclipse.compiler.option.language.uchar"
 				name="char is unsigned (-funsigned-char)"
