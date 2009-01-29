@@ -47,6 +47,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
+import de.innot.avreclipse.core.avrdude.ProgrammerInterface;
 import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
@@ -212,6 +213,27 @@ public class AVRDude implements IMCUProvider {
 		Map<String, ConfigEntry> internalmap = loadProgrammersList();
 		Set<String> idset = internalmap.keySet();
 		return new HashSet<String>(idset);
+	}
+
+	/**
+	 * Returns a Set of all Programmer devices useable for the given interface.
+	 * 
+	 * @param filter
+	 *            {@link ProgrammerInterface} enum of the required interface.
+	 * @return a new <code>Set&lt;String&gt;</code> with the avrdude id values. Set may be empty but
+	 *         never <code>null</code>
+	 * @throws AVRDudeException
+	 */
+	public Set<String> getProgrammersList(ProgrammerInterface filter) throws AVRDudeException {
+		Map<String, ConfigEntry> internalmap = loadProgrammersList();
+		Set<String> idset = new HashSet<String>();
+		for (String id : internalmap.keySet()) {
+			ProgrammerInterface iface = ProgrammerInterface.getInterface(id);
+			if (iface.equals(filter)) {
+				idset.add(id);
+			}
+		}
+		return idset;
 	}
 
 	/**

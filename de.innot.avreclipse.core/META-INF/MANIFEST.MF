@@ -44,6 +44,7 @@ Export-Package: de.innot.avreclipse;
    de.innot.avreclipse.core.avrdude,
    org.eclipse.core.runtime.preferences,
    de.innot.avreclipse.core.toolinfo.fuses",
+ de.innot.avreclipse.core.targets,
  de.innot.avreclipse.core.toolinfo;
   uses:="org.eclipse.core.runtime,
    org.eclipse.ui.console,
