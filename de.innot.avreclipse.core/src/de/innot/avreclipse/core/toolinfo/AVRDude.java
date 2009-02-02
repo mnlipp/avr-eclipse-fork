@@ -47,12 +47,14 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction;
 import de.innot.avreclipse.core.avrdude.AVRDudeActionFactory;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.avrdude.ProgrammerInterface;
 import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRDudePreferences;
+import de.innot.avreclipse.core.targets.HostInterface;
+import de.innot.avreclipse.core.targets.IProgrammer;
+import de.innot.avreclipse.core.targets.TargetInterface;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -87,9 +89,14 @@ public class AVRDude implements IMCUProvider {
 	private Map<String, ConfigEntry>		fMCUList;
 
 	/**
-	 * A list of all currently supported Programmer devices, mapped to the ConfigEntry
+	 * A list of all currently supported Programmer devices, mapped to their ID.
 	 */
-	private Map<String, ConfigEntry>		fProgrammerList;
+	private Map<String, IProgrammer>		fProgrammerList;
+
+	/**
+	 * A List of all Programmer ConfigEntries to their respective id's.
+	 */
+	private Map<String, ConfigEntry>		fProgrammerConfigEntries;
 
 	/**
 	 * Mapping of the Plugin MCU Id values (as keys) to the avrdude mcu id values (as values)
@@ -204,36 +211,31 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
+	 * Returns the {@link IProgrammer} for a given programmer id.
+	 * 
+	 * @param programmerid
+	 *            A valid programmer id as used by avrdude.
+	 * @return the programmer type object or <code>null</code> if the <code>programmerid</code> is
+	 *         unknown.
+	 * @throws AVRDudeException
+	 */
+	public IProgrammer getProgrammer(String programmerid) throws AVRDudeException {
+		loadProgrammersList(); // update the internal list (if required)
+		IProgrammer type = fProgrammerList.get(programmerid);
+		return type;
+	}
+
+	/**
 	 * Returns a Set of all currently supported Programmer devices.
 	 * 
 	 * @return <code>Set&lt;String&gt</code> with the avrdude id values.
 	 * @throws AVRDudeException
 	 */
-	public Set<String> getProgrammersList() throws AVRDudeException {
-		Map<String, ConfigEntry> internalmap = loadProgrammersList();
-		Set<String> idset = internalmap.keySet();
-		return new HashSet<String>(idset);
-	}
+	public List<IProgrammer> getProgrammersList() throws AVRDudeException {
+		Collection<IProgrammer> list = loadProgrammersList().values();
 
-	/**
-	 * Returns a Set of all Programmer devices useable for the given interface.
-	 * 
-	 * @param filter
-	 *            {@link ProgrammerInterface} enum of the required interface.
-	 * @return a new <code>Set&lt;String&gt;</code> with the avrdude id values. Set may be empty but
-	 *         never <code>null</code>
-	 * @throws AVRDudeException
-	 */
-	public Set<String> getProgrammersList(ProgrammerInterface filter) throws AVRDudeException {
-		Map<String, ConfigEntry> internalmap = loadProgrammersList();
-		Set<String> idset = new HashSet<String>();
-		for (String id : internalmap.keySet()) {
-			ProgrammerInterface iface = ProgrammerInterface.getInterface(id);
-			if (iface.equals(filter)) {
-				idset.add(id);
-			}
-		}
-		return idset;
+		// Return a copy of the original list
+		return new ArrayList<IProgrammer>(list);
 	}
 
 	/**
@@ -246,8 +248,9 @@ public class AVRDude implements IMCUProvider {
 	 * @throws AVRDudeException
 	 */
 	public ConfigEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
-		Map<String, ConfigEntry> internalmap = loadProgrammersList();
-		return internalmap.get(programmerid);
+		loadProgrammersList(); // update the list (if required)
+
+		return fProgrammerConfigEntries.get(programmerid);
 	}
 
 	/**
@@ -611,6 +614,118 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
+	 * Tries to guess the target interface from the AVRDude config id.
+	 * <p>
+	 * This has been tested with avrdude 5.6. Future versions of avrdude might return wrong results.
+	 * </p>
+	 * 
+	 * @param avrdudeid
+	 *            The id of the programmer as used by avrdude.
+	 * @return The interface used by the programmer.
+	 */
+	public static TargetInterface getInterface(String avrdudeid) {
+
+		// Check if this is one of the HVSP supporting devices
+		if (avrdudeid.endsWith("hvsp")) {
+			return TargetInterface.HVSP;
+		}
+
+		// Check if this is one of the PP supporting devices
+		if (avrdudeid.endsWith("pp")) {
+			return TargetInterface.PP;
+		}
+
+		// Check if this is one of the DebugWire supporting devices
+		if (avrdudeid.endsWith("dw")) {
+			return TargetInterface.DW;
+		}
+
+		// First check for ISP devices (to filter JTAG devices with ISP mode)
+		if (avrdudeid.endsWith("isp")) {
+			return TargetInterface.ISP;
+		}
+
+		// Check if this is JTAG device
+		if (avrdudeid.contains("jtag") || avrdudeid.contains("xil")) {
+			return TargetInterface.JTAG;
+		}
+
+		// Check the serial bootloader types
+		if (avrdudeid.equals("avr109") || avrdudeid.equals("butterfly")
+				|| avrdudeid.equals("avr910")) {
+			return TargetInterface.BOOTLOADER;
+		}
+
+		// I think we filtered everything out, so what is left is a normal ISP programmer.
+		return TargetInterface.ISP;
+
+	}
+
+	final static HostInterface[]	SERIALBBPORT	= new HostInterface[] { HostInterface.SERIAL_BB };
+	final static HostInterface[]	SERIALPORT		= new HostInterface[] { HostInterface.SERIAL };
+	final static HostInterface[]	PARALLELPORT	= new HostInterface[] { HostInterface.PARALLEL };
+	final static HostInterface[]	USBPORT			= new HostInterface[] { HostInterface.USB };
+	final static HostInterface[]	SERIAL_USB_PORT	= new HostInterface[] { HostInterface.SERIAL,
+			HostInterface.USB						};
+
+	/**
+	 * Tries to guess the host interface from the AVRDude programmer id and type.
+	 * <p>
+	 * This has been tested with avrdude 5.6. Future versions of avrdude might return wrong results.
+	 * </p>
+	 * 
+	 * @param avrdudeid
+	 *            The id of the programmer as used by avrdude.
+	 * @return The interface used by the programmer.
+	 */
+	public static HostInterface[] getHostInterfaces(String avrdudeid, String avrdudetype) {
+
+		String type = avrdudetype.toLowerCase(); // just in case
+		if (type.equals("serbb")) {
+			return SERIALBBPORT;
+		}
+		if (type.equals("par")) {
+			return PARALLELPORT;
+		}
+		if (type.contains("usb")) {
+			return USBPORT;
+		}
+		if (avrdudeid.startsWith("stk500") || type.equals("stk500")) {
+			// The STK500 has only a serial port
+			return SERIALPORT;
+		}
+		if (type.equals("stk500v2")) {
+			// This can be either USB or SERIAL. We need to check the id
+			if (avrdudeid.equals("avrispv2") || avrdudeid.equals("avrispmkII")
+					|| avrdudeid.equals("avrisp2")) {
+				// The AVR ISP MkII uses the STK500v2 protokoll, but over USB
+				return USBPORT;
+			}
+			// All other STK500v2 versions / clones use the serial port
+			return SERIALPORT;
+		}
+		if (type.startsWith("stk600")) {
+			return USBPORT;
+		}
+		if (type.equals("avr910") || type.equals("butterfly")) {
+			// Bootloader types
+			return SERIALPORT;
+		}
+		if (type.startsWith("dragon")) {
+			// AVR Dragon
+			return USBPORT;
+		}
+		if (type.startsWith("jtag")) {
+			// AVR ICE MkI normally uses the Serial port, but some clones have an USB port as well
+			// AVR ICE MkII has both a serial and an usb port.
+			return SERIAL_USB_PORT;
+		}
+
+		// TODO remove when testing is finished
+		throw new IllegalArgumentException("Can't determine host interface");
+	}
+
+	/**
 	 * Internal method to read the config file with the given path and split it into lines.
 	 * 
 	 * @param path
@@ -683,7 +798,7 @@ public class AVRDude implements IMCUProvider {
 	 * @return Map&lt;mcu id, avrdude id&gt; of all supported Programmer devices.
 	 * @throws AVRDudeException
 	 */
-	private Map<String, ConfigEntry> loadProgrammersList() throws AVRDudeException {
+	private Map<String, IProgrammer> loadProgrammersList() throws AVRDudeException {
 
 		if (!getToolPath().equals(fCurrentPath)) {
 			// toolpath has changed, reload the list
@@ -691,14 +806,19 @@ public class AVRDude implements IMCUProvider {
 			fCurrentPath = getToolPath();
 		}
 
-		if (fProgrammerList != null) {
-			// return stored list
-			return fProgrammerList;
+		if (fProgrammerList == null) {
+			fProgrammerConfigEntries = new HashMap<String, ConfigEntry>();
+			// Execute avrdude with the "-c?" to get a list of all supported
+			// programmers.
+			readAVRDudeConfigOutput(fProgrammerConfigEntries, "-c?");
+
+			// Convert the ConfigEntries to IProgrammerTypes
+			fProgrammerList = new HashMap<String, IProgrammer>();
+			for (String id : fProgrammerConfigEntries.keySet()) {
+				IProgrammer type = new ProgrammerType(id);
+				fProgrammerList.put(id, type);
+			}
 		}
-		fProgrammerList = new HashMap<String, ConfigEntry>();
-		// Execute avrdude with the "-c?" to get a list of all supported
-		// programmers.
-		readAVRDudeConfigOutput(fProgrammerList, "-c?");
 		return fProgrammerList;
 	}
 
@@ -1134,5 +1254,115 @@ public class AVRDude implements IMCUProvider {
 
 		/** line number of the start of the definition */
 		public int		linenumber;
+	}
+
+	private class ProgrammerType implements IProgrammer {
+
+		private String					fAvrdudeId;
+
+		private String					fDescription;
+
+		private HostInterface			fHostInterface[];
+
+		private TargetInterface	fTargetInterface;
+
+		protected ProgrammerType(String id) {
+			fAvrdudeId = id;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammerType#getId()
+		 */
+		public String getId() {
+			return fAvrdudeId;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammerType#getDescription()
+		 */
+		public String getDescription() {
+			if (fDescription == null) {
+				try {
+					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
+					fDescription = entry.description;
+				} catch (AVRDudeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					fDescription = "";
+				}
+			}
+			return fDescription;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammer#getAdditionalInfo()
+		 */
+		public String getAdditionalInfo() {
+
+			try {
+				ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
+				String addinfo = getConfigDetailInfo(entry);
+				return "avrdude.conf entry for this programmer:\n\n" + addinfo;
+			} catch (AVRDudeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "";
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammerType#getHostInterface()
+		 */
+		public HostInterface[] getHostInterfaces() {
+			if (fHostInterface == null) {
+				// get the Detailed info for the programmer
+				try {
+					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
+					String info = getConfigDetailInfo(entry);
+
+					// find the type by looking for "type = xxx" in the info text
+					Pattern typePat = Pattern.compile(".*type\\s*=\\s*(\\w*);.*", Pattern.DOTALL);
+					Matcher m = typePat.matcher(info);
+					if (m.matches()) {
+						fHostInterface = AVRDude.getHostInterfaces(fAvrdudeId, m.group(1));
+					} else {
+						// could not find the 'type = xxx' pattern in the info.
+						// This should not happen and means that the avrdude.conf
+						// has errors.
+						// TODO: log a message
+						fHostInterface = new HostInterface[] {};
+					}
+
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (AVRDudeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+			return fHostInterface;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammerType#getTargetInterfaces()
+		 */
+		public TargetInterface getTargetInterfaces() {
+			if (fTargetInterface == null) {
+				fTargetInterface = getInterface(fAvrdudeId);
+			}
+			return fTargetInterface;
+		}
+
 	}
 }

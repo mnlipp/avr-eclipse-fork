@@ -76,4 +76,10 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	 */
 	public void setDefaults();
 
+	/**
+	 * Checks if this working copy has unsaved changes.
+	 * 
+	 * @return <code>true</code> if this config has unsaved changes.
+	 */
+	public boolean isDirty();
 }

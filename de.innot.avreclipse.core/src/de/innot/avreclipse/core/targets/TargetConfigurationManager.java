@@ -269,6 +269,30 @@ public class TargetConfigurationManager {
 	 * @return <code>true</code> if the configuration exists.
 	 */
 	public boolean exists(String id) {
+		// Test for empty / null id
+		if (id == null)
+			return false;
+		if (id.length() == 0)
+			return false;
+
+		// Test if the config is already in the cache
+		if (fConfigsCache.containsKey(id)) {
+			return true;
+		}
+
+		// The config was not in the cache
+
+		// The node must exist, otherwise return null
+		try {
+
+			if (fPreferences.nodeExists(id)) {
+				return true;
+			}
+		} catch (BackingStoreException bse) {
+			// TODO What shall we do if we can't access the Preferences?
+			// For now log an error and return null.
+			logException(bse);
+		}
 		return false;
 	}
 

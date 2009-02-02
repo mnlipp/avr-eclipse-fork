@@ -16,20 +16,26 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.ListenerList;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
+
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
  * @author Thomas Holland
  * @since 2.4
  * 
  */
-public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
+public class TargetConfiguration implements ITargetConfiguration, ITargetConfigurationWorkingCopy {
 
 	private String				fId;
 
@@ -65,6 +71,7 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 		this();
 		fId = id;
 		setDefaults();
+		fDirty = false;
 	}
 
 	/**
@@ -183,6 +190,68 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 
 	/*
 	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getSupportedMCUs(boolean)
+	 */
+	public List<String> getSupportedMCUs(boolean filtered) {
+		// TODO This is a dummy
+		List<String> allmcus = new ArrayList<String>();
+		allmcus.add("atmega16");
+		allmcus.add("atmega32");
+		allmcus.add("at90s2323");
+
+		if (!filtered) {
+			allmcus.add("attiny12");
+			allmcus.add("at90s4433");
+			allmcus.add("atxmega64a3");
+		}
+
+		return allmcus;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getSupportedProgrammers(boolean)
+	 */
+	public List<IProgrammer> getSupportedProgrammers(boolean filtered) {
+		// TODO This is a dummy
+		List<IProgrammer> programmerlist = null;
+		try {
+			programmerlist = AVRDude.getDefault().getProgrammersList();
+		} catch (AVRDudeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return programmerlist;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getProgrammer(java.lang.String)
+	 */
+	public IProgrammer getProgrammer(String programmerid) {
+		// TODO This is a dummy
+		IProgrammer programmer = null;
+		try {
+			programmer = AVRDude.getDefault().getProgrammer(programmerid);
+		} catch (AVRDudeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return programmer;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#isDirty()
+	 */
+	public boolean isDirty() {
+		return fDirty;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#doSave()
 	 */
 	public synchronized void doSave() throws BackingStoreException {
@@ -237,6 +306,7 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 		for (String attr : config.fAttributes.keySet()) {
 			setAttribute(attr, config.getAttribute(attr));
 		}
+		fDirty = config.fDirty;
 	}
 
 	/*
@@ -257,6 +327,9 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 		fDefaults.put(ATTR_DESCRIPTION, DEF_DESCRIPTION);
 		fDefaults.put(ATTR_MCU, DEF_MCU);
 		fDefaults.put(ATTR_FCPU, Integer.toString(DEF_FCPU));
+		fDefaults.put(ATTR_PROGRAMMER_ID, DEF_PROGRAMMER_ID);
+		fDefaults.put(ATTR_HOSTINTERFACE, DEF_HOSTINTERFACE);
+		fDefaults.put(ATTR_PROGRAMMER_PORT, DEF_PROGRAMMER_PORT);
 	}
 
 	/*
@@ -265,6 +338,7 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 	 * java.lang.String)
 	 */
 	public String getAttribute(String attributeName) {
+		Assert.isNotNull(attributeName);
 		String value = fAttributes.get(attributeName);
 		if (value == null) {
 			value = fDefaults.get(attributeName);
@@ -279,6 +353,8 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 	 * , java.lang.String)
 	 */
 	public void setAttribute(String attributeName, String newvalue) {
+		Assert.isNotNull(newvalue);
+		Assert.isNotNull(attributeName);
 		String oldvalue = fAttributes.get(attributeName);
 		if (oldvalue == null || !oldvalue.equals(newvalue)) {
 			// only change attribute & fire event if the value is actually changed
@@ -293,8 +369,7 @@ public class TargetConfiguration implements ITargetConfigurationWorkingCopy {
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttributes()
 	 */
 	public Map<String, String> getAttributes() {
-		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<String, String>(fAttributes);
 	}
 
 	/*
