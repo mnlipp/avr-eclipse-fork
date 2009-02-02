@@ -182,8 +182,10 @@ public class TCViewerLabelProvider extends LabelProvider implements ITableLabelP
 			// convert to KHz
 			double khz = ((double) fcpu) / 1000;
 			return Double.toString(khz) + " KHz";
+		} else {
+			// Unlikely but just in case
+			return Integer.toString(fcpu) + " Hz";
 		}
 
-		return Integer.toString(fcpu);
 	}
 }

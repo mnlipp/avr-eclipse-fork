@@ -18,6 +18,7 @@ package de.innot.avreclipse.ui.preferences;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
+import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
@@ -74,21 +76,21 @@ import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 public class AVRDudeConfigEditor extends StatusDialog {
 
 	/** The working copy of the given source Configuration */
-	private final ProgrammerConfig		fConfig;
+	private final ProgrammerConfig			fConfig;
 
 	/** Map of all Programmer IDs to their ConfigEntry. */
-	private Map<String, ConfigEntry>	fConfigIDMap;
+	private Map<String, IProgrammer>	fConfigIDMap;
 
 	/** Map of all Programmer names to their ConfigEntry */
-	private Map<String, ConfigEntry>	fConfigNameMap;
+	private Map<String, IProgrammer>	fConfigNameMap;
 
 	/**
 	 * List of all existing configurations to avoid duplicate names (configuration names need to be
 	 * unique)
 	 */
-	private final Set<String>			fAllConfigs;
+	private final Set<String>				fAllConfigs;
 
-	private Text						fPreviewText;
+	private Text							fPreviewText;
 
 	/**
 	 * Constructor for a new Configuration Editor.
@@ -103,8 +105,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * @param parent
 	 *            Parent <code>Shell</code>
 	 * @param config
-	 *            The <code>ProgrammerConfig</code> to edit. It is copied and not modified
-	 *            directly.
+	 *            The <code>ProgrammerConfig</code> to edit. It is copied and not modified directly.
 	 * @param allconfigs
 	 *            A <code>Set&lt;String&gt;</code> of all known configuration names.
 	 */
@@ -134,13 +135,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			// They are used to build the List of Programmers and to show
 			// details of
 			// a selected programmer
-			Set<String> programmers = AVRDude.getDefault().getProgrammersList();
-			fConfigIDMap = new HashMap<String, ConfigEntry>(programmers.size());
-			fConfigNameMap = new HashMap<String, ConfigEntry>(programmers.size());
-			for (String progid : programmers) {
-				ConfigEntry entry = AVRDude.getDefault().getProgrammerInfo(progid);
-				fConfigIDMap.put(progid, entry);
-				fConfigNameMap.put(entry.description, entry);
+			Collection<IProgrammer> programmers = AVRDude.getDefault().getProgrammersList();
+			fConfigIDMap = new HashMap<String, IProgrammer>(programmers.size());
+			fConfigNameMap = new HashMap<String, IProgrammer>(programmers.size());
+			for (IProgrammer type : programmers) {
+				fConfigIDMap.put(type.getId(), type);
+				fConfigNameMap.put(type.getDescription(), type);
 			}
 		} catch (AVRDudeException e) {
 			AVRDudeErrorDialog.openAVRDudeError(getShell(), e, null);
@@ -149,7 +149,6 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
@@ -187,10 +186,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * <p>
 	 * This control edits the <code>ProgrammerConfig<code> name property.
 	 * </p>
-	 * <p>The entered name is checked and an error message is shown if
-	 * the name is either empty or already exists for another configuration.
-	 * Also slashes '/' are filtered out, as they can not be used for names.
+	 * <p>
+	 * The entered name is checked and an error message is shown if the name is either empty or
+	 * already exists for another configuration. Also slashes '/' are filtered out, as they can not
+	 * be used for names.
 	 * </p>
+	 * 
 	 * @param parent
 	 */
 	private void addNameControl(Composite parent) {
@@ -205,8 +206,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		name.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
 				// Upon a modify event check that the name is not empty and
@@ -233,8 +234,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		name.addVerifyListener(new VerifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
 			 */
 			public void verifyText(VerifyEvent event) {
 				String text = event.text;
@@ -250,6 +251,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * <p>
 	 * This control edits the <code>ProgrammerConfig<code> description property.
 	 * </p>
+	 * 
 	 * @param parent
 	 */
 	private void addDescriptionControl(Composite parent) {
@@ -261,8 +263,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		description.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
 				String newdescription = description.getText();
@@ -277,9 +279,11 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * This composite edits the <code>ProgrammerConfig<code> programmer property.
 	 * </p>
 	 * <p>
-	 * It consists of a List with all available programmers and a Textbox showing the definition of the selected programmer from the avrdude configuration file
-	 * These two controls are arranged in a SashForm and wrapped in a Group.
+	 * It consists of a List with all available programmers and a Textbox showing the definition of
+	 * the selected programmer from the avrdude configuration file These two controls are arranged
+	 * in a SashForm and wrapped in a Group.
 	 * </p>
+	 * 
 	 * @param parent
 	 */
 	private void addProgrammersComposite(Composite parent) {
@@ -315,23 +319,23 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		list.addSelectionListener(new SelectionAdapter() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+			 * @seeorg.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.
+			 * SelectionEvent)
 			 */
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String devicename = list.getItem(list.getSelectionIndex());
-				ConfigEntry entry = fConfigNameMap.get(devicename);
-				fConfig.setProgrammer(entry.avrdudeid);
-				updateDetails(entry, fromtext, details);
+				IProgrammer type = fConfigNameMap.get(devicename);
+				fConfig.setProgrammer(type.getId());
+				updateDetails(type, fromtext, details);
 				updateCommandPreview();
 			}
 		});
 		String programmer = fConfig.getProgrammer();
-		ConfigEntry entry = fConfigIDMap.get(programmer);
+		IProgrammer type = fConfigIDMap.get(programmer);
 		if (programmer.length() != 0) {
-			list.select(list.indexOf(entry.description));
-			updateDetails(entry, fromtext, details);
+			list.select(list.indexOf(type.getDescription()));
+			updateDetails(type, fromtext, details);
 		}
 
 		sashform.pack();
@@ -351,8 +355,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		port.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
 				String newport = port.getText();
@@ -383,8 +387,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		baudrate.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
 				String newbaudrte = baudrate.getText();
@@ -397,8 +401,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		baudrate.addVerifyListener(new VerifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
 			 */
 			public void verifyText(VerifyEvent event) {
 				String text = event.text;
@@ -537,8 +541,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		delay.addModifyListener(new ModifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
 			 */
 			public void modifyText(ModifyEvent e) {
 				String newdelay = delay.getText();
@@ -550,8 +554,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		delay.addVerifyListener(new VerifyListener() {
 			/*
 			 * (non-Javadoc)
-			 * 
-			 * @see org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
+			 * @see
+			 * org.eclipse.swt.events.VerifyListener#verifyText(org.eclipse.swt.events.VerifyEvent)
 			 */
 			public void verifyText(VerifyEvent event) {
 				String text = event.text;
@@ -638,7 +642,16 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 * @param details
 	 *            The multiline <code>Text</code> control for the details
 	 */
-	private void updateDetails(ConfigEntry entry, Text from, Text details) {
+	private void updateDetails(IProgrammer type, Text from, Text details) {
+		ConfigEntry entry;
+		try {
+			entry = AVRDude.getDefault().getProgrammerInfo(type.getId());
+		} catch (AVRDudeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			from.setText("Error reading avrdude.conf file");
+			return;
+		}
 		from.setText("Programmer details from [" + entry.configfile.toOSString() + ":"
 				+ entry.linenumber + "]");
 		Job job = new UpdateDetailsJob(entry, details);
@@ -680,7 +693,6 @@ public class AVRDudeConfigEditor extends StatusDialog {
 
 		/*
 		 * (non-Javadoc)
-		 * 
 		 * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.IProgressMonitor)
 		 */
 		@Override
