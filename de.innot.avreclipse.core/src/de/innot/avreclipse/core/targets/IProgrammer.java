@@ -16,7 +16,6 @@
 
 package de.innot.avreclipse.core.targets;
 
-
 /**
  * Description of programmer interface hardware.
  * <p>
@@ -90,6 +89,20 @@ public interface IProgrammer {
 	 * 
 	 * @return {@link TargetInterface}
 	 */
-	public TargetInterface getTargetInterfaces();
+	public TargetInterface getTargetInterface();
+
+	/**
+	 * Returns an array of usable target interface clock frequencies.
+	 * <p>
+	 * This is only supported by some programmers.
+	 * </p>
+	 * <p>
+	 * The returned array is sorted from the lowest to the highest frequency and always has a value
+	 * of <code>0</code> as its first element</code>. If the programmer does not support user
+	 * selectable clock frequencies then an empty array is returned.
+	 * 
+	 * @return Array of clock frequencies. May be empty.
+	 */
+	public int[] getTargetInterfaceClockFrequencies();
 
 }

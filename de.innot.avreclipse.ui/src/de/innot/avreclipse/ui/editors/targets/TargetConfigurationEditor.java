@@ -17,6 +17,7 @@
 package de.innot.avreclipse.ui.editors.targets;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -121,6 +122,20 @@ public class TargetConfigurationEditor extends FormEditor {
 	@Override
 	public void doSaveAs() {
 		// Save as not supported for target configurations
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormEditor#createPages()
+	 */
+	@Override
+	protected void createPages() {
+		// We only have a single page in the editor and don't want the little tab at the bottom.
+		// So we just set the height of the tab to 0.
+		super.createPages();
+		if (getPageCount() == 1 && (getContainer() instanceof CTabFolder)) {
+			((CTabFolder) getContainer()).setTabHeight(0);
+		}
 	}
 
 }

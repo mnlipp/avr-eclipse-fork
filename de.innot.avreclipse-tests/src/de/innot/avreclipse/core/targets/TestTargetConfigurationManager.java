@@ -39,7 +39,7 @@ import org.osgi.service.prefs.Preferences;
  * @since
  * 
  */
-public class TestTargetConfigurationManager {
+public class TestTargetConfigurationManager implements ITargetConfigConstants {
 
 	private TargetConfigurationManager	manager;
 
@@ -72,9 +72,9 @@ public class TestTargetConfigurationManager {
 		assertNotNull("New config has null mcuid", tc.getMCUId());
 		assertTrue("New config has empty mcuid", tc.getMCUId().length() > 0);
 
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_NAME));
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_MCU));
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_FCPU));
+		assertNotNull(tc.getAttribute(ATTR_NAME));
+		assertNotNull(tc.getAttribute(ATTR_MCU));
+		assertNotNull(tc.getAttribute(ATTR_FCPU));
 
 	}
 

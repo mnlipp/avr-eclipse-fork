@@ -18,11 +18,13 @@ package de.innot.avreclipse.ui.editors.targets;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.forms.HyperlinkSettings;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
@@ -65,6 +67,7 @@ public class MainPage extends FormPage {
 		form.setText("Target Configuration");
 		FormToolkit toolkit = managedForm.getToolkit();
 		toolkit.decorateFormHeading(form.getForm());
+		toolkit.getHyperlinkGroup().setHyperlinkUnderlineMode(HyperlinkSettings.UNDERLINE_HOVER);
 
 		// fill the form
 		fillBody(managedForm);
@@ -88,20 +91,25 @@ public class MainPage extends FormPage {
 	 */
 	private void fillBody(IManagedForm managedForm) {
 
-		Composite body = managedForm.getForm().getBody();
 		FormToolkit toolkit = managedForm.getToolkit();
-
+		Composite body = managedForm.getForm().getBody();
 		body.setLayout(new TableWrapLayout());
 
-		// Add a part that will update the form title to the current MCU.
-		GeneralSection genpart = new GeneralSection(body, toolkit);
-		managedForm.addPart(genpart);
+		GeneralSection gensection = new GeneralSection(body, toolkit);
+		gensection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		managedForm.addPart(gensection);
 
-		MCUSection mcupart = new MCUSection(body, toolkit);
-		managedForm.addPart(mcupart);
+		MCUSection mcusection = new MCUSection(body, toolkit);
+		mcusection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		managedForm.addPart(mcusection);
 
-		ProgrammerSection programmerpart = new ProgrammerSection(body, toolkit);
-		managedForm.addPart(programmerpart);
+		ProgrammerSection programmersection = new ProgrammerSection(body, toolkit);
+		programmersection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		managedForm.addPart(programmersection);
+
+		ImageLoaderSection imageloadersection = new ImageLoaderSection(body, toolkit);
+		imageloadersection.getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		managedForm.addPart(imageloadersection);
 
 	}
 }

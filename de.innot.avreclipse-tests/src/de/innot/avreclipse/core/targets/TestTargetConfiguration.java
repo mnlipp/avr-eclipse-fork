@@ -23,20 +23,27 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
+import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
  * @author Thomas Holland
  * @since
  * 
  */
-public class TestTargetConfiguration {
+public class TestTargetConfiguration implements ITargetConfigConstants {
 
 	/**
 	 * Extension of {@link TargetConfiguration} to get access to the protected constructors.
@@ -141,7 +148,7 @@ public class TestTargetConfiguration {
 			tc.setName(name);
 
 			assertEquals(name, tc.getName());
-			assertEquals(name, tc.getAttribute(ITargetConfiguration.ATTR_NAME));
+			assertEquals(name, tc.getAttribute(ATTR_NAME));
 		}
 	}
 
@@ -157,7 +164,7 @@ public class TestTargetConfiguration {
 			tc.setDescription(desc);
 
 			assertEquals(desc, tc.getDescription());
-			assertEquals(desc, tc.getAttribute(ITargetConfiguration.ATTR_DESCRIPTION));
+			assertEquals(desc, tc.getAttribute(ATTR_DESCRIPTION));
 		}
 	}
 
@@ -172,7 +179,7 @@ public class TestTargetConfiguration {
 			tc.setMCU(mcu);
 
 			assertEquals(mcu, tc.getMCUId());
-			assertEquals(mcu, tc.getAttribute(ITargetConfiguration.ATTR_MCU));
+			assertEquals(mcu, tc.getAttribute(ATTR_MCU));
 		}
 	}
 
@@ -187,7 +194,7 @@ public class TestTargetConfiguration {
 			tc.setFCPU(fcpu);
 
 			assertEquals(fcpu, tc.getFCPU());
-			assertEquals(fcpu, Integer.parseInt(tc.getAttribute(ITargetConfiguration.ATTR_FCPU)));
+			assertEquals(fcpu, Integer.parseInt(tc.getAttribute(ATTR_FCPU)));
 		}
 	}
 
@@ -253,10 +260,10 @@ public class TestTargetConfiguration {
 
 		// Check that all changes were propagated
 		assertEquals(id, tc.getId());
-		assertEquals(ITargetConfiguration.DEF_NAME, tc.getName());
-		assertEquals(ITargetConfiguration.DEF_DESCRIPTION, tc.getDescription());
-		assertEquals(ITargetConfiguration.DEF_MCU, tc.getMCUId());
-		assertEquals(ITargetConfiguration.DEF_FCPU, tc.getFCPU());
+		assertEquals(DEF_NAME, tc.getName());
+		assertEquals(DEF_DESCRIPTION, tc.getDescription());
+		assertEquals(DEF_MCU, tc.getMCUId());
+		assertEquals(DEF_FCPU, tc.getFCPU());
 
 	}
 
@@ -303,10 +310,10 @@ public class TestTargetConfiguration {
 		assertNotNull(attrmap);
 		assertTrue(attrmap.size() > 0);
 
-		assertTrue(attrmap.containsKey(ITargetConfiguration.ATTR_NAME));
-		assertTrue(attrmap.containsKey(ITargetConfiguration.ATTR_DESCRIPTION));
-		assertTrue(attrmap.containsKey(ITargetConfiguration.ATTR_MCU));
-		assertTrue(attrmap.containsKey(ITargetConfiguration.ATTR_FCPU));
+		assertTrue(attrmap.containsKey(ATTR_NAME));
+		assertTrue(attrmap.containsKey(ATTR_DESCRIPTION));
+		assertTrue(attrmap.containsKey(ATTR_MCU));
+		assertTrue(attrmap.containsKey(ATTR_FCPU));
 		assertTrue(attrmap.containsKey("foo"));
 
 		assertFalse(attrmap.containsKey(null));
@@ -364,11 +371,11 @@ public class TestTargetConfiguration {
 		tc.addPropertyChangeListener(listener);
 
 		tc.setName("testname");
-		assertEquals(ITargetConfiguration.ATTR_NAME, fAttribute);
+		assertEquals(ATTR_NAME, fAttribute);
 		assertEquals("testname", fNewValue);
 
 		tc.setName("testname2");
-		assertEquals(ITargetConfiguration.ATTR_NAME, fAttribute);
+		assertEquals(ATTR_NAME, fAttribute);
 		assertEquals("testname", fOldValue);
 		assertEquals("testname2", fNewValue);
 
@@ -395,4 +402,49 @@ public class TestTargetConfiguration {
 		tc.setName("foobar");
 	}
 
+	/**
+	 * This is not a test but just a small utility to dump all information about all programmers to
+	 * the console.
+	 * 
+	 * @throws AVRDudeException
+	 */
+	// @Test
+	public void dumpProgrammers() throws AVRDudeException {
+		List<IProgrammer> allprogrammers = AVRDude.getDefault().getProgrammersList();
+
+		Collections.sort(allprogrammers, new Comparator<IProgrammer>() {
+
+			public int compare(IProgrammer o1, IProgrammer o2) {
+				return o1.getDescription().compareToIgnoreCase(o2.getDescription());
+			}
+		});
+
+		for (IProgrammer programmer : allprogrammers) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(programmer.getDescription());
+			sb.append("\t");
+			sb.append(programmer.getId());
+			sb.append("\t");
+
+			// find the type by looking for "type = xxx" in the info text
+			Pattern typePat = Pattern.compile(".*type\\s*=\\s*(\\w*);.*", Pattern.DOTALL);
+			Matcher m = typePat.matcher(programmer.getAdditionalInfo());
+			if (m.matches()) {
+				sb.append(m.group(1));
+				sb.append("\t");
+			} else {
+				sb.append("type not found;\t");
+			}
+
+			HostInterface[] allhis = programmer.getHostInterfaces();
+			for (HostInterface hi : allhis) {
+				sb.append(hi.name());
+				sb.append(" ");
+			}
+			sb.append("\t");
+			sb.append(programmer.getTargetInterface().name());
+
+			System.out.println(sb.toString());
+		}
+	}
 }

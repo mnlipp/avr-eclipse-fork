@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -40,25 +40,28 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 import de.innot.avreclipse.core.targets.HostInterface;
 import de.innot.avreclipse.core.targets.IProgrammer;
+import de.innot.avreclipse.core.targets.ITargetConfigConstants;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
+import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
 
 /**
  * @author Thomas Holland
  * @since 2.4
  * 
  */
-public class ProgrammerSection extends SectionPart {
+public class ProgrammerSection extends SectionPart implements ITargetConfigChangeListener,
+		ITargetConfigConstants {
 
 	private ITargetConfigurationWorkingCopy	fTCWC;
 
+	private Composite						fSectionClient;
 	private Combo							fProgrammersCombo;
-	private Label							fProgrammersWarningImageLabel;
 
 	private Combo							fHostPortCombo;
 
-	private Section							fHostInterfaceSection;
-	private Section							fTargetInterfaceSection;
+	private SectionPart						fHostInterfaceSection;
+	private SectionPart						fTargetInterfaceSection;
 
 	/** Reverse mapping of programmer description to id. */
 	private Map<String, String>				fMapDescToId;
@@ -66,20 +69,30 @@ public class ProgrammerSection extends SectionPart {
 	/** Reverse mapping of host interface description to host interface. */
 	private Map<String, HostInterface>		fMapDescToHostPort;
 
+	// Remember the last saved name / description to determine if this
+	// part is actually dirty.
+	private String							fOldProgrammerId;
+	private String							fOldHostInterface;
+
 	/**
 	 * @param parent
 	 * @param toolkit
 	 * @param style
 	 */
 	public ProgrammerSection(Composite parent, FormToolkit toolkit) {
-		super(parent, toolkit, Section.TITLE_BAR | Section.DESCRIPTION);
-
-		getSection().setText("Programmer Hardware / Interface");
-		getSection().setDescription("TODO Description");
-		getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		super(parent, toolkit, Section.TITLE_BAR);
 
 		fMapDescToId = new HashMap<String, String>();
 		fMapDescToHostPort = new HashMap<String, HostInterface>();
+
+		getSection().setText("Programmer Hardware / Interface");
+
+		fSectionClient = toolkit.createComposite(getSection());
+		TableWrapLayout layout = new TableWrapLayout();
+		layout.numColumns = 2;
+		layout.horizontalSpacing = 12;
+		fSectionClient.setLayout(layout);
+
 	}
 
 	/*
@@ -91,76 +104,82 @@ public class ProgrammerSection extends SectionPart {
 		super.initialize(form);
 
 		FormToolkit toolkit = form.getToolkit();
-		Composite content = toolkit.createComposite(getSection());
-		content.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-
-		TableWrapLayout layout = new TableWrapLayout();
-		layout.numColumns = 3;
-		content.setLayout(layout);
-
 		//
 		// The Programmers Combo
 		// 
-		Label label = toolkit.createLabel(content, "Programmer:");
+		Label label = toolkit.createLabel(fSectionClient, "Programmer:");
 		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
 
-		fProgrammersCombo = new Combo(content, SWT.READ_ONLY);
+		fProgrammersCombo = new Combo(fSectionClient, SWT.READ_ONLY);
 		toolkit.adapt(fProgrammersCombo, true, true);
-		fProgrammersCombo.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP));
+		fProgrammersCombo.setLayoutData(new TableWrapData(TableWrapData.LEFT, TableWrapData.TOP));
 		fProgrammersCombo.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getManagedForm().dirtyStateChanged();
+				String description = fProgrammersCombo.getText();
+				String id = fMapDescToId.get(description);
+				IProgrammer programmer = fTCWC.getProgrammer(id);
 
-				// Set the tooltip to the additional info.
-				String programmerid = fMapDescToId.get(fProgrammersCombo.getText());
-				IProgrammer programmer = fTCWC.getProgrammer(programmerid);
+				fTCWC.setAttribute(ATTR_PROGRAMMER_ID, id);
 				fProgrammersCombo.setToolTipText(programmer.getAdditionalInfo());
+
+				IManagedForm form = getManagedForm();
+				ScrollBar sb = getManagedForm().getForm().getVerticalBar();
+				int lastScrollbarPosition = sb != null ? sb.getSelection() : 0;
 				updateHostInterfaceCombo(programmer);
+
+				// Ensure that the ProgrammerCombo is still visible after the layout reflow caused
+				// by the new layout
+
+				sb = form.getForm().getVerticalBar();
+				if (sb != null) {
+					sb.setSelection(lastScrollbarPosition);
+				}
+				// form.getForm().showControl(getSection());
+				// form.getForm().showControl(fProgrammersCombo);
+				form.dirtyStateChanged();
 			}
 		});
-
-		fProgrammersWarningImageLabel = toolkit.createLabel(content, null);
-		fProgrammersWarningImageLabel.setImage(PlatformUI.getWorkbench().getSharedImages()
-				.getImage(ISharedImages.IMG_OBJS_ERROR_TSK));
-		fProgrammersWarningImageLabel.setLayoutData(new TableWrapData(TableWrapData.LEFT,
-				TableWrapData.MIDDLE));
-		fProgrammersWarningImageLabel
-				.setToolTipText("The selected Programmer is not supported by the image loader and/or the gdbserver");
-		fProgrammersWarningImageLabel.setVisible(false);
 
 		//
 		// The host port selector combo
 		//
-		label = toolkit.createLabel(content, "Host interface:");
+		label = toolkit.createLabel(fSectionClient, "Host interface:");
 		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
 
-		fHostPortCombo = new Combo(content, SWT.READ_ONLY);
+		fHostPortCombo = new Combo(fSectionClient, SWT.READ_ONLY);
 		toolkit.adapt(fHostPortCombo, true, true);
-		fHostPortCombo
-				.setLayoutData(new TableWrapData(TableWrapData.LEFT, TableWrapData.TOP, 1, 2));
+		fHostPortCombo.setLayoutData(new TableWrapData(TableWrapData.LEFT, TableWrapData.TOP));
 		fHostPortCombo.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getManagedForm().dirtyStateChanged();
-				// updateHostPort();
-				// TODO update form for the new host port
+				String description = fHostPortCombo.getText();
+				HostInterface hi = fMapDescToHostPort.get(description);
+				fTCWC.setAttribute(ATTR_HOSTINTERFACE, hi.name());
+
+				// Ensure that the HostPortCombo is still visible after the layout reflow caused
+				// by the new layout
+				IManagedForm form = getManagedForm();
+				form.getForm().showControl(fProgrammersCombo);
+				form.dirtyStateChanged();
 			}
 		});
 
-		// Fill the combo with all values so that the layout is correct.
-		// The actual entries are filled later when the setFormInput() is called.
-		// update the combo to only show available interfaces
-		HostInterface[] allhis = HostInterface.values();
-		String[] allnames = new String[allhis.length];
-		for (int i = 0; i < allhis.length; i++) {
-			allnames[i] = allhis[i].toString();
-		}
-		fHostPortCombo.setItems(allnames);
+		toolkit.createLabel(fSectionClient, null); // Dummy to fill the first column
+		fHostInterfaceSection = new HostInterfaceSettingsPart(fSectionClient, toolkit);
+		fHostInterfaceSection.getSection().setLayoutData(
+				new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
+		getManagedForm().addPart(fHostInterfaceSection);
 
-		getSection().setClient(content);
+		toolkit.createLabel(fSectionClient, null); // Dummy to fill the first column
+		fTargetInterfaceSection = new TargetInterfaceSettingsPart(fSectionClient, toolkit);
+		fTargetInterfaceSection.getSection().setLayoutData(
+				new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
+		getManagedForm().addPart(fTargetInterfaceSection);
+
+		getSection().setClient(fSectionClient);
 	}
 
 	/*
@@ -174,11 +193,63 @@ public class ProgrammerSection extends SectionPart {
 		}
 
 		fTCWC = (ITargetConfigurationWorkingCopy) input;
-		// fTCWC.addChangeListener(this);
+
+		// Add a listener for attribute changes.
+		// If either the image loader or the gdbserver is changed then
+		// mark the form as stale which will cause a call to refresh() which
+		// in turn will check if the programmer is still valid
+		fTCWC.addPropertyChangeListener(this);
+
+		fOldProgrammerId = fTCWC.getAttribute(ATTR_PROGRAMMER_ID);
+		fOldHostInterface = fTCWC.getAttribute(ATTR_HOSTINTERFACE);
 
 		refresh();
 
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
+	 */
+	@Override
+	public boolean isDirty() {
+		if (!fTCWC.getAttribute(ATTR_PROGRAMMER_ID).equals(fOldProgrammerId)) {
+			return true;
+		}
+
+		if (!fTCWC.getAttribute(ATTR_HOSTINTERFACE).equals(fOldHostInterface)) {
+			return true;
+		}
+
+		return super.isDirty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
+	 */
+	@Override
+	public void commit(boolean onSave) {
+		// The actual saving is done somewhere upstream.
+
+		// But remember the current settings for the
+		// dirty state tracking
+		fOldProgrammerId = fTCWC.getAttribute(ATTR_PROGRAMMER_ID);
+		fOldHostInterface = fTCWC.getAttribute(ATTR_HOSTINTERFACE);
+
+		super.commit(onSave);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		// remove the listener
+		fTCWC.removePropertyChangeListener(this);
+		super.dispose();
 	}
 
 	/*
@@ -202,7 +273,7 @@ public class ProgrammerSection extends SectionPart {
 		}
 
 		// Check if the currently selected programmer is still in the list
-		String currentprogrammerid = fTCWC.getAttribute(ITargetConfiguration.ATTR_PROGRAMMER_ID);
+		String currentprogrammerid = fTCWC.getAttribute(ATTR_PROGRAMMER_ID);
 		if (fMapDescToId.containsValue(currentprogrammerid)) {
 			// Yes -- The selected Programmer is still supported.
 			// Clear any warnings
@@ -233,62 +304,36 @@ public class ProgrammerSection extends SectionPart {
 		fProgrammersCombo.setToolTipText(currentprogrammer.getAdditionalInfo());
 
 		// Now set the host interface
-		String hostinterface = fTCWC.getAttribute(ITargetConfiguration.ATTR_HOSTINTERFACE);
-		HostInterface currHI;
-		try {
-			currHI = HostInterface.valueOf(HostInterface.class, hostinterface);
-		} catch (IllegalArgumentException iae) {
-			// This should not happen unless the preferences have been garbled.
-			// Just in case we select something reasonable
-			currHI = currentprogrammer.getHostInterfaces()[0];
-		}
-		fHostPortCombo.setText(currHI.toString());
 		updateHostInterfaceCombo(currentprogrammer);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
+	 * @see
+	 * de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener#attributeChange
+	 * (de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String, java.lang.String,
+	 * java.lang.String)
 	 */
-	@Override
-	public void commit(boolean onSave) {
-		String description = fProgrammersCombo.getText();
-
-		String id = fMapDescToId.get(description);
-		fTCWC.setAttribute(ITargetConfiguration.ATTR_PROGRAMMER_ID, id);
-
-		description = fHostPortCombo.getText();
-		HostInterface hi = fMapDescToHostPort.get(description);
-		fTCWC.setAttribute(ITargetConfiguration.ATTR_HOSTINTERFACE, hi.name());
-
-		super.commit(onSave);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
-	 */
-	@Override
-	public boolean isDirty() {
-		String description = fProgrammersCombo.getText();
-		String id = fMapDescToId.get(description);
-		if (!fTCWC.getAttribute(ITargetConfiguration.ATTR_PROGRAMMER_ID).equals(id)) {
-			return true;
+	public void attributeChange(ITargetConfiguration config, String attribute, String oldvalue,
+			String newvalue) {
+		// Check if the image loader or the gdbserver have changed
+		if (ATTR_IMAGE_LOADER_ID.equals(attribute) || ATTR_GDBSERVER_ID.equals(attribute)) {
+			markStale();
 		}
-
-		HostInterface currHI = fMapDescToHostPort.get(fHostPortCombo.getText());
-		if (!fTCWC.getAttribute(ITargetConfiguration.ATTR_HOSTINTERFACE).equals(currHI.name())) {
-			return true;
-		}
-
-		return super.isDirty();
 	}
 
 	/**
 	 * @param visible
 	 */
 	private void showWarning(boolean visible) {
-		fProgrammersWarningImageLabel.setVisible(visible);
+		if (visible) {
+			String msg = "Selected Programmer is not supported by image loader and / or gdb server";
+			getManagedForm().getMessageManager().addMessage(fProgrammersCombo, msg, null,
+					IMessageProvider.WARNING, fProgrammersCombo);
+		} else {
+			getManagedForm().getMessageManager()
+					.removeMessage(fProgrammersCombo, fProgrammersCombo);
+		}
 	}
 
 	/**
@@ -307,19 +352,20 @@ public class ProgrammerSection extends SectionPart {
 		fHostPortCombo.setItems(allhostinterfaces);
 
 		// Check if the currently selected port is still valid
-		HostInterface actualHI = fMapDescToHostPort.get(fHostPortCombo.getText());
+		String actualHI = fTCWC.getAttribute(ATTR_HOSTINTERFACE);
 		for (HostInterface hi : availableHIs) {
-			if (hi.equals(actualHI)) {
-				// The set port is valid. Nothing to do.
+			if (hi.name().equals(actualHI)) {
+				// The set port is valid. Just set the name and be done
+				fHostPortCombo.setText(hi.toString());
 				return;
 			}
 		}
 
 		// The selected programmer uses a different host interface.
-		// Update the combo
+		// Update the combo and the target configuration
 		HostInterface newHI = availableHIs[0];
-		String desc = newHI.toString();
-		fHostPortCombo.setText(desc);
+		fHostPortCombo.setText(newHI.toString());
+		fTCWC.setAttribute(ATTR_HOSTINTERFACE, newHI.name());
 
 		// Change the host port settings section
 		changeHostPortType(newHI);
@@ -330,11 +376,7 @@ public class ProgrammerSection extends SectionPart {
 	 */
 	private void changeHostPortType(HostInterface hostinterface) {
 
-	}
-
-	private interface IHostPortSection {
-
-		public HostInterface getInterface();
+		getManagedForm().getForm().reflow(true);
 	}
 
 }

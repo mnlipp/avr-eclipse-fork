@@ -30,7 +30,7 @@ package de.innot.avreclipse.core.targets;
  */
 public enum HostInterface {
 
-	SERIAL_BB("Serial Port / BitBanger type"), SERIAL("Serial Port"), PARALLEL("Parallel Port"), USB(
+	SERIAL_BB("Serial Port / BitBanger"), SERIAL("Serial Port"), PARALLEL("Parallel Port"), USB(
 			"USB Port");
 
 	private final String	fDesc;

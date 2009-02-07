@@ -52,9 +52,11 @@ import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
 import de.innot.avreclipse.core.paths.IPathProvider;
 import de.innot.avreclipse.core.preferences.AVRDudePreferences;
+import de.innot.avreclipse.core.targets.ClockValuesGenerator;
 import de.innot.avreclipse.core.targets.HostInterface;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.TargetInterface;
+import de.innot.avreclipse.core.targets.ClockValuesGenerator.ClockValuesType;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteValues;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -614,7 +616,8 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * Tries to guess the target interface from the AVRDude config id.
+	 * Tries to guess the target interface from the AVRDude config id and the driver type from
+	 * avrdude.conf.
 	 * <p>
 	 * This has been tested with avrdude 5.6. Future versions of avrdude might return wrong results.
 	 * </p>
@@ -623,7 +626,12 @@ public class AVRDude implements IMCUProvider {
 	 *            The id of the programmer as used by avrdude.
 	 * @return The interface used by the programmer.
 	 */
-	public static TargetInterface getInterface(String avrdudeid) {
+	public static TargetInterface getInterface(String avrdudeid, String type) {
+
+		// Check the serial bootloader types
+		if (type.equals("avr910") || type.equals("butterfly")) {
+			return TargetInterface.BOOTLOADER;
+		}
 
 		// Check if this is one of the HVSP supporting devices
 		if (avrdudeid.endsWith("hvsp")) {
@@ -648,12 +656,6 @@ public class AVRDude implements IMCUProvider {
 		// Check if this is JTAG device
 		if (avrdudeid.contains("jtag") || avrdudeid.contains("xil")) {
 			return TargetInterface.JTAG;
-		}
-
-		// Check the serial bootloader types
-		if (avrdudeid.equals("avr109") || avrdudeid.equals("butterfly")
-				|| avrdudeid.equals("avr910")) {
-			return TargetInterface.BOOTLOADER;
 		}
 
 		// I think we filtered everything out, so what is left is a normal ISP programmer.
@@ -1258,13 +1260,17 @@ public class AVRDude implements IMCUProvider {
 
 	private class ProgrammerType implements IProgrammer {
 
-		private String					fAvrdudeId;
+		private String			fAvrdudeId;
 
-		private String					fDescription;
+		private String			fDescription;
 
-		private HostInterface			fHostInterface[];
+		private HostInterface	fHostInterface[];
 
 		private TargetInterface	fTargetInterface;
+
+		private String			fType;
+
+		private int[]			fClockFrequencies;
 
 		protected ProgrammerType(String id) {
 			fAvrdudeId = id;
@@ -1322,32 +1328,8 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public HostInterface[] getHostInterfaces() {
 			if (fHostInterface == null) {
-				// get the Detailed info for the programmer
-				try {
-					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
-					String info = getConfigDetailInfo(entry);
-
-					// find the type by looking for "type = xxx" in the info text
-					Pattern typePat = Pattern.compile(".*type\\s*=\\s*(\\w*);.*", Pattern.DOTALL);
-					Matcher m = typePat.matcher(info);
-					if (m.matches()) {
-						fHostInterface = AVRDude.getHostInterfaces(fAvrdudeId, m.group(1));
-					} else {
-						// could not find the 'type = xxx' pattern in the info.
-						// This should not happen and means that the avrdude.conf
-						// has errors.
-						// TODO: log a message
-						fHostInterface = new HostInterface[] {};
-					}
-
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (AVRDudeException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
+				String type = getType(fAvrdudeId);
+				fHostInterface = AVRDude.getHostInterfaces(fAvrdudeId, type);
 			}
 
 			return fHostInterface;
@@ -1357,12 +1339,95 @@ public class AVRDude implements IMCUProvider {
 		 * (non-Javadoc)
 		 * @see de.innot.avreclipse.core.targets.IProgrammerType#getTargetInterfaces()
 		 */
-		public TargetInterface getTargetInterfaces() {
+		public TargetInterface getTargetInterface() {
 			if (fTargetInterface == null) {
-				fTargetInterface = getInterface(fAvrdudeId);
+				String type = getType(fAvrdudeId);
+				fTargetInterface = getInterface(fAvrdudeId, type);
 			}
 			return fTargetInterface;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammer#getTargetInterfaceClockFrequencies()
+		 */
+		public int[] getTargetInterfaceClockFrequencies() {
+			if (fClockFrequencies == null) {
+				String type = getType(fAvrdudeId);
+				TargetInterface tif = getTargetInterface();
+
+				ClockValuesType protocol = null;
+
+				if ("usbtiny".equals(type)) {
+					// USBTiny pogrammer
+					protocol = ClockValuesType.USBTINY;
+
+				} else if ("jtagmki".equals(type)) {
+					// AVR ICE MkI programmer
+					protocol = ClockValuesType.JTAG1;
+
+				} else if (type.startsWith("jtagmkii") || type.startsWith("dragon")) {
+					// AVR ICE MkII or AVR Dragon
+					switch (tif) {
+						case JTAG:
+						case DW:
+							protocol = ClockValuesType.JTAG2;
+							break;
+						default:
+							protocol = ClockValuesType.AVRISPMK2;
+					}
+
+				} else if (type.startsWith("stk500")) {
+					// AVR ISP (mkII), STK500 or compatible
+					protocol = ClockValuesType.STK500;
+
+				} else if (type.startsWith("stk600")) {
+					// STK600 board
+					protocol = ClockValuesType.STK600;
+
+				}
+
+				if (protocol != null) {
+					fClockFrequencies = ClockValuesGenerator.getValues(protocol);
+				} else {
+					fClockFrequencies = new int[] {};
+				}
+			}
+			return fClockFrequencies;
+		}
+
+		/**
+		 * 
+		 */
+		private String getType(String programmerid) {
+			if (fType == null) {
+				try {
+					// get the Detailed info for the programmer
+					ConfigEntry entry = getProgrammerInfo(programmerid);
+					String info = getConfigDetailInfo(entry);
+
+					// find the type by looking for "type = xxx" in the info text
+					Pattern typePat = Pattern.compile(".*type\\s*=\\s*(\\w*);.*", Pattern.DOTALL);
+					Matcher m = typePat.matcher(info);
+					if (m.matches()) {
+						fType = m.group(1);
+					} else {
+						// could not find the 'type = xxx' pattern in the info.
+						// This should not happen and means that the avrdude.conf
+						// has errors.
+						// TODO: log a message
+						fType = "";
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (AVRDudeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+			return fType;
+		}
 	}
 }

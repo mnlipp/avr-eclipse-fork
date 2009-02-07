@@ -16,12 +16,14 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -29,19 +31,20 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
-import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
+import de.innot.avreclipse.core.targets.ITargetConfigConstants;
+import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
+import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -49,17 +52,19 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @since 2.4
  * 
  */
-public class MCUSection extends SectionPart {
+public class MCUSection extends SectionPart implements ITargetConfigChangeListener,
+		ITargetConfigConstants {
 
 	private ITargetConfigurationWorkingCopy	fTCWC;
 
 	private Combo							fMCUcombo;
-	private Label							fMCUWarningImageLabel;
-	private Label							fMCUWarningLabel;
 	private Combo							fFCPUcombo;
 
 	private Map<String, String>				fMCUList;
 	private List<String>					fMCUNames;
+
+	private String							fOldMCU;
+	private int								fOldFCPU;
 
 	/** List of common MCU frequencies (taken from mfile) */
 	private static final String[]			FCPU_VALUES	= { "1000000", "1843200", "2000000",
@@ -75,7 +80,6 @@ public class MCUSection extends SectionPart {
 		super(parent, toolkit, Section.TITLE_BAR);
 
 		getSection().setText("Target Processor");
-		getSection().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 
 		fMCUList = new HashMap<String, String>();
 		fMCUNames = new ArrayList<String>();
@@ -93,46 +97,34 @@ public class MCUSection extends SectionPart {
 		Composite content = toolkit.createComposite(getSection());
 		content.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 
-		TableWrapLayout layout = new TableWrapLayout();
-		layout.numColumns = 4;
+		GridLayout layout = new GridLayout(2, false);
+		layout.horizontalSpacing = 12;
 		content.setLayout(layout);
 
 		//
 		// The MCU Combo
 		// 
-		Label label = toolkit.createLabel(content, "MCU type:");
-		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
+		toolkit.createLabel(content, "MCU type:");
 		fMCUcombo = new Combo(content, SWT.READ_ONLY);
 		toolkit.adapt(fMCUcombo, true, true);
-		fMCUcombo.setLayoutData(new TableWrapData(TableWrapData.FILL));
+		fMCUcombo.setLayoutData(new GridData(SWT.BEGINNING, SWT.NONE, false, false));
 		fMCUcombo.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				String mcuid = AVRMCUidConverter.name2id(fMCUcombo.getText());
+				fTCWC.setMCU(mcuid);
 				getManagedForm().dirtyStateChanged();
 			}
 		});
 
-		fMCUWarningImageLabel = toolkit.createLabel(content, null);
-		fMCUWarningImageLabel.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
-				ISharedImages.IMG_OBJS_ERROR_TSK));
-		fMCUWarningImageLabel.setLayoutData(new TableWrapData(TableWrapData.FILL,
-				TableWrapData.MIDDLE));
-		fMCUWarningImageLabel.setVisible(false);
-
-		fMCUWarningLabel = toolkit.createLabel(content,
-				"This MCU is not supported by the selected tools");
-		fMCUWarningLabel.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
-		fMCUWarningLabel.setVisible(false);
-
 		//
 		// The FCPU Combo
 		//
-		label = toolkit.createLabel(content, "MCU clock frequency:");
-		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
+		toolkit.createLabel(content, "MCU clock frequency:");
 		fFCPUcombo = new Combo(content, SWT.NONE);
 		toolkit.adapt(fFCPUcombo, true, true);
-		fFCPUcombo.setLayoutData(new TableWrapData(TableWrapData.FILL));
+		fFCPUcombo.setLayoutData(new GridData(SWT.BEGINNING, SWT.NONE, false, false));
 		fFCPUcombo.setTextLimit(9); // max. 999 MHz
 		fFCPUcombo.setToolTipText("Target Hardware Clock Frequency in Hz");
 		fFCPUcombo.setVisibleItemCount(FCPU_VALUES.length);
@@ -140,6 +132,7 @@ public class MCUSection extends SectionPart {
 
 		fFCPUcombo.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
+				fTCWC.setFCPU(Integer.parseInt(fFCPUcombo.getText()));
 				getManagedForm().dirtyStateChanged();
 			}
 		});
@@ -168,11 +161,45 @@ public class MCUSection extends SectionPart {
 		}
 
 		fTCWC = (ITargetConfigurationWorkingCopy) input;
-		// fTCWC.addChangeListener(this);
+
+		// Add a listener for attribute changes.
+		// If either the image loader or the gdbserver is changed then
+		// mark the form as stale which will cause a call to refresh() which
+		// in turn will check if the mcu is still valid
+		fTCWC.addPropertyChangeListener(this);
+
+		fOldMCU = fTCWC.getMCUId();
+		fOldFCPU = fTCWC.getFCPU();
 
 		refresh();
 
 		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener#attributeChange
+	 * (de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String, java.lang.String,
+	 * java.lang.String)
+	 */
+	public void attributeChange(ITargetConfiguration config, String attribute, String oldvalue,
+			String newvalue) {
+		// Check if the image loader or the gdbserver have changed
+		if (ATTR_IMAGE_LOADER_ID.equals(attribute) || ATTR_GDBSERVER_ID.equals(attribute)) {
+			markStale();
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		// remove the listener
+		fTCWC.removePropertyChangeListener(this);
+		super.dispose();
 	}
 
 	/*
@@ -223,34 +250,44 @@ public class MCUSection extends SectionPart {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
-	 */
-	@Override
-	public void commit(boolean onSave) {
-		super.commit(onSave);
-		String mcuid = AVRMCUidConverter.name2id(fMCUcombo.getText());
-		fTCWC.setMCU(mcuid);
-		fTCWC.setFCPU(Integer.parseInt(fFCPUcombo.getText()));
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#isDirty()
 	 */
 	@Override
 	public boolean isDirty() {
-		String mcuid = AVRMCUidConverter.name2id(fMCUcombo.getText());
-		if (!fTCWC.getMCUId().equals(mcuid)) {
+		if (!fTCWC.getMCUId().equals(fOldMCU)) {
 			return true;
 		}
-		if (!(fTCWC.getFCPU() == Integer.parseInt(fFCPUcombo.getText()))) {
+		if (!(fTCWC.getFCPU() == fOldFCPU)) {
 			return true;
 		}
 		return super.isDirty();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.AbstractFormPart#commit(boolean)
+	 */
+	@Override
+	public void commit(boolean onSave) {
+		// The actual saving is done somewhere upstream.
+
+		// But remember the current MCU / FCPU for the
+		// dirty state tracking
+		fOldMCU = fTCWC.getMCUId();
+		fOldFCPU = fTCWC.getFCPU();
+
+		super.commit(onSave);
+	}
+
 	private void showMCUWarning(boolean visible) {
-		fMCUWarningImageLabel.setVisible(visible);
-		fMCUWarningLabel.setVisible(visible);
+		if (visible) {
+			String msg = MessageFormat.format("MCU {0} is not supported by the selected tools",
+					fMCUcombo.getText());
+			getManagedForm().getMessageManager().addMessage(fMCUcombo, msg, null,
+					IMessageProvider.ERROR, fMCUcombo);
+		} else {
+			getManagedForm().getMessageManager().removeMessage(fMCUcombo, fMCUcombo);
+		}
+
 	}
 }

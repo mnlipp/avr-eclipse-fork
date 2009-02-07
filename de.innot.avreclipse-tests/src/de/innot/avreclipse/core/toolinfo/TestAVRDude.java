@@ -100,7 +100,7 @@ public class TestAVRDude {
 					type.getDescription().length() > 0);
 			assertNotNull("Programmer " + id + " has null Host interface", type.getHostInterfaces());
 			assertNotNull("Programmer " + id + " has null Target interface", type
-					.getTargetInterfaces());
+					.getTargetInterface());
 
 			allids.add(type.getId());
 		}
@@ -161,7 +161,7 @@ public class TestAVRDude {
 			assertEquals(avrdudeid + ": host interface", eHostInterface,
 					type.getHostInterfaces()[0]);
 			assertEquals(avrdudeid + ": target interfaces", eTargetInterface, type
-					.getTargetInterfaces());
+					.getTargetInterface());
 		}
 	}
 

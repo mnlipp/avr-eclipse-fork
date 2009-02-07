@@ -30,29 +30,6 @@ import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeL
  */
 public interface ITargetConfiguration {
 
-	public final static String	CONFIG_SAVED			= "save";
-
-	public final static String	ATTR_NAME				= "name";
-	public final static String	DEF_NAME				= "New target";
-
-	public final static String	ATTR_DESCRIPTION		= "description";
-	public final static String	DEF_DESCRIPTION			= "";
-
-	public final static String	ATTR_MCU				= "mcu";
-	public final static String	DEF_MCU					= "atmega16";
-
-	public final static String	ATTR_FCPU				= "fcpu";
-	public final static int		DEF_FCPU				= 1000000;
-
-	public final static String	ATTR_PROGRAMMER_ID		= "programmer";
-	public final static String	DEF_PROGRAMMER_ID		= "stk500v2";
-
-	public final static String	ATTR_HOSTINTERFACE		= "hostinterface";
-	public final static String	DEF_HOSTINTERFACE		= "SERIAL";
-
-	public final static String	ATTR_PROGRAMMER_PORT	= "port";
-	public final static String	DEF_PROGRAMMER_PORT		= "";
-
 	/**
 	 * Get the Id of this target configuration.
 	 * 

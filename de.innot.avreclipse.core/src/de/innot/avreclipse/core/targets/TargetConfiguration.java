@@ -35,7 +35,8 @@ import de.innot.avreclipse.core.toolinfo.AVRDude;
  * @since 2.4
  * 
  */
-public class TargetConfiguration implements ITargetConfiguration, ITargetConfigurationWorkingCopy {
+public class TargetConfiguration implements ITargetConfiguration, ITargetConfigurationWorkingCopy,
+		ITargetConfigConstants {
 
 	private String				fId;
 
@@ -330,6 +331,12 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		fDefaults.put(ATTR_PROGRAMMER_ID, DEF_PROGRAMMER_ID);
 		fDefaults.put(ATTR_HOSTINTERFACE, DEF_HOSTINTERFACE);
 		fDefaults.put(ATTR_PROGRAMMER_PORT, DEF_PROGRAMMER_PORT);
+		fDefaults.put(ATTR_PROGRAMMER_BAUD, DEF_PROGRAMMER_BAUD);
+		fDefaults.put(ATTR_BITBANGDELAY, DEF_BITBANGDELAY);
+		fDefaults.put(ATTR_PAR_EXITSPEC, DEF_PAR_EXITSPEC);
+		fDefaults.put(ATTR_USB_DELAY, DEF_USB_DELAY);
+		fDefaults.put(ATTR_JTAG_CLOCK, DEF_JTAG_CLOCK);
+		fDefaults.put(ATTR_JTAG_DAISYCHAIN, DEF_JTAG_DAISYCHAIN);
 	}
 
 	/*

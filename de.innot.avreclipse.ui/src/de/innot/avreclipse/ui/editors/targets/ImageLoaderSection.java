@@ -35,7 +35,7 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
  * @since 2.4
  * 
  */
-public class GeneralSection extends SectionPart {
+public class ImageLoaderSection extends SectionPart {
 
 	private ITargetConfigurationWorkingCopy	fTCWC;
 
@@ -52,12 +52,13 @@ public class GeneralSection extends SectionPart {
 	 * @param toolkit
 	 * @param style
 	 */
-	public GeneralSection(Composite parent, FormToolkit toolkit) {
+	public ImageLoaderSection(Composite parent, FormToolkit toolkit) {
 		super(parent, toolkit, Section.TITLE_BAR | Section.DESCRIPTION);
 
-		getSection().setText("General");
-		getSection().setDescription(
-				"The name of this target configuration and an optional description.");
+		getSection().setText("Upload tool");
+		getSection()
+				.setDescription(
+						"The upload tool is used to program the flash / eeprom / fuses / lockbits of the target MCU.");
 	}
 
 	/*
