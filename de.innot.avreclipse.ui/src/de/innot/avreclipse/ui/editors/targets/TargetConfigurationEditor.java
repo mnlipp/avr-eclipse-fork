@@ -17,12 +17,14 @@
 package de.innot.avreclipse.ui.editors.targets;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormPage;
+import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
@@ -32,11 +34,13 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
  * @since
  * 
  */
-public class TargetConfigurationEditor extends FormEditor {
+public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 
 	private ITargetConfigurationWorkingCopy	fWorkingCopy;
 
-	private FormPage						fMainPage;
+	private FormPage						fNameAndMCUPage;
+	private FormPage						fProgrammerPage;
+	private FormPage						fUploaderPage;
 
 	/*
 	 * (non-Javadoc)
@@ -73,8 +77,15 @@ public class TargetConfigurationEditor extends FormEditor {
 	@Override
 	protected void addPages() {
 		try {
-			fMainPage = new MainPage(this, "id", "Main");
-			addPage(fMainPage);
+			fNameAndMCUPage = new PageMain(this);
+			addPage(fNameAndMCUPage);
+
+			fProgrammerPage = new PageProgrammer(this);
+			addPage(fProgrammerPage);
+
+			fUploaderPage = new PageUploader(this);
+			addPage(fUploaderPage);
+
 		} catch (PartInitException e) {
 			//
 		}
@@ -88,19 +99,28 @@ public class TargetConfigurationEditor extends FormEditor {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 
+		// Convert the given monitor into a progress instance
+		SubMonitor progress = SubMonitor.convert(monitor, 12);
 		try {
-			fMainPage.doSave(monitor);
+
+			// Tell all pages to commit their changes to the target configuration
+			commitPages(true);
+			progress.worked(1);
 
 			fWorkingCopy.doSave();
+			progress.worked(10);
 
 			firePropertyChange(PROP_DIRTY);
 
 			// Update the part title (in case the target configuration name has been changed)
 			setPartName(fWorkingCopy.getName());
+			progress.worked(1);
 
 		} catch (BackingStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			monitor.done();
 		}
 
 	}
@@ -126,16 +146,15 @@ public class TargetConfigurationEditor extends FormEditor {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.forms.editor.FormEditor#createPages()
+	 * @see
+	 * org.eclipse.ui.forms.editor.SharedHeaderFormEditor#createHeaderContents(org.eclipse.ui.forms
+	 * .IManagedForm)
 	 */
 	@Override
-	protected void createPages() {
-		// We only have a single page in the editor and don't want the little tab at the bottom.
-		// So we just set the height of the tab to 0.
-		super.createPages();
-		if (getPageCount() == 1 && (getContainer() instanceof CTabFolder)) {
-			((CTabFolder) getContainer()).setTabHeight(0);
-		}
+	protected void createHeaderContents(IManagedForm headerForm) {
+		final ScrolledForm sform = headerForm.getForm();
+		sform.setText("Target Configuration");
+		getToolkit().decorateFormHeading(sform.getForm());
 	}
 
 }

@@ -16,12 +16,14 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.IMessageManager;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
@@ -40,25 +42,28 @@ public class ImageLoaderSection extends SectionPart {
 	private ITargetConfigurationWorkingCopy	fTCWC;
 
 	private Text							fNameText;
-	private Text							fDescriptionText;
 
 	// Remember the last saved name / description to determine if this
 	// part is actually dirty.
 	private String							fOldName;
-	private String							fOldDescription;
+
+	private final IMessageManager			fMessageManager;
 
 	/**
 	 * @param parent
 	 * @param toolkit
 	 * @param style
 	 */
-	public ImageLoaderSection(Composite parent, FormToolkit toolkit) {
+	public ImageLoaderSection(Composite parent, FormToolkit toolkit, IMessageManager messagemanager) {
 		super(parent, toolkit, Section.TITLE_BAR | Section.DESCRIPTION);
 
 		getSection().setText("Upload tool");
 		getSection()
 				.setDescription(
 						"The upload tool is used to program the flash / eeprom / fuses / lockbits of the target MCU.");
+
+		fMessageManager = messagemanager;
+
 	}
 
 	/*
@@ -84,19 +89,19 @@ public class ImageLoaderSection extends SectionPart {
 		fNameText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 		fNameText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				fTCWC.setName(fNameText.getText());
-				getManagedForm().dirtyStateChanged();
-			}
-		});
-
-		label = toolkit.createLabel(content, "Description:");
-		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
-		fDescriptionText = toolkit.createText(content, "");
-		fDescriptionText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-		fDescriptionText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				fTCWC.setDescription(fDescriptionText.getText());
-				getManagedForm().dirtyStateChanged();
+				String newtext = fNameText.getText();
+				if (newtext.equals("error")) {
+					fMessageManager.addMessage("test1", "Generated error message", null,
+							IMessageProvider.ERROR, fNameText);
+				} else if (newtext.equals("warn")) {
+					fMessageManager.addMessage("test1", "Generated warning message", null,
+							IMessageProvider.WARNING, fNameText);
+				} else if (newtext.equals("info")) {
+					fMessageManager.addMessage("test1", "Generated info message", null,
+							IMessageProvider.INFORMATION, fNameText);
+				} else {
+					fMessageManager.removeMessage("test1", fNameText);
+				}
 			}
 		});
 
@@ -117,7 +122,6 @@ public class ImageLoaderSection extends SectionPart {
 		// fTCWC.addChangeListener(this);
 
 		fOldName = fTCWC.getName();
-		fOldDescription = fTCWC.getDescription();
 
 		refresh();
 
@@ -137,7 +141,6 @@ public class ImageLoaderSection extends SectionPart {
 		}
 
 		fNameText.setText(fTCWC.getName());
-		fDescriptionText.setText(fTCWC.getDescription());
 	}
 
 	/*
@@ -147,9 +150,6 @@ public class ImageLoaderSection extends SectionPart {
 	@Override
 	public boolean isDirty() {
 		if (!fTCWC.getName().equals(fOldName)) {
-			return true;
-		}
-		if (!fTCWC.getDescription().equals(fOldDescription)) {
 			return true;
 		}
 		return super.isDirty();
@@ -166,7 +166,6 @@ public class ImageLoaderSection extends SectionPart {
 		// But remember the current name / description for the
 		// dirty state tracking
 		fOldName = fTCWC.getName();
-		fOldDescription = fTCWC.getDescription();
 
 		super.commit(onSave);
 	}
