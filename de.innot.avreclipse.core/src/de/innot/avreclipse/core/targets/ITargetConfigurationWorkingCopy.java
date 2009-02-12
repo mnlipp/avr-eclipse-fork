@@ -66,7 +66,11 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	 */
 	public void doSave() throws BackingStoreException;
 
-	public void setAttribute(String attributeName, String newValue);
+	public void setAttribute(String attribute, String value);
+
+	public void setBooleanAttribute(String attribute, boolean value);
+
+	public void setIntegerAttribute(String attribute, int value);
 
 	/**
 	 * Reset this Configuration to the default values.

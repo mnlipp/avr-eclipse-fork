@@ -1,6 +1,6 @@
 /*******************************************************************************
  * 
- * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+ * Copyright (c) 2008,2009 Thomas Holland (thomas@innot.de) and others
  * 
  * This program and the accompanying materials are made
  * available under the terms of the GNU Public License v3
@@ -17,7 +17,6 @@
 package de.innot.avreclipse.core.targets;
 
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,16 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
+ * Implementation of the ITargetConfiguration API.
+ * <p>
+ * This class implements both the {@link ITargetConfiguration} and
+ * {@link ITargetConfigurationWorkingCopy} interfaces, so it acts as both.
+ * </p>
+ * <p>
+ * This class may not be instantiated directly by clients. Instances are created and managed by the
+ * {@link TargetConfigurationManager}.
+ * </p>
+ * 
  * @author Thomas Holland
  * @since 2.4
  * 
@@ -38,20 +47,26 @@ import de.innot.avreclipse.core.toolinfo.AVRDude;
 public class TargetConfiguration implements ITargetConfiguration, ITargetConfigurationWorkingCopy,
 		ITargetConfigConstants {
 
+	private final static String	EMPTY_STRING	= "";
+
 	private String				fId;
 
 	private boolean				fDirty;
 
+	/** The prference node where the attributes are stored. */
 	private Preferences			fPrefs;
 
-	private Map<String, String>	fAttributes	= new HashMap<String, String>();
-	private Map<String, String>	fDefaults	= new HashMap<String, String>();
+	/** Map of all attributes to their values. */
+	private Map<String, String>	fAttributes		= new HashMap<String, String>();
+
+	/** Map of all attributes to their default values. */
+	private Map<String, String>	fDefaults		= new HashMap<String, String>();
 
 	/**
 	 * List of registered listeners (element type: <code>ITargetConfigChangeListener</code>). These
 	 * listeners are to be informed when the current value of an attribute changes.
 	 */
-	protected ListenerList		fListeners	= new ListenerList();
+	protected ListenerList		fListeners		= new ListenerList();
 
 	/** The source target configuration if this is a working copy */
 	private TargetConfiguration	fOriginal;
@@ -110,17 +125,17 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		loadFromConfig(config);
 	}
 
-	/**
-	 * @return
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getId()
 	 */
 	public String getId() {
 		return fId;
 	}
 
-	/**
-	 * Get the name of the target configuration.
-	 * 
-	 * @return the Name
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getName()
 	 */
 	public String getName() {
 		return getAttribute(ATTR_NAME);
@@ -156,9 +171,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 	/*
 	 * (non-Javadoc)
-	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getMCUId()
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getMCU()
 	 */
-	public String getMCUId() {
+	public String getMCU() {
 		return getAttribute(ATTR_MCU);
 	}
 
@@ -315,7 +330,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setDefaults()
 	 */
 	public void setDefaults() {
-		// Set the defaults
+		// Set the defaults. If
 		for (String key : fDefaults.keySet()) {
 			String defvalue = fDefaults.get(key);
 			setAttribute(key, defvalue);
@@ -323,6 +338,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		fDirty = true;
 	}
 
+	/**
+	 * Put all default values into the default values map.
+	 */
 	private void initDefaults() {
 		fDefaults.put(ATTR_NAME, DEF_NAME);
 		fDefaults.put(ATTR_DESCRIPTION, DEF_DESCRIPTION);
@@ -336,7 +354,13 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		fDefaults.put(ATTR_PAR_EXITSPEC, DEF_PAR_EXITSPEC);
 		fDefaults.put(ATTR_USB_DELAY, DEF_USB_DELAY);
 		fDefaults.put(ATTR_JTAG_CLOCK, DEF_JTAG_CLOCK);
-		fDefaults.put(ATTR_JTAG_DAISYCHAIN, DEF_JTAG_DAISYCHAIN);
+		fDefaults.put(ATTR_DAISYCHAIN_ENABLE, DEF_DAISYCHAIN_ENABLE);
+		fDefaults.put(ATTR_DAISYCHAIN_UB, DEF_DAISYCHAIN_UB);
+		fDefaults.put(ATTR_DAISYCHAIN_UA, DEF_DAISYCHAIN_UA);
+		fDefaults.put(ATTR_DAISYCHAIN_BB, DEF_DAISYCHAIN_BB);
+		fDefaults.put(ATTR_DAISYCHAIN_BA, DEF_DAISYCHAIN_BA);
+		fDefaults.put(ATTR_LOADER_TOOL_ID, DEF_LOADER_TOOL_ID);
+		fDefaults.put(ATTR_GDBSERVER_ID, DEF_GDBSERVER_ID);
 	}
 
 	/*
@@ -349,6 +373,10 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		String value = fAttributes.get(attributeName);
 		if (value == null) {
 			value = fDefaults.get(attributeName);
+			if (value == null) {
+				value = EMPTY_STRING;
+			}
+
 		}
 		return value;
 	}
@@ -369,6 +397,58 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			fireAttributeChangeEvent(attributeName, oldvalue, newvalue);
 			fDirty = true;
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
+	 */
+	public boolean getBooleanAttribute(String attribute) {
+		Assert.isNotNull(attribute);
+		String value = getAttribute(attribute);
+		boolean boolvalue = Boolean.parseBoolean(value);
+		return boolvalue;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setBooleanAttribute(java
+	 * .lang.String, boolean)
+	 */
+	public void setBooleanAttribute(String attribute, boolean value) {
+		String valuestring = Boolean.toString(value);
+		setAttribute(attribute, valuestring);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
+	 */
+	public int getIntegerAttribute(String attribute) {
+		Assert.isNotNull(attribute);
+		String value = getAttribute(attribute);
+		if (value.length() == 0) {
+			return -1;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException nfe) {
+			return 0;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setIntegerAttribute(java
+	 * .lang.String, int)
+	 */
+	public void setIntegerAttribute(String attribute, int value) {
+		String valuestring = Integer.toString(value);
+		setAttribute(attribute, valuestring);
 	}
 
 	/*
@@ -450,31 +530,6 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			ITargetConfigChangeListener listener = (ITargetConfigChangeListener) changeListener;
 			listener.attributeChange(TargetConfiguration.this, name, oldValue, newValue);
 		}
-	}
-
-	/**
-	 * Listener for Target Configuration changes.
-	 */
-	public interface ITargetConfigChangeListener extends EventListener {
-
-		/**
-		 * Notification that a Target Configuration property has changed.
-		 * <p>
-		 * This method gets called when any attribute of the observered target configuration is
-		 * changed.
-		 * </p>
-		 * 
-		 * @param config
-		 *            The <code>TargetConfiguration</code> which has changed
-		 * @param name
-		 *            the name of the changed attribute
-		 * @param oldValue
-		 *            the old value, or <code>null</code> if not known or not relevant
-		 * @param newValue
-		 *            the new value, or <code>null</code> if not known or not relevant
-		 */
-		public void attributeChange(ITargetConfiguration config, String attribute, String oldvalue,
-				String newvalue);
 	}
 
 }

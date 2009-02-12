@@ -55,7 +55,7 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 	final private List<String>			fMCUNames		= new ArrayList<String>();
 
 	private final static String[]		PART_ATTRS		= new String[] { ATTR_MCU, ATTR_FCPU };
-	private final static String[]		PART_DEPENDS	= new String[] { ATTR_IMAGE_LOADER_ID,
+	private final static String[]		PART_DEPENDS	= new String[] { ATTR_LOADER_TOOL_ID,
 			ATTR_GDBSERVER_ID							};
 
 	/** List of common MCU frequencies (taken from mfile) */
@@ -183,7 +183,7 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 		}
 
 		// Check if the currently selected mcu is still in the list
-		String currentmcu = getTargetConfiguration().getMCUId();
+		String currentmcu = getTargetConfiguration().getMCU();
 		if (fMCUList.containsKey(currentmcu)) {
 			// Yes -- The selected MCU is still supported.
 			// Clear any warnings
@@ -198,7 +198,7 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 		fMCUcombo.setItems(fMCUNames.toArray(new String[fMCUNames.size()]));
 		fMCUcombo.setVisibleItemCount(Math.min(fMCUNames.size(), 20));
 
-		String currentMCUName = AVRMCUidConverter.id2name(getTargetConfiguration().getMCUId());
+		String currentMCUName = AVRMCUidConverter.id2name(getTargetConfiguration().getMCU());
 		fMCUcombo.setText(currentMCUName);
 
 		// For the FCPU we can take the value directly from the target configuration.

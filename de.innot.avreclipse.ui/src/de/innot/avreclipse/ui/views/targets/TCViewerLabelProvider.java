@@ -71,7 +71,7 @@ public class TCViewerLabelProvider extends LabelProvider implements ITableLabelP
 		MCU("MCU") {
 			@Override
 			protected String getColumnText(ITargetConfiguration tc) {
-				String mcuname = AVRMCUidConverter.id2name(tc.getMCUId());
+				String mcuname = AVRMCUidConverter.id2name(tc.getMCU());
 				String mcuclck = convertFCPU(tc.getFCPU());
 				return mcuname + " @ " + mcuclck;
 			}

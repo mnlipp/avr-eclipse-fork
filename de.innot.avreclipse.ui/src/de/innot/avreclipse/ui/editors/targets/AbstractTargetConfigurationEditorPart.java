@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -34,9 +35,9 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
+import de.innot.avreclipse.core.targets.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
-import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
 
 /**
  * @author Thomas Holland
@@ -90,7 +91,7 @@ public abstract class AbstractTargetConfigurationEditorPart implements IFormPart
 				fManagedForm.staleStateChanged();
 				fLastDependentValues.put(attribute, newvalue);
 
-				refreshWarnings();
+				updateProblems();
 			}
 		}
 
@@ -129,7 +130,7 @@ public abstract class AbstractTargetConfigurationEditorPart implements IFormPart
 
 	abstract void refreshSectionContent();
 
-	public void refreshWarnings() {
+	public void updateProblems() {
 		// empty default.
 	}
 
@@ -361,6 +362,42 @@ public abstract class AbstractTargetConfigurationEditorPart implements IFormPart
 	public ITargetConfigurationWorkingCopy getTargetConfiguration() {
 		Assert.isNotNull(fTCWC, "getTargetConfiguration() called before setFormInput()");
 		return fTCWC;
+	}
+
+	/**
+	 * Get the width in pixels of the given String.
+	 * <p>
+	 * The width is caculated by using the current font of the given control.
+	 * </p>
+	 * 
+	 * @param control
+	 *            The parent control
+	 * @param text
+	 *            The text for which to get the width.
+	 * @return Width in pixels.
+	 */
+	int calcTextWidth(Control control, String text) {
+		GC gc = new GC(control);
+		gc.setFont(control.getFont());
+		int value = gc.stringExtent(text).x;
+		gc.dispose();
+
+		return value;
+	}
+
+	/**
+	 * Enable / Disable the given Composite.
+	 * 
+	 * @param compo
+	 *            A <code>Composite</code> with some controls.
+	 * @param value
+	 *            <code>true</code> to enable, <code>false</code> to disable the given composite.
+	 */
+	void setEnabled(Composite compo, boolean value) {
+		Control[] children = compo.getChildren();
+		for (Control child : children) {
+			child.setEnabled(value);
+		}
 	}
 
 }

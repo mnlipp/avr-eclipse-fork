@@ -648,13 +648,13 @@ public class AVRDude implements IMCUProvider {
 			return TargetInterface.DW;
 		}
 
-		// First check for ISP devices (to filter JTAG devices with ISP mode)
+		// First check for ISP devices (to filter JTAG devices in ISP mode)
 		if (avrdudeid.endsWith("isp")) {
 			return TargetInterface.ISP;
 		}
 
 		// Check if this is JTAG device
-		if (avrdudeid.contains("jtag") || avrdudeid.contains("xil")) {
+		if (avrdudeid.contains("jtag")) {
 			return TargetInterface.JTAG;
 		}
 
@@ -1328,7 +1328,7 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public HostInterface[] getHostInterfaces() {
 			if (fHostInterface == null) {
-				String type = getType(fAvrdudeId);
+				String type = getType();
 				fHostInterface = AVRDude.getHostInterfaces(fAvrdudeId, type);
 			}
 
@@ -1341,7 +1341,7 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public TargetInterface getTargetInterface() {
 			if (fTargetInterface == null) {
-				String type = getType(fAvrdudeId);
+				String type = getType();
 				fTargetInterface = getInterface(fAvrdudeId, type);
 			}
 			return fTargetInterface;
@@ -1353,7 +1353,7 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public int[] getTargetInterfaceClockFrequencies() {
 			if (fClockFrequencies == null) {
-				String type = getType(fAvrdudeId);
+				String type = getType();
 				TargetInterface tif = getTargetInterface();
 
 				ClockValuesType protocol = null;
@@ -1396,14 +1396,27 @@ public class AVRDude implements IMCUProvider {
 			return fClockFrequencies;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.targets.IProgrammer#isDaisyChainCapable()
+		 */
+		public boolean isDaisyChainCapable() {
+			TargetInterface ti = getTargetInterface();
+			if (!ti.equals(TargetInterface.JTAG)) {
+				return false;
+			}
+
+			return true;
+		}
+
 		/**
 		 * 
 		 */
-		private String getType(String programmerid) {
+		private String getType() {
 			if (fType == null) {
 				try {
 					// get the Detailed info for the programmer
-					ConfigEntry entry = getProgrammerInfo(programmerid);
+					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
 					String info = getConfigDetailInfo(entry);
 
 					// find the type by looking for "type = xxx" in the info text

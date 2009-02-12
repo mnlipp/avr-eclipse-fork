@@ -32,9 +32,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import de.innot.avreclipse.core.targets.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
-import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
 import de.innot.avreclipse.ui.editors.targets.TCEditorInput;
 
 /**

@@ -105,4 +105,10 @@ public interface IProgrammer {
 	 */
 	public int[] getTargetInterfaceClockFrequencies();
 
+	/**
+	 * Returns whether the programmer is capable of JTAG daisy chaining.
+	 * 
+	 * @return <code>true</code> if the programmer supports JTAG daisy chaining.
+	 */
+	public boolean isDaisyChainCapable();
 }

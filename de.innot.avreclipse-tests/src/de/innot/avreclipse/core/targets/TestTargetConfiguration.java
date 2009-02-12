@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
-import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
@@ -108,7 +107,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		assertEquals(tc.getId(), wc.getId());
 		assertEquals(tc.getName(), wc.getName());
 		assertEquals(tc.getDescription(), wc.getDescription());
-		assertEquals(tc.getMCUId(), wc.getMCUId());
+		assertEquals(tc.getMCU(), wc.getMCU());
 		assertEquals(tc.getFCPU(), wc.getFCPU());
 		assertEquals("foo", wc.getAttribute("testattr1"));
 		assertEquals("bar", wc.getAttribute("testattr2"));
@@ -169,7 +168,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#getMCUId()}.
+	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#getMCU()}.
 	 */
 	@Test
 	public void testMCUId() {
@@ -178,7 +177,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		for (String mcu : testmcus) {
 			tc.setMCU(mcu);
 
-			assertEquals(mcu, tc.getMCUId());
+			assertEquals(mcu, tc.getMCU());
 			assertEquals(mcu, tc.getAttribute(ATTR_MCU));
 		}
 	}
@@ -229,7 +228,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		// check that the changes were propagated to the original
 		assertEquals("testName", tc.getName());
 		assertEquals("testDescription", tc.getDescription());
-		assertEquals("testMCU", tc.getMCUId());
+		assertEquals("testMCU", tc.getMCU());
 		assertEquals(12345678, tc.getFCPU());
 
 		// Now reload the save config from the preference storage area with the help of the target
@@ -239,7 +238,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		// and do the same checks
 		assertEquals("testName", tc2.getName());
 		assertEquals("testDescription", tc2.getDescription());
-		assertEquals("testMCU", tc2.getMCUId());
+		assertEquals("testMCU", tc2.getMCU());
 		assertEquals(12345678, tc2.getFCPU());
 	}
 
@@ -262,7 +261,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		assertEquals(id, tc.getId());
 		assertEquals(DEF_NAME, tc.getName());
 		assertEquals(DEF_DESCRIPTION, tc.getDescription());
-		assertEquals(DEF_MCU, tc.getMCUId());
+		assertEquals(DEF_MCU, tc.getMCU());
 		assertEquals(DEF_FCPU, tc.getFCPU());
 
 	}

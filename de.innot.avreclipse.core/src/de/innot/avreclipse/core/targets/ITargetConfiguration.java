@@ -21,8 +21,6 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 
-import de.innot.avreclipse.core.targets.TargetConfiguration.ITargetConfigChangeListener;
-
 /**
  * @author Thomas Holland
  * @since 2.4
@@ -55,7 +53,7 @@ public interface ITargetConfiguration {
 	/**
 	 * @return the id of the target MCU
 	 */
-	public String getMCUId();
+	public String getMCU();
 
 	/**
 	 * @return the target MCU clock
@@ -142,6 +140,26 @@ public interface ITargetConfiguration {
 	 * @return the value or the default value if no value was found.
 	 */
 	public String getAttribute(String attributeName);
+
+	/**
+	 * Returns the boolean-valued attribute with the given name. Returns the given default value if
+	 * the attribute is undefined or if the value was not a boolean.
+	 * 
+	 * @param attributeName
+	 *            the name of the attribute
+	 * @return the value or the default value if no valid value was found.
+	 */
+	public boolean getBooleanAttribute(String attributeName);
+
+	/**
+	 * Returns the integer-valued attribute with the given name. Returns the given default value if
+	 * the attribute is undefined or if the value was not a integer.
+	 * 
+	 * @param attributeName
+	 *            the name of the attribute
+	 * @return the value or the default value if no valid value was found.
+	 */
+	public int getIntegerAttribute(String attributeName);
 
 	/**
 	 * Returns a map containing the attributes in this target configuration. Returns an empty map if

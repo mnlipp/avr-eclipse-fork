@@ -17,7 +17,8 @@
 package de.innot.avreclipse.ui.editors.targets;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
@@ -27,9 +28,9 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -45,10 +46,18 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
+import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
+import de.innot.avreclipse.core.targets.TCValidator;
 import de.innot.avreclipse.core.targets.TargetInterface;
+import de.innot.avreclipse.core.targets.TCValidator.Problem;
 
 /**
+ * FormPart to edit all settings for the current target interface.
+ * <p>
+ * This part is implemented as a section.
+ * </p>
+ * 
  * @author Thomas Holland
  * @since 2.4
  * 
@@ -56,28 +65,37 @@ import de.innot.avreclipse.core.targets.TargetInterface;
 public class SectionTargetInterface extends AbstractTargetConfigurationEditorPart implements
 		ITargetConfigConstants {
 
+	/** The list of target configuration attributes that this part manages. */
+	private final static String[]	PART_ATTRS			= new String[] { //
+														//
+			ATTR_JTAG_CLOCK, //
+			ATTR_DAISYCHAIN_ENABLE, //
+			ATTR_DAISYCHAIN_UB, //
+			ATTR_DAISYCHAIN_UA, //
+			ATTR_DAISYCHAIN_BB, //
+			ATTR_DAISYCHAIN_BA							};
+
+	/** The list of target configuration attributes that cause this part to refresh. */
+	private final static String[]	PART_DEPENDS		= new String[] { //
+														//
+			ATTR_PROGRAMMER_ID, //
+			ATTR_FCPU									};
+
+	/** the client area of the Section created by the superclass. */
 	private Composite				fSectionClient;
 
 	private Label					fFreqText;
 
 	private Composite				fWarningCompo;
 
-	private Text[]					fDaisyChainTexts	= new Text[4];
-	private String[]				fDaisyChainSettings	= new String[4];
+	/** The composite that contains the four daisy chain setting controls. */
+	private Composite				fDaisyChainCompo;
 
-	private final static int		UNITS_BEFORE		= 0;
-	private final static int		UNITS_AFTER			= 1;
-	private final static int		BITS_BEFORE			= 2;
-	private final static int		BITS_AFTER			= 3;
+	/** Map of the daisy chain attributes to their respective text controls. */
+	private Map<String, Text>		fDaisyChainTexts	= new HashMap<String, Text>(4);
 
+	/** the array of possible clock frequencies for the current programmer. */
 	private int[]					fClockValues;
-
-	private final static String[]	PART_ATTRS			= new String[] { ATTR_JTAG_CLOCK,
-			ATTR_JTAG_DAISYCHAIN						};
-	private final static String[]	PART_DEPENDS		= new String[] { ATTR_PROGRAMMER_ID,
-			ATTR_FCPU									};
-
-	private TargetInterface			fCurrentTargetInterface;
 
 	/*
 	 * (non-Javadoc)
@@ -140,7 +158,6 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	public void createSectionContent(Composite parent, FormToolkit toolkit) {
 
 		TableWrapLayout layout = new TableWrapLayout();
-		layout.numColumns = 2;
 		layout.horizontalSpacing = 12;
 		parent.setLayout(layout);
 
@@ -157,58 +174,76 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 
 		final ITargetConfigurationWorkingCopy tcwc = getTargetConfiguration();
 
-		// Check if the target interface type has changed.
-		// If yes then we need to redraw everything.
-		// If no then just update the controls
+		// Get the required information from the target configuration
 		String programmerid = tcwc.getAttribute(ATTR_PROGRAMMER_ID);
 		IProgrammer programmer = tcwc.getProgrammer(programmerid);
 		TargetInterface newTI = programmer.getTargetInterface();
-		if (fCurrentTargetInterface == null || !fCurrentTargetInterface.equals(newTI)) {
-			// TargetInterface has changed
-			fClockValues = programmer.getTargetInterfaceClockFrequencies();
+		fClockValues = programmer.getTargetInterfaceClockFrequencies();
 
-			// redraw the complete section.
+		//
+		// Clear the old section content
+		//
 
-			// first remove all previous controls from the section
-			Control[] children = fSectionClient.getChildren();
-			for (Control child : children) {
-				child.dispose();
+		// First remove all old errors/warnings.
+		// The MessageManager does not like disposed controls, so we have to remove
+		// all messages first.
+		// The warnings which are still valid are regenerated when the respective sections are
+		// generated.
+		IMessageManager mmngr = getMessageManager();
+		if (fFreqText != null && !fFreqText.isDisposed()) {
+			mmngr.removeMessages(fFreqText);
+		}
+		for (Control textcontrol : fDaisyChainTexts.values()) {
+			if (!textcontrol.isDisposed()) {
+				mmngr.removeMessages(textcontrol);
 			}
-			fSectionClient.layout(true, true);
-			getManagedForm().reflow(true);
-
-			// Then set the title of the section
-			String title = MessageFormat.format("{0} Settings", newTI.toString());
-			getControl().setText(title);
-
-			// And rebuild the section
-			FormToolkit toolkit = getManagedForm().getToolkit();
-
-			Section section = null;
-
-			if (fClockValues.length != 0) {
-				section = addClockSection(fSectionClient, toolkit);
-				section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-			}
-
-			if (newTI.equals(TargetInterface.JTAG)) {
-				section = addJTAGDaisyChainSection(fSectionClient, toolkit);
-				section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-			}
-
-			if (section == null) {
-				// the selected target interface has no options
-				Label label = toolkit.createLabel(fSectionClient,
-						"The selected progrmmer has no user changeable settings for the "
-								+ newTI.toString() + " target interface", SWT.WRAP);
-				label.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-
-			}
-
 		}
 
-		// Update the FCPU Warning
-		updateBitClockWarning();
+		// then remove all old controls from the section
+		Control[] children = fSectionClient.getChildren();
+		for (Control child : children) {
+			child.dispose();
+		}
+
+		// Finally reflow the form. Otherwise layout artifacts may remain behind.
+		getManagedForm().reflow(true);
+
+		//
+		// redraw the complete section.
+		//
+
+		String title = MessageFormat.format("{0} Settings", newTI.toString());
+		getControl().setText(title);
+
+		// And rebuild the content
+		FormToolkit toolkit = getManagedForm().getToolkit();
+
+		Control section = null;
+
+		// Add the BitClock section if the target configuration has some bitclock values.
+		// The target configuration knows which programmers have a settable bitclock and
+		// which have not.
+		if (fClockValues.length != 0) {
+			section = addClockSection(fSectionClient, toolkit);
+			section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		}
+
+		// Add the Daisy Chain section if the target interface is capable of daisy chaining.
+		if (programmer.isDaisyChainCapable()) {
+			section = addJTAGDaisyChainSection(fSectionClient, toolkit);
+			section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		}
+
+		// If the target interface has neither settable clocks nor is daisy chain capable, then add
+		// a small dummy text telling the user that there is nothing to set.
+		if (section == null) {
+			// the selected target interface has no options
+			Label label = toolkit.createLabel(fSectionClient,
+					"The selected progrmmer has no user changeable settings for the "
+							+ newTI.toString() + " target interface", SWT.WRAP);
+			label.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+
+		}
 	}
 
 	/*
@@ -217,41 +252,59 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	 * de.innot.avreclipse.ui.editors.targets.AbstractTargetConfigurationEditorPart#refreshWarnings
 	 * ()
 	 */
-	public void refreshWarnings() {
-		updateBitClockWarning();
+	public void updateProblems() {
+		validateBitClock();
+		validateDaisyChain();
 	}
 
 	/**
+	 * Add the bit bang delay setting section to the parent.
+	 * <p>
+	 * The Section contains the controls for the ATTR_JTAGCLOCK attribute.
+	 * </p>
+	 * <p>
+	 * It is up to the caller to set the appropriate layout data on the returned
+	 * <code>Section</code> control.
+	 * </p>
+	 * 
 	 * @param parent
+	 *            Composite to which the section is added.
 	 * @param toolkit
+	 *            FormToolkit to use for the new controls.
 	 */
 	private Section addClockSection(Composite parent, FormToolkit toolkit) {
 
-		// First check if the programmer supports settable clock frequencies
+		//
+		// The Section
+		//
 
 		Section section = toolkit.createSection(parent, Section.TWISTIE | Section.CLIENT_INDENT);
-		section.setLayout(new TableWrapLayout());
-		section.setText("Clock Frequency");
 
+		section.setText("Clock Frequency");
 		String desc = "The clock frequency must not be higher that 1/4 of "
 				+ "the target MCU clock frequency. The default value depends on the "
 				+ "selected tool, but is usually 1 MHz, suitable for target MCUs running "
 				+ "at 4 MHz or above.";
 
-		String jtagclock = getTargetConfiguration().getAttribute(ATTR_JTAG_CLOCK);
-		if (jtagclock.length() == 0) {
-			// If there has been no value then collapse this section
-			section.setExpanded(false);
-		} else {
-			section.setExpanded(true);
-		}
+		int jtagclock = getTargetConfiguration().getIntegerAttribute(ATTR_JTAG_CLOCK);
+		// Collapse the section if the current value is 0 (= default) to reduce clutter
+		section.setExpanded(jtagclock != 0);
 
+		//
+		// The Section content
+		//
 		Composite sectionClient = toolkit.createComposite(section);
 		sectionClient.setLayout(new TableWrapLayout());
 
+		//
+		// The description Label
+		//
 		Label description = toolkit.createLabel(sectionClient, desc, SWT.WRAP);
 		description.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 
+		// 
+		// The actual controls, wrapped in a Composite with a 2 column GridLayout
+		//
 		Composite content = toolkit.createComposite(sectionClient);
 		content.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 		GridLayout gl = new GridLayout(2, false);
@@ -278,26 +331,25 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 
 		});
 
-		// 
+		// Set the scale properties.
+		// we use an indirection: The scale does not set the Hz value directly.
+		// instead it just selects the value from the fClockValues array.
+		// The pageIncrements determine the number of ticks on the scale.
+		// For up to 100 values in the bitclocks array we use 1 tick for each value.
+		// For more than 100 values we use 1 tick for every 2 values.
 		int units = fClockValues.length;
 		scale.setMaximum(units - 1);
 		scale.setMinimum(0);
 		scale.setIncrement(1);
-		scale.setPageIncrement(units < 25 ? 1 : 10);
+		scale.setPageIncrement(units < 100 ? 1 : 2);
 
 		//
 		// The frequency display.
-		// This is just a label with an optimized width.
-		// To get the correct width we create a Graphics Context (GC) for the label and then use the
-		// stringExtend() method to calculate the size of a (hopefully) maximum length content.
 		//
-		// Instantiating a new GC might be a bit expensive, but this will only be executed when
-		// the programmer is changed, i.e not too often.
 		fFreqText = toolkit.createLabel(content, "default", SWT.RIGHT);
+
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-		GC gc = new GC(fFreqText);
-		gd.widthHint = gc.stringExtent("8.888 MHz").x;
-		gc.dispose();
+		gd.widthHint = calcTextWidth(fFreqText, "8.888 MHz");
 		fFreqText.setLayoutData(gd);
 
 		//
@@ -319,11 +371,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 
 		// Finally set the scale and the label to the current setting (or the next lower if a
 		// different ClockValues table is used)
-		String valuetxt = getTargetConfiguration().getAttribute(ATTR_JTAG_CLOCK);
-		int value = 0;
-		if (valuetxt.length() > 0) {
-			value = Integer.parseInt(valuetxt);
-		}
+		int value = getTargetConfiguration().getIntegerAttribute(ATTR_JTAG_CLOCK);
 
 		// find next lower value
 		int lastv = 0;
@@ -337,6 +385,8 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 		}
 
 		scale.setSelection(index - 1);
+
+		// Update the value. This will in turn set the bitclock warning if required.
 		updateBitClockValue(lastv);
 
 		// Now tell the section about its content.
@@ -346,27 +396,42 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	}
 
 	/**
+	 * Updates the bitclock attribute in the target configuration and validates it.
+	 * 
 	 * @param value
+	 *            The new bitclock frequency.
 	 */
 	private void updateBitClockValue(int value) {
 
 		// Set the attribute
-		if (value != 0) {
-			getTargetConfiguration().setAttribute(ATTR_JTAG_CLOCK, Integer.toString(value));
-		} else {
-			getTargetConfiguration().setAttribute(ATTR_JTAG_CLOCK, "");
-		}
+		getTargetConfiguration().setIntegerAttribute(ATTR_JTAG_CLOCK, value);
 		getManagedForm().dirtyStateChanged();
 
 		// update the frequency display label
 
-		fFreqText.setText(convertValueToFrequency(value));
+		fFreqText.setText(convertFrequencyToString(value));
 
-		updateBitClockWarning();
+		validateBitClock();
 
 	}
 
-	private String convertValueToFrequency(int value) {
+	/**
+	 * Convert a integer Hz value to a String.
+	 * <p>
+	 * The result has the unit appended:
+	 * <ul>
+	 * <li><code>Hz</code> for values below 1KHZ</li>
+	 * <li><code>KHz</code> for values between 1 and 1000 KHz</li>
+	 * <li><code>MHz</code> for values above 1000 KHz</li>
+	 * </ul>
+	 * As a special case the value <code>0</code> will result in "default".
+	 * </p>
+	 * 
+	 * @param value
+	 *            integer Hz value
+	 * @return
+	 */
+	private String convertFrequencyToString(int value) {
 		String text;
 		if (value == 0) {
 			text = "default";
@@ -383,149 +448,168 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	}
 
 	/**
-	 * Show / hide the 1/4th MCU frequency warning.
-	 * <p>
-	 * The warning is shown iff
-	 * <ul>
-	 * <li>the target interface supports settable clocks</li>
-	 * <li>and the clock is not set to the default</li>
-	 * <li>and the clock is greater than 1/4th of the current FCPU</li>
-	 * </ul>
-	 * In all other cases the warning is hidden.
-	 * </p>
-	 * <p>
-	 * Implementation note: This method requires that the {@link #fClockValues} field is up to date
-	 * to determine if the current target interface does actually support settable clocks.
-	 * </p>
+	 * Show or hide the 1/4th MCU frequency warning.
+	 * 
+	 * @see TCValidator#checkJTAGClock(ITargetConfiguration)
 	 */
-	private void updateBitClockWarning() {
-		// Check if the current configuration actually has a settable clock
-		String programmerid = getTargetConfiguration().getAttribute(ATTR_PROGRAMMER_ID);
-		IProgrammer programmer = getTargetConfiguration().getProgrammer(programmerid);
-		int[] clocks = programmer.getTargetInterfaceClockFrequencies();
-		if (clocks.length > 0) {
-
-			// OK, the target interface has a selectable clock.
-			// Now check if the default is set ( = ""). The warning is
-			// inhibited with the default because we don't know what value the
-			// default might have.
+	private void validateBitClock() {
+		if (TCValidator.checkJTAGClock(getTargetConfiguration()).equals(Problem.WARN)) {
+			// Set the warning compo visible and add a warning to the
+			// MessageManager.
 			String bitclock = getTargetConfiguration().getAttribute(ATTR_JTAG_CLOCK);
-			if (bitclock.length() > 0) {
+			int value = Integer.parseInt(bitclock);
+			int targetfcpu = getTargetConfiguration().getFCPU();
 
-				// Not the default but an actual value.
-				// Finally check if the selected clock is > 1/4th the target FCPU value
-				int value = Integer.parseInt(bitclock);
-				int targetfcpu = getTargetConfiguration().getFCPU();
-				if (value > targetfcpu / 4) {
-
-					// Set the warning compo visible and add a warning to the
-					// MessageManager.
-					if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
-						fWarningCompo.setVisible(value > targetfcpu / 4);
-					}
-
-					String msg = MessageFormat
-							.format(
-									"selected BitClock Frequency of {0} is greater than 1/4th of the target MCU Clock",
-									convertValueToFrequency(value));
-					getMessageManager().addMessage(ATTR_JTAG_CLOCK, msg, ATTR_JTAG_CLOCK,
-							IMessageProvider.WARNING, fFreqText);
-					return;
-				}
+			if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
+				fWarningCompo.setVisible(true);
 			}
 
+			String msg = MessageFormat
+					.format(
+							"selected BitClock Frequency of {0} is greater than 1/4th of the target MCU Clock ({1})",
+							convertFrequencyToString(value), convertFrequencyToString(targetfcpu));
+			getMessageManager().addMessage(ATTR_JTAG_CLOCK, msg, ATTR_JTAG_CLOCK,
+					IMessageProvider.WARNING, fFreqText);
+
+		} else {
+
+			// No warning required. Remove the warning from the MessageManager (which is save even
+			// if there was no warning) and hide the warning compo.
+			// If the user has just changed to a different interface then the fWarningCompo will
+			// already be disposed, so we need to check this.
+			if (fFreqText != null && !fFreqText.isDisposed()) {
+				getMessageManager().removeMessage(ATTR_JTAG_CLOCK, fFreqText);
+			}
+			if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
+				fWarningCompo.setVisible(false);
+			}
 		}
-
-		// No warning required. Remove the warning from the MessageManager (which is save even if
-		// there was no warning) and hide the warning compo.
-		// If the user has just changed to a different interface then the fWarningCompo will already
-		// be disposed, so we need to check this.
-		getMessageManager().removeMessage(ATTR_JTAG_CLOCK, fFreqText);
-
-		if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
-			fWarningCompo.setVisible(false);
-		}
-
 	}
 
 	/**
+	 * Add the JTAG daisy chain settings section to the parent.
+	 * <p>
+	 * The Section contains the controls for the ATTR_DAISYCHAIN_ENABLE and the four DAISYCHAIN_xx
+	 * attributes.
+	 * </p>
+	 * <p>
+	 * It is up to the caller to set the appropriate layout data on the returned
+	 * <code>Section</code> control.
+	 * </p>
+	 * 
 	 * @param parent
+	 *            Composite to which the section is added.
 	 * @param toolkit
+	 *            FormToolkit to use for the new controls.
 	 */
 	private Section addJTAGDaisyChainSection(Composite parent, FormToolkit toolkit) {
 
+		//
+		// The Section
+		//
+		Section section = toolkit.createSection(parent, Section.TWISTIE | Section.CLIENT_INDENT);
+		section.setText("Daisy Chain");
 		String desc = "These settings are required if the target MCU is part of a JTAG daisy chain.\n"
 				+ "Set the number of devices before and after the target MCU in the chain "
 				+ "and the accumulated number of instruction bits they use. AVR devices use "
 				+ "4 instruction bits, but other JTAG devices may differ. \n"
 				+ "Note: JTAG daisy chains are only supported by some Programmers.";
 
-		Section section = toolkit.createSection(parent, Section.TWISTIE | Section.CLIENT_INDENT);
-		section.setText("Daisy Chain");
+		String enabledtext = getTargetConfiguration().getAttribute(ATTR_DAISYCHAIN_ENABLE);
+		boolean enabled = Boolean.parseBoolean(enabledtext);
 
-		String daisychain = getTargetConfiguration().getAttribute(ATTR_JTAG_DAISYCHAIN);
-		if (daisychain.length() == 0 || daisychain.equals("0,0,0,0")) {
-			// If there has been no value then collapse this section
-			section.setExpanded(false);
-		} else {
-			section.setExpanded(true);
-		}
+		// Collapse the section if Daisy chain is not enables to avoid clutter
+		section.setExpanded(enabled);
 
 		Composite sectionClient = toolkit.createComposite(section);
 		sectionClient.setLayout(new TableWrapLayout());
 
+		//
+		// The section description label
+		//
 		Label description = toolkit.createLabel(sectionClient, desc, SWT.WRAP);
 		description.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 
-		Composite content = toolkit.createComposite(sectionClient);
-		content.setLayoutData(new TableWrapData(TableWrapData.FILL));
+		//
+		// The Daisy Chain enable check button
+		//
+		boolean useDaisyChain = getTargetConfiguration()
+				.getBooleanAttribute(ATTR_DAISYCHAIN_ENABLE);
+		final Button enableButton = toolkit.createButton(sectionClient, "Enable daisy chain",
+				SWT.CHECK);
+		enableButton.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+		enableButton.setSelection(useDaisyChain);
+		enableButton.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean isEnabled = enableButton.getSelection();
+				setEnabled(fDaisyChainCompo, isEnabled);
+				getTargetConfiguration().setBooleanAttribute(ATTR_DAISYCHAIN_ENABLE, isEnabled);
+				getManagedForm().dirtyStateChanged();
+				validateDaisyChain();
+			}
+		});
+
+		// 
+		// The actual daisy chain controls, wrapped in a Composite with a 4 column GridLayout
+		//
+
+		fDaisyChainCompo = toolkit.createComposite(sectionClient);
+		fDaisyChainCompo.setLayoutData(new TableWrapData(TableWrapData.FILL));
 		GridLayout layout = new GridLayout(4, false);
 		layout.horizontalSpacing = 12;
-		content.setLayout(layout);
+		fDaisyChainCompo.setLayout(layout);
 
-		// Parse the daisychain string and set the
-		// globals.
-		if (daisychain.length() > 0) {
-			fDaisyChainSettings = daisychain.split(",");
-			if (fDaisyChainSettings.length != 4) {
-				// the attribute has been corrupted -- restore to defaults
-				fDaisyChainSettings = new String[4];
-				Arrays.fill(fDaisyChainSettings, "0");
-			}
-		} else {
-			Arrays.fill(fDaisyChainSettings, "0");
-		}
+		createDCTextField(fDaisyChainCompo, "Devices before:", ATTR_DAISYCHAIN_UB);
+		createDCTextField(fDaisyChainCompo, "Instruction bits before:", ATTR_DAISYCHAIN_BB);
 
-		createDCTextField(content, "Devices before:", UNITS_BEFORE);
-		createDCTextField(content, "Instruction bits before:", BITS_BEFORE);
+		createDCTextField(fDaisyChainCompo, "Devices after:", ATTR_DAISYCHAIN_UA);
+		createDCTextField(fDaisyChainCompo, "Instruction bits after:", ATTR_DAISYCHAIN_BA);
 
-		createDCTextField(content, "Devices after:", UNITS_AFTER);
-		createDCTextField(content, "Instruction bits after:", BITS_AFTER);
+		setEnabled(fDaisyChainCompo, useDaisyChain);
 
 		section.setClient(sectionClient);
 
-		updateDaisyChainValues();
+		// Once we have created the controls we can validate the target configuration to set any
+		// problem markers.
+		validateDaisyChain();
 
 		return section;
 	}
 
-	private void createDCTextField(Composite parent, String labeltext, int index) {
+	/**
+	 * Create a single daisy chain settings text control with a label.
+	 * <p>
+	 * The created text control is added to the {@link #fDaisyChainTexts} map with the given
+	 * attribute as the key.
+	 * </p>
+	 * 
+	 * @param parent
+	 *            The parent composite (with a GridLayout)
+	 * @param labeltext
+	 *            The text for the label
+	 * @param attribute
+	 *            The target configuration attribute.
+	 */
+	private void createDCTextField(Composite parent, String labeltext, String attribute) {
 
 		FormToolkit toolkit = getManagedForm().getToolkit();
 
 		final ModifyListener modifylistener = new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				// Get the index of the text field
-				int index = (Integer) e.widget.getData();
 
-				// and its value
+			public void modifyText(ModifyEvent e) {
+				// Get the Attribute of the text field and its value
+				String attr = (String) e.widget.getData();
 				String value = ((Text) e.widget).getText();
 				if (value.length() == 0) {
 					value = "0";
 				}
 
-				fDaisyChainSettings[index] = value;
-				updateDaisyChainValues();
+				int intvalue = Integer.parseInt(value);
+				getTargetConfiguration().setIntegerAttribute(attr, intvalue);
+				getManagedForm().dirtyStateChanged();
+				validateDaisyChain();
 			}
 		};
 
@@ -541,89 +625,90 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 
 		toolkit.createLabel(parent, labeltext);
 
-		Text text = toolkit.createText(parent, fDaisyChainSettings[index]);
+		int currvalue = getTargetConfiguration().getIntegerAttribute(attribute);
+		String currvaluestring = Integer.toString(currvalue);
+		Text text = toolkit.createText(parent, currvaluestring, SWT.RIGHT);
 		GridData gd = new GridData(SWT.FILL, SWT.NONE, false, false);
-		gd.widthHint = calcTextWidth(text, "888");
+		gd.widthHint = calcTextWidth(text, "8888");
 		text.setLayoutData(gd);
 		text.setTextLimit(3);
-		text.setData(Integer.valueOf(index));
+		text.setData(attribute); // set the attribute for the modify listener
 		text.addModifyListener(modifylistener);
 		text.addVerifyListener(verifylistener);
 
-		fDaisyChainTexts[index] = text;
+		fDaisyChainTexts.put(attribute, text);
 
 	}
 
-	private void updateDaisyChainValues() {
-		int values[] = new int[4];
-		StringBuilder sb = new StringBuilder(16);
-		boolean isEmpty = true;
-		for (int i = 0; i < 4; i++) {
-			String value = fDaisyChainSettings[i];
-			if (value.length() == 0) {
-				value = "0";
+	/**
+	 * Add or remove the error messages for the daisy chain settings.
+	 * 
+	 * @see TCValidator#checkJTAGDaisyChainUnitsBefore(ITargetConfiguration)
+	 * @see TCValidator#checkJTAGDaisyChainUnitsAfter(ITargetConfiguration)
+	 * @see TCValidator#checkJTAGDaisyChainBitsBefore(ITargetConfiguration)
+	 * @see TCValidator#checkJTAGDaisyChainBitsAfter(ITargetConfiguration)
+	 */
+	private void validateDaisyChain() {
+
+		IMessageManager mmngr = getMessageManager();
+
+		ITargetConfiguration config = getTargetConfiguration();
+
+		//
+		// Bits Before
+		//
+		Text textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_BB);
+		if (textctrl != null && !textctrl.isDisposed()) {
+			if (TCValidator.checkJTAGDaisyChainBitsBefore(config).equals(Problem.OK)) {
+				mmngr.removeMessage(ATTR_DAISYCHAIN_BB, textctrl);
 			} else {
-				isEmpty = false;
-			}
-
-			values[i] = Integer.parseInt(value);
-
-			sb.append(value);
-			if (i < 3) {
-				sb.append(",");
+				mmngr.addMessage(ATTR_DAISYCHAIN_BB,
+						"Daisy chain 'bits before' out of range (0 - 255)", ATTR_DAISYCHAIN_BB,
+						IMessageProvider.ERROR, textctrl);
 			}
 		}
 
-		String result = isEmpty ? "" : sb.toString();
-		getTargetConfiguration().setAttribute(ATTR_JTAG_DAISYCHAIN, result);
-		validateDaisyChainSettings(values);
-		getManagedForm().dirtyStateChanged();
+		//
+		// Bits After
+		//
+		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_BA);
+		if (textctrl != null && !textctrl.isDisposed()) {
+			if (TCValidator.checkJTAGDaisyChainBitsAfter(config).equals(Problem.OK)) {
+				mmngr.removeMessage(ATTR_DAISYCHAIN_BA, textctrl);
+			} else {
+				mmngr.addMessage(ATTR_DAISYCHAIN_BA,
+						"Daisy chain 'bits after' out of range (0 - 255)", ATTR_DAISYCHAIN_BA,
+						IMessageProvider.ERROR, textctrl);
+			}
+		}
+
+		//
+		// Units Before
+		//
+		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_UB);
+		if (textctrl != null && !textctrl.isDisposed()) {
+			if (TCValidator.checkJTAGDaisyChainUnitsBefore(config).equals(Problem.OK)) {
+				mmngr.removeMessage(ATTR_DAISYCHAIN_UB, textctrl);
+			} else {
+				mmngr.addMessage(ATTR_DAISYCHAIN_UB,
+						"Daisy chain 'Devices before' greater than 'bits before'",
+						ATTR_DAISYCHAIN_UB, IMessageProvider.ERROR, textctrl);
+			}
+		}
+
+		//
+		// Units After
+		//
+		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_UA);
+		if (textctrl != null && !textctrl.isDisposed()) {
+			if (TCValidator.checkJTAGDaisyChainUnitsAfter(config).equals(Problem.OK)) {
+				mmngr.removeMessage(ATTR_DAISYCHAIN_UA, textctrl);
+			} else {
+				mmngr.addMessage(ATTR_DAISYCHAIN_UA,
+						"Daisy chain 'Devices after' greater than 'bits after'",
+						ATTR_DAISYCHAIN_UA, IMessageProvider.ERROR, textctrl);
+			}
+		}
+
 	}
-
-	private void validateDaisyChainSettings(int values[]) {
-		IMessageManager mmngr = getManagedForm().getMessageManager();
-
-		Text textctrl = fDaisyChainTexts[BITS_BEFORE];
-		if (values[BITS_BEFORE] > 255) {
-			mmngr.addMessage(textctrl, "Daisy chain 'bits before' out of range (0 - 255)", null,
-					IMessageProvider.ERROR, textctrl);
-		} else {
-			mmngr.removeMessage(textctrl, textctrl);
-		}
-
-		textctrl = fDaisyChainTexts[BITS_AFTER];
-		if (values[BITS_AFTER] > 255) {
-			mmngr.addMessage(textctrl, "Daisy chain 'bits after' out of range (0 - 255)", null,
-					IMessageProvider.ERROR, textctrl);
-		} else {
-			mmngr.removeMessage(textctrl, textctrl);
-		}
-
-		textctrl = fDaisyChainTexts[UNITS_BEFORE];
-		if (values[UNITS_BEFORE] > values[BITS_BEFORE]) {
-			mmngr.addMessage(textctrl, "Daisy chain 'Devices before' greater than 'bits before'",
-					null, IMessageProvider.ERROR, textctrl);
-		} else {
-			mmngr.removeMessage(textctrl, textctrl);
-		}
-
-		textctrl = fDaisyChainTexts[UNITS_AFTER];
-		if (values[UNITS_AFTER] > values[BITS_AFTER]) {
-			mmngr.addMessage(textctrl, "Daisy chain 'Devices after' greater than 'bits after'",
-					null, IMessageProvider.ERROR, textctrl);
-		} else {
-			mmngr.removeMessage(textctrl, textctrl);
-		}
-
-	}
-
-	private int calcTextWidth(Control control, String text) {
-		GC gc = new GC(control);
-		gc.setFont(control.getFont());
-		int value = gc.stringExtent("8888888888").x;
-		gc.dispose();
-
-		return value;
-	}
-
 }

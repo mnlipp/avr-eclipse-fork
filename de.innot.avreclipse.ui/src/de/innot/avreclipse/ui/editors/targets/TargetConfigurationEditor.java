@@ -16,6 +16,9 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.ui.IEditorInput;
@@ -37,10 +40,6 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 
 	private ITargetConfigurationWorkingCopy	fWorkingCopy;
-
-	private FormPage						fNameAndMCUPage;
-	private FormPage						fProgrammerPage;
-	private FormPage						fUploaderPage;
 
 	/*
 	 * (non-Javadoc)
@@ -76,20 +75,49 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 	 */
 	@Override
 	protected void addPages() {
+		List<FormPage> pages = new ArrayList<FormPage>();
+		FormPage page;
+
 		try {
-			fNameAndMCUPage = new PageMain(this);
-			addPage(fNameAndMCUPage);
+			page = new PageMain(this);
+			addPage(page);
+			pages.add(page);
 
-			fProgrammerPage = new PageProgrammer(this);
-			addPage(fProgrammerPage);
+			page = new PageProgrammer(this);
+			addPage(page);
+			pages.add(page);
 
-			fUploaderPage = new PageUploader(this);
-			addPage(fUploaderPage);
+			page = new PageUploader(this);
+			addPage(page);
+			pages.add(page);
 
 		} catch (PartInitException e) {
 			//
 		}
 
+		// The following is a hack, but I have found no other solution -- do you have one?
+		//
+		// Problem: I want all problems/errors/warnings of the target configuration to be shown in
+		// the shared header as soon as the editor is opened.
+		// But the MessageManager associates messages (= errors and warnings) with the control
+		// that is passed in the addMessage() method. So to show errors/warnings we need the
+		// controls that generate them. But normally the controls of a page won't be created until
+		// that page is actually activated by the user.
+		//
+		// Solution: call createPartControl() on all pages right away.
+		// With this all controls of the editor in all pages are created right away and the
+		// FormParts can start adding/removing messages to the shared header of this editor.
+		// This is a hack because it mimics the internal behavior of the FormEditor class. If the
+		// FormEditor class changes its internals this may break!
+		for (int i = 0; i < pages.size(); i++) {
+			page = pages.get(i);
+			if (page.getPartControl() == null) {
+				page.createPartControl(getContainer());
+				setControl(i, page.getPartControl());
+				page.getPartControl().setMenu(getContainer().getMenu());
+			}
+
+		}
 	}
 
 	/*

@@ -92,3 +92,4 @@ Export-Package: de.innot.avreclipse.ui.actions;
    org.eclipse.swt.widgets,
    de.innot.avreclipse.core.toolinfo.fuses"
 Bundle-Vendor: %providerName
+Import-Package: de.innot.avreclipse.core.targets

@@ -69,8 +69,8 @@ public class TestTargetConfigurationManager implements ITargetConfigConstants {
 		assertNotNull("New config has null name", tc.getName());
 		assertTrue("New config has empty name", tc.getName().length() > 0);
 
-		assertNotNull("New config has null mcuid", tc.getMCUId());
-		assertTrue("New config has empty mcuid", tc.getMCUId().length() > 0);
+		assertNotNull("New config has null mcuid", tc.getMCU());
+		assertTrue("New config has empty mcuid", tc.getMCU().length() > 0);
 
 		assertNotNull(tc.getAttribute(ATTR_NAME));
 		assertNotNull(tc.getAttribute(ATTR_MCU));

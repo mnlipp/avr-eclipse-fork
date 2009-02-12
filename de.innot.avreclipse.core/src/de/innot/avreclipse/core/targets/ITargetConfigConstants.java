@@ -17,29 +17,33 @@
 package de.innot.avreclipse.core.targets;
 
 /**
+ * The common attributes of a target configuration and their default values.
+ * 
  * @author Thomas Holland
  * @since 2.4
  * 
  */
 public interface ITargetConfigConstants {
 
-	public final static String	CONFIG_SAVED			= "save";
-
+	// General (Name and description)
 	public final static String	ATTR_NAME				= "name";
 	public final static String	DEF_NAME				= "New target";
 
 	public final static String	ATTR_DESCRIPTION		= "description";
 	public final static String	DEF_DESCRIPTION			= "";
 
+	// Target Hardware
 	public final static String	ATTR_MCU				= "mcu";
 	public final static String	DEF_MCU					= "atmega16";
 
 	public final static String	ATTR_FCPU				= "fcpu";
 	public final static int		DEF_FCPU				= 1000000;
 
+	// Programmer device
 	public final static String	ATTR_PROGRAMMER_ID		= "programmer";
 	public final static String	DEF_PROGRAMMER_ID		= "stk500v2";
 
+	// Host interface
 	public final static String	ATTR_HOSTINTERFACE		= "hostinterface";
 	public final static String	DEF_HOSTINTERFACE		= "SERIAL";
 
@@ -58,14 +62,31 @@ public interface ITargetConfigConstants {
 	public final static String	ATTR_USB_DELAY			= "usbdelay";
 	public final static String	DEF_USB_DELAY			= "";
 
+	// Target interface
 	public final static String	ATTR_JTAG_CLOCK			= "jtagclock";
-	public final static String	DEF_JTAG_CLOCK			= "";
+	public final static String	DEF_JTAG_CLOCK			= "0";
 
-	public final static String	ATTR_JTAG_DAISYCHAIN	= "jtagdaisychain";
-	public final static String	DEF_JTAG_DAISYCHAIN		= "";
+	public final static String	ATTR_DAISYCHAIN_ENABLE	= "jtagdaisychain";
+	public final static String	DEF_DAISYCHAIN_ENABLE	= "false";
 
-	public final static String	ATTR_IMAGE_LOADER_ID	= "imageloader";
+	public final static String	ATTR_DAISYCHAIN_UB		= "unitsBefore";
+	public final static String	DEF_DAISYCHAIN_UB		= "0";
 
+	public final static String	ATTR_DAISYCHAIN_UA		= "unitsAfter";
+	public final static String	DEF_DAISYCHAIN_UA		= "0";
+
+	public final static String	ATTR_DAISYCHAIN_BB		= "bitsBefore";
+	public final static String	DEF_DAISYCHAIN_BB		= "0";
+
+	public final static String	ATTR_DAISYCHAIN_BA		= "bitsAfter";
+	public final static String	DEF_DAISYCHAIN_BA		= "0";
+
+	// Uploader tool
+	public final static String	ATTR_LOADER_TOOL_ID		= "loadertool";
+	public final static String	DEF_LOADER_TOOL_ID		= "avrdude";
+
+	// GDBServer tool
 	public final static String	ATTR_GDBSERVER_ID		= "gdbserver";
+	public final static String	DEF_GDBSERVER_ID		= "avarice";
 
 }

@@ -61,7 +61,7 @@ public class SectionProgrammer extends AbstractTargetConfigurationEditorPart imp
 	private final static String[]				PART_ATTRS			= new String[] {
 			ATTR_PROGRAMMER_ID, ATTR_HOSTINTERFACE					};
 	private final static String[]				PART_DEPENDS		= new String[] {
-			ATTR_IMAGE_LOADER_ID, ATTR_GDBSERVER_ID				};
+			ATTR_LOADER_TOOL_ID, ATTR_GDBSERVER_ID				};
 
 	/*
 	 * (non-Javadoc)
@@ -247,6 +247,7 @@ public class SectionProgrammer extends AbstractTargetConfigurationEditorPart imp
 		String[] allhostinterfaces = fMapDescToHostPort.keySet().toArray(
 				new String[fMapDescToHostPort.size()]);
 		fHostPortCombo.setItems(allhostinterfaces);
+		fHostPortCombo.setEnabled(allhostinterfaces.length > 1);
 
 		// Check if the currently selected port is still valid
 		String currentHI = getTargetConfiguration().getAttribute(ATTR_HOSTINTERFACE);

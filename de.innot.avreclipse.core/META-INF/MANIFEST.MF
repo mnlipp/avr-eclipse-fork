@@ -14,12 +14,7 @@ Require-Bundle:
  org.eclipse.jface,
  org.eclipse.ui.console,
  org.eclipse.ui.ide
-Export-Package: de.innot.avreclipse;
-  uses:="org.eclipse.core.runtime,
-   org.eclipse.jface.resource,
-   org.eclipse.ui.console,
-   org.eclipse.ui.plugin,
-   org.osgi.framework",
+Export-Package: de.innot.avreclipse;uses:="org.eclipse.core.runtime,org.eclipse.ui.console,org.osgi.framework",
  de.innot.avreclipse.core,
  de.innot.avreclipse.core.avrdude;
   uses:="org.eclipse.core.runtime.jobs,
@@ -44,9 +39,10 @@ Export-Package: de.innot.avreclipse;
    de.innot.avreclipse.core.avrdude,
    org.eclipse.core.runtime.preferences,
    de.innot.avreclipse.core.toolinfo.fuses",
- de.innot.avreclipse.core.targets,
+ de.innot.avreclipse.core.targets;uses:="org.eclipse.core.runtime,org.osgi.service.prefs",
  de.innot.avreclipse.core.toolinfo;
   uses:="org.eclipse.core.runtime,
+   de.innot.avreclipse.core.targets,
    org.eclipse.ui.console,
    de.innot.avreclipse.core.avrdude,
    de.innot.avreclipse.core,
@@ -54,13 +50,14 @@ Export-Package: de.innot.avreclipse;
  de.innot.avreclipse.core.toolinfo.fuses;
   uses:="org.eclipse.core.runtime,
    org.eclipse.ui.console,
+   org.eclipse.core.resources,
    de.innot.avreclipse.core,
    org.w3c.dom",
  de.innot.avreclipse.core.toolinfo.partdescriptionfiles;uses:="org.eclipse.core.runtime,org.w3c.dom",
  de.innot.avreclipse.core.util,
  de.innot.avreclipse.devicedescription;uses:="org.eclipse.core.runtime,de.innot.avreclipse.core",
  de.innot.avreclipse.devicedescription.avrio;uses:="org.eclipse.core.runtime,de.innot.avreclipse.devicedescription,org.eclipse.jface.util",
- de.innot.avreclipse.mbs,
+ de.innot.avreclipse.mbs;uses:="org.eclipse.cdt.managedbuilder.core,org.eclipse.cdt.managedbuilder.macros,org.eclipse.cdt.managedbuilder.envvar",
  de.innot.avreclipse.util;uses:="org.eclipse.core.runtime"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: de.innot.avreclipse.AVRPlugin
