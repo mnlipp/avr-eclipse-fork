@@ -41,7 +41,7 @@ public class PageProgrammer extends BasePage {
 
 	public final static String						ID		= "de.innot.avreclipse.ui.targets.programmer";
 
-	private final static String						TITLE	= "Programmer";
+	private final static String						TITLE	= "Programmer Hardware";
 
 	/**
 	 * The target configuration this editor page works on. The target config is final and con not be
@@ -87,6 +87,7 @@ public class PageProgrammer extends BasePage {
 			registerPart(programmerPart);
 			programmerPart.getControl().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 		}
+
 		{
 			SectionHostInterface hostInterfacePart = new SectionHostInterface();
 			hostInterfacePart.setMessageManager(getMessageManager());

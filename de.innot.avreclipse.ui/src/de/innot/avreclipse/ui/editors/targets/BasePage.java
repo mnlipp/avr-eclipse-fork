@@ -16,8 +16,8 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.ui.forms.IMessageManager;
 import org.eclipse.ui.forms.editor.FormPage;
@@ -30,7 +30,7 @@ import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
  */
 public class BasePage extends FormPage {
 
-	final Map<String, ITCEditorPart>		fManagedAttributes	= new HashMap<String, ITCEditorPart>();
+	final List<ITCEditorPart>				fParts	= new ArrayList<ITCEditorPart>();
 
 	final private SharedHeaderFormEditor	fEditor;
 
@@ -46,12 +46,7 @@ public class BasePage extends FormPage {
 	}
 
 	protected void registerPart(ITCEditorPart part) {
-		// Get the attributes of the part and add them to our internal list
-		String[] attributes = part.getPartAttributes();
-
-		for (String attr : attributes) {
-			fManagedAttributes.put(attr, part);
-		}
+		fParts.add(part);
 	}
 
 	/*
@@ -71,10 +66,14 @@ public class BasePage extends FormPage {
 	public boolean selectReveal(Object object) {
 		if (object instanceof String) {
 			String attribute = (String) object;
-			ITCEditorPart part = fManagedAttributes.get(attribute);
-			if (part != null) {
-				part.setFocus(attribute);
-				return true;
+			for (ITCEditorPart part : fParts) {
+				if (part.setFocus(attribute)) {
+					// found a part that knows the attribute
+					fEditor.setActivePage(getId());
+					// do the set focus again because setActivePage() changes the focus
+					part.setFocus(attribute);
+					return true;
+				}
 			}
 		}
 		return false;

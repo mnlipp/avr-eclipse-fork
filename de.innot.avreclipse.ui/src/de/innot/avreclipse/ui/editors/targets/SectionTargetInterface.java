@@ -62,8 +62,7 @@ import de.innot.avreclipse.core.targets.TCValidator.Problem;
  * @since 2.4
  * 
  */
-public class SectionTargetInterface extends AbstractTargetConfigurationEditorPart implements
-		ITargetConfigConstants {
+public class SectionTargetInterface extends AbstractTCSectionPart implements ITargetConfigConstants {
 
 	/** The list of target configuration attributes that this part manages. */
 	private final static String[]	PART_ATTRS			= new String[] { //
@@ -84,10 +83,13 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	/** the client area of the Section created by the superclass. */
 	private Composite				fSectionClient;
 
+	private Section					fFreqSection;
+	private Scale					fFreqScale;
 	private Label					fFreqText;
 
 	private Composite				fWarningCompo;
 
+	private Section					fDaisyChainSection;
 	/** The composite that contains the four daisy chain setting controls. */
 	private Composite				fDaisyChainCompo;
 
@@ -135,7 +137,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	 * getDependentAttributes()
 	 */
 	@Override
-	String[] getDependentAttributes() {
+	protected String[] getDependentAttributes() {
 		return PART_DEPENDS;
 	}
 
@@ -146,7 +148,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	 * ()
 	 */
 	@Override
-	int getSectionStyle() {
+	protected int getSectionStyle() {
 		return Section.TWISTIE | Section.SHORT_TITLE_BAR | Section.EXPANDED | Section.CLIENT_INDENT;
 	}
 
@@ -218,7 +220,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 		// And rebuild the content
 		FormToolkit toolkit = getManagedForm().getToolkit();
 
-		Control section = null;
+		Section section = null;
 
 		// Add the BitClock section if the target configuration has some bitclock values.
 		// The target configuration knows which programmers have a settable bitclock and
@@ -226,12 +228,18 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 		if (fClockValues.length != 0) {
 			section = addClockSection(fSectionClient, toolkit);
 			section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+			fFreqSection = section;
+		} else {
+			fFreqSection = null;
 		}
 
 		// Add the Daisy Chain section if the target interface is capable of daisy chaining.
 		if (programmer.isDaisyChainCapable()) {
 			section = addJTAGDaisyChainSection(fSectionClient, toolkit);
 			section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+			fDaisyChainSection = section;
+		} else {
+			fDaisyChainSection = null;
 		}
 
 		// If the target interface has neither settable clocks nor is daisy chain capable, then add
@@ -252,7 +260,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 	 * de.innot.avreclipse.ui.editors.targets.AbstractTargetConfigurationEditorPart#refreshWarnings
 	 * ()
 	 */
-	public void updateProblems() {
+	public void refreshMessages() {
 		validateBitClock();
 		validateDaisyChain();
 	}
@@ -311,11 +319,11 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 		gl.horizontalSpacing = 12;
 		content.setLayout(gl);
 
-		final Scale scale = new Scale(content, SWT.HORIZONTAL);
-		toolkit.adapt(scale, true, true);
-		scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		fFreqScale = new Scale(content, SWT.HORIZONTAL);
+		toolkit.adapt(fFreqScale, true, true);
+		fFreqScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-		scale.addSelectionListener(new SelectionAdapter() {
+		fFreqScale.addSelectionListener(new SelectionAdapter() {
 
 			/*
 			 * (non-Javadoc)
@@ -324,7 +332,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 			 */
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				int index = scale.getSelection();
+				int index = fFreqScale.getSelection();
 				int value = fClockValues[index];
 				updateBitClockValue(value);
 			}
@@ -338,10 +346,10 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 		// For up to 100 values in the bitclocks array we use 1 tick for each value.
 		// For more than 100 values we use 1 tick for every 2 values.
 		int units = fClockValues.length;
-		scale.setMaximum(units - 1);
-		scale.setMinimum(0);
-		scale.setIncrement(1);
-		scale.setPageIncrement(units < 100 ? 1 : 2);
+		fFreqScale.setMaximum(units - 1);
+		fFreqScale.setMinimum(0);
+		fFreqScale.setIncrement(1);
+		fFreqScale.setPageIncrement(units < 100 ? 1 : 2);
 
 		//
 		// The frequency display.
@@ -384,7 +392,7 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 			}
 		}
 
-		scale.setSelection(index - 1);
+		fFreqScale.setSelection(index - 1);
 
 		// Update the value. This will in turn set the bitclock warning if required.
 		updateBitClockValue(lastv);
@@ -710,5 +718,35 @@ public class SectionTargetInterface extends AbstractTargetConfigurationEditorPar
 			}
 		}
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.ui.editors.targets.AbstractTCSectionPart#setFocus(java.lang.String)
+	 */
+	@Override
+	public boolean setFocus(String attribute) {
+		if (attribute.equals(ATTR_JTAG_CLOCK)) {
+			if (fFreqScale != null && !fFreqScale.isDisposed()) {
+				fFreqScale.setFocus();
+			}
+			if (fFreqSection != null && !fFreqSection.isDisposed()) {
+				fFreqSection.setExpanded(true);
+			}
+			return true;
+		}
+
+		if (fDaisyChainTexts.containsKey(attribute)) {
+			Text textcontrol = fDaisyChainTexts.get(attribute);
+			if (textcontrol != null && !textcontrol.isDisposed()) {
+				textcontrol.setFocus();
+			}
+			if (fDaisyChainSection != null && !fDaisyChainSection.isDisposed()) {
+				fDaisyChainSection.setExpanded(true);
+			}
+			return true;
+		}
+
+		return false;
 	}
 }

@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.IMessageManager;
-import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
@@ -37,7 +36,7 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
  * @since 2.4
  * 
  */
-public class ImageLoaderSection extends SectionPart {
+public class ProgrammerToolSection extends AbstractTCSectionPart {
 
 	private ITargetConfigurationWorkingCopy	fTCWC;
 
@@ -54,7 +53,8 @@ public class ImageLoaderSection extends SectionPart {
 	 * @param toolkit
 	 * @param style
 	 */
-	public ImageLoaderSection(Composite parent, FormToolkit toolkit, IMessageManager messagemanager) {
+	public ProgrammerToolSection(Composite parent, FormToolkit toolkit,
+			IMessageManager messagemanager) {
 		super(parent, toolkit, Section.TITLE_BAR | Section.DESCRIPTION);
 
 		getSection().setText("Upload tool");

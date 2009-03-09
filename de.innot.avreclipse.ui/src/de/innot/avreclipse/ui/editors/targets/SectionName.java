@@ -32,7 +32,7 @@ import de.innot.avreclipse.core.targets.ITargetConfigConstants;
  * @since 2.4
  * 
  */
-public class SectionName extends AbstractTargetConfigurationEditorPart implements
+public class SectionName extends AbstractTCSectionPart implements
 		ITargetConfigConstants {
 
 	private Text					fNameText;

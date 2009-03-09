@@ -53,8 +53,7 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
  * @since 2.4
  * 
  */
-public class SectionHostInterface extends AbstractTargetConfigurationEditorPart implements
-		ITargetConfigConstants {
+public class SectionHostInterface extends AbstractTCSectionPart implements ITargetConfigConstants {
 
 	/** Used as the default string for Port / Baudrate settings. */
 	private final static String		DEFAULT			= "default";
@@ -132,7 +131,7 @@ public class SectionHostInterface extends AbstractTargetConfigurationEditorPart 
 	 * getDependentAttributes()
 	 */
 	@Override
-	String[] getDependentAttributes() {
+	protected String[] getDependentAttributes() {
 		return PART_DEPENDS;
 	}
 
@@ -143,7 +142,7 @@ public class SectionHostInterface extends AbstractTargetConfigurationEditorPart 
 	 * ()
 	 */
 	@Override
-	int getSectionStyle() {
+	protected int getSectionStyle() {
 		return Section.TWISTIE | Section.SHORT_TITLE_BAR | Section.EXPANDED | Section.CLIENT_INDENT;
 	}
 

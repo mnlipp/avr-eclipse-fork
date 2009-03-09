@@ -38,6 +38,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
+import de.innot.avreclipse.core.targets.TCValidator;
+import de.innot.avreclipse.core.targets.TCValidator.Problem;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -45,8 +47,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * @since 2.4
  * 
  */
-public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
-		ITargetConfigConstants {
+public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigConstants {
 
 	private Combo						fMCUcombo;
 	private Combo						fFCPUcombo;
@@ -99,7 +100,7 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 	 * getDependentAttributes()
 	 */
 	@Override
-	String[] getDependentAttributes() {
+	protected String[] getDependentAttributes() {
 		return PART_DEPENDS;
 	}
 
@@ -173,7 +174,7 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 		// Get the list of valid MCUs, sort them, convert to MCU name and fill the internal cache
 		fMCUList.clear();
 		fMCUNames.clear();
-		List<String> allmcuids = getTargetConfiguration().getSupportedMCUs(false);
+		List<String> allmcuids = getTargetConfiguration().getSupportedMCUs(true);
 		Collections.sort(allmcuids);
 
 		for (String mcuid : allmcuids) {
@@ -182,38 +183,53 @@ public class SectionMCU extends AbstractTargetConfigurationEditorPart implements
 			fMCUNames.add(name);
 		}
 
-		// Check if the currently selected mcu is still in the list
-		String currentmcu = getTargetConfiguration().getMCU();
-		if (fMCUList.containsKey(currentmcu)) {
-			// Yes -- The selected MCU is still supported.
-			// Clear any warnings
-			showMCUWarning(false);
-		} else {
-			// No -- The MCU is not supported by the current config.
-			// show a warning
-			showMCUWarning(true);
-		}
-
 		// finally tell the fMCUCombo about the new list but keep the previously selected MCU
 		fMCUcombo.setItems(fMCUNames.toArray(new String[fMCUNames.size()]));
 		fMCUcombo.setVisibleItemCount(Math.min(fMCUNames.size(), 20));
 
-		String currentMCUName = AVRMCUidConverter.id2name(getTargetConfiguration().getMCU());
+		String currentmcu = getTargetConfiguration().getMCU();
+		String currentMCUName = AVRMCUidConverter.id2name(currentmcu);
 		fMCUcombo.setText(currentMCUName);
 
 		// For the FCPU we can take the value directly from the target configuration.
 		fFCPUcombo.setText(Integer.toString(getTargetConfiguration().getFCPU()));
+
+		// Finally show an error if the MCU is not supported by the tools.
+		refreshMessages();
 	}
 
-	private void showMCUWarning(boolean visible) {
-		if (visible) {
-			String msg = MessageFormat.format("MCU {0} is not supported by the selected tools",
-					fMCUcombo.getText());
-			getMessageManager().addMessage(fMCUcombo, msg, ATTR_MCU, IMessageProvider.ERROR,
-					fMCUcombo);
-		} else {
-			getMessageManager().removeMessage(fMCUcombo, fMCUcombo);
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.ui.editors.targets.AbstractTCSectionPart#refreshMessages()
+	 */
+	@Override
+	protected void refreshMessages() {
+		if (fMCUcombo != null && !fMCUcombo.isDisposed()) {
+			Problem problem = TCValidator.checkMCU(getTargetConfiguration());
+			if (problem.equals(Problem.ERROR)) {
+				String msg = MessageFormat.format("MCU {0} is not supported by the selected tools",
+						fMCUcombo.getText());
+				getMessageManager().addMessage(ATTR_MCU, msg, ATTR_MCU, IMessageProvider.ERROR,
+						fMCUcombo);
+			} else {
+				getMessageManager().removeMessage(ATTR_MCU, fMCUcombo);
+			}
 		}
-
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.ui.editors.targets.AbstractTCSectionPart#setFocus(java.lang.String)
+	 */
+	@Override
+	public boolean setFocus(String attribute) {
+		if (attribute.equals(ATTR_MCU)) {
+			if (fMCUcombo != null && !fMCUcombo.isDisposed()) {
+				fMCUcombo.setFocus();
+			}
+			return true;
+		}
+		return false;
+	}
+
 }

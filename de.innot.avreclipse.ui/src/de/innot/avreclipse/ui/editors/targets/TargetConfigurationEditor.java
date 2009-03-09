@@ -25,8 +25,11 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.IMessage;
 import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
+import org.eclipse.ui.forms.events.HyperlinkAdapter;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -87,7 +90,7 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 			addPage(page);
 			pages.add(page);
 
-			page = new PageUploader(this);
+			page = new PageProgrammerTool(this);
 			addPage(page);
 			pages.add(page);
 
@@ -183,6 +186,27 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 		final ScrolledForm sform = headerForm.getForm();
 		sform.setText("Target Configuration");
 		getToolkit().decorateFormHeading(sform.getForm());
+
+		// Add a hypertext listener that will set the focus to the control that reported the error.
+		// In case of multiple problems it will jump to the last problem in the list (which seems to
+		// be the first one that was added.)
+		sform.getForm().addMessageHyperlinkListener(new HyperlinkAdapter() {
+			public void linkActivated(HyperlinkEvent e) {
+				Object href = e.getHref();
+				if (href instanceof IMessage[]) {
+					IMessage[] messages = (IMessage[]) href;
+					IMessage message = messages[messages.length - 1];
+
+					Object data = message.getData();
+					if (data != null && (data instanceof String)) {
+						String attribute = (String) data;
+						selectReveal(attribute);
+						return;
+					}
+				}
+			}
+		});
+
 	}
 
 }

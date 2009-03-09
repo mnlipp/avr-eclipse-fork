@@ -45,8 +45,7 @@ import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
  * @since 2.4
  * 
  */
-public class SectionProgrammer extends AbstractTargetConfigurationEditorPart implements
-		ITargetConfigConstants {
+public class SectionProgrammer extends AbstractTCSectionPart implements ITargetConfigConstants {
 
 	private Combo								fProgrammersCombo;
 
@@ -61,7 +60,7 @@ public class SectionProgrammer extends AbstractTargetConfigurationEditorPart imp
 	private final static String[]				PART_ATTRS			= new String[] {
 			ATTR_PROGRAMMER_ID, ATTR_HOSTINTERFACE					};
 	private final static String[]				PART_DEPENDS		= new String[] {
-			ATTR_LOADER_TOOL_ID, ATTR_GDBSERVER_ID				};
+			ATTR_LOADER_TOOL_ID, ATTR_GDBSERVER_ID					};
 
 	/*
 	 * (non-Javadoc)
@@ -99,7 +98,7 @@ public class SectionProgrammer extends AbstractTargetConfigurationEditorPart imp
 	 * getDependentAttributes()
 	 */
 	@Override
-	String[] getDependentAttributes() {
+	protected String[] getDependentAttributes() {
 		return PART_DEPENDS;
 	}
 
@@ -266,5 +265,4 @@ public class SectionProgrammer extends AbstractTargetConfigurationEditorPart imp
 		getTargetConfiguration().setAttribute(ATTR_HOSTINTERFACE, newHI.name());
 
 	}
-
 }
