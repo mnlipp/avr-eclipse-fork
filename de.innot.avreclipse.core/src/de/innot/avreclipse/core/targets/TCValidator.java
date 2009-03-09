@@ -16,6 +16,8 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.util.List;
+
 /**
  * @author Thomas Holland
  * @since
@@ -31,6 +33,8 @@ public class TCValidator implements ITargetConfigConstants {
 
 		boolean hasWarning = false;
 		boolean hasError = false;
+		if (checkMCU(config).equals(Problem.ERROR))
+			hasError = true;
 		if (checkJTAGClock(config).equals(Problem.WARN))
 			hasWarning = true;
 		if (checkJTAGDaisyChainUnitsBefore(config).equals(Problem.ERROR))
@@ -49,6 +53,30 @@ public class TCValidator implements ITargetConfigConstants {
 			result = Problem.ERROR;
 
 		return result;
+	}
+
+	/**
+	 * Check if the current MCU is supported by all tools.
+	 * <p>
+	 * This method will return {@link Problem#ERROR} iff
+	 * <ul>
+	 * <li>The current MCU is in the list of supported MCUs from both the Programmer tool and the
+	 * GDB Server (if they have been set).</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * @param config
+	 *            The target configuration to check.
+	 * @return {@link Problem} with the current status
+	 */
+	public static Problem checkMCU(ITargetConfiguration config) {
+		String currentmcu = config.getMCU();
+		List<String> allmcuids = config.getSupportedMCUs(true);
+		if (allmcuids.contains(currentmcu)) {
+			return Problem.OK;
+		}
+
+		return Problem.ERROR;
 	}
 
 	/**

@@ -16,21 +16,11 @@
 
 package de.innot.avreclipse.core.targets;
 
-import java.util.Set;
-
 /**
  * @author Thomas Holland
- * @since 2.4
- * 
+ * @since 
+ *
  */
-public interface ITargetConfigurationTool {
-
-	public String getId();
-
-	public String getName();
-
-	public Set<String> getMCUs();
-
-	public Set<IProgrammer> getProgrammers();
+public interface IGDBServerTool extends ITargetConfigurationTool {
 
 }

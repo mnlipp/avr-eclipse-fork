@@ -19,14 +19,23 @@ package de.innot.avreclipse.core.targets;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
+ * 
  * @author Thomas Holland
- * @since
+ * @since 2.4
  * 
  */
 public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 
 	/**
 	 * Set a new name for this configuration.
+	 * <p>
+	 * This is a convenience method equivalent to
+	 * 
+	 * <pre>
+	 * setAttribute(ATTR_NAME, name);
+	 * </pre>
+	 * 
+	 * </p>
 	 * 
 	 * @param name
 	 *            the Name to set
@@ -35,6 +44,14 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 
 	/**
 	 * Set a new description for this configuration.
+	 * <p>
+	 * This is a convenience method equivalent to
+	 * 
+	 * <pre>
+	 * setAttribute(ATTR_DESCRIPTION, name);
+	 * </pre>
+	 * 
+	 * </p>
 	 * 
 	 * @param name
 	 *            the Name to set
@@ -42,6 +59,15 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	public void setDescription(String description);
 
 	/**
+	 * <p>
+	 * This is a convenience method equivalent to
+	 * 
+	 * <pre>
+	 * setAttribute(ATTR_MCU, name);
+	 * </pre>
+	 * 
+	 * </p>
+	 * 
 	 * @param mcuid
 	 *            the MCU to set
 	 */
@@ -49,6 +75,14 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 
 	/**
 	 * Change the target MCU clock.
+	 * <p>
+	 * This is a convenience method equivalent to
+	 * 
+	 * <pre>
+	 * setAttribute(ATTR_FCPU, name);
+	 * </pre>
+	 * 
+	 * </p>
 	 * 
 	 * @param fcpu
 	 *            the FCPU to set
@@ -66,10 +100,37 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	 */
 	public void doSave() throws BackingStoreException;
 
+	/**
+	 * Set the attribute to the value.
+	 * <p>
+	 * Neither <code>attribute</code> nor <code>value</code> may be <code>null</code>.
+	 * </p>
+	 * 
+	 * @param attribute
+	 * @param value
+	 */
 	public void setAttribute(String attribute, String value);
 
+	/**
+	 * Set the attribute to the boolean value.
+	 * <p>
+	 * The attribute is actually stored as a String containing "true" or "false".
+	 * </p>
+	 * 
+	 * @param attribute
+	 * @param value
+	 */
 	public void setBooleanAttribute(String attribute, boolean value);
 
+	/**
+	 * Set the attribute to an integer value.
+	 * <p>
+	 * The attribute is actually stored as a String containing the value.
+	 * </p>
+	 * 
+	 * @param attribute
+	 * @param value
+	 */
 	public void setIntegerAttribute(String attribute, int value);
 
 	/**
@@ -83,7 +144,7 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	/**
 	 * Checks if this working copy has unsaved changes.
 	 * 
-	 * @return <code>true</code> if this config has unsaved changes.
+	 * @return <code>true</code> if this configuration has unsaved changes.
 	 */
 	public boolean isDirty();
 }

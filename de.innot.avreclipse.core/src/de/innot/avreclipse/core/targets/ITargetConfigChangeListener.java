@@ -28,7 +28,7 @@ import java.util.EventListener;
 public interface ITargetConfigChangeListener extends EventListener {
 
 	/**
-	 * Notification that a Target Configuration property has changed.
+	 * Notification that a Target Configuration attribute has changed.
 	 * <p>
 	 * This method gets called when any attribute of the observed target configuration is modified.
 	 * </p>

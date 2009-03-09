@@ -83,10 +83,10 @@ public interface ITargetConfigConstants {
 
 	// Uploader tool
 	public final static String	ATTR_LOADER_TOOL_ID		= "loadertool";
-	public final static String	DEF_LOADER_TOOL_ID		= "avrdude";
+	public final static String	DEF_LOADER_TOOL_ID		= "avreclipse.avrdude";
 
 	// GDBServer tool
 	public final static String	ATTR_GDBSERVER_ID		= "gdbserver";
-	public final static String	DEF_GDBSERVER_ID		= "avarice";
+	public final static String	DEF_GDBSERVER_ID		= "avreclipse.avarice";
 
 }

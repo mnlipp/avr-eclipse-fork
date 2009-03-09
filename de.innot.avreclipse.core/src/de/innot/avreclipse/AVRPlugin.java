@@ -12,6 +12,7 @@ package de.innot.avreclipse;
 
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -21,6 +22,7 @@ import org.eclipse.ui.console.MessageConsole;
 import org.osgi.framework.BundleContext;
 
 import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
+import de.innot.avreclipse.core.targets.ToolManager;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -51,6 +53,13 @@ public class AVRPlugin extends Plugin {
 
 		// Rescan all system paths (unless the "No startup scan" flag has been set
 		AVRPathsPreferences.scanAllPaths();
+
+		ToolManager toolmanager = ToolManager.getDefault();
+		String[] extpoints = toolmanager.getExptensionPointIDs();
+		for (String ext : extpoints) {
+			Platform.getExtensionRegistry().addListener(toolmanager, PLUGIN_ID + "." + ext);
+		}
+
 	}
 
 	/*
@@ -59,6 +68,9 @@ public class AVRPlugin extends Plugin {
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		ToolManager toolmanager = ToolManager.getDefault();
+		Platform.getExtensionRegistry().removeListener(toolmanager);
+
 		plugin = null;
 		super.stop(context);
 	}

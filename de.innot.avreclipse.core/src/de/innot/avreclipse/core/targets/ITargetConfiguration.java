@@ -22,6 +22,25 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 
 /**
+ * The Target Configuration API.
+ * <p>
+ * A target configuration contains is basically a bag of attribute - value pairs that describe all
+ * properties required to access a remote AVR MCU.
+ * </p>
+ * <p>
+ * Each target configuration has a unique id and information on:
+ * <ul>
+ * <li>The name of the configuration + an optional description.</li>
+ * <li>The target MCU type and its clock frequency.</li>
+ * <li>An ID for the programmer hardware used to access the MCU, including its host and target
+ * interface settings.</li>
+ * <li>The ID of the programmer tool for uploading AVR applications to the target MCU.</li>
+ * <li>The ID of the gdbserver tool for debugging AVR applications.</li>
+ * </ul>
+ * The attributes common for all target configurations are defined in {@link ITargetConfigConstants}
+ * . The programmer tool and the gdbserver use their own custom attributes.
+ * </p>
+ * 
  * @author Thomas Holland
  * @since 2.4
  * 
@@ -132,8 +151,10 @@ public interface ITargetConfiguration {
 	public boolean isImageLoaderCapable();
 
 	/**
-	 * Returns the string-valued attribute with the given name. Returns the given default value if
-	 * the attribute is undefined.
+	 * Returns the string-valued attribute with the given name.
+	 * <p>
+	 * Returns the given default value if the attribute is undefined.
+	 * </p>
 	 * 
 	 * @param attributeName
 	 *            the name of the attribute
@@ -142,8 +163,15 @@ public interface ITargetConfiguration {
 	public String getAttribute(String attributeName);
 
 	/**
-	 * Returns the boolean-valued attribute with the given name. Returns the given default value if
-	 * the attribute is undefined or if the value was not a boolean.
+	 * Returns the boolean-valued attribute with the given name.
+	 * <p>
+	 * Returns the given default value if the attribute is undefined or if the value was not a
+	 * boolean.
+	 * </p>
+	 * <p>
+	 * This method is not type save, i.e. there is no checking whether the attribute is actually an
+	 * boolean. It is up to the caller to ensure that the attribute only contains a boolean value.
+	 * </p>
 	 * 
 	 * @param attributeName
 	 *            the name of the attribute
@@ -152,8 +180,15 @@ public interface ITargetConfiguration {
 	public boolean getBooleanAttribute(String attributeName);
 
 	/**
-	 * Returns the integer-valued attribute with the given name. Returns the given default value if
-	 * the attribute is undefined or if the value was not a integer.
+	 * Returns the integer-valued attribute with the given name.
+	 * <p>
+	 * Returns the given default value if the attribute is undefined or if the value was not a
+	 * integer.
+	 * </p>
+	 * <p>
+	 * This method is not type save, i.e. there is no checking whether the attribute is actually an
+	 * integer. It is up to the caller to ensure that the attribute only contains integer values.
+	 * </p>
 	 * 
 	 * @param attributeName
 	 *            the name of the attribute
