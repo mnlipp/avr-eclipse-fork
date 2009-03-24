@@ -16,22 +16,55 @@
 
 package de.innot.avreclipse.core.targets.tools;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import de.innot.avreclipse.core.targets.IGDBServerTool;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.IProgrammerTool;
+import de.innot.avreclipse.core.targets.ITargetConfiguration;
+import de.innot.avreclipse.core.toolinfo.ICommandOutputListener;
 
 /**
  * @author Thomas Holland
- * @since
+ * @since 2.4
  * 
  */
-public class AvariceTool implements IProgrammerTool, IGDBServerTool {
+public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBServerTool {
 
-	private final static String	ID		= "avreclipse.avarice";
+	public final static String		ID					= "avreclipse.avarice";
 
-	private final static String	NAME	= "AVaRICE";
+	private final static String		NAME				= "AVaRICE";
+
+	public final static String		ATTR_CMD_NAME		= ID + ".command";
+	private final static String		DEF_CMD_NAME		= "avarice";
+
+	public final static String		ATTR_USE_CONSOLE	= ID + ".useconsole";
+	public final static boolean		DEF_USE_CONSOLE		= true;						// TODO:
+	// Change to
+	// false
+	// for release
+
+	private Map<String, String>		fDefaults;
+
+	private ICommandOutputListener	fOutputListener		= new AvariceOutputListener();
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getDefaults()
+	 */
+	public Map<String, String> getDefaults() {
+		if (fDefaults == null) {
+			fDefaults = new HashMap<String, String>();
+
+			fDefaults.put(ATTR_CMD_NAME, DEF_CMD_NAME);
+			fDefaults.put(ATTR_USE_CONSOLE, Boolean.toString(DEF_USE_CONSOLE));
+		}
+
+		return fDefaults;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -51,20 +84,40 @@ public class AvariceTool implements IProgrammerTool, IGDBServerTool {
 
 	/*
 	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.tools.AbstractTool#getOutputListener()
+	 */
+	@Override
+	protected ICommandOutputListener getOutputListener() {
+		return fOutputListener;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getMCUs()
 	 */
-	public Set<String> getMCUs() {
-		// TODO Auto-generated method stub
-		return null;
+	public Set<String> getMCUs(ITargetConfiguration tc) {
+		// TODO: Dummy implementation
+		Set<String> allmcus = new HashSet<String>();
+		allmcus.add("atmega8");
+		allmcus.add("atmega16");
+		allmcus.add("atmega32");
+		allmcus.add("attiny12");
+		return allmcus;
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getProgrammers()
 	 */
-	public Set<IProgrammer> getProgrammers() {
-		// TODO Auto-generated method stub
-		return null;
+	public Set<IProgrammer> getProgrammers(ITargetConfiguration tc) {
+		// TODO: Dummy implementation
+		Set<IProgrammer> allprogrammers = new HashSet<IProgrammer>();
+		allprogrammers.add(tc.getProgrammer("dragon_jtag"));
+		allprogrammers.add(tc.getProgrammer("dragon_dw"));
+		allprogrammers.add(tc.getProgrammer("jtag1"));
+		allprogrammers.add(tc.getProgrammer("jtag2"));
+		allprogrammers.add(tc.getProgrammer("jtag2dw"));
+		return allprogrammers;
 	}
 
 }

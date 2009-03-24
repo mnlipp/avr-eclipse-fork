@@ -40,6 +40,7 @@ Export-Package: de.innot.avreclipse;uses:="org.eclipse.core.runtime,org.eclipse.
    org.eclipse.core.runtime.preferences,
    de.innot.avreclipse.core.toolinfo.fuses",
  de.innot.avreclipse.core.targets;uses:="org.eclipse.core.runtime,org.osgi.service.prefs",
+ de.innot.avreclipse.core.targets.tools,
  de.innot.avreclipse.core.toolinfo;
   uses:="org.eclipse.core.runtime,
    de.innot.avreclipse.core.targets,

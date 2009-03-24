@@ -55,9 +55,9 @@ public class AVRPlugin extends Plugin {
 		AVRPathsPreferences.scanAllPaths();
 
 		ToolManager toolmanager = ToolManager.getDefault();
-		String[] extpoints = toolmanager.getExptensionPointIDs();
+		String[] extpoints = toolmanager.getExtensionPointIDs();
 		for (String ext : extpoints) {
-			Platform.getExtensionRegistry().addListener(toolmanager, PLUGIN_ID + "." + ext);
+			Platform.getExtensionRegistry().addListener(toolmanager, ext);
 		}
 
 	}

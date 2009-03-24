@@ -1183,6 +1183,21 @@ public class AVRDude implements IMCUProvider {
 			fProgressMonitor = monitor;
 		}
 
+		// private Reason fAbortReason;
+		// private String fAbortLine;
+
+		/*
+		 * (non-Javadoc)
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.ICommandOutputListener#init(org.eclipse.core.runtime
+		 * .IProgressMonitor)
+		 */
+		public void init(IProgressMonitor monitor) {
+			// fProgressMonitor = monitor;
+			// fAbortLine = null;
+			// fAbortReason = null;
+		}
+
 		public void handleLine(String line, StreamSource source) {
 
 			boolean abort = false;
@@ -1226,6 +1241,23 @@ public class AVRDude implements IMCUProvider {
 				fAbortLine = line;
 			}
 		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.toolinfo.ICommandOutputListener#getAbortLine()
+		 */
+		public String getAbortLine() {
+			return fAbortLine;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see de.innot.avreclipse.core.toolinfo.ICommandOutputListener#getAbortReason()
+		 */
+		public Reason getAbortReason() {
+			return fAbortReason;
+		}
+
 	}
 
 	/**

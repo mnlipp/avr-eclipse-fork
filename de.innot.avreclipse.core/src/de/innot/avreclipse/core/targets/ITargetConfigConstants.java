@@ -16,6 +16,9 @@
 
 package de.innot.avreclipse.core.targets;
 
+import de.innot.avreclipse.core.targets.tools.AvariceTool;
+import de.innot.avreclipse.core.targets.tools.AvrdudeTool;
+
 /**
  * The common attributes of a target configuration and their default values.
  * 
@@ -82,11 +85,11 @@ public interface ITargetConfigConstants {
 	public final static String	DEF_DAISYCHAIN_BA		= "0";
 
 	// Uploader tool
-	public final static String	ATTR_LOADER_TOOL_ID		= "loadertool";
-	public final static String	DEF_LOADER_TOOL_ID		= "avreclipse.avrdude";
+	public final static String	ATTR_PROGRAMMER_TOOL_ID	= "programmertool";
+	public final static String	DEF_PROGRAMMER_TOOL_ID	= AvrdudeTool.ID;
 
 	// GDBServer tool
-	public final static String	ATTR_GDBSERVER_ID		= "gdbserver";
-	public final static String	DEF_GDBSERVER_ID		= "avreclipse.avarice";
+	public final static String	ATTR_GDBSERVER_ID		= "gdbservertool";
+	public final static String	DEF_GDBSERVER_ID		= AvariceTool.ID;
 
 }

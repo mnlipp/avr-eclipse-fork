@@ -16,6 +16,7 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,11 +28,16 @@ import org.eclipse.core.runtime.IRegistryEventListener;
 import org.eclipse.core.runtime.Platform;
 
 import de.innot.avreclipse.AVRPlugin;
-import de.innot.avreclipse.core.targets.tools.AvariceTool;
-import de.innot.avreclipse.core.targets.tools.AvrdudeTool;
 
 /**
- * Manages the tools for the target configuration
+ * Manages the tools for the target configuration.
+ * <p>
+ * This class manages the
+ * </p>
+ * <p>
+ * This class implements the singleton pattern. There is only one instance of this class, accessible
+ * with {@link #getDefault()}.
+ * </p>
  * 
  * @author Thomas Holland
  * @since 2.4
@@ -42,13 +48,14 @@ public class ToolManager implements IRegistryEventListener {
 	private static ToolManager				fInstance;
 
 	private final static String				NAMESPACE			= AVRPlugin.PLUGIN_ID;
-	private final static String				EXTPOINT_PROGRAMMER	= "programmertool";
-	private final static String				EXTPOINT_GDBSERVER	= "gdbserver";
+	public final static String				EXTENSIONPOINT		= NAMESPACE + ".targetTool";
+	private final static String				ELEMENT_PROGRAMMER	= "programmertool";
+	private final static String				ELEMENT_GDBSERVER	= "gdbservertool";
 
-	// The list of all ImageLoaderSettingPage extensions
+	/** The list of all ProgrammerTool extensions, mapped to their ID for quick access. */
 	private Map<String, IProgrammerTool>	fProgrammerTools;
 
-	// The list of all GDBServerSettingsPage extensions
+	/** The list of all GDBServerTool extensions, mapped to their ID for quick access. */
 	private Map<String, IGDBServerTool>		fGDBServerTools;
 
 	public static ToolManager getDefault() {
@@ -63,81 +70,90 @@ public class ToolManager implements IRegistryEventListener {
 
 	}
 
-	public String[] getExptensionPointIDs() {
-		String[] extpoints = new String[2];
-		extpoints[0] = EXTPOINT_PROGRAMMER;
-		extpoints[1] = EXTPOINT_GDBSERVER;
+	/**
+	 * Get a list of all extension point ids used for the target tools.
+	 * <p>
+	 * The list is used by the AVRPlugin class to register the toolmanager as a listener for
+	 * additions/removal of tool extension plugins.
+	 * </p>
+	 * 
+	 * @return Array with the unique extension points for the toolmanager.
+	 */
+	public String[] getExtensionPointIDs() {
+		String[] extpoints = new String[1];
+		extpoints[0] = EXTENSIONPOINT;
 		return extpoints;
 	}
 
 	public IProgrammerTool[] getProgrammerTools() {
 
-		// TODO: Dummy implementation
-		IProgrammerTool[] tools = new IProgrammerTool[2];
-		tools[0] = new AvrdudeTool();
-		tools[1] = new AvariceTool();
+		loadExtensions();
+		Collection<IProgrammerTool> alltools = fProgrammerTools.values();
+		return alltools.toArray(new IProgrammerTool[alltools.size()]);
 
-		return tools;
 	}
 
 	public IGDBServerTool[] getGDBServerTools() {
 
-		return null;
+		loadExtensions();
+		Collection<IGDBServerTool> alltools = fGDBServerTools.values();
+		return alltools.toArray(new IGDBServerTool[alltools.size()]);
+
 	}
 
 	public IProgrammerTool getProgrammerTool(String id) {
 
-		return null;
+		loadExtensions();
+		return fProgrammerTools.get(id);
 	}
 
 	public IGDBServerTool getGDBServerTool(String id) {
-
-		return null;
+		loadExtensions();
+		return fGDBServerTools.get(id);
 	}
 
 	/**
+	 * Load all gdbserverTool extensions.
+	 * <p>
+	 * The list is cached until some extensions are either added or removed
+	 * </p>
+	 * 
+	 * @see #added(IExtension[])
 	 * 
 	 */
-	private Map<String, ITargetConfigurationTool> loadSettingsExtensions(String requiredtype) {
-		Map<String, ITargetConfigurationTool> results = new HashMap<String, ITargetConfigurationTool>();
+	private void loadExtensions() {
+		if (fProgrammerTools == null) {
 
-		IConfigurationElement[] elements = Platform.getExtensionRegistry()
-				.getConfigurationElementsFor(EXTPOINT_PROGRAMMER);
-		for (IConfigurationElement element : elements) {
+			fProgrammerTools = new HashMap<String, IProgrammerTool>();
+			fGDBServerTools = new HashMap<String, IGDBServerTool>();
 
-			// Get the type and check if is of the requested type
-			String type = element.getAttribute("type");
-			if (type == null || !type.equalsIgnoreCase(requiredtype)) {
-				continue;
-			}
-			// Get the id and the description of the extension.
-			String gdbserverid = element.getAttribute("launcherId");
-			if (gdbserverid == null) {
-				// TODO log an error
-				continue;
-			}
+			IConfigurationElement[] elements = Platform.getExtensionRegistry()
+					.getConfigurationElementsFor(EXTENSIONPOINT);
+			for (IConfigurationElement element : elements) {
 
-			String description = element.getAttribute("description");
-			if (description == null) {
-				// TODO log an error
-				continue;
-			}
+				// Get an instance of the implementing class
+				Object obj;
+				try {
+					obj = element.createExecutableExtension("class");
+				} catch (CoreException e) {
+					// TODO log exception
+					continue;
+				}
+				String type = element.getName();
 
-			// Get an instance of the implementing class
-			Object obj;
-			try {
-				obj = element.createExecutableExtension("class");
-			} catch (CoreException e) {
-				// TODO log exception
-				continue;
-			}
-			if (obj instanceof ITargetConfigurationTool) {
-				ITargetConfigurationTool settingspage = (ITargetConfigurationTool) obj;
-				results.put(gdbserverid, settingspage);
+				if (ELEMENT_PROGRAMMER.equalsIgnoreCase(type)) {
+					if (obj instanceof IProgrammerTool) {
+						IProgrammerTool tool = (IProgrammerTool) obj;
+						fProgrammerTools.put(tool.getId(), tool);
+					}
+				} else if (ELEMENT_GDBSERVER.equalsIgnoreCase(type)) {
+					if (obj instanceof IGDBServerTool) {
+						IGDBServerTool tool = (IGDBServerTool) obj;
+						fGDBServerTools.put(tool.getId(), tool);
+					}
+				}
 			}
 		}
-
-		return results;
 	}
 
 	/*
@@ -146,8 +162,15 @@ public class ToolManager implements IRegistryEventListener {
 	 * org.eclipse.core.runtime.IRegistryEventListener#added(org.eclipse.core.runtime.IExtension[])
 	 */
 	public void added(IExtension[] extensions) {
-		// TODO Auto-generated method stub
-
+		// Check if the extensions match any of the two points used by this manager.
+		// To keep things simple we just invalidate the current list of known extensions so that the
+		// list will be regenerated the next time getXxxTool() is called.
+		for (IExtension ext : extensions) {
+			if (ext.getUniqueIdentifier().equals(EXTENSIONPOINT)) {
+				fProgrammerTools = null;
+				fGDBServerTools = null;
+			}
+		}
 	}
 
 	/*
@@ -157,8 +180,7 @@ public class ToolManager implements IRegistryEventListener {
 	 * [])
 	 */
 	public void added(IExtensionPoint[] extensionPoints) {
-		// TODO Auto-generated method stub
-
+		// Don't care if any extension points have changed
 	}
 
 	/*
@@ -168,8 +190,8 @@ public class ToolManager implements IRegistryEventListener {
 	 * [])
 	 */
 	public void removed(IExtension[] extensions) {
-		// TODO Auto-generated method stub
-
+		// remove or add doesn't matter for our simple implementation.
+		added(extensions);
 	}
 
 	/*
@@ -179,8 +201,7 @@ public class ToolManager implements IRegistryEventListener {
 	 * [])
 	 */
 	public void removed(IExtensionPoint[] extensionPoints) {
-		// TODO Auto-generated method stub
-
+		// Don't care if any extension points have changed
 	}
 
 }

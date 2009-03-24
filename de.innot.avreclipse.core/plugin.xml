@@ -4,6 +4,30 @@
 
 <!-- 
 ####################################################################################### 
+#    Extension Points                                                                 # 
+####################################################################################### 
+-->
+
+	<extension-point id="targetTool" 
+		name="Tools used by AVR Target Management" 
+		schema="schema/targetTool.exsd"/>
+
+	<extension point="de.innot.avreclipse.core.targetTool">
+    	<programmertool
+        	class="de.innot.avreclipse.core.targets.tools.AvrdudeTool">
+    	</programmertool>
+    	<programmertool
+        	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
+    	</programmertool>
+    	<gdbservertool
+        	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
+    	</gdbservertool>
+ </extension>
+
+
+
+<!-- 
+####################################################################################### 
 #    AVR Nature                                                                       # 
 ####################################################################################### 
 -->
@@ -52,6 +76,8 @@
 			class="de.innot.avreclipse.core.preferences.PreferenceInitializer">
 		</initializer>
 	</extension>
+	
+ 	
 
 </plugin>
 

@@ -90,6 +90,26 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	public void setFCPU(int fcpu);
 
 	/**
+	 * Set the programmer tool.
+	 * 
+	 * @param toolid
+	 *            The id string of the new programmer tool.
+	 * @throws IllegalArgumentException
+	 *             if the given id is not valid
+	 */
+	public void setProgrammerTool(String toolid);
+
+	/**
+	 * Set the GDB Server tool.
+	 * 
+	 * @param toolid
+	 *            The id string of the new gdbserver tool.
+	 * @throws IllegalArgumentException
+	 *             if the given id is not valid
+	 */
+	public void setGDBServerTool(String toolid);
+
+	/**
 	 * Persist this configuration to the preference storage.
 	 * <p>
 	 * This will not do anything if the configuration has not been modified.

@@ -80,6 +80,16 @@ public interface ITargetConfiguration {
 	public int getFCPU();
 
 	/**
+	 * @return the current programmer tool
+	 */
+	public IProgrammerTool getProgrammerTool();
+
+	/**
+	 * @return the current gdb server tool
+	 */
+	public IGDBServerTool getGDBServerTool();
+
+	/**
 	 * Get the list of all supported MCUs.
 	 * <p>
 	 * If the <code>filtered</code> argument is <code>true</code>, then only those MCUs are returned

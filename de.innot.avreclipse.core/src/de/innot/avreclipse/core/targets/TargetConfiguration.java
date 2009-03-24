@@ -53,7 +53,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 	private boolean				fDirty;
 
-	/** The prference node where the attributes are stored. */
+	/** The preference node where the attributes are stored. */
 	private Preferences			fPrefs;
 
 	/** Map of all attributes to their values. */
@@ -71,6 +71,12 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	/** The source target configuration if this is a working copy */
 	private TargetConfiguration	fOriginal;
 
+	/** The current programmer tool for this target configuration. */
+	private IProgrammerTool		fProgrammerTool;
+
+	/** The current gdbserver tool for this target configuration. */
+	private IGDBServerTool		fGDBServerTool;
+
 	private TargetConfiguration() {
 		initDefaults();
 	}
@@ -87,7 +93,6 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		this();
 		fId = id;
 		setDefaults();
-		fDirty = false;
 	}
 
 	/**
@@ -260,6 +265,91 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 	/*
 	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getProgrammerTool()
+	 */
+	public IProgrammerTool getProgrammerTool() {
+
+		if (fProgrammerTool == null) {
+			// create the programmer tool if it has not yet been done.
+			String id = getAttribute(ATTR_PROGRAMMER_TOOL_ID);
+			fProgrammerTool = ToolManager.getDefault().getProgrammerTool(id);
+			initTool(fProgrammerTool);
+		}
+
+		return fProgrammerTool;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setProgrammerTool(java.lang
+	 * .String)
+	 */
+	public void setProgrammerTool(String toolid) {
+		// nothing to do if the tool is not changed
+		if (fProgrammerTool != null && (fProgrammerTool.getId().equals(toolid))) {
+			return;
+		}
+
+		// Check if the id is valid (if we can load the associated class)
+		IProgrammerTool tool = ToolManager.getDefault().getProgrammerTool(toolid);
+		if (tool == null) {
+			throw new IllegalArgumentException("Invalid tool id '" + toolid + "'");
+		}
+
+		// everything is OK, we can use the tool
+		setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
+		fProgrammerTool = tool;
+		initTool(tool);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getGDBServerTool()
+	 */
+	public IGDBServerTool getGDBServerTool() {
+
+		if (fGDBServerTool == null) {
+			// create the gdbserver tool if it has not yet been done.
+			String id = getAttribute(ATTR_GDBSERVER_ID);
+			fGDBServerTool = ToolManager.getDefault().getGDBServerTool(id);
+			initTool(fGDBServerTool);
+		}
+
+		return fGDBServerTool;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setGDBServerTool(java.lang
+	 * .String)
+	 */
+	public void setGDBServerTool(String toolid) {
+		// nothing to do if the tool is not changed
+		if (fGDBServerTool != null && (fGDBServerTool.getId().equals(toolid))) {
+			return;
+		}
+
+		// Check if the id is valid (if we can load the associated class)
+		IGDBServerTool tool = ToolManager.getDefault().getGDBServerTool(toolid);
+		if (tool == null) {
+			throw new IllegalArgumentException("Invalid tool id '" + toolid + "'");
+		}
+
+		// everything is OK, we can use the tool
+		setAttribute(ATTR_GDBSERVER_ID, tool.getId());
+		fGDBServerTool = tool;
+		initTool(tool);
+	}
+
+	private void initTool(ITargetConfigurationTool tool) {
+		Map<String, String> defaults = tool.getDefaults();
+		fDefaults.putAll(defaults);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#isDirty()
 	 */
 	public boolean isDirty() {
@@ -359,7 +449,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		fDefaults.put(ATTR_DAISYCHAIN_UA, DEF_DAISYCHAIN_UA);
 		fDefaults.put(ATTR_DAISYCHAIN_BB, DEF_DAISYCHAIN_BB);
 		fDefaults.put(ATTR_DAISYCHAIN_BA, DEF_DAISYCHAIN_BA);
-		fDefaults.put(ATTR_LOADER_TOOL_ID, DEF_LOADER_TOOL_ID);
+		fDefaults.put(ATTR_PROGRAMMER_TOOL_ID, DEF_PROGRAMMER_TOOL_ID);
 		fDefaults.put(ATTR_GDBSERVER_ID, DEF_GDBSERVER_ID);
 	}
 

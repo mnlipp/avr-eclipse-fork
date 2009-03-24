@@ -16,6 +16,7 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -25,12 +26,14 @@ import java.util.Set;
  */
 public interface ITargetConfigurationTool {
 
+	public Map<String, String> getDefaults();
+
 	public String getId();
 
 	public String getName();
 
-	public Set<String> getMCUs();
+	public Set<String> getMCUs(ITargetConfiguration tc);
 
-	public Set<IProgrammer> getProgrammers();
+	public Set<IProgrammer> getProgrammers(ITargetConfiguration tc);
 
 }
