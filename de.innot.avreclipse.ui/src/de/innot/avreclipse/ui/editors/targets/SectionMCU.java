@@ -56,7 +56,7 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 	final private List<String>			fMCUNames		= new ArrayList<String>();
 
 	private final static String[]		PART_ATTRS		= new String[] { ATTR_MCU, ATTR_FCPU };
-	private final static String[]		PART_DEPENDS	= new String[] { ATTR_LOADER_TOOL_ID,
+	private final static String[]		PART_DEPENDS	= new String[] { ATTR_PROGRAMMER_TOOL_ID,
 			ATTR_GDBSERVER_ID							};
 
 	/** List of common MCU frequencies (taken from mfile) */

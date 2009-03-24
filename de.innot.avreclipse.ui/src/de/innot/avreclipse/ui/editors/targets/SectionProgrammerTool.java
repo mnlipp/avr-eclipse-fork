@@ -49,7 +49,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 	/** Reverse mapping of programmer tool name to id. */
 	final private Map<String, String>	fMapNameToId	= new HashMap<String, String>();
 
-	private final static String[]		PART_ATTRS		= new String[] { ATTR_LOADER_TOOL_ID };
+	private final static String[]		PART_ATTRS		= new String[] { ATTR_PROGRAMMER_TOOL_ID };
 	private final static String[]		PART_DEPENDS	= new String[] { ATTR_MCU };
 
 	/*
@@ -122,7 +122,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 				String name = fProgrammerToolCombo.getText();
 				String id = fMapNameToId.get(name);
 
-				tcwc.setAttribute(ATTR_LOADER_TOOL_ID, id);
+				tcwc.setAttribute(ATTR_PROGRAMMER_TOOL_ID, id);
 
 				getManagedForm().dirtyStateChanged();
 			}
@@ -140,7 +140,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 		// Get the list of Programmer Tools and fill the name -> id map
 		fMapNameToId.clear();
 		IProgrammerTool[] tools = ToolManager.getDefault().getProgrammerTools();
-		String currentid = getTargetConfiguration().getAttribute(ATTR_LOADER_TOOL_ID);
+		String currentid = getTargetConfiguration().getAttribute(ATTR_PROGRAMMER_TOOL_ID);
 		IProgrammerTool currenttool = null;
 
 		for (IProgrammerTool tool : tools) {
@@ -155,7 +155,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 		// At this point currenttool should not be null, but just in case someone has mucked up the
 		// prefs storage we fall back to the default.
 		if (currenttool == null) {
-			currentid = DEF_LOADER_TOOL_ID;
+			currentid = DEF_PROGRAMMER_TOOL_ID;
 			currenttool = ToolManager.getDefault().getProgrammerTool(currentid);
 		}
 
@@ -163,11 +163,11 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 		String mcuid = getTargetConfiguration().getAttribute(ATTR_MCU);
 		String programmerid = getTargetConfiguration().getAttribute(ATTR_PROGRAMMER_ID);
 
-		if (!currenttool.getMCUs().contains(mcuid)) {
+		if (!currenttool.getMCUs(getTargetConfiguration()).contains(mcuid)) {
 			// TODO show MCU warning
 		}
 
-		if (!currenttool.getProgrammers().contains(programmerid)) {
+		if (!currenttool.getProgrammers(getTargetConfiguration()).contains(programmerid)) {
 			// TODO show Programmer Warning
 		}
 

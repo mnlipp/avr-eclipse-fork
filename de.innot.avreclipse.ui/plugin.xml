@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.3"?>
 <plugin>
+<!-- 
+####################################################################################### 
+####################################################################################### 
+##                                                                                   ##
+##   Extension Points                                                                ## 
+##                                                                                   ##
+####################################################################################### 
+####################################################################################### 
+-->
+<!--
+####################################################################################### 
+#    Target Tool Settings part                                                        # 
+####################################################################################### 
+-->
+
+	<extension-point id="targetToolSettings" 
+		name="Settings GUI for a target tool" 
+		schema="schema/targetToolSettings.exsd"/>
+
+	
+	<extension point="de.innot.avreclipse.ui.targetToolSettings">
+		<settingsPart
+			class="de.innot.avreclipse.ui.TCEditorPart1"
+			toolId="de.innot.avreclipse.ui.settingsPart1">
+		</settingsPart>
+	</extension>
+   
 
 <!-- 
 ####################################################################################### 
@@ -327,10 +354,6 @@
 			class="de.innot.avreclipse.ui.editors.targets.TargetConfigurationEditor" />
 	</extension>
 
-      <extension
-         point="org.eclipse.ui.editors">
-   </extension>
-
 
 <!--
 ####################################################################################### 
@@ -379,6 +402,4 @@
 				relationship="stack" />
 		</perspectiveExtension>
 	</extension>
-
-   
 </plugin>

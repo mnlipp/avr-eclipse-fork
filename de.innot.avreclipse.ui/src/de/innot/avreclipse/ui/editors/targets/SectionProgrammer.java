@@ -60,7 +60,7 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 	private final static String[]				PART_ATTRS			= new String[] {
 			ATTR_PROGRAMMER_ID, ATTR_HOSTINTERFACE					};
 	private final static String[]				PART_DEPENDS		= new String[] {
-			ATTR_LOADER_TOOL_ID, ATTR_GDBSERVER_ID					};
+			ATTR_PROGRAMMER_TOOL_ID, ATTR_GDBSERVER_ID				};
 
 	/*
 	 * (non-Javadoc)

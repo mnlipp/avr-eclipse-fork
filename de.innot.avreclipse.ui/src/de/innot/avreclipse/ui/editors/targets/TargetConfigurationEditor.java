@@ -94,6 +94,10 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 			addPage(page);
 			pages.add(page);
 
+			page = new PageGDBServerTool(this);
+			addPage(page);
+			pages.add(page);
+
 		} catch (PartInitException e) {
 			//
 		}
