@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.junit.Test;
 
+import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 
 public class TestExternalCommandLauncher {
@@ -29,7 +31,7 @@ public class TestExternalCommandLauncher {
 
 		// Test 2: the LogEventListener
 		final List<StreamSource> sources = new ArrayList<StreamSource>();
-		final List<String> lines = new ArrayList<String>(); 
+		final List<String> lines = new ArrayList<String>();
 		arguments = new ArrayList<String>(1);
 		arguments.add("test2");
 		testlauncher = new ExternalCommandLauncher(command, arguments);
@@ -37,6 +39,17 @@ public class TestExternalCommandLauncher {
 			public synchronized void handleLine(String line, StreamSource source) {
 				sources.add(source);
 				lines.add(line);
+			}
+
+			public void init(IProgressMonitor monitor) {
+			}
+
+			public Reason getAbortReason() {
+				return null;
+			}
+
+			public String getAbortLine() {
+				return null;
 			}
 		});
 		result = testlauncher.launch();

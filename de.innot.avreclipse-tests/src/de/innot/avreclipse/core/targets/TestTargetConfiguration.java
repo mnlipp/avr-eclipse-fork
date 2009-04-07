@@ -23,6 +23,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -30,10 +32,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.IPath;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.prefs.BackingStoreException;
 
+import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 
@@ -49,8 +53,8 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	 * 
 	 */
 	private class MyTargetConfiguration extends TargetConfiguration {
-		protected MyTargetConfiguration(String id) {
-			super(id);
+		protected MyTargetConfiguration(IPath file) throws IOException {
+			super(file);
 		}
 
 		protected MyTargetConfiguration(TargetConfiguration config) {
@@ -66,9 +70,9 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		tc = new MyTargetConfiguration("testid");
+		IPath testfile = getTestFile();
+		tc = new MyTargetConfiguration(testfile);
 		assertNotNull("Config is null", tc);
-		assertEquals("Wrong id", "testid", tc.getId());
 	}
 
 	/**
@@ -76,10 +80,10 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	 * {@link de.innot.avreclipse.core.targets.TargetConfiguration#TargetConfiguration(de.innot.avreclipse.core.targets.TargetConfiguration)}
 	 * .
 	 * 
-	 * @throws BackingStoreException
+	 * @throws IOException
 	 */
 	@Test
-	public void testTargetConfigurationTargetConfiguration() throws BackingStoreException {
+	public void testTargetConfigurationTargetConfiguration() throws IOException {
 
 		ITargetConfigChangeListener faillistener = new ITargetConfigChangeListener() {
 			public void attributeChange(ITargetConfiguration config, String attribute,
@@ -128,12 +132,15 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 
 	/**
 	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#getId()}.
+	 * 
+	 * @throws IOException
 	 */
 	@Test
-	public void testGetId() {
-		TargetConfiguration test = new MyTargetConfiguration("foobar");
+	public void testGetId() throws Exception {
+		IPath testfile = getTestFile();
+		TargetConfiguration test = new MyTargetConfiguration(testfile);
 		assertNotNull(test);
-		assertEquals("foobar", test.getId());
+		assertEquals(testfile.lastSegment(), test.getId());
 	}
 
 	/**
@@ -201,34 +208,35 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#doSave()}.
 	 * 
 	 * @throws BackingStoreException
+	 * @throws IOException
 	 */
 	@Test
-	public void testDoSave() throws BackingStoreException {
+	public void testDoSave() throws BackingStoreException, IOException {
 
 		// Make a "working copy"
 		TargetConfiguration wc = new MyTargetConfiguration(tc);
 
 		// Change a few settings in the standard target configuration
-		wc.setName("testName");
-		wc.setDescription("testDescription");
-		wc.setMCU("testMCU");
+		wc.setName("testNameCopy");
+		wc.setDescription("testDescriptionCopy");
+		wc.setMCU("testMCUCopy");
 		wc.setFCPU(12345678);
 
 		// pre-check the dirty flags
-		assertTrue(wc.isDirty());
-		assertFalse(tc.isDirty());
+		assertTrue("Workingcopy should be dirty", wc.isDirty());
+		assertFalse("Original should be clean", tc.isDirty());
 
 		// save the config.
 		wc.doSave();
 
 		// check the dirty flags
-		assertFalse(wc.isDirty());
-		assertFalse(tc.isDirty());
+		assertFalse("Workingcopy should be clean", wc.isDirty());
+		assertFalse("Original should be clean", tc.isDirty());
 
 		// check that the changes were propagated to the original
-		assertEquals("testName", tc.getName());
-		assertEquals("testDescription", tc.getDescription());
-		assertEquals("testMCU", tc.getMCU());
+		assertEquals("testNameCopy", tc.getName());
+		assertEquals("testDescriptionCopy", tc.getDescription());
+		assertEquals("testMCUCopy", tc.getMCU());
 		assertEquals(12345678, tc.getFCPU());
 
 		// Now reload the save config from the preference storage area with the help of the target
@@ -236,14 +244,14 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		ITargetConfiguration tc2 = TargetConfigurationManager.getDefault().getConfig(tc.getId());
 
 		// and do the same checks
-		assertEquals("testName", tc2.getName());
-		assertEquals("testDescription", tc2.getDescription());
-		assertEquals("testMCU", tc2.getMCU());
+		assertEquals("testNameCopy", tc2.getName());
+		assertEquals("testDescriptionCopy", tc2.getDescription());
+		assertEquals("testMCUCopy", tc2.getMCU());
 		assertEquals(12345678, tc2.getFCPU());
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#setDefaults()}.
+	 * Test method for {@link de.innot.avreclipse.core.targets.TargetConfiguration#restoreDefaults()}.
 	 */
 	@Test
 	public void testSetDefaults() {
@@ -255,7 +263,7 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 		tc.setFCPU(12345678);
 
 		// Now set the defaults and check that they have been applied
-		tc.setDefaults();
+		tc.restoreDefaults();
 
 		// Check that all changes were propagated
 		assertEquals(id, tc.getId());
@@ -269,9 +277,12 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.targets.TargetConfiguration#getAttribute(java.lang.String)}.
+	 * 
+	 * @throws BackingStoreException
 	 */
 	@Test
-	public void testAttribute() {
+	public void testAttribute() throws BackingStoreException {
+
 		assertFalse(tc.isDirty());
 
 		tc.setAttribute("foo", "bar");
@@ -446,4 +457,22 @@ public class TestTargetConfiguration implements ITargetConfigConstants {
 			System.out.println(sb.toString());
 		}
 	}
+
+	private IPath getTestFile() throws Exception {
+		IPath folder = getConfigFolder();
+		return folder.append("targetconfig.test");
+	}
+
+	private IPath getConfigFolder() throws IOException {
+		IPath location = AVRPlugin.getDefault().getStateLocation().append("hardwareconfigs");
+		File folder = location.toFile();
+		if (!folder.exists()) {
+			if (!folder.mkdirs()) {
+				throw new IOException("Could not create hardware config storage folder '"
+						+ folder.toString() + "'");
+			}
+		}
+		return location;
+	}
+
 }

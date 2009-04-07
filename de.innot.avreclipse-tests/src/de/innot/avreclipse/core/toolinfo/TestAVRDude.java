@@ -136,7 +136,7 @@ public class TestAVRDude {
 				{ "dragon_jtag", 1, HostInterface.USB, TargetInterface.JTAG },
 				{ "jtag1", 2, HostInterface.SERIAL, TargetInterface.JTAG },
 				{ "jtag2", 2, HostInterface.SERIAL, TargetInterface.JTAG },
-				{ "xil", 1, HostInterface.PARALLEL, TargetInterface.JTAG },
+				{ "xil", 1, HostInterface.PARALLEL, TargetInterface.ISP },
 				{ "dragon_isp", 1, HostInterface.USB, TargetInterface.ISP },
 				{ "jtag2isp", 2, HostInterface.SERIAL, TargetInterface.ISP },
 				{ "bsd", 1, HostInterface.PARALLEL, TargetInterface.ISP },
