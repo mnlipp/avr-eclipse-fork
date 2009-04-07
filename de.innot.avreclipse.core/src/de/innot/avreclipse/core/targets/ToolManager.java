@@ -16,8 +16,10 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -110,6 +112,21 @@ public class ToolManager implements IRegistryEventListener {
 	public IGDBServerTool getGDBServerTool(String id) {
 		loadExtensions();
 		return fGDBServerTools.get(id);
+	}
+
+	public ITargetConfigurationTool[] getAllTools() {
+		loadExtensions();
+
+		List<ITargetConfigurationTool> alltools = new ArrayList<ITargetConfigurationTool>();
+		for (ITargetConfigurationTool tool : fProgrammerTools.values()) {
+			alltools.add(tool);
+		}
+		for (ITargetConfigurationTool tool : fGDBServerTools.values()) {
+			alltools.add(tool);
+		}
+
+		return alltools.toArray(new ITargetConfigurationTool[alltools.size()]);
+
 	}
 
 	/**

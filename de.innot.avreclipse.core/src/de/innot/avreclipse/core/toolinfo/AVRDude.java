@@ -228,7 +228,7 @@ public class AVRDude implements IMCUProvider {
 	}
 
 	/**
-	 * Returns a Set of all currently supported Programmer devices.
+	 * Returns a List of all currently supported Programmer devices.
 	 * 
 	 * @return <code>Set&lt;String&gt</code> with the avrdude id values.
 	 * @throws AVRDudeException
@@ -238,6 +238,19 @@ public class AVRDude implements IMCUProvider {
 
 		// Return a copy of the original list
 		return new ArrayList<IProgrammer>(list);
+	}
+
+	/**
+	 * Returns a Set of all currently supported Programmer devices.
+	 * 
+	 * @return <code>Set&lt;String&gt</code> with the avrdude id values.
+	 * @throws AVRDudeException
+	 */
+	public Set<String> getProgrammerIDs() throws AVRDudeException {
+		Set<String> allids = loadProgrammersList().keySet();
+
+		// Return a copy of the original list
+		return new HashSet<String>(allids);
 	}
 
 	/**

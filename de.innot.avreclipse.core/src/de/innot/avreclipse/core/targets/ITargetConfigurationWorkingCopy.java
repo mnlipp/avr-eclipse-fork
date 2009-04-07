@@ -16,7 +16,7 @@
 
 package de.innot.avreclipse.core.targets;
 
-import org.osgi.service.prefs.BackingStoreException;
+import java.io.IOException;
 
 /**
  * 
@@ -114,11 +114,9 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	 * <p>
 	 * This will not do anything if the configuration has not been modified.
 	 * </p>
-	 * 
-	 * @throws BackingStoreException
-	 *             If this configuration cannot be written to the preference storage area.
+	 * @throws IOException TODO
 	 */
-	public void doSave() throws BackingStoreException;
+	public void doSave() throws IOException;
 
 	/**
 	 * Set the attribute to the value.
@@ -159,7 +157,7 @@ public interface ITargetConfigurationWorkingCopy extends ITargetConfiguration {
 	 * The ID and the Name of this Configuration are not changed.
 	 * </p>
 	 */
-	public void setDefaults();
+	public void restoreDefaults();
 
 	/**
 	 * Checks if this working copy has unsaved changes.

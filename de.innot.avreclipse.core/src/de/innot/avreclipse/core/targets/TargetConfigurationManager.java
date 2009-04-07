@@ -16,22 +16,18 @@
 
 package de.innot.avreclipse.core.targets;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.avrdude.ProgrammerConfig;
-import de.innot.avreclipse.core.preferences.AVRDudePreferences;
 
 /**
  * Manages the list of {@link TargetConfiguration} objects in the preferences.
@@ -65,28 +61,16 @@ public class TargetConfigurationManager {
 	/** Static singleton instance */
 	private static TargetConfigurationManager		fInstance		= null;
 
-	private static final String						CLASSNAME		= "targets";
-	private static final String						QUALIFIER		= AVRPlugin.PLUGIN_ID + "/"
-																			+ CLASSNAME;
-	private static final String						CONFIGQUALIFIER	= QUALIFIER + "/configs/";
+	private IPath									fStorageFolder;
 
 	/**
 	 * The prefix for programmer configuration id values. This is appended with a running number to
 	 * get the real id.
 	 */
-	private final static String						CONFIG_PREFIX	= "targetconfig.";
+	private final static String						CONFIG_PREFIX	= "config.";
 
 	/** Cache of all Configs that have been used in this session */
 	private final Map<String, TargetConfiguration>	fConfigsCache;
-
-	/**
-	 * The preferences this manager works on.
-	 * 
-	 * @see AVRDudePreferences#getConfigPreferences()
-	 */
-	private final IEclipsePreferences				fPreferences;
-
-	private final static List<String>				EMPTYLIST		= new ArrayList<String>();
 
 	/**
 	 * Gets the session <code>TargetConfigurationManager</code>.
@@ -102,9 +86,6 @@ public class TargetConfigurationManager {
 
 	// Private to prevent instantiation of this class.
 	private TargetConfigurationManager() {
-		// Set up Preferences and the internal lists
-		IScopeContext scope = new InstanceScope();
-		fPreferences = scope.getNode(CONFIGQUALIFIER);
 		fConfigsCache = new HashMap<String, TargetConfiguration>();
 	}
 
@@ -116,66 +97,71 @@ public class TargetConfigurationManager {
 	 * </p>
 	 * 
 	 * @return A new <code>ProgrammerConfig</code>
+	 * @throws IOException
+	 *             An <code>IOException</code> is thrown when the new config file can not be
+	 *             created.
 	 */
-	public ITargetConfiguration createNewConfig() {
+	public ITargetConfiguration createNewConfig() throws IOException {
 
 		// The id has the form "targetconfig.#" where # is a running
 		// number.
-		// Find the first free id.
-		// Check the list of existing config nodes in the preferences.
-		String newid = null;
-		int i = 1;
 
-		try {
-			do {
-				newid = CONFIG_PREFIX + i++;
-			} while (fPreferences.nodeExists(newid));
+		// Get all files in the folder and find the highest ID.
 
-			TargetConfiguration newconfig = new TargetConfiguration(newid);
-			newconfig.doSave();
-			fConfigsCache.put(newconfig.getId(), newconfig);
+		IPath folder = getConfigFolder();
+		File[] files = folder.toFile().listFiles();
 
-			return newconfig;
-
-		} catch (BackingStoreException bse) {
-			// TODO What shall we do if we can't access the Preferences?
-			// For now log an error and return null.
-			logException(bse);
-			return null;
+		int maxid = 0;
+		for (File file : files) {
+			if (file.isFile()) {
+				String name = file.getName();
+				if (name.startsWith(CONFIG_PREFIX)) {
+					int dot = name.lastIndexOf('.');
+					if (dot >= 0) {
+						String idstring = name.substring(dot + 1);
+						int id = Integer.parseInt(idstring);
+						if (id > maxid) {
+							maxid = id;
+						}
+					}
+				}
+			}
 		}
+
+		String filename = CONFIG_PREFIX + Integer.toString(maxid);
+
+		IPath newfile = new Path(folder.toString()).append(filename);
+
+		TargetConfiguration newconfig = new TargetConfiguration(newfile);
+		fConfigsCache.put(newconfig.getId(), newconfig);
+
+		return newconfig;
+
 	}
 
 	/**
-	 * Deletes the given configuration from the preference storage area.
-	 * <p>
-	 * Note: This Object is still valid and further calls to {@link #saveConfig(ProgrammerConfig)}
-	 * will add this configuration back to the preference storage.
-	 * </p>
+	 * Deletes the given configuration.
 	 * 
 	 * @param id
 	 *            The id of the target configuration to delete.
 	 */
-	public void deleteConfig(String id) {
+	public void deleteConfig(String id) throws IOException {
 
 		// If the config is in the cache, remove it from the cache
 		if (fConfigsCache.containsKey(id)) {
 			// First clear any listeners so that we don't have dangling references
-			ITargetConfiguration tc = fConfigsCache.get(id);
+			TargetConfiguration tc = fConfigsCache.get(id);
 			tc.dispose();
 			fConfigsCache.remove(id);
 		}
 
-		// Remove the Preference node for the config and flush the preferences
-		// If the node does not exist do nothing - no need to create the node
-		// just to remove it again
-		try {
-			if (fPreferences.nodeExists(id)) {
-				Preferences cfgnode = fPreferences.node(id);
-				cfgnode.removeNode();
-				fPreferences.flush();
+		// Delete the config file
+		File file = getConfigFolder().append(id).toFile();
+		if (file.exists()) {
+			if (!file.delete()) {
+				throw new IOException("Could not delete hardware config file '" + file.toString()
+						+ "'");
 			}
-		} catch (BackingStoreException bse) {
-			logException(bse);
 		}
 	}
 
@@ -196,13 +182,15 @@ public class TargetConfigurationManager {
 	 *            <code>String</code> with an ID value.
 	 * @return The requested <code>TargetConfiguration</code> or <code>null</code> if no config with
 	 *         the given ID exists.
+	 * @throws IOException
+	 *             if a config file exists in the storage area, but could not be read.
 	 */
-	public ITargetConfiguration getConfig(String id) {
+	public ITargetConfiguration getConfig(String id) throws IOException {
 
 		return internalGetConfig(id);
 	}
 
-	private TargetConfiguration internalGetConfig(String id) {
+	private TargetConfiguration internalGetConfig(String id) throws IOException {
 		// Test for empty / null id
 		if (id == null)
 			return null;
@@ -216,22 +204,14 @@ public class TargetConfigurationManager {
 
 		// The config was not in the cache
 
-		// The node must exist, otherwise return null
-		try {
-
-			if (!fPreferences.nodeExists(id)) {
-				return null;
-			}
-		} catch (BackingStoreException bse) {
-			// TODO What shall we do if we can't access the Preferences?
-			// For now log an error and return null.
-			logException(bse);
+		// The file must exist, otherwise return null
+		IPath file = getConfigFolder().append(id);
+		if (!file.toFile().exists()) {
 			return null;
 		}
 
-		// Load the Config from the Preferences
-		Preferences cfgprefs = fPreferences.node(id);
-		TargetConfiguration config = new TargetConfiguration(id, cfgprefs);
+		// Load the Config from the File
+		TargetConfiguration config = new TargetConfiguration(file);
 
 		fConfigsCache.put(id, config);
 
@@ -248,8 +228,9 @@ public class TargetConfigurationManager {
 	 * @param sourceconfig
 	 *            Source <code>TargetConfiguration</code> to clone.
 	 * @return New working copy of an existing configuration, or <code>null</code> if no config with the given id exists.
+	 * @throws IOException when the source config exists, but can not be loaded from the storage area.
 	 */
-	public ITargetConfigurationWorkingCopy getWorkingCopy(String id) {
+	public ITargetConfigurationWorkingCopy getWorkingCopy(String id) throws IOException {
 
 		// Clone the source config
 		TargetConfiguration sourceconfig = internalGetConfig(id);
@@ -282,18 +263,13 @@ public class TargetConfigurationManager {
 
 		// The config was not in the cache
 
-		// The node must exist, otherwise return null
+		// The file must exist, otherwise return null
 		try {
-
-			if (fPreferences.nodeExists(id)) {
-				return true;
-			}
-		} catch (BackingStoreException bse) {
-			// TODO What shall we do if we can't access the Preferences?
-			// For now log an error and return null.
-			logException(bse);
+			File file = getConfigFolder().append(id).toFile();
+			return file.exists();
+		} catch (IOException ioe) {
+			return false;
 		}
-		return false;
 	}
 
 	/**
@@ -302,40 +278,39 @@ public class TargetConfigurationManager {
 	 * @return List of all id strings
 	 */
 	public List<String> getConfigurationIDs() {
-		// All Programmer Configurations are children of the rootnode in the
-		// preferences. So fetch all children and create a list from them.
-		String[] confignames;
+		final List<String> confignames = new ArrayList<String>();
 
 		try {
-			confignames = fPreferences.childrenNames();
-			return Arrays.asList(confignames);
-		} catch (BackingStoreException bse) {
-			// TODO What shall we do if we can't access the Preferences?
-			// For now log an error and return an empty list
-			logException(bse);
+			File folder = getConfigFolder().toFile();
+			File[] allfiles = folder.listFiles();
+
+			for (File file : allfiles) {
+				String filename = file.getName();
+				if (filename.startsWith(CONFIG_PREFIX)) {
+					confignames.add(filename);
+				}
+			}
+		} catch (IOException ioe) {
+			// In case of errors return what is already in the list
 		}
-		return EMPTYLIST;
+
+		return confignames;
 	}
 
-	public Preferences getPreferences(String id) {
-		return fPreferences.node(id);
+	private IPath getConfigFolder() throws IOException {
+		if (fStorageFolder == null) {
+			IPath location = AVRPlugin.getDefault().getStateLocation().append("hardwareconfigs");
+			File folder = location.toFile();
+			if (!folder.exists()) {
+				if (!folder.mkdirs()) {
+					throw new IOException("Could not create hardware config storage folder '"
+							+ folder.toString() + "'");
+				}
+			}
+			fStorageFolder = location;
+		}
+		return fStorageFolder;
+
 	}
 
-	/**
-	 * Log an BackingStoreException.
-	 * 
-	 * @param bse
-	 *            <code>BackingStoreException</code> to log.
-	 */
-	private void logException(BackingStoreException bse) {
-		// TODO Check if we really should do this here or if we just throw the
-		// Exception all the way up to the GUI code to show an error dialog,
-		// like in the saveConfig() and deleteConfig() methods (where this
-		// Exception is more likely to happen as something is actually written
-		// to the Preferences)
-		// 
-		Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
-				"Can't access the list of avrdude configuration preferences", bse);
-		AVRPlugin.getDefault().log(status);
-	}
 }

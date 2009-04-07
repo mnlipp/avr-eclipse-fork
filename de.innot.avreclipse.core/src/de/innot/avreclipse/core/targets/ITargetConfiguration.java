@@ -16,19 +16,19 @@
 
 package de.innot.avreclipse.core.targets;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 
 /**
- * The Target Configuration API.
+ * The Hardware Configuration API.
  * <p>
- * A target configuration contains is basically a bag of attribute - value pairs that describe all
- * properties required to access a remote AVR MCU.
+ * A hardware configuration is basically a bag of attribute - value pairs that describe all
+ * properties required to access a remote MCU.
  * </p>
  * <p>
- * Each target configuration has a unique id and information on:
+ * Each hardware configuration has a unique id and information on:
  * <ul>
  * <li>The name of the configuration + an optional description.</li>
  * <li>The target MCU type and its clock frequency.</li>
@@ -40,6 +40,21 @@ import org.eclipse.core.runtime.CoreException;
  * The attributes common for all target configurations are defined in {@link ITargetConfigConstants}
  * . The programmer tool and the gdbserver use their own custom attributes.
  * </p>
+ * 
+ * <p>
+ * All hardware configurations are managed by the {@link TargetConfigurationManager}. It has methods
+ * to
+ * <ul>
+ * <li>create new configs {@link TargetConfigurationManager#createNewConfig()}</li>
+ * <li>get existing configs {@link TargetConfigurationManager#getConfig(String)}
+ * <li>delete configs {@link TargetConfigurationManager#deleteConfig(String)}</li>
+ * </ul>
+ * </p>
+ * <p>
+ * This interface in not supposed to be implemented by clients.
+ * </p>
+ * 
+ * @noimplement
  * 
  * @author Thomas Holland
  * @since 2.4
@@ -93,40 +108,38 @@ public interface ITargetConfiguration {
 	 * Get the list of all supported MCUs.
 	 * <p>
 	 * If the <code>filtered</code> argument is <code>true</code>, then only those MCUs are returned
-	 * that are supported by both the image loader and the gdbserver (Intersection). If
+	 * that are supported by both the programmer tool and the gdbserver (Intersection). If
 	 * <code>filtered</code> is <code>false</code>, then all MCUs supported by avr-gcc as well as
-	 * the selected imageloader and gdbserver are returned (Union).
+	 * the selected programmer tool and gdbserver are returned (Union).
 	 * </p>
 	 * 
 	 * @param filtered
 	 *            Restrict the list to the MCUs that are actually supported by the current
 	 *            configuration.
-	 * @return List of mcu id values in avr-gcc format
+	 * @return Set of mcu id values in avr-gcc format
 	 */
-	public List<String> getSupportedMCUs(boolean filtered);
+	public Set<String> getSupportedMCUs(boolean filtered);
 
 	/**
-	 * Get the list of all supported Programmers.
+	 * Get the set of IDs for all supported Programmers.
 	 * <p>
-	 * If the <code>filtered</code> argument is <code>true</code>, then only those Programmers are
-	 * returned that are supported by both the image loader and the gdbserver (Intersection). If
-	 * <code>filtered</code> is <code>false</code>, then all MCUs supported by avrdude as well as
-	 * the selected imageloader and gdbserver are returned (Union).
+	 * Depending on the <code>supported</code> flag the returned set will have either the union or
+	 * the intersection of the programmer sets from the programmer tool and the gdbserver tool.
 	 * </p>
 	 * 
-	 * @param filtered
-	 *            Restrict the list to the MCUs that are actually supported by the current
-	 *            configuration.
-	 * @return List of mcu id values in avr-gcc format
+	 * @param supported
+	 *            If <code>true</code> then only the Programmers supported by the current
+	 *            configuration are returned. If <code>false</code> then all Programmers are
+	 * @return Set of <code>IProgrammers</code>
 	 */
-	public List<IProgrammer> getSupportedProgrammers(boolean filtered);
+	public Set<String> getAllProgrammers(boolean supported);
 
 	/**
 	 * Get a specific programmer.
 	 * <p>
-	 * All target configuration tools (image loaders and gdbservers) are queried for the given id.
-	 * Note that even tools not currently active are queried. This is used by the user interface to
-	 * correctly show the information for an id that had been selected but has become invalid
+	 * All target configuration tools (programmer tools and gdbservers) are queried for the given
+	 * id. Note that even tools not currently active are queried. This is used by the user interface
+	 * to correctly show the information for an id that had been selected but has become invalid
 	 * afterwards.
 	 * </p>
 	 * </p>
@@ -240,14 +253,19 @@ public interface ITargetConfiguration {
 	 */
 	public void removePropertyChangeListener(ITargetConfigChangeListener listener);
 
-	/**
-	 * Prepares the target configuration for deletion.
-	 * <p>
-	 * The implementation should remove all listeners and other references so that it can be garbage
-	 * collected.
-	 * </p>
-	 * 
-	 */
-	public void dispose();
+	public ValidationResult validateAttribute(String attr);
 
+	public enum Result {
+		OK, WARNING, ERROR, UNKNOWN_ATTRIBUTE;
+	}
+
+	public class ValidationResult {
+		public final Result	result;
+		public final String	description;
+
+		public ValidationResult(Result result, String description) {
+			this.result = result;
+			this.description = description;
+		}
+	}
 }

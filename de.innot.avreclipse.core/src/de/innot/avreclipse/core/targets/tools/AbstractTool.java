@@ -17,10 +17,12 @@
 package de.innot.avreclipse.core.targets.tools;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
@@ -50,7 +52,50 @@ public abstract class AbstractTool {
 
 	protected abstract String getId();
 
+	/**
+	 * Returns the value of the command attribute.
+	 * <p>
+	 * This is used to get the name of the executable for the tool. The command can be either just
+	 * the command name (e.g. 'avrdude') or a absolute path (e.g. '/usr/bin/avrdude')
+	 * </p>
+	 * 
+	 * @param tc
+	 *            Applicable hardware configuration
+	 * @return String with the command
+	 */
+	protected abstract String getCommand(ITargetConfiguration tc);
+
 	protected abstract ICommandOutputListener getOutputListener();
+
+	/**
+	 * Runs the tool with the given arguments.
+	 * <p>
+	 * The Output of stdout and stderr are merged and returned in a <code>List&lt;String&gt;</code>.
+	 * </p>
+	 * <p>
+	 * If the command fails to execute an entry is written to the log and an
+	 * {@link AVRDudeException} with the reason is thrown.
+	 * </p>
+	 * 
+	 * @param The
+	 *            target configuration to use
+	 * @param arguments
+	 *            Zero or more arguments for avrdude
+	 * @return A list of all output lines, or <code>null</code> if the command could not be
+	 *         launched.
+	 * @throws AVRDudeException
+	 *             when avrdude cannot be started or when avrdude returned an
+	 */
+	public List<String> runCommand(ITargetConfiguration tc, String... arguments)
+			throws AVRDudeException {
+
+		List<String> arglist = new ArrayList<String>(1);
+		for (String arg : arguments) {
+			arglist.add(arg);
+		}
+
+		return runCommand(tc, arglist, new NullProgressMonitor(), false, null);
+	}
 
 	/**
 	 * Runs tool with the given arguments.
@@ -81,7 +126,7 @@ public abstract class AbstractTool {
 	 * @return A list of all output lines, or <code>null</code> if the command could not be
 	 *         launched.
 	 * @throws AVRDudeException
-	 *             when avrdude cannot be started or when avrdude returned an error errors.
+	 *             when the tool cannot be started or when it returns with an error.
 	 */
 	public List<String> runCommand(ITargetConfiguration tc, List<String> arglist,
 			IProgressMonitor monitor, boolean forceconsole, IPath cwd) throws AVRDudeException {
@@ -95,10 +140,8 @@ public abstract class AbstractTool {
 						"CWD does not point to a valid directory.");
 			}
 
-			String cmdattr = getId() + ".command";
-			String cmdpath = tc.getAttribute(cmdattr);
 			// TODO: resolve variables in the path
-			String command = cmdpath;
+			String command = getCommand(tc);
 
 			// Set up the External Command
 			ExternalCommandLauncher launcher = new ExternalCommandLauncher(command, arglist, cwd);

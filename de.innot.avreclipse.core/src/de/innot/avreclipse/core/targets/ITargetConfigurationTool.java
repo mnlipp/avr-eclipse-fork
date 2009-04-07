@@ -19,6 +19,9 @@ package de.innot.avreclipse.core.targets;
 import java.util.Map;
 import java.util.Set;
 
+import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
+
 /**
  * @author Thomas Holland
  * @since 2.4
@@ -32,8 +35,13 @@ public interface ITargetConfigurationTool {
 
 	public String getName();
 
-	public Set<String> getMCUs(ITargetConfiguration tc);
+	public String getVersion(ITargetConfiguration tc) throws AVRDudeException;
 
-	public Set<IProgrammer> getProgrammers(ITargetConfiguration tc);
+	public Set<String> getMCUs(ITargetConfiguration tc) throws AVRDudeException;
 
+	public Set<String> getProgrammers(ITargetConfiguration tc) throws AVRDudeException;
+
+	public IProgrammer getProgrammer(ITargetConfiguration tc, String id) throws AVRDudeException;
+
+	public ValidationResult validate(ITargetConfiguration tc, String attr);
 }

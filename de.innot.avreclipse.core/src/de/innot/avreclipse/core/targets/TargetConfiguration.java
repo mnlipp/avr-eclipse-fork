@@ -16,18 +16,21 @@
 
 package de.innot.avreclipse.core.targets;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ListenerList;
-import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
-import de.innot.avreclipse.core.toolinfo.AVRDude;
 
 /**
  * Implementation of the ITargetConfiguration API.
@@ -49,15 +52,17 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 	private final static String	EMPTY_STRING	= "";
 
+	private File				fPropertiesFile;
+
 	private String				fId;
 
 	private boolean				fDirty;
 
-	/** The preference node where the attributes are stored. */
-	private Preferences			fPrefs;
+	/** Flag to indicate that the config has been disposed. */
+	private boolean				fIsDisposed		= false;
 
-	/** Map of all attributes to their values. */
-	private Map<String, String>	fAttributes		= new HashMap<String, String>();
+	/** The Properties container for all attributes. */
+	private Properties			fAttributes		= new Properties();
 
 	/** Map of all attributes to their default values. */
 	private Map<String, String>	fDefaults		= new HashMap<String, String>();
@@ -82,35 +87,39 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	}
 
 	/**
-	 * Instantiate a new target configuration with the given id.
+	 * Instantiate a new target configuration from a given file.
 	 * <p>
-	 * The constructor will set a few default values.
+	 * If the file already exists, then it is loaded. Otherwise the standard attributes are set to
+	 * the default values.
 	 * </p>
 	 * 
-	 * @param id
+	 * @param path
+	 *            handle to the file containing the hardware configuration attributes
+	 * @throws IOException
+	 *             thrown if the file exists, but can not be read.
 	 */
-	protected TargetConfiguration(String id) {
+	protected TargetConfiguration(IPath path) throws IOException {
 		this();
-		fId = id;
-		setDefaults();
-	}
+		fPropertiesFile = path.toFile();
+		fId = path.lastSegment();
 
-	/**
-	 * Constructs a TargetConfiguration with the given id and load its values from the Preferences.
-	 * 
-	 * @param id
-	 *            Unique id of the configuration.
-	 * @param prefs
-	 *            <code>Preferences</code> node from which to load.
-	 */
-	protected TargetConfiguration(String id, Preferences prefs) {
-		this();
-		fId = id;
-		try {
-			loadFromPrefs(prefs);
-		} catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (fPropertiesFile.exists()) {
+
+			// If the hardware configuration file already exists we just load it
+			load(fPropertiesFile);
+		} else {
+			// This is a brand new hardware configuration.
+			// We set all attributes to their defaults and then save them.
+
+			// need to pull in the defaults from the currently selected tools first.
+			getProgrammerTool();
+			getGDBServerTool();
+
+			// Now we can set all defaults.
+			restoreDefaults();
+
+			// immediatly save the file to create the file
+			save(fPropertiesFile, true);
 		}
 	}
 
@@ -127,6 +136,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		this();
 		fOriginal = config;
 		fId = config.fId;
+		fPropertiesFile = config.fPropertiesFile;
 		loadFromConfig(config);
 	}
 
@@ -213,17 +223,38 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getSupportedMCUs(boolean)
 	 */
-	public List<String> getSupportedMCUs(boolean filtered) {
-		// TODO This is a dummy
-		List<String> allmcus = new ArrayList<String>();
-		allmcus.add("atmega16");
-		allmcus.add("atmega32");
-		allmcus.add("at90s2323");
+	public Set<String> getSupportedMCUs(boolean filtered) {
+		IProgrammerTool progtool = getProgrammerTool();
+		IGDBServerTool gdbserver = getGDBServerTool();
 
-		if (!filtered) {
-			allmcus.add("attiny12");
-			allmcus.add("at90s4433");
-			allmcus.add("atxmega64a3");
+		Set<String> allmcus = new HashSet<String>();
+		Set<String> progtoolmcus = null;
+		Set<String> gdbservermcus = null;
+
+		try {
+			progtoolmcus = progtool.getMCUs(this);
+		} catch (AVRDudeException e) {
+			// in case of an exception we just leave the Set at null
+			// so it won't be used
+		}
+		try {
+			gdbservermcus = gdbserver.getMCUs(this);
+		} catch (AVRDudeException e) {
+			// in case of an exception we just leave the Set at null
+			// so it won't be used
+		}
+
+		if (progtoolmcus != null) {
+			allmcus.addAll(progtoolmcus);
+		}
+
+		if (gdbservermcus != null) {
+
+			if (filtered && progtoolmcus != null) {
+				allmcus.retainAll(gdbservermcus);
+			} else {
+				allmcus.addAll(gdbservermcus);
+			}
 		}
 
 		return allmcus;
@@ -233,17 +264,40 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getSupportedProgrammers(boolean)
 	 */
-	public List<IProgrammer> getSupportedProgrammers(boolean filtered) {
-		// TODO This is a dummy
-		List<IProgrammer> programmerlist = null;
+	public Set<String> getAllProgrammers(boolean supported) {
+		IProgrammerTool progtool = getProgrammerTool();
+		IGDBServerTool gdbserver = getGDBServerTool();
+
+		Set<String> allprogrammers = new HashSet<String>();
+		Set<String> progtoolprogrammers = null;
+		Set<String> gdbserverprogrammers = null;
+
 		try {
-			programmerlist = AVRDude.getDefault().getProgrammersList();
+			progtoolprogrammers = progtool.getProgrammers(this);
 		} catch (AVRDudeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// in case of an exception we just leave the Set at null
+			// so it won't be used
+		}
+		try {
+			gdbserverprogrammers = gdbserver.getProgrammers(this);
+		} catch (AVRDudeException e) {
+			// in case of an exception we just leave the Set at null
+			// so it won't be used
 		}
 
-		return programmerlist;
+		if (progtoolprogrammers != null) {
+			allprogrammers.addAll(progtoolprogrammers);
+		}
+
+		if (gdbserverprogrammers != null) {
+
+			if (supported && progtoolprogrammers != null) {
+				allprogrammers.retainAll(gdbserverprogrammers);
+			} else {
+				allprogrammers.addAll(gdbserverprogrammers);
+			}
+		}
+		return allprogrammers;
 	}
 
 	/*
@@ -251,16 +305,45 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getProgrammer(java.lang.String)
 	 */
 	public IProgrammer getProgrammer(String programmerid) {
-		// TODO This is a dummy
-		IProgrammer programmer = null;
+
+		// first check if the currently selected programmer tool knows the id
+		// As this will usually be avrdude the chances are high that it knows
+		// the programmer.
 		try {
-			programmer = AVRDude.getDefault().getProgrammer(programmerid);
-		} catch (AVRDudeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			IProgrammer progger = getProgrammerTool().getProgrammer(this, programmerid);
+			if (progger != null) {
+				return progger;
+			}
+		} catch (AVRDudeException ade) {
+			// continue with the gdbserver
 		}
 
-		return programmer;
+		// The programmer tool didn't know the id. Maybe the gdbserver knows it.
+		try {
+			IProgrammer progger = getGDBServerTool().getProgrammer(this, programmerid);
+			if (progger != null) {
+				return progger;
+			}
+		} catch (AVRDudeException ade) {
+			// continue with the other tools
+		}
+
+		// Nope. Lets go through all known tools to find one that knows this id.
+		ITargetConfigurationTool[] alltools = ToolManager.getDefault().getAllTools();
+		for (ITargetConfigurationTool tool : alltools) {
+			try {
+				IProgrammer progger = tool.getProgrammer(this, programmerid);
+				if (progger != null) {
+					return progger;
+				}
+			} catch (AVRDudeException ade) {
+				// just continue with the next tool
+			}
+		}
+
+		// Nothing found
+		// TODO: Maybe return a special "unknown" programmer.
+		return null;
 	}
 
 	/*
@@ -298,9 +381,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		}
 
 		// everything is OK, we can use the tool
-		setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
 		fProgrammerTool = tool;
 		initTool(tool);
+		setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
 	}
 
 	/*
@@ -338,9 +421,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		}
 
 		// everything is OK, we can use the tool
-		setAttribute(ATTR_GDBSERVER_ID, tool.getId());
 		fGDBServerTool = tool;
 		initTool(tool);
+		setAttribute(ATTR_GDBSERVER_ID, tool.getId());
 	}
 
 	private void initTool(ITargetConfigurationTool tool) {
@@ -360,21 +443,24 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#doSave()
 	 */
-	public synchronized void doSave() throws BackingStoreException {
+	public synchronized void doSave() throws IOException {
 
-		if (fPrefs == null) {
-			fPrefs = TargetConfigurationManager.getDefault().getPreferences(fId);
+		save(fPropertiesFile, false);
+	}
+
+	private void save(File file, boolean force) throws IOException {
+
+		// Saving a disposed config is not allowed, as it could overwrite a new config with the same
+		// id.
+		if (fIsDisposed) {
+			throw new IllegalStateException("Config is disposed");
 		}
 
-		if (fDirty) {
-			// write all values to the preferences
-			for (String key : fAttributes.keySet()) {
-				String value = fAttributes.get(key);
-				fPrefs.put(key, value);
-			}
+		if (fDirty || force) {
 
-			// flush the Preferences to the persistent storage
-			fPrefs.flush();
+			FileWriter reader = new FileWriter(file);
+			fAttributes.store(reader, "Hardware Configuration File");
+			reader.close();
 
 			fDirty = false;
 
@@ -383,22 +469,15 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 				fOriginal.loadFromConfig(this);
 			}
 		}
+
 	}
 
-	/**
-	 * Load the values of this Configuration from the preference storage area.
-	 * 
-	 * @param prefs
-	 *            <code>Preferences</code> node for this configuration
-	 * @throws BackingStoreException
-	 */
-	private void loadFromPrefs(Preferences prefs) throws BackingStoreException {
-		fPrefs = prefs;
-		for (String key : prefs.keys()) {
-			String value = fPrefs.get(key, "");
-			fAttributes.put(key, value);
-		}
-		fDirty = false;
+	private void load(File file) throws IOException {
+
+		FileReader reader = new FileReader(file);
+		fAttributes.load(reader);
+		reader.close();
+
 	}
 
 	/**
@@ -409,8 +488,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 */
 	private void loadFromConfig(TargetConfiguration config) {
 		fAttributes.clear();
-		for (String attr : config.fAttributes.keySet()) {
-			setAttribute(attr, config.getAttribute(attr));
+		for (Object obj : config.fAttributes.keySet()) {
+			String key = (String) obj;
+			setAttribute(key, config.getAttribute(key));
 		}
 		fDirty = config.fDirty;
 	}
@@ -419,13 +499,12 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setDefaults()
 	 */
-	public void setDefaults() {
+	public void restoreDefaults() {
 		// Set the defaults. If
 		for (String key : fDefaults.keySet()) {
 			String defvalue = fDefaults.get(key);
 			setAttribute(key, defvalue);
 		}
-		fDirty = true;
 	}
 
 	/**
@@ -460,7 +539,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 */
 	public String getAttribute(String attributeName) {
 		Assert.isNotNull(attributeName);
-		String value = fAttributes.get(attributeName);
+		String value = fAttributes.getProperty(attributeName);
 		if (value == null) {
 			value = fDefaults.get(attributeName);
 			if (value == null) {
@@ -480,10 +559,10 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	public void setAttribute(String attributeName, String newvalue) {
 		Assert.isNotNull(newvalue);
 		Assert.isNotNull(attributeName);
-		String oldvalue = fAttributes.get(attributeName);
+		String oldvalue = fAttributes.getProperty(attributeName);
 		if (oldvalue == null || !oldvalue.equals(newvalue)) {
 			// only change attribute & fire event if the value is actually changed
-			fAttributes.put(attributeName, newvalue);
+			fAttributes.setProperty(attributeName, newvalue);
 			fireAttributeChangeEvent(attributeName, oldvalue, newvalue);
 			fDirty = true;
 		}
@@ -546,7 +625,13 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttributes()
 	 */
 	public Map<String, String> getAttributes() {
-		return new HashMap<String, String>(fAttributes);
+		HashMap<String, String> map = new HashMap<String, String>();
+		for (Object obj : fAttributes.keySet()) {
+			String key = (String) obj;
+			String value = fAttributes.getProperty(key);
+			map.put(key, value);
+		}
+		return map;
 	}
 
 	/*
@@ -573,6 +658,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 */
 	public void dispose() {
 		fListeners.clear();
+		fIsDisposed = true;
 	}
 
 	/*
@@ -620,6 +706,64 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			ITargetConfigChangeListener listener = (ITargetConfigChangeListener) changeListener;
 			listener.attributeChange(TargetConfiguration.this, name, oldValue, newValue);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfiguration#validateAttribute(java.lang.String)
+	 */
+	public ValidationResult validateAttribute(String attr) {
+
+		// First let the tools check if they can validate the attribute
+		ITargetConfigurationTool progtool = getProgrammerTool();
+		ValidationResult result = progtool.validate(this, attr);
+		if (result != null && result.result != Result.UNKNOWN_ATTRIBUTE) {
+			return result;
+		}
+
+		ITargetConfigurationTool gdbserver = getGDBServerTool();
+		result = progtool.validate(this, attr);
+		if (result != null && result.result != Result.UNKNOWN_ATTRIBUTE) {
+			return result;
+		}
+
+		// The tools now nothing. Now go through all attributes that can be validated.
+		// But first Check if the attribute is actually know.
+		String value = fAttributes.getProperty(attr);
+		if (value == null) {
+			return new ValidationResult(Result.UNKNOWN_ATTRIBUTE, "");
+		}
+
+		if (ATTR_MCU.equals(attr)) {
+			try {
+				// Check if the MCU is valid for both the Programmer Tool and the GDBServer
+				boolean progtoolOK = progtool.getMCUs(this).contains(value);
+				boolean gdbserverOK = progtool.getMCUs(this).contains(value);
+				if (!progtoolOK && !gdbserverOK) {
+					// Neither tool supports the mcu
+					String msg = "MCU is not supported by programming tool " + progtool.getName()
+							+ " and by gdbserver " + gdbserver.getName();
+					return new ValidationResult(Result.ERROR, msg);
+				}
+				if (!progtoolOK) {
+					String msg = "MCU not supported by programming tool" + progtool.getName();
+					return new ValidationResult(Result.ERROR, msg);
+				}
+				if (!progtoolOK) {
+					String msg = "MCU not supported by gdbserver " + progtool.getName();
+					return new ValidationResult(Result.ERROR, msg);
+				}
+			} catch (AVRDudeException ade) {
+				// Don't wan't to throw the exception, but we can't ignore it either.
+				// so we just report an error with the exception text as description.
+				String msg = ade.getLocalizedMessage();
+				return new ValidationResult(Result.ERROR, msg);
+			}
+
+		}
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

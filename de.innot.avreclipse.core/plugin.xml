@@ -14,11 +14,17 @@
 
 	<extension point="de.innot.avreclipse.core.targetTool">
     	<programmertool
+        	class="de.innot.avreclipse.core.targets.tools.NoneTool">
+    	</programmertool>
+    	<programmertool
         	class="de.innot.avreclipse.core.targets.tools.AvrdudeTool">
     	</programmertool>
     	<programmertool
         	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
     	</programmertool>
+    	<gdbservertool
+        	class="de.innot.avreclipse.core.targets.tools.NoneTool">
+    	</gdbservertool>
     	<gdbservertool
         	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
     	</gdbservertool>

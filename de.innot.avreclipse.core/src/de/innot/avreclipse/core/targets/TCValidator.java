@@ -16,7 +16,7 @@
 
 package de.innot.avreclipse.core.targets;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Thomas Holland
@@ -71,7 +71,7 @@ public class TCValidator implements ITargetConfigConstants {
 	 */
 	public static Problem checkMCU(ITargetConfiguration config) {
 		String currentmcu = config.getMCU();
-		List<String> allmcuids = config.getSupportedMCUs(true);
+		Set<String> allmcuids = config.getSupportedMCUs(true);
 		if (allmcuids.contains(currentmcu)) {
 			return Problem.OK;
 		}
@@ -85,8 +85,8 @@ public class TCValidator implements ITargetConfigConstants {
 	 * This method will return {@link Problem#WARN} iff
 	 * <ul>
 	 * <li>the target interface supports settable clocks</li>
-	 * <li>and the bitclock is not set to the default</li>
-	 * <li>and the bitclock is greater than 1/4th of the current FCPU</li>
+	 * <li>&& the bitclock is not set to the default</li>
+	 * <li>&& the bitclock is greater than 1/4th of the current FCPU</li>
 	 * </ul>
 	 * In all other cases {@link Problem#OK} is returned.
 	 * </p>
@@ -99,7 +99,8 @@ public class TCValidator implements ITargetConfigConstants {
 
 		// Check if the current configuration actually has a settable clock
 		String programmerid = config.getAttribute(ATTR_PROGRAMMER_ID);
-		IProgrammer programmer = config.getProgrammer(programmerid);
+		IProgrammer programmer;
+		programmer = config.getProgrammer(programmerid);
 		int[] clocks = programmer.getTargetInterfaceClockFrequencies();
 		if (clocks.length > 0) {
 
@@ -265,7 +266,6 @@ public class TCValidator implements ITargetConfigConstants {
 		if (programmer.isDaisyChainCapable()) {
 			return config.getBooleanAttribute(ATTR_DAISYCHAIN_ENABLE);
 		}
-
 		return false;
 	}
 
