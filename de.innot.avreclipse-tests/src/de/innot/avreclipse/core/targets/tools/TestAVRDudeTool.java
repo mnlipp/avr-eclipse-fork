@@ -22,7 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
@@ -48,9 +50,9 @@ public class TestAVRDudeTool {
 
 	@Before
 	public void setup() throws IOException {
-		avrdude = (AvrdudeTool) ToolManager.getDefault().getProgrammerTool(AvrdudeTool.ID);
-		ITargetConfiguration tc = TargetConfigurationManager.getDefault().createNewConfig();
-		config = TargetConfigurationManager.getDefault().getWorkingCopy(tc.getId());
+		ITargetConfiguration hc = TargetConfigurationManager.getDefault().createNewConfig();
+		config = TargetConfigurationManager.getDefault().getWorkingCopy(hc.getId());
+		avrdude = (AvrdudeTool) ToolManager.getDefault().getTool(config, AvrdudeTool.ID);
 	}
 
 	@After
@@ -78,28 +80,29 @@ public class TestAVRDudeTool {
 	@Test
 	public void testGetCommand() throws IOException {
 		// first check if default is returned for an unmodified hardware config
-		String cmd = avrdude.getCommand(config);
+		String cmd = avrdude.getCommand();
 		assertNotNull("Null command", cmd);
 		assertTrue("Empty command", cmd.length() > 0);
 		assertEquals("Wrong default command", "avrdude", cmd);
 
 		// Change the command attribute and check that it is propagated
 		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "foobar");
-		assertEquals("Wrong command", "foobar", avrdude.getCommand(config));
+		assertEquals("Wrong command", "foobar", avrdude.getCommand());
 	}
 
 	/**
 	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getDefaults()}.
 	 */
 	@Test
-	public void testGetDefaults() {
+	public void testGetAttributes() {
 		// Get the list and check that it contains all known attributes
-		Map<String, String> defaults = avrdude.getDefaults();
-		assertNotNull("Null defaults", defaults);
-		assertTrue("Empty defaults", defaults.size() > 0);
+		String[] attrs = avrdude.getAttributes();
+		assertNotNull("Null defaults", attrs);
+		assertTrue("Empty defaults", attrs.length > 0);
 
-		assertTrue("Command attr missing", defaults.containsKey(AvrdudeTool.ATTR_CMD_NAME));
-		assertTrue("UseConsole attr missing", defaults.containsKey(AvrdudeTool.ATTR_USE_CONSOLE));
+		List<String> attributeList = Arrays.asList(attrs);
+		assertTrue("Command attr missing", attributeList.contains(AvrdudeTool.ATTR_CMD_NAME));
+		assertTrue("UseConsole attr missing", attributeList.contains(AvrdudeTool.ATTR_USE_CONSOLE));
 
 		// Add other attributes once they have been implemented
 	}
@@ -115,13 +118,13 @@ public class TestAVRDudeTool {
 	@Test
 	public void testGetVersion() throws IOException, AVRDudeException {
 		// Use the default avrdude command (avrdude must be on the system path)
-		String version = avrdude.getVersion(config);
+		String version = avrdude.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
 		// Do this again to test the cache. The result of this can be seen in the EclEmma test
 		// coverage output.
-		version = avrdude.getVersion(config);
+		version = avrdude.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
@@ -129,7 +132,7 @@ public class TestAVRDudeTool {
 		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "invalidcommandname");
 
 		try {
-			version = avrdude.getVersion(config);
+			version = avrdude.getVersion();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -147,7 +150,7 @@ public class TestAVRDudeTool {
 	@Test
 	public void testGetMCUs() throws IOException, AVRDudeException {
 		// Use the default avrdude command (avrdude must be on the system path)
-		Set<String> allmcus = avrdude.getMCUs(config);
+		Set<String> allmcus = avrdude.getMCUs();
 		assertNotNull("Null MCU list", allmcus);
 		assertTrue("Empty MCU List", allmcus.size() > 0);
 
@@ -162,7 +165,7 @@ public class TestAVRDudeTool {
 		// Test with invalid command. This should throw an AVRDudeException
 		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "invalidcommandname");
 		try {
-			allmcus = avrdude.getMCUs(config);
+			allmcus = avrdude.getMCUs();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -177,17 +180,37 @@ public class TestAVRDudeTool {
 	 */
 	@Test
 	public void testGetProgrammers() {
-		fail("Not yet implemented");
+		// Check some currently implemented entries
+		String[] testproggers = new String[] { "c2n232i", "avrisp", "jtag1", "jtag2", "jtag2dw" };
+
+		for (String programmerid : testproggers) {
+			IProgrammer progger = config.getProgrammer(programmerid);
+			assertNotNull("Null programmer", progger);
+			assertEquals("Wrong progger id", programmerid, progger.getId());
+			assertTrue("Empty programmer description", progger.getDescription().length() > 0);
+		}
 	}
 
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getProgrammer(de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String)}
 	 * .
+	 * 
+	 * @throws AVRDudeException
 	 */
 	@Test
-	public void testGetProgrammer() {
-		fail("Not yet implemented");
+	public void testGetProgrammer() throws AVRDudeException {
+		// Use the default avrdude command (avrdude must be on the system path)
+		Set<String> allproggers = avrdude.getProgrammers();
+		assertNotNull("Null Programmers list", allproggers);
+		assertTrue("Empty Programmers List", allproggers.size() > 0);
+
+		// Check some currently implemented programmers
+		String[] testproggers = new String[] { "c2n232i", "avrisp", "jtag1", "jtag2", "jtag2dw" };
+
+		for (String progger : testproggers) {
+			assertTrue("Programmer missing " + progger, allproggers.contains(progger));
+		}
 	}
 
 	/**

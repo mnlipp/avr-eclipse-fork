@@ -17,18 +17,23 @@
 package de.innot.avreclipse.core.targets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import de.innot.avreclipse.core.targets.tools.AvariceTool;
 import de.innot.avreclipse.core.targets.tools.AvrdudeTool;
+import de.innot.avreclipse.core.targets.tools.NoneToolFactory;
 
 /**
  * @author Thomas Holland
- * @since
+ * @since 2.4
  * 
  */
 public class TestToolManager {
@@ -45,7 +50,7 @@ public class TestToolManager {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.ToolManager#getExtensionPointIDs()}.
+	 * Test method for {@link ToolManager#getExtensionPointIDs()}.
 	 */
 	@Test
 	public void testGetExtensionPointIDs() {
@@ -56,52 +61,91 @@ public class TestToolManager {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.ToolManager#getProgrammerTools()}.
+	 * Test method for {@link ToolManager#getToolName(String)}.
 	 */
 	@Test
-	public void testGetProgrammerTools() {
-		IProgrammerTool[] alltools = manager.getProgrammerTools();
+	public void testGetToolName() {
 
-		// Currently there are two programmer tools build into the plugin:
-		// - avrdude and
-		// - avarice
-		assertTrue(alltools.length >= 2);
+		assertEquals(AvariceTool.NAME, manager.getToolName(AvariceTool.ID));
+		assertEquals(AvrdudeTool.NAME, manager.getToolName(AvrdudeTool.ID));
+		assertEquals(NoneToolFactory.NAME, manager.getToolName(NoneToolFactory.ID));
+
+		// Test invalid id
+		assertEquals(null, manager.getToolName("foobar"));
+		assertEquals(null, manager.getToolName(""));
+		assertEquals(null, manager.getToolName(null));
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.ToolManager#getGDBServerTools()}.
+	 * Test method for {@link ToolManager#getTool(String)}.
+	 * 
+	 * @throws IOException
 	 */
 	@Test
-	public void testGetGDBServerTools() {
-		IGDBServerTool[] alltools = manager.getGDBServerTools();
+	public void testGetTool() throws IOException {
 
-		// Currently there is only one gdbserver tool build into the plugin:
-		// - avarice
-		assertTrue(alltools.length >= 1);
-	}
+		ITargetConfiguration hc = TargetConfigurationManager.getDefault().createNewConfig();
 
-	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.ToolManager#getProgrammerTool(java.lang.String)}.
-	 */
-	@Test
-	public void testGetProgrammerTool() {
-		IProgrammerTool avarice = manager.getProgrammerTool(AvariceTool.ID);
+		ITargetConfigurationTool avarice = manager.getTool(hc, AvariceTool.ID);
 		assertNotNull("Could not load avarice extension point", avarice);
 
-		IProgrammerTool avrdude = manager.getProgrammerTool(AvrdudeTool.ID);
+		ITargetConfigurationTool avrdude = manager.getTool(hc, AvrdudeTool.ID);
 		assertNotNull("Could not load avrdude extension point", avrdude);
+
+		ITargetConfigurationTool none = manager.getTool(hc, NoneToolFactory.ID);
+		assertNotNull("Could not load NoneTool extension point", none);
 	}
 
 	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.ToolManager#getGDBServerTool(java.lang.String)}.
+	 * Test method for {@link ToolManager#getAllTools(String)}.
 	 */
 	@Test
-	public void testGetGDBServerTool() {
-		IGDBServerTool avarice = manager.getGDBServerTool(AvariceTool.ID);
-		assertNotNull("Could not load avarice extension point", avarice);
+	public void testGetAllTools() {
+		// Test unfiltered
+		List<String> alltools = manager.getAllTools(null);
+		assertNotNull(alltools);
 
+		// Currently there are three tools build into the plugin:
+		// - avrdude,
+		// - avarice, and
+		// - none
+		assertTrue(alltools.contains(AvrdudeTool.ID));
+		assertTrue(alltools.contains(AvariceTool.ID));
+		assertTrue(alltools.contains(NoneToolFactory.ID));
+
+		// Test filtered
+		alltools = manager.getAllTools(ToolManager.AVRPROGRAMMERTOOL);
+		assertTrue(alltools.contains(AvrdudeTool.ID));
+		assertTrue(alltools.contains(AvariceTool.ID));
+		assertTrue(alltools.contains(NoneToolFactory.ID));
+
+		alltools = manager.getAllTools(ToolManager.AVRGDBSERVER);
+		assertFalse(alltools.contains(AvrdudeTool.ID));
+		assertTrue(alltools.contains(AvariceTool.ID));
+		assertTrue(alltools.contains(NoneToolFactory.ID));
+
+		// only the 'none-tool' matches *all* tool types
+		alltools = manager.getAllTools("foobar");
+		assertNotNull(alltools);
+		assertEquals(1, alltools.size());
+		assertTrue(alltools.contains(NoneToolFactory.ID));
 	}
 
+	/**
+	 * Test Method for {@link ToolManager#setLastAccess(String, long)} and
+	 * {@link ToolManager#getLastAccess(String)}
+	 */
+	@Test
+	public void testAccessTimes() {
+
+		final String testport = "/foo/bar";
+		final Long testvalue = 123456L;
+
+		assertEquals(0L, manager.getLastAccess(testport));
+
+		manager.setLastAccess(testport, testvalue);
+
+		assertEquals(testvalue, manager.getLastAccess(testport));
+
+	}
 }

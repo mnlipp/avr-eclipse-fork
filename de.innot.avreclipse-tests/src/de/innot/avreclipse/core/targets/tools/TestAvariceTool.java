@@ -22,7 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
+import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
@@ -48,9 +50,9 @@ public class TestAvariceTool {
 
 	@Before
 	public void setup() throws IOException {
-		avarice = (AvariceTool) ToolManager.getDefault().getProgrammerTool(AvariceTool.ID);
-		ITargetConfiguration tc = TargetConfigurationManager.getDefault().createNewConfig();
-		config = TargetConfigurationManager.getDefault().getWorkingCopy(tc.getId());
+		ITargetConfiguration hc = TargetConfigurationManager.getDefault().createNewConfig();
+		config = TargetConfigurationManager.getDefault().getWorkingCopy(hc.getId());
+		avarice = (AvariceTool) ToolManager.getDefault().getTool(config, AvariceTool.ID);
 	}
 
 	@After
@@ -78,28 +80,29 @@ public class TestAvariceTool {
 	@Test
 	public void testGetCommand() throws IOException {
 		// first check if default is returned for an unmodified hardware config
-		String cmd = avarice.getCommand(config);
+		String cmd = avarice.getCommand();
 		assertNotNull("Null command", cmd);
 		assertTrue("Empty command", cmd.length() > 0);
 		assertEquals("Wrong default command", "avarice", cmd);
 
 		// Change the command attribute and check that it is propagated
 		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "foobar");
-		assertEquals("Wrong command", "foobar", avarice.getCommand(config));
+		assertEquals("Wrong command", "foobar", avarice.getCommand());
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getDefaults()}.
+	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getAttributes()}.
 	 */
 	@Test
-	public void testGetDefaults() {
+	public void testGetAttributes() {
 		// Get the list and check that it contains all known attributes
-		Map<String, String> defaults = avarice.getDefaults();
-		assertNotNull("Null defaults", defaults);
-		assertTrue("Empty defaults", defaults.size() > 0);
+		String[] attrs = avarice.getAttributes();
+		assertNotNull("Null defaults", attrs);
+		assertTrue("Empty defaults", attrs.length > 0);
 
-		assertTrue("Command attr missing", defaults.containsKey(AvariceTool.ATTR_CMD_NAME));
-		assertTrue("UseConsole attr missing", defaults.containsKey(AvariceTool.ATTR_USE_CONSOLE));
+		List<String> attributeList = Arrays.asList(attrs);
+		assertTrue("Command attr missing", attributeList.contains(AvariceTool.ATTR_CMD_NAME));
+		assertTrue("UseConsole attr missing", attributeList.contains(AvariceTool.ATTR_USE_CONSOLE));
 
 		// Add other attributes once they have been implemented
 	}
@@ -115,13 +118,13 @@ public class TestAvariceTool {
 	@Test
 	public void testGetVersion() throws IOException, AVRDudeException {
 		// Use the default avarice command (avarice must be on the system path)
-		String version = avarice.getVersion(config);
+		String version = avarice.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
 		// Do this again to test the cache. The result of this can be seen in the EclEmma test
 		// coverage output.
-		version = avarice.getVersion(config);
+		version = avarice.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
@@ -129,7 +132,7 @@ public class TestAvariceTool {
 		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "invalidcommandname");
 
 		try {
-			version = avarice.getVersion(config);
+			version = avarice.getVersion();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -146,10 +149,8 @@ public class TestAvariceTool {
 	 */
 	@Test
 	public void testGetMCUs() throws IOException, AVRDudeException {
-		ITargetConfiguration tc = TargetConfigurationManager.getDefault().createNewConfig();
-
 		// Use the default avarice command (avarice must be on the system path)
-		Set<String> allmcus = avarice.getMCUs(tc);
+		Set<String> allmcus = avarice.getMCUs();
 		assertNotNull("Null MCU list", allmcus);
 		assertTrue("Empty MCU List", allmcus.size() > 0);
 
@@ -161,12 +162,10 @@ public class TestAvariceTool {
 		}
 
 		// Test with invalid command. This should throw an AVRDudeException
-		ITargetConfigurationWorkingCopy wc = TargetConfigurationManager.getDefault()
-				.getWorkingCopy(tc.getId());
-		wc.setAttribute(AvariceTool.ATTR_CMD_NAME, "invalidcommandname");
+		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "invalidcommandname");
 
 		try {
-			allmcus = avarice.getMCUs(wc);
+			allmcus = avarice.getMCUs();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -178,10 +177,24 @@ public class TestAvariceTool {
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getProgrammers(de.innot.avreclipse.core.targets.ITargetConfiguration)}
 	 * .
+	 * 
+	 * @throws IOException
+	 * @throws AVRDudeException
 	 */
 	@Test
-	public void testGetProgrammers() {
+	public void testGetProgrammers() throws IOException, AVRDudeException {
+		// Use the default avarice command (avarice must be on the system path)
+		Set<String> allproggers = avarice.getProgrammers();
+		assertNotNull("Null Programmers list", allproggers);
+		assertTrue("Empty Programmers List", allproggers.size() > 0);
 
+		// Check all currently implemented entries
+		String[] testproggers = new String[] { "dragon_jtag", "dragon_dw", "jtag1", "jtag2",
+				"jtag2dw" };
+
+		for (String progger : testproggers) {
+			assertTrue("Programmer missing " + progger, allproggers.contains(progger));
+		}
 	}
 
 	/**
@@ -191,7 +204,16 @@ public class TestAvariceTool {
 	 */
 	@Test
 	public void testGetProgrammer() {
-		fail("Not yet implemented");
+		// Check all currently implemented entries
+		String[] testproggers = new String[] { "dragon_jtag", "dragon_dw", "jtag1", "jtag2",
+				"jtag2dw" };
+
+		for (String programmerid : testproggers) {
+			IProgrammer progger = config.getProgrammer(programmerid);
+			assertNotNull("Null programmer", progger);
+			assertEquals("Wrong progger id", programmerid, progger.getId());
+			assertTrue("Empty programmer description", progger.getDescription().length() > 0);
+		}
 	}
 
 	/**
@@ -204,4 +226,9 @@ public class TestAvariceTool {
 		fail("Not yet implemented");
 	}
 
+	@Test
+	public void testInvocationDelay() {
+		// Test that a defined invocation delay is honored
+		// for this we start two
+	}
 }
