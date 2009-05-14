@@ -20,12 +20,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.IMessage;
 import org.eclipse.ui.forms.IMessageManager;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -37,6 +44,8 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 import de.innot.avreclipse.core.targets.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.Result;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 
 /**
  * Default implementation of the {@link ITCEditorPart} which creates a Section.
@@ -135,15 +144,14 @@ public abstract class AbstractTCSectionPart implements ITCEditorPart {
 
 				fManagedForm.staleStateChanged();
 				fLastDependentValues.put(attribute, newvalue);
-
-				// When the form is marked as stale it will only be refreshed when it is (or
-				// becomes)
-				// active. But the changes might cause some problems with this form that need to be
-				// shown immediately in the form header.
-				// So we call this method here to give the subclass a chance to update its problem
-				// messages.
-				refreshMessages();
 			}
+			// When the form is marked as stale it will only be refreshed when it is (or
+			// becomes)
+			// active. But the changes might cause some problems with this form that need to be
+			// shown immediately in the form header.
+			// So we call this method here to give the subclass a chance to update its problem
+			// messages.
+			refreshMessages();
 		}
 	}
 
@@ -432,6 +440,11 @@ public abstract class AbstractTCSectionPart implements ITCEditorPart {
 		if (fTCWC != null) {
 			fTCWC.removePropertyChangeListener(fListener);
 		}
+
+		Control control = getControl();
+		if (control != null) {
+			control.dispose();
+		}
 	}
 
 	/*
@@ -589,4 +602,93 @@ public abstract class AbstractTCSectionPart implements ITCEditorPart {
 		}
 	}
 
+	public interface IValidationListener {
+
+		public void result(ValidationResult result);
+	}
+
+	/**
+	 * Validate an attribute and set the form messages for the given control.
+	 * <p>
+	 * If the validation result is either {@link Result#WARNING} or {@link Result#ERROR}, then a
+	 * message is added to the control with the result of the validation. If the validation
+	 * indicates no problems ({@link Result#OK}), then any existing message for the attribute /
+	 * control pair is removed.
+	 * </p>
+	 * 
+	 * @param attribute
+	 *            The attribute to be validated
+	 * @param control
+	 *            The control that will receive any warning or error messages.
+	 */
+	protected void validate(final String attribute, final Control control) {
+
+		validate(attribute, control, null);
+	}
+
+	protected void validate(final String attribute, final Control control,
+			final IValidationListener validationhook) {
+
+		// Validation can take some time, so we run it in a separate background job.
+		// Once the validation is completed we need to check if the control still exists (the user
+		// might have closed the editor), and if yes we need to run the actual update in the GUI
+		// thread again.
+		Job validatejob = new Job("validate") {
+
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+
+				try {
+					monitor.beginTask("Validating " + attribute, 100);
+					ITargetConfiguration tc = getTargetConfiguration();
+					final ValidationResult res = tc.validateAttribute(attribute);
+					monitor.worked(90);
+					if (control != null && !control.isDisposed()) {
+						Display display = control.getDisplay();
+						if (display != null && !display.isDisposed()) {
+							// The actual update is run in the GUI threat.
+							display.syncExec(new Runnable() {
+
+								public void run() {
+									IMessageManager msgmngr = getMessageManager();
+									switch (res.result) {
+										case OK:
+											msgmngr.removeMessage(attribute, control);
+											break;
+										case WARNING:
+											msgmngr.addMessage(attribute, res.description,
+													attribute, IMessage.WARNING, control);
+											break;
+										case ERROR:
+											msgmngr.addMessage(attribute, res.description,
+													attribute, IMessage.ERROR, control);
+											break;
+										default:
+											// do nothing
+									}
+
+									// Now execute the optional hook method from the caller
+									if (validationhook != null) {
+										validationhook.result(res);
+									}
+								}
+							});
+						}
+					}
+					monitor.worked(10);
+				} catch (SWTException e) {
+					// Probably the control has been disposed after the check.
+					// In this case we just ignore the validation result.
+					e.printStackTrace();
+				} finally {
+					monitor.done();
+				}
+				return Status.OK_STATUS;
+			}
+		};
+
+		validatejob.setSystem(true);
+		validatejob.setPriority(Job.SHORT);
+		validatejob.schedule();
+	}
 }

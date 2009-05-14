@@ -19,11 +19,9 @@ package de.innot.avreclipse.ui.editors.targets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -177,23 +175,25 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 
 		// Get the list of valid Programmers and fill the description -> id map
 		fMapDescToId.clear();
-		List<IProgrammer> allprogrammers = getTargetConfiguration().getSupportedProgrammers(false);
+		Set<String> allprogrammers = getTargetConfiguration().getAllProgrammers(true);
 
-		for (IProgrammer programmer : allprogrammers) {
-			String description = programmer.getDescription();
-			fMapDescToId.put(description, programmer.getId());
+		for (String id : allprogrammers) {
+			IProgrammer progger = getTargetConfiguration().getProgrammer(id);
+			String description = progger.getDescription();
+			fMapDescToId.put(description, id);
 		}
 
 		// Check if the currently selected programmer is still in the list
 		String currentprogrammerid = getTargetConfiguration().getAttribute(ATTR_PROGRAMMER_ID);
-		if (fMapDescToId.containsValue(currentprogrammerid)) {
-			// Yes -- The selected Programmer is still supported.
-			// Clear any warnings
-			showWarning(false);
-		} else {
+		if (!fMapDescToId.containsValue(currentprogrammerid)) {
 			// No -- The Programmer is not supported by the current config.
-			// show a warning
-			showWarning(true);
+			// Add the current programmer back to the list.
+			// This prevents the combo from becoming empty at the cost of one
+			// 'invalid' programmer in the list
+			IProgrammer currentprogrammer = getTargetConfiguration().getProgrammer(
+					currentprogrammerid);
+			fMapDescToId.put(currentprogrammer.getDescription(), currentprogrammerid);
+
 		}
 
 		// Get all descriptions and sort them alphabetically
@@ -206,7 +206,7 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 			}
 		});
 
-		// finally tell the fProgrammersCombo about the new list but keep the previously selected
+		// Tell the fProgrammersCombo about the new list but keep the previously selected
 		// Programmer
 		fProgrammersCombo.setItems(alldescs);
 		fProgrammersCombo.setVisibleItemCount(Math.min(alldescs.length, 25));
@@ -217,19 +217,18 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 
 		// Now set the host interface
 		updateHostInterfaceCombo(currentprogrammer);
+
+		// Finally show an error if the Programmer is not supported by either tool.
+		refreshMessages();
 	}
 
-	/**
-	 * @param visible
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.ui.editors.targets.AbstractTCSectionPart#refreshMessages()
 	 */
-	private void showWarning(boolean visible) {
-		if (visible) {
-			String msg = "Selected Programmer is not supported by image loader and / or gdb server";
-			getMessageManager().addMessage(fProgrammersCombo, msg, null, IMessageProvider.WARNING,
-					fProgrammersCombo);
-		} else {
-			getMessageManager().removeMessage(fProgrammersCombo, fProgrammersCombo);
-		}
+	@Override
+	protected void refreshMessages() {
+		validate(ATTR_PROGRAMMER_ID, fProgrammersCombo);
 	}
 
 	/**

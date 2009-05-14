@@ -33,7 +33,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
-import de.innot.avreclipse.core.targets.IProgrammerTool;
+import de.innot.avreclipse.core.targets.IGDBServerTool;
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.ToolManager;
@@ -43,14 +43,14 @@ import de.innot.avreclipse.core.targets.ToolManager;
  * @since 2.4
  * 
  */
-public class SectionProgrammerTool extends AbstractTCSectionPart implements ITargetConfigConstants {
+public class SectionGDBServerTool extends AbstractTCSectionPart implements ITargetConfigConstants {
 
-	private Combo						fProgrammerToolCombo;
+	private Combo						fGDBServerToolCombo;
 
-	/** Reverse mapping of programmer tool name to id. */
+	/** Reverse mapping of gdbserver tool name to id. */
 	final private Map<String, String>	fMapNameToId	= new HashMap<String, String>();
 
-	private final static String[]		PART_ATTRS		= new String[] { ATTR_PROGRAMMER_TOOL_ID };
+	private final static String[]		PART_ATTRS		= new String[] { ATTR_GDBSERVER_ID };
 	private final static String[]		PART_DEPENDS	= new String[] { ATTR_MCU };
 
 	/*
@@ -59,7 +59,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 	 */
 	@Override
 	protected String getTitle() {
-		return "Programmer Tool";
+		return "GDBServer Tool";
 	}
 
 	/*
@@ -69,7 +69,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 	 */
 	@Override
 	protected String getDescription() {
-		return "The tool used to program the flash / eeprom / fuses / lockbits of the target MCU.";
+		return "External Tool that acts as a server for GDB, required for debugging.";
 	}
 
 	/*
@@ -95,20 +95,6 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 
 	/*
 	 * (non-Javadoc)
-	 * @see de.innot.avreclipse.ui.editors.targets.AbstractTCSectionPart#setFocus(java.lang.String)
-	 */
-	@Override
-	public boolean setFocus(String attribute) {
-		if (ATTR_PROGRAMMER_TOOL_ID.equals(attribute)) {
-			fProgrammerToolCombo.setFocus();
-			return true;
-		}
-
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.AbstractFormPart#initialize(org.eclipse.ui.forms.IManagedForm)
 	 */
 	@Override
@@ -122,22 +108,21 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 		//
 		// The Programmer Tool Combo
 		// 
-		Label label = toolkit.createLabel(parent, "Programmer Tool:");
+		Label label = toolkit.createLabel(parent, "GDBServer Tool:");
 		label.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.MIDDLE));
 
-		fProgrammerToolCombo = new Combo(parent, SWT.READ_ONLY);
-		toolkit.adapt(fProgrammerToolCombo, true, true);
-		fProgrammerToolCombo
-				.setLayoutData(new TableWrapData(TableWrapData.LEFT, TableWrapData.TOP));
-		fProgrammerToolCombo.addSelectionListener(new SelectionAdapter() {
+		fGDBServerToolCombo = new Combo(parent, SWT.READ_ONLY);
+		toolkit.adapt(fGDBServerToolCombo, true, true);
+		fGDBServerToolCombo.setLayoutData(new TableWrapData(TableWrapData.LEFT, TableWrapData.TOP));
+		fGDBServerToolCombo.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ITargetConfigurationWorkingCopy tcwc = getTargetConfiguration();
-				String name = fProgrammerToolCombo.getText();
+				String name = fGDBServerToolCombo.getText();
 				String id = fMapNameToId.get(name);
 
-				tcwc.setProgrammerTool(id);
+				tcwc.setGDBServerTool(id);
 
 				getManagedForm().dirtyStateChanged();
 			}
@@ -155,12 +140,10 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 		ToolManager manager = ToolManager.getDefault();
 		ITargetConfigurationWorkingCopy wc = getTargetConfiguration();
 
-		// Get the list of Programmer Tools and fill the name -> id map
+		// Get the list of GDBServer Tools and fill the name -> id map
 		fMapNameToId.clear();
-		List<String> alltoolids = ToolManager.getDefault().getAllTools(
-				ToolManager.AVRPROGRAMMERTOOL);
-
-		for (String id : alltoolids) {
+		List<String> allgdbserverids = manager.getAllTools(ToolManager.AVRGDBSERVER);
+		for (String id : allgdbserverids) {
 			String name = manager.getToolName(id);
 			fMapNameToId.put(name, id);
 		}
@@ -175,17 +158,16 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 			}
 		});
 
-		// Get the id of the currently selected tool (or the default tool if no tool
+		// Get the id of the currently selected gdbserver (or the default gdbserver if no gdbserver
 		// has been set in the hardware configuration.
-		IProgrammerTool currenttool = wc.getProgrammerTool();
+		IGDBServerTool currenttool = wc.getGDBServerTool();
 		String currentid = currenttool != null ? currenttool.getId() : DEF_GDBSERVER_ID;
 
 		// finally tell the fProgrammerToolsCombo about the new list but keep the previously
-		// selected Programmer Tool
-		fProgrammerToolCombo.setItems(allnames);
-		fProgrammerToolCombo.setVisibleItemCount(Math.min(allnames.length, 25));
+		// selected GDBServer Tool
+		fGDBServerToolCombo.setItems(allnames);
+		fGDBServerToolCombo.setVisibleItemCount(Math.min(allnames.length, 25));
 
-		fProgrammerToolCombo.setText(manager.getToolName(currentid));
+		fGDBServerToolCombo.setText(manager.getToolName(currentid));
 	}
-
 }

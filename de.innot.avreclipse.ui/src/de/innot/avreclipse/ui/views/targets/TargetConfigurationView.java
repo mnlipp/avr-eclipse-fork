@@ -1,13 +1,17 @@
 package de.innot.avreclipse.ui.views.targets;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -35,6 +39,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import de.innot.avreclipse.core.targets.ITargetConfigChangeListener;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
+import de.innot.avreclipse.ui.AVRUIPlugin;
 import de.innot.avreclipse.ui.editors.targets.TCEditorInput;
 
 /**
@@ -92,10 +97,15 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 		public void dispose() {
 			// Remove the view as listener from all target configurations
 			List<String> allIDs = fTCManager.getConfigurationIDs();
-			ITargetConfiguration[] targets = new ITargetConfiguration[allIDs.size()];
-			for (int i = 0; i < allIDs.size(); i++) {
-				targets[i] = fTCManager.getConfig(allIDs.get(i));
-				targets[i].removePropertyChangeListener(TargetConfigurationView.this);
+			for (String configid : allIDs) {
+				try {
+					ITargetConfiguration config = fTCManager.getConfig(configid);
+					config.removePropertyChangeListener(TargetConfigurationView.this);
+				} catch (IOException ioe) {
+					// ignore exception, we are closing shop anyway.
+					// This is unlikely to happen anyway
+					continue;
+				}
 			}
 		}
 
@@ -107,8 +117,13 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 			List<String> allIDs = fTCManager.getConfigurationIDs();
 			ITargetConfiguration[] targets = new ITargetConfiguration[allIDs.size()];
 			for (int i = 0; i < allIDs.size(); i++) {
-				targets[i] = fTCManager.getConfig(allIDs.get(i));
-				targets[i].addPropertyChangeListener(TargetConfigurationView.this);
+				try {
+					targets[i] = fTCManager.getConfig(allIDs.get(i));
+					targets[i].addPropertyChangeListener(TargetConfigurationView.this);
+				} catch (IOException ioe) {
+					// ignore configs that can't be loaded
+					continue;
+				}
 			}
 			return targets;
 		}
@@ -210,19 +225,20 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 		// //////////////////////////////////////////////
 		actionAddNew = new Action() {
 			public void run() {
-				ITargetConfiguration newtc = fTCManager.createNewConfig();
-				viewer.refresh();
-				newtc.addPropertyChangeListener(TargetConfigurationView.this);
-
-				String tcid = newtc.getId();
-				IEditorInput ei = new TCEditorInput(tcid);
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-						.getActivePage();
 				try {
+					ITargetConfiguration newtc = fTCManager.createNewConfig();
+					viewer.refresh();
+					newtc.addPropertyChangeListener(TargetConfigurationView.this);
+
+					String tcid = newtc.getId();
+					IEditorInput ei = new TCEditorInput(tcid);
+					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+							.getActivePage();
 					page.openEditor(ei, EDITOR_ID);
-				} catch (PartInitException e) {
-					// what can cause this?
-					e.printStackTrace();
+				} catch (PartInitException pie) {
+					showErrorDialog("Could not open Hardware Configuration editor", pie);
+				} catch (IOException ioe) {
+					showErrorDialog("Could not create new Hardware Configuration", ioe);
 				}
 
 			}
@@ -253,7 +269,11 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 
 					// now remove the target configuration. This will automatically delete the
 					// listener reference to this view.
-					fTCManager.deleteConfig(tcid);
+					try {
+						fTCManager.deleteConfig(tcid);
+					} catch (IOException ioe) {
+						showErrorDialog("Could not delete Hardware Configuration", ioe);
+					}
 
 					// and finally update the table
 					viewer.refresh();
@@ -335,5 +355,19 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 		String[] props = new String[1];
 		props[0] = attribute;
 		viewer.update(config, props);
+	}
+
+	/**
+	 * Show a standard error message dialog with the given message and exception.
+	 * 
+	 * @param message
+	 * @param exception
+	 *            may be <code>null</code>
+	 */
+	private void showErrorDialog(String message, Throwable exception) {
+		IStatus status = new Status(IStatus.ERROR, AVRUIPlugin.PLUGIN_ID, message, exception);
+		ErrorDialog dialog = new ErrorDialog(viewer.getControl().getShell(),
+				"Hardware Config Error", null, status, IStatus.ERROR);
+		dialog.open();
 	}
 }

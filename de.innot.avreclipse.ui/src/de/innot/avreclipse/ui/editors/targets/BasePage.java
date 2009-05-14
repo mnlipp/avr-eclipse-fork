@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ui.forms.IMessageManager;
+import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
 
@@ -30,9 +31,9 @@ import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
  */
 public class BasePage extends FormPage {
 
-	final List<ITCEditorPart>				fParts	= new ArrayList<ITCEditorPart>();
+	final List<ITCEditorPart>		fParts	= new ArrayList<ITCEditorPart>();
 
-	final private SharedHeaderFormEditor	fEditor;
+	private SharedHeaderFormEditor	fEditor;
 
 	/**
 	 * @param editor
@@ -45,19 +46,38 @@ public class BasePage extends FormPage {
 		fEditor = editor;
 	}
 
+	public BasePage(String id, String title) {
+		super(id, title);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormPage#initialize(org.eclipse.ui.forms.editor.FormEditor)
+	 */
+	@Override
+	public void initialize(FormEditor editor) {
+		if (editor instanceof SharedHeaderFormEditor) {
+			fEditor = (SharedHeaderFormEditor) editor;
+		}
+		super.initialize(editor);
+	}
+
 	protected void registerPart(ITCEditorPart part) {
 		fParts.add(part);
+	}
+
+	protected void unregisterPart(ITCEditorPart part) {
+		fParts.remove(part);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.FormPage#getEditor()
 	 */
-	@Override
-	public SharedHeaderFormEditor getEditor() {
-		return fEditor;
-	}
-
+	// @Override
+	// public SharedHeaderFormEditor getEditor() {
+	// return fEditor;
+	// }
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.FormPage#selectReveal(java.lang.Object)
@@ -80,7 +100,15 @@ public class BasePage extends FormPage {
 	}
 
 	public IMessageManager getMessageManager() {
-		return fEditor.getHeaderForm().getMessageManager();
+		FormEditor editor = getEditor();
+		if (editor instanceof SharedHeaderFormEditor) {
+			SharedHeaderFormEditor shfe = (SharedHeaderFormEditor) editor;
+			return shfe.getHeaderForm().getMessageManager();
+		}
+
+		// Fallback in case the parent editor is not a SharedHeaderFormEditor
+		return getManagedForm().getMessageManager();
+
 	}
 
 }

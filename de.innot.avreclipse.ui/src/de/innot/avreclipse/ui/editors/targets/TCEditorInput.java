@@ -16,6 +16,8 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.io.IOException;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
@@ -34,13 +36,13 @@ public class TCEditorInput implements IEditorInput {
 
 	private TargetConfigurationManager		fTCManager;
 
-	private String							fTargetConfigID;
+	private String							fHardwareConfigID;
 
-	private ITargetConfigurationWorkingCopy	fTargetConfigWC;
+	private ITargetConfigurationWorkingCopy	fHardwareConfigWC;
 
 	public TCEditorInput(String targetConfigID) {
 		fTCManager = TargetConfigurationManager.getDefault();
-		fTargetConfigID = targetConfigID;
+		fHardwareConfigID = targetConfigID;
 	}
 
 	/*
@@ -48,7 +50,7 @@ public class TCEditorInput implements IEditorInput {
 	 * @see org.eclipse.ui.IEditorInput#exists()
 	 */
 	public boolean exists() {
-		return fTCManager.exists(fTargetConfigID);
+		return fTCManager.exists(fHardwareConfigID);
 	}
 
 	/*
@@ -64,7 +66,13 @@ public class TCEditorInput implements IEditorInput {
 	 * @see org.eclipse.ui.IEditorInput#getName()
 	 */
 	public String getName() {
-		return fTCManager.getConfig(fTargetConfigID).getName();
+		try {
+			return fTCManager.getConfig(fHardwareConfigID).getName();
+		} catch (IOException e) {
+			// could not read the config from the storage.
+			// Just return a dummy name
+			return "Unknown";
+		}
 	}
 
 	/*
@@ -81,8 +89,15 @@ public class TCEditorInput implements IEditorInput {
 	 * @see org.eclipse.ui.IEditorInput#getToolTipText()
 	 */
 	public String getToolTipText() {
-		String text = "Target Configuration: \"" + fTCManager.getConfig(fTargetConfigID).getName()
-				+ "\"";
+		String text;
+		try {
+			text = "Hardware Configuration: \"" + fTCManager.getConfig(fHardwareConfigID).getName()
+					+ "\"";
+		} catch (IOException e) {
+			// could not read the config from the storage.
+			// Just return a dummy text
+			text = "Error: " + e.getLocalizedMessage();
+		}
 		return text;
 	}
 
@@ -96,15 +111,19 @@ public class TCEditorInput implements IEditorInput {
 		// users of this editor input.
 		// If asked to adapt to a String, then the target configuration id is returned.
 		if (String.class.equals(adapter)) {
-			return fTargetConfigID;
+			return fHardwareConfigID;
 		}
 
 		// Adapt to a target configuration working copy
-		if (ITargetConfigurationWorkingCopy.class.equals(adapter)) {
-			if (fTargetConfigWC == null) {
-				fTargetConfigWC = fTCManager.getWorkingCopy(fTargetConfigID);
+		try {
+			if (ITargetConfigurationWorkingCopy.class.equals(adapter)) {
+				if (fHardwareConfigWC == null) {
+					fHardwareConfigWC = fTCManager.getWorkingCopy(fHardwareConfigID);
+				}
+				return fHardwareConfigWC;
 			}
-			return fTargetConfigWC;
+		} catch (IOException e) {
+			// could not read the config from the storage.
 		}
 		return null;
 	}
@@ -115,14 +134,14 @@ public class TCEditorInput implements IEditorInput {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		// Two Target Configuration Editor Inputs are equal if
+		// Two Target Configuration Editor Inputs are equal iff
 		// they have the same Target Configuration ID.
 		if (this == obj) {
 			return true;
 		}
 		if (obj instanceof TCEditorInput) {
 			TCEditorInput other = (TCEditorInput) obj;
-			if (fTargetConfigID.equals(other.fTargetConfigID)) {
+			if (fHardwareConfigID.equals(other.fHardwareConfigID)) {
 				return true;
 			}
 		}

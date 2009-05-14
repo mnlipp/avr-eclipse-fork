@@ -95,6 +95,16 @@ public class PageMain extends BasePage {
 			registerPart(mcuPart);
 			mcuPart.getControl().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
 		}
+
+		{
+			SectionSummary summaryPart = new SectionSummary();
+			summaryPart.setMessageManager(getMessageManager());
+			managedForm.addPart(summaryPart);
+			registerPart(summaryPart);
+			summaryPart.getControl().setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
+			summaryPart.setEditor(getEditor());
+		}
+
 		// ... and give the 'model' to the managed form which will cause the dynamic parts of the
 		// form to be rendered.
 		managedForm.setInput(fTCWC);

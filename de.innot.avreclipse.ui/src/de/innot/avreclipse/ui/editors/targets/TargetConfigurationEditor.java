@@ -16,11 +16,15 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -31,9 +35,9 @@ import org.eclipse.ui.forms.editor.SharedHeaderFormEditor;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
-import org.osgi.service.prefs.BackingStoreException;
 
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
+import de.innot.avreclipse.ui.AVRUIPlugin;
 
 /**
  * @author Thomas Holland
@@ -52,7 +56,7 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 	@Override
 	public void init(IEditorSite site, IEditorInput editorInput) throws PartInitException {
 		if (!(editorInput instanceof TCEditorInput)) {
-			throw new PartInitException("Invalid Input: Must be an AVR Target Configuration");
+			throw new PartInitException("Invalid Input: Must be an AVR Hardware Configuration");
 		}
 
 		super.init(site, editorInput);
@@ -68,7 +72,7 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 		fWorkingCopy = (ITargetConfigurationWorkingCopy) getEditorInput().getAdapter(
 				ITargetConfigurationWorkingCopy.class);
 		if (fWorkingCopy == null) {
-			throw new PartInitException("Could not create a editable target configuration object");
+			throw new PartInitException("Could not create a editable hardware configuration object");
 		}
 	}
 
@@ -151,9 +155,8 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 			setPartName(fWorkingCopy.getName());
 			progress.worked(1);
 
-		} catch (BackingStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IOException ioe) {
+			showErrorDialog("Could not save hardware configuration", ioe);
 		} finally {
 			monitor.done();
 		}
@@ -213,4 +216,17 @@ public class TargetConfigurationEditor extends SharedHeaderFormEditor {
 
 	}
 
+	/**
+	 * Show a standard error message dialog with the given message and exception.
+	 * 
+	 * @param message
+	 * @param exception
+	 *            may be <code>null</code>
+	 */
+	private void showErrorDialog(String message, Throwable exception) {
+		IStatus status = new Status(IStatus.ERROR, AVRUIPlugin.PLUGIN_ID, message, exception);
+		ErrorDialog dialog = new ErrorDialog(this.getContainer().getShell(),
+				"Hardware Configuration Error", null, status, IStatus.ERROR);
+		dialog.open();
+	}
 }

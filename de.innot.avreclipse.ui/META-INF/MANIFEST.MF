@@ -48,6 +48,7 @@ Export-Package: de.innot.avreclipse.ui.actions;
    org.eclipse.swt.widgets,
    de.innot.avreclipse.core.toolinfo.fuses,
    org.eclipse.ui.editors.text",
+ de.innot.avreclipse.ui.editors.targets,
  de.innot.avreclipse.ui.preferences;
   uses:="org.eclipse.jface.preference,
    de.innot.avreclipse.core.paths,

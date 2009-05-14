@@ -16,14 +16,13 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -38,8 +37,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
-import de.innot.avreclipse.core.targets.TCValidator;
-import de.innot.avreclipse.core.targets.TCValidator.Problem;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
 
 /**
@@ -80,7 +77,7 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 	 */
 	@Override
 	protected String getDescription() {
-		return "The name of this target configuration and an optional description.";
+		return "The target MCU and the its clock frequency";
 	}
 
 	/*
@@ -129,6 +126,7 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 			public void widgetSelected(SelectionEvent e) {
 				String mcuid = AVRMCUidConverter.name2id(fMCUcombo.getText());
 				getTargetConfiguration().setMCU(mcuid);
+				refreshMessages();
 				getManagedForm().dirtyStateChanged();
 			}
 		});
@@ -174,8 +172,18 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 		// Get the list of valid MCUs, sort them, convert to MCU name and fill the internal cache
 		fMCUList.clear();
 		fMCUNames.clear();
-		List<String> allmcuids = getTargetConfiguration().getSupportedMCUs(true);
+		Set<String> allmcuset = getTargetConfiguration().getSupportedMCUs(true);
+		List<String> allmcuids = new ArrayList<String>(allmcuset);
 		Collections.sort(allmcuids);
+
+		String currentmcu = getTargetConfiguration().getMCU();
+
+		// Add the current mcu to the list if it is not already in it.
+		// This prevents the combo from becoming empty at the cost of one
+		// 'invalid' mcu in the list
+		if (!allmcuset.contains(currentmcu)) {
+			allmcuids.add(currentmcu);
+		}
 
 		for (String mcuid : allmcuids) {
 			String name = AVRMCUidConverter.id2name(mcuid);
@@ -183,11 +191,10 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 			fMCUNames.add(name);
 		}
 
-		// finally tell the fMCUCombo about the new list but keep the previously selected MCU
+		// Tell the fMCUCombo about the new list but keep the previously selected MCU
 		fMCUcombo.setItems(fMCUNames.toArray(new String[fMCUNames.size()]));
 		fMCUcombo.setVisibleItemCount(Math.min(fMCUNames.size(), 20));
 
-		String currentmcu = getTargetConfiguration().getMCU();
 		String currentMCUName = AVRMCUidConverter.id2name(currentmcu);
 		fMCUcombo.setText(currentMCUName);
 
@@ -204,17 +211,7 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 	 */
 	@Override
 	protected void refreshMessages() {
-		if (fMCUcombo != null && !fMCUcombo.isDisposed()) {
-			Problem problem = TCValidator.checkMCU(getTargetConfiguration());
-			if (problem.equals(Problem.ERROR)) {
-				String msg = MessageFormat.format("MCU {0} is not supported by the selected tools",
-						fMCUcombo.getText());
-				getMessageManager().addMessage(ATTR_MCU, msg, ATTR_MCU, IMessageProvider.ERROR,
-						fMCUcombo);
-			} else {
-				getMessageManager().removeMessage(ATTR_MCU, fMCUcombo);
-			}
-		}
+		validate(ATTR_MCU, fMCUcombo);
 	}
 
 	/*

@@ -20,7 +20,6 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -36,21 +35,18 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IMessageManager;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
+import de.innot.avreclipse.core.targets.AVRHardwareConfigValidator;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
-import de.innot.avreclipse.core.targets.TCValidator;
 import de.innot.avreclipse.core.targets.TargetInterface;
-import de.innot.avreclipse.core.targets.TCValidator.Problem;
 
 /**
  * FormPart to edit all settings for the current target interface.
@@ -86,8 +82,6 @@ public class SectionTargetInterface extends AbstractTCSectionPart implements ITa
 	private Section					fFreqSection;
 	private Scale					fFreqScale;
 	private Label					fFreqText;
-
-	private Composite				fWarningCompo;
 
 	private Section					fDaisyChainSection;
 	/** The composite that contains the four daisy chain setting controls. */
@@ -192,8 +186,8 @@ public class SectionTargetInterface extends AbstractTCSectionPart implements ITa
 		// The warnings which are still valid are regenerated when the respective sections are
 		// generated.
 		IMessageManager mmngr = getMessageManager();
-		if (fFreqText != null && !fFreqText.isDisposed()) {
-			mmngr.removeMessages(fFreqText);
+		if (fFreqScale != null && !fFreqScale.isDisposed()) {
+			mmngr.removeMessages(fFreqScale);
 		}
 		for (Control textcontrol : fDaisyChainTexts.values()) {
 			if (!textcontrol.isDisposed()) {
@@ -357,25 +351,8 @@ public class SectionTargetInterface extends AbstractTCSectionPart implements ITa
 		fFreqText = toolkit.createLabel(content, "default", SWT.RIGHT);
 
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-		gd.widthHint = calcTextWidth(fFreqText, "8.888 MHz");
+		gd.widthHint = calcTextWidth(fFreqText, "88.888 MHz");
 		fFreqText.setLayoutData(gd);
-
-		//
-		// The BitClock > 1/4 FCPU warning display
-		//
-		fWarningCompo = toolkit.createComposite(content);
-		fWarningCompo.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
-		fWarningCompo.setLayout(new GridLayout(2, false));
-		Label image = toolkit.createLabel(fWarningCompo, "");
-		image.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
-				ISharedImages.IMG_OBJS_WARN_TSK));
-		image.setLayoutData(new GridData(SWT.BEGINNING, SWT.NONE, false, false));
-
-		Label warning = toolkit.createLabel(fWarningCompo,
-				"The selected BitClock Frequency is greater than 1/4th of the target MCU Clock");
-		warning.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
-
-		fWarningCompo.setVisible(false);
 
 		// Finally set the scale and the label to the current setting (or the next lower if a
 		// different ClockValues table is used)
@@ -458,40 +435,12 @@ public class SectionTargetInterface extends AbstractTCSectionPart implements ITa
 	/**
 	 * Show or hide the 1/4th MCU frequency warning.
 	 * 
-	 * @see TCValidator#checkJTAGClock(ITargetConfiguration)
+	 * @see AVRHardwareConfigValidator#checkJTAGClock(ITargetConfiguration)
 	 */
 	private void validateBitClock() {
-		if (TCValidator.checkJTAGClock(getTargetConfiguration()).equals(Problem.WARN)) {
-			// Set the warning compo visible and add a warning to the
-			// MessageManager.
-			String bitclock = getTargetConfiguration().getAttribute(ATTR_JTAG_CLOCK);
-			int value = Integer.parseInt(bitclock);
-			int targetfcpu = getTargetConfiguration().getFCPU();
 
-			if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
-				fWarningCompo.setVisible(true);
-			}
+		validate(ATTR_JTAG_CLOCK, fFreqScale);
 
-			String msg = MessageFormat
-					.format(
-							"selected BitClock Frequency of {0} is greater than 1/4th of the target MCU Clock ({1})",
-							convertFrequencyToString(value), convertFrequencyToString(targetfcpu));
-			getMessageManager().addMessage(ATTR_JTAG_CLOCK, msg, ATTR_JTAG_CLOCK,
-					IMessageProvider.WARNING, fFreqText);
-
-		} else {
-
-			// No warning required. Remove the warning from the MessageManager (which is save even
-			// if there was no warning) and hide the warning compo.
-			// If the user has just changed to a different interface then the fWarningCompo will
-			// already be disposed, so we need to check this.
-			if (fFreqText != null && !fFreqText.isDisposed()) {
-				getMessageManager().removeMessage(ATTR_JTAG_CLOCK, fFreqText);
-			}
-			if (fWarningCompo != null && !fWarningCompo.isDisposed()) {
-				fWarningCompo.setVisible(false);
-			}
-		}
 	}
 
 	/**
@@ -651,72 +600,17 @@ public class SectionTargetInterface extends AbstractTCSectionPart implements ITa
 	/**
 	 * Add or remove the error messages for the daisy chain settings.
 	 * 
-	 * @see TCValidator#checkJTAGDaisyChainUnitsBefore(ITargetConfiguration)
-	 * @see TCValidator#checkJTAGDaisyChainUnitsAfter(ITargetConfiguration)
-	 * @see TCValidator#checkJTAGDaisyChainBitsBefore(ITargetConfiguration)
-	 * @see TCValidator#checkJTAGDaisyChainBitsAfter(ITargetConfiguration)
+	 * @see AVRHardwareConfigValidator#checkJTAGDaisyChainUnitsBefore(ITargetConfiguration)
+	 * @see AVRHardwareConfigValidator#checkJTAGDaisyChainUnitsAfter(ITargetConfiguration)
+	 * @see AVRHardwareConfigValidator#checkJTAGDaisyChainBitsBefore(ITargetConfiguration)
+	 * @see AVRHardwareConfigValidator#checkJTAGDaisyChainBitsAfter(ITargetConfiguration)
 	 */
 	private void validateDaisyChain() {
 
-		IMessageManager mmngr = getMessageManager();
-
-		ITargetConfiguration config = getTargetConfiguration();
-
-		//
-		// Bits Before
-		//
-		Text textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_BB);
-		if (textctrl != null && !textctrl.isDisposed()) {
-			if (TCValidator.checkJTAGDaisyChainBitsBefore(config).equals(Problem.OK)) {
-				mmngr.removeMessage(ATTR_DAISYCHAIN_BB, textctrl);
-			} else {
-				mmngr.addMessage(ATTR_DAISYCHAIN_BB,
-						"Daisy chain 'bits before' out of range (0 - 255)", ATTR_DAISYCHAIN_BB,
-						IMessageProvider.ERROR, textctrl);
-			}
-		}
-
-		//
-		// Bits After
-		//
-		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_BA);
-		if (textctrl != null && !textctrl.isDisposed()) {
-			if (TCValidator.checkJTAGDaisyChainBitsAfter(config).equals(Problem.OK)) {
-				mmngr.removeMessage(ATTR_DAISYCHAIN_BA, textctrl);
-			} else {
-				mmngr.addMessage(ATTR_DAISYCHAIN_BA,
-						"Daisy chain 'bits after' out of range (0 - 255)", ATTR_DAISYCHAIN_BA,
-						IMessageProvider.ERROR, textctrl);
-			}
-		}
-
-		//
-		// Units Before
-		//
-		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_UB);
-		if (textctrl != null && !textctrl.isDisposed()) {
-			if (TCValidator.checkJTAGDaisyChainUnitsBefore(config).equals(Problem.OK)) {
-				mmngr.removeMessage(ATTR_DAISYCHAIN_UB, textctrl);
-			} else {
-				mmngr.addMessage(ATTR_DAISYCHAIN_UB,
-						"Daisy chain 'Devices before' greater than 'bits before'",
-						ATTR_DAISYCHAIN_UB, IMessageProvider.ERROR, textctrl);
-			}
-		}
-
-		//
-		// Units After
-		//
-		textctrl = fDaisyChainTexts.get(ATTR_DAISYCHAIN_UA);
-		if (textctrl != null && !textctrl.isDisposed()) {
-			if (TCValidator.checkJTAGDaisyChainUnitsAfter(config).equals(Problem.OK)) {
-				mmngr.removeMessage(ATTR_DAISYCHAIN_UA, textctrl);
-			} else {
-				mmngr.addMessage(ATTR_DAISYCHAIN_UA,
-						"Daisy chain 'Devices after' greater than 'bits after'",
-						ATTR_DAISYCHAIN_UA, IMessageProvider.ERROR, textctrl);
-			}
-		}
+		validate(ATTR_DAISYCHAIN_BB, fDaisyChainTexts.get(ATTR_DAISYCHAIN_BB));
+		validate(ATTR_DAISYCHAIN_BA, fDaisyChainTexts.get(ATTR_DAISYCHAIN_BA));
+		validate(ATTR_DAISYCHAIN_UB, fDaisyChainTexts.get(ATTR_DAISYCHAIN_UB));
+		validate(ATTR_DAISYCHAIN_UA, fDaisyChainTexts.get(ATTR_DAISYCHAIN_UA));
 
 	}
 
