@@ -29,6 +29,7 @@ import de.innot.avreclipse.core.targets.IGDBServerTool;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.IProgrammerTool;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.Result;
 import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener;
 
@@ -41,16 +42,17 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 
 	public final static String			ID					= "avreclipse.avarice";
 
-	private final static String			NAME				= "AVaRICE";
+	public final static String			NAME				= "AVaRICE";
 
 	public final static String			ATTR_CMD_NAME		= ID + ".command";
 	private final static String			DEF_CMD_NAME		= "avarice";
 
 	public final static String			ATTR_USE_CONSOLE	= ID + ".useconsole";
-	public final static boolean			DEF_USE_CONSOLE		= true;								// TODO:
+	public final static String			DEF_USE_CONSOLE		= Boolean.toString(true);
 	// Change to false for release
 
-	private Map<String, String>			fDefaults;
+	private final static String[]		ALL_ATTRS			= new String[] { ATTR_CMD_NAME,
+			ATTR_USE_CONSOLE								};
 
 	private ICommandOutputListener		fOutputListener		= new AvariceOutputListener();
 
@@ -62,19 +64,12 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	/** Cache of all MCU Sets, mapped to their respective command name */
 	private Map<String, Set<String>>	fMCUMap				= new HashMap<String, Set<String>>();
 
-	/*
-	 * (non-Javadoc)
-	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getDefaults()
-	 */
-	public Map<String, String> getDefaults() {
-		if (fDefaults == null) {
-			fDefaults = new HashMap<String, String>();
-
-			fDefaults.put(ATTR_CMD_NAME, DEF_CMD_NAME);
-			fDefaults.put(ATTR_USE_CONSOLE, Boolean.toString(DEF_USE_CONSOLE));
-		}
-
-		return fDefaults;
+	public AvariceTool(ITargetConfiguration hc) {
+		super(hc);
+		// tell the hardware configuration about the avarice attributes and their default values.
+		// String[][] avariceattrs = new String[][] { { ATTR_CMD_NAME, DEF_CMD_NAME },
+		// { ATTR_USE_CONSOLE, DEF_USE_CONSOLE } };
+		// getHardwareConfig().addAttributes(this, avariceattrs);
 	}
 
 	/*
@@ -95,13 +90,36 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 
 	/*
 	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.IAttributeProvider#getAttributes()
+	 */
+	public String[] getAttributes() {
+		return ALL_ATTRS;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.IAttributeProvider#getDefaultValue(java.lang.String)
+	 */
+	public String getDefaultValue(String attribute) {
+		String defaultvalue = null;
+		if (ATTR_CMD_NAME.equals(attribute)) {
+			defaultvalue = DEF_CMD_NAME;
+		} else if (ATTR_USE_CONSOLE.equals(attribute)) {
+			defaultvalue = DEF_USE_CONSOLE;
+		}
+
+		return defaultvalue;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see
 	 * de.innot.avreclipse.core.targets.tools.AbstractTool#getCommand(de.innot.avreclipse.core.targets
 	 * .ITargetConfiguration)
 	 */
-	public String getCommand(ITargetConfiguration tc) {
-		String command = tc.getAttribute(ATTR_CMD_NAME);
-		if (command == null) {
+	public String getCommand() {
+		String command = getHardwareConfig().getAttribute(ATTR_CMD_NAME);
+		if (command == null || command.length() == 0) {
 			command = DEF_CMD_NAME;
 		}
 		return command;
@@ -113,9 +131,9 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	 * de.innot.avreclipse.core.targets.ITargetConfigurationTool#getVersion(de.innot.avreclipse.
 	 * core.targets.ITargetConfiguration)
 	 */
-	public String getVersion(ITargetConfiguration tc) throws AVRDudeException {
+	public String getVersion() throws AVRDudeException {
 
-		String cmd = getCommand(tc);
+		String cmd = getCommand();
 
 		// Check if we already have the version in the cache
 		if (fNameVersionMap.containsKey(cmd)) {
@@ -126,7 +144,7 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 		// The name / version are in the first full line of the output in the format
 		// "AVaRICE version 2.8, Nov  7 2008 22:02:05"
 		String name = null;
-		List<String> stdout = runCommand(tc, "");
+		List<String> stdout = runCommand("");
 
 		if (stdout != null) {
 			// look for a line matching "*Version TheVersionNumber *"
@@ -164,9 +182,9 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getMCUs()
 	 */
-	public Set<String> getMCUs(ITargetConfiguration tc) throws AVRDudeException {
+	public Set<String> getMCUs() throws AVRDudeException {
 
-		String cmd = getCommand(tc);
+		String cmd = getCommand();
 
 		if (fMCUMap.containsKey(cmd)) {
 			return fMCUMap.get(cmd);
@@ -175,12 +193,11 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 		Set<String> allmcus = new HashSet<String>();
 		List<String> stdout;
 
-		stdout = runCommand(tc, "--known-devices");
+		stdout = runCommand("--known-devices");
 
 		if (stdout != null) {
 			// look for a line matching alphanumeric characters (the mcu id) followed by whitespaces
-			// and
-			// "0x" (the beginning of the device id field)
+			// and "0x" (the beginning of the device id field)
 			Pattern mcuPat = Pattern.compile("(\\w+)\\s+0x.+");
 			Matcher m;
 			for (String line : stdout) {
@@ -201,7 +218,7 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	 * de.innot.avreclipse.core.targets.ITargetConfigurationTool#getProgrammers(de.innot.avreclipse
 	 * .core.targets.ITargetConfiguration)
 	 */
-	public Set<String> getProgrammers(ITargetConfiguration tc) throws AVRDudeException {
+	public Set<String> getProgrammers() throws AVRDudeException {
 		if (fProgrammerIds == null) {
 			fProgrammerIds = new HashSet<String>();
 			for (AvariceProgrammers progger : AvariceProgrammers.values()) {
@@ -217,10 +234,10 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	 * de.innot.avreclipse.core.targets.ITargetConfigurationTool#getProgrammer(de.innot.avreclipse
 	 * .core.targets.ITargetConfiguration, java.lang.String)
 	 */
-	public IProgrammer getProgrammer(ITargetConfiguration tc, String id) throws AVRDudeException {
+	public IProgrammer getProgrammer(String id) throws AVRDudeException {
 
 		// Quick check if the programmer id is actually supported by avarice
-		if (!getProgrammers(tc).contains(id)) {
+		if (!getProgrammers().contains(id)) {
 			return null;
 		}
 
@@ -235,9 +252,43 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 	 * de.innot.avreclipse.core.targets.ITargetConfigurationTool#validate(de.innot.avreclipse.core
 	 * .targets.ITargetConfiguration, java.lang.String)
 	 */
-	public ValidationResult validate(ITargetConfiguration tc, String attr) {
-		// TODO Auto-generated method stub
-		return null;
+	public ValidationResult validate(String attr) {
+
+		Result result = Result.OK;
+		String description = "";
+
+		if (ATTR_CMD_NAME.equals(attr)) {
+			// Check that the command is valid by executing avarice with parameter "-?" and check
+			// that we get some output.
+			try {
+				List<String> stdout;
+
+				stdout = runCommand("--known-devices");
+
+				if (stdout.size() < 10) {
+					result = Result.ERROR;
+					description = "Not an AVaRICE executable";
+				}
+			} catch (AVRDudeException ade) {
+				// avarice not found
+				result = Result.ERROR;
+				description = "Invalid Path";
+			}
+		} else if (ATTR_USE_CONSOLE.equals(attr)) {
+			// USE_CONSOLE is always valid
+		} else {
+			result = Result.UNKNOWN_ATTRIBUTE;
+		}
+
+		return new ValidationResult(result, description);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.IGDBServerTool#isSimulator()
+	 */
+	public boolean isSimulator() {
+		return false;
 	}
 
 }

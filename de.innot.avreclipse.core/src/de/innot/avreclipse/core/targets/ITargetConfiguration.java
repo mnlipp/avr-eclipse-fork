@@ -260,8 +260,11 @@ public interface ITargetConfiguration {
 	}
 
 	public class ValidationResult {
-		public final Result	result;
-		public final String	description;
+
+		public final static ValidationResult	OK_RESULT	= new ValidationResult(Result.OK, "");
+
+		public final Result						result;
+		public final String						description;
 
 		public ValidationResult(Result result, String description) {
 			this.result = result;

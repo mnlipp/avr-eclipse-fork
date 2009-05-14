@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -50,37 +51,40 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
 public class TargetConfiguration implements ITargetConfiguration, ITargetConfigurationWorkingCopy,
 		ITargetConfigConstants {
 
-	private final static String	EMPTY_STRING	= "";
+	private final static String						EMPTY_STRING	= "";
 
-	private File				fPropertiesFile;
+	private File									fPropertiesFile;
 
-	private String				fId;
+	private String									fId;
 
-	private boolean				fDirty;
+	private boolean									fDirty;
 
 	/** Flag to indicate that the config has been disposed. */
-	private boolean				fIsDisposed		= false;
+	private boolean									fIsDisposed		= false;
 
 	/** The Properties container for all attributes. */
-	private Properties			fAttributes		= new Properties();
+	private Properties								fAttributes		= new Properties();
 
 	/** Map of all attributes to their default values. */
-	private Map<String, String>	fDefaults		= new HashMap<String, String>();
+	private Map<String, String>						fDefaults		= new HashMap<String, String>();
 
 	/**
 	 * List of registered listeners (element type: <code>ITargetConfigChangeListener</code>). These
 	 * listeners are to be informed when the current value of an attribute changes.
 	 */
-	protected ListenerList		fListeners		= new ListenerList();
+	protected ListenerList							fListeners		= new ListenerList();
 
 	/** The source target configuration if this is a working copy */
-	private TargetConfiguration	fOriginal;
+	private TargetConfiguration						fOriginal;
 
 	/** The current programmer tool for this target configuration. */
-	private IProgrammerTool		fProgrammerTool;
+	private IProgrammerTool							fProgrammerTool;
 
 	/** The current gdbserver tool for this target configuration. */
-	private IGDBServerTool		fGDBServerTool;
+	private IGDBServerTool							fGDBServerTool;
+
+	/** Map of the owners for attributes not handled by the this hardware configuration itself. */
+	private Map<String, ITargetConfigurationTool>	fAttributeOwner	= new HashMap<String, ITargetConfigurationTool>();
 
 	private TargetConfiguration() {
 		initDefaults();
@@ -118,8 +122,9 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			// Now we can set all defaults.
 			restoreDefaults();
 
-			// immediatly save the file to create the file
+			// Immediately save the file to create the file
 			save(fPropertiesFile, true);
+
 		}
 	}
 
@@ -232,13 +237,13 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		Set<String> gdbservermcus = null;
 
 		try {
-			progtoolmcus = progtool.getMCUs(this);
+			progtoolmcus = progtool.getMCUs();
 		} catch (AVRDudeException e) {
 			// in case of an exception we just leave the Set at null
 			// so it won't be used
 		}
 		try {
-			gdbservermcus = gdbserver.getMCUs(this);
+			gdbservermcus = gdbserver.getMCUs();
 		} catch (AVRDudeException e) {
 			// in case of an exception we just leave the Set at null
 			// so it won't be used
@@ -273,13 +278,13 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		Set<String> gdbserverprogrammers = null;
 
 		try {
-			progtoolprogrammers = progtool.getProgrammers(this);
+			progtoolprogrammers = progtool.getProgrammers();
 		} catch (AVRDudeException e) {
 			// in case of an exception we just leave the Set at null
 			// so it won't be used
 		}
 		try {
-			gdbserverprogrammers = gdbserver.getProgrammers(this);
+			gdbserverprogrammers = gdbserver.getProgrammers();
 		} catch (AVRDudeException e) {
 			// in case of an exception we just leave the Set at null
 			// so it won't be used
@@ -310,7 +315,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		// As this will usually be avrdude the chances are high that it knows
 		// the programmer.
 		try {
-			IProgrammer progger = getProgrammerTool().getProgrammer(this, programmerid);
+			IProgrammer progger = getProgrammerTool().getProgrammer(programmerid);
 			if (progger != null) {
 				return progger;
 			}
@@ -320,7 +325,7 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 		// The programmer tool didn't know the id. Maybe the gdbserver knows it.
 		try {
-			IProgrammer progger = getGDBServerTool().getProgrammer(this, programmerid);
+			IProgrammer progger = getGDBServerTool().getProgrammer(programmerid);
 			if (progger != null) {
 				return progger;
 			}
@@ -329,10 +334,11 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		}
 
 		// Nope. Lets go through all known tools to find one that knows this id.
-		ITargetConfigurationTool[] alltools = ToolManager.getDefault().getAllTools();
-		for (ITargetConfigurationTool tool : alltools) {
+		List<String> alltools = ToolManager.getDefault().getAllTools(null);
+		for (String toolid : alltools) {
 			try {
-				IProgrammer progger = tool.getProgrammer(this, programmerid);
+				ITargetConfigurationTool tool = ToolManager.getDefault().getTool(this, toolid);
+				IProgrammer progger = tool.getProgrammer(programmerid);
 				if (progger != null) {
 					return progger;
 				}
@@ -355,8 +361,15 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		if (fProgrammerTool == null) {
 			// create the programmer tool if it has not yet been done.
 			String id = getAttribute(ATTR_PROGRAMMER_TOOL_ID);
-			fProgrammerTool = ToolManager.getDefault().getProgrammerTool(id);
-			initTool(fProgrammerTool);
+			ITargetConfigurationTool tool = ToolManager.getDefault().getTool(this, id);
+			if (tool instanceof IProgrammerTool) {
+				fProgrammerTool = (IProgrammerTool) tool;
+			} else {
+				// TODO throw an exception
+				fProgrammerTool = null;
+			}
+
+			registerTool(fProgrammerTool);
 		}
 
 		return fProgrammerTool;
@@ -374,16 +387,18 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			return;
 		}
 
-		// Check if the id is valid (if we can load the associated class)
-		IProgrammerTool tool = ToolManager.getDefault().getProgrammerTool(toolid);
-		if (tool == null) {
+		// Check if the id is a valid programmer tool id
+		List<String> programmerids = ToolManager.getDefault().getAllTools(
+				ToolManager.AVRPROGRAMMERTOOL);
+		if (programmerids.contains(toolid)) {
+			// yes, id is valid. Get the actual tool and register its attributes
+			ITargetConfigurationTool tool = ToolManager.getDefault().getTool(this, toolid);
+			registerTool(tool);
+			fProgrammerTool = (IProgrammerTool) tool;
+			setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
+		} else {
 			throw new IllegalArgumentException("Invalid tool id '" + toolid + "'");
 		}
-
-		// everything is OK, we can use the tool
-		fProgrammerTool = tool;
-		initTool(tool);
-		setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
 	}
 
 	/*
@@ -395,8 +410,14 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		if (fGDBServerTool == null) {
 			// create the gdbserver tool if it has not yet been done.
 			String id = getAttribute(ATTR_GDBSERVER_ID);
-			fGDBServerTool = ToolManager.getDefault().getGDBServerTool(id);
-			initTool(fGDBServerTool);
+			ITargetConfigurationTool tool = ToolManager.getDefault().getTool(this, id);
+			if (tool instanceof IGDBServerTool) {
+				fGDBServerTool = (IGDBServerTool) tool;
+				registerTool(fGDBServerTool);
+			} else {
+				// TODO throw an exception
+				fGDBServerTool = null;
+			}
 		}
 
 		return fGDBServerTool;
@@ -414,21 +435,135 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 			return;
 		}
 
-		// Check if the id is valid (if we can load the associated class)
-		IGDBServerTool tool = ToolManager.getDefault().getGDBServerTool(toolid);
-		if (tool == null) {
+		// Check if the id is a valid gdbserver tool id
+		List<String> programmerids = ToolManager.getDefault().getAllTools(ToolManager.AVRGDBSERVER);
+		if (programmerids.contains(toolid)) {
+			// yes, id is valid. Get the actual tool and register its attributes
+			ITargetConfigurationTool tool = ToolManager.getDefault().getTool(this, toolid);
+			registerTool(tool);
+			fGDBServerTool = (IGDBServerTool) tool;
+			setAttribute(ATTR_PROGRAMMER_TOOL_ID, tool.getId());
+		} else {
 			throw new IllegalArgumentException("Invalid tool id '" + toolid + "'");
 		}
-
-		// everything is OK, we can use the tool
-		fGDBServerTool = tool;
-		initTool(tool);
-		setAttribute(ATTR_GDBSERVER_ID, tool.getId());
 	}
 
-	private void initTool(ITargetConfigurationTool tool) {
-		Map<String, String> defaults = tool.getDefaults();
-		fDefaults.putAll(defaults);
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttribute(java.lang.String,
+	 * java.lang.String)
+	 */
+	public String getAttribute(String attributeName) {
+		Assert.isNotNull(attributeName);
+		String value = fAttributes.getProperty(attributeName);
+		if (value == null) {
+			value = fDefaults.get(attributeName);
+			if (value == null) {
+				value = EMPTY_STRING;
+			}
+
+		}
+		return value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setAttribute(java.lang.String
+	 * , java.lang.String)
+	 */
+	public void setAttribute(String attributeName, String newvalue) {
+		Assert.isNotNull(newvalue);
+		Assert.isNotNull(attributeName);
+		String oldvalue = fAttributes.getProperty(attributeName);
+		if (oldvalue == null || !oldvalue.equals(newvalue)) {
+			// only change attribute & fire event if the value is actually changed
+			fAttributes.setProperty(attributeName, newvalue);
+			fireAttributeChangeEvent(attributeName, oldvalue, newvalue);
+			fDirty = true;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
+	 */
+	public boolean getBooleanAttribute(String attribute) {
+		Assert.isNotNull(attribute);
+		String value = getAttribute(attribute);
+		boolean boolvalue = Boolean.parseBoolean(value);
+		return boolvalue;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setBooleanAttribute(java
+	 * .lang.String, boolean)
+	 */
+	public void setBooleanAttribute(String attribute, boolean value) {
+		String valuestring = Boolean.toString(value);
+		setAttribute(attribute, valuestring);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
+	 */
+	public int getIntegerAttribute(String attribute) {
+		Assert.isNotNull(attribute);
+		String value = getAttribute(attribute);
+		if (value.length() == 0) {
+			return -1;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException nfe) {
+			return 0;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setIntegerAttribute(java
+	 * .lang.String, int)
+	 */
+	public void setIntegerAttribute(String attribute, int value) {
+		String valuestring = Integer.toString(value);
+		setAttribute(attribute, valuestring);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttributes()
+	 */
+	public Map<String, String> getAttributes() {
+		HashMap<String, String> map = new HashMap<String, String>();
+		for (Object obj : fAttributes.keySet()) {
+			String key = (String) obj;
+			String value = fAttributes.getProperty(key);
+			map.put(key, value);
+		}
+		return map;
+	}
+
+	private void registerTool(ITargetConfigurationTool tool) {
+
+		// Safety check
+		if (tool == null) {
+			return;
+		}
+
+		// Get all attributes supported by the tool, and add their default values to our own
+		// internal list. Also remember that this tool is a handler for all its attributes.
+		String[] toolattrs = tool.getAttributes();
+		for (String attr : toolattrs) {
+			fDefaults.put(attr, tool.getDefaultValue(attr));
+			fAttributeOwner.put(attr, tool);
+		}
 	}
 
 	/*
@@ -534,108 +669,6 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 
 	/*
 	 * (non-Javadoc)
-	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttribute(java.lang.String,
-	 * java.lang.String)
-	 */
-	public String getAttribute(String attributeName) {
-		Assert.isNotNull(attributeName);
-		String value = fAttributes.getProperty(attributeName);
-		if (value == null) {
-			value = fDefaults.get(attributeName);
-			if (value == null) {
-				value = EMPTY_STRING;
-			}
-
-		}
-		return value;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setAttribute(java.lang.String
-	 * , java.lang.String)
-	 */
-	public void setAttribute(String attributeName, String newvalue) {
-		Assert.isNotNull(newvalue);
-		Assert.isNotNull(attributeName);
-		String oldvalue = fAttributes.getProperty(attributeName);
-		if (oldvalue == null || !oldvalue.equals(newvalue)) {
-			// only change attribute & fire event if the value is actually changed
-			fAttributes.setProperty(attributeName, newvalue);
-			fireAttributeChangeEvent(attributeName, oldvalue, newvalue);
-			fDirty = true;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
-	 */
-	public boolean getBooleanAttribute(String attribute) {
-		Assert.isNotNull(attribute);
-		String value = getAttribute(attribute);
-		boolean boolvalue = Boolean.parseBoolean(value);
-		return boolvalue;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setBooleanAttribute(java
-	 * .lang.String, boolean)
-	 */
-	public void setBooleanAttribute(String attribute, boolean value) {
-		String valuestring = Boolean.toString(value);
-		setAttribute(attribute, valuestring);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * de.innot.avreclipse.core.targets.ITargetConfiguration#getBooleanAttribute(java.lang.String)
-	 */
-	public int getIntegerAttribute(String attribute) {
-		Assert.isNotNull(attribute);
-		String value = getAttribute(attribute);
-		if (value.length() == 0) {
-			return -1;
-		}
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException nfe) {
-			return 0;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy#setIntegerAttribute(java
-	 * .lang.String, int)
-	 */
-	public void setIntegerAttribute(String attribute, int value) {
-		String valuestring = Integer.toString(value);
-		setAttribute(attribute, valuestring);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#getAttributes()
-	 */
-	public Map<String, String> getAttributes() {
-		HashMap<String, String> map = new HashMap<String, String>();
-		for (Object obj : fAttributes.keySet()) {
-			String key = (String) obj;
-			String value = fAttributes.getProperty(key);
-			map.put(key, value);
-		}
-		return map;
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.targets.ITargetConfiguration#isDebugCapable()
 	 */
 	public boolean isDebugCapable() {
@@ -715,20 +748,13 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 	 */
 	public ValidationResult validateAttribute(String attr) {
 
-		// First let the tools check if they can validate the attribute
-		ITargetConfigurationTool progtool = getProgrammerTool();
-		ValidationResult result = progtool.validate(this, attr);
-		if (result != null && result.result != Result.UNKNOWN_ATTRIBUTE) {
-			return result;
+		// First check if one of the registered tools handles the attribute
+		ITargetConfigurationTool tool = fAttributeOwner.get(attr);
+		if (tool != null) {
+			return tool.validate(attr);
 		}
 
-		ITargetConfigurationTool gdbserver = getGDBServerTool();
-		result = progtool.validate(this, attr);
-		if (result != null && result.result != Result.UNKNOWN_ATTRIBUTE) {
-			return result;
-		}
-
-		// The tools now nothing. Now go through all attributes that can be validated.
+		// The tools know nothing. Now go through all attributes that can be validated.
 		// But first Check if the attribute is actually know.
 		String value = fAttributes.getProperty(attr);
 		if (value == null) {
@@ -736,34 +762,30 @@ public class TargetConfiguration implements ITargetConfiguration, ITargetConfigu
 		}
 
 		if (ATTR_MCU.equals(attr)) {
-			try {
-				// Check if the MCU is valid for both the Programmer Tool and the GDBServer
-				boolean progtoolOK = progtool.getMCUs(this).contains(value);
-				boolean gdbserverOK = progtool.getMCUs(this).contains(value);
-				if (!progtoolOK && !gdbserverOK) {
-					// Neither tool supports the mcu
-					String msg = "MCU is not supported by programming tool " + progtool.getName()
-							+ " and by gdbserver " + gdbserver.getName();
-					return new ValidationResult(Result.ERROR, msg);
-				}
-				if (!progtoolOK) {
-					String msg = "MCU not supported by programming tool" + progtool.getName();
-					return new ValidationResult(Result.ERROR, msg);
-				}
-				if (!progtoolOK) {
-					String msg = "MCU not supported by gdbserver " + progtool.getName();
-					return new ValidationResult(Result.ERROR, msg);
-				}
-			} catch (AVRDudeException ade) {
-				// Don't wan't to throw the exception, but we can't ignore it either.
-				// so we just report an error with the exception text as description.
-				String msg = ade.getLocalizedMessage();
-				return new ValidationResult(Result.ERROR, msg);
-			}
+			return AVRHardwareConfigValidator.checkMCU(this);
+
+		} else if (ATTR_PROGRAMMER_ID.equals(attr)) {
+			return AVRHardwareConfigValidator.checkProgrammer(this);
+
+		} else if (ATTR_JTAG_CLOCK.equals(attr)) {
+			return AVRHardwareConfigValidator.checkJTAGClock(this);
+
+		} else if (ATTR_DAISYCHAIN_BB.equals(attr)) {
+			return AVRHardwareConfigValidator.checkJTAGDaisyChainBitsBefore(this);
+
+		} else if (ATTR_DAISYCHAIN_BA.equals(attr)) {
+			return AVRHardwareConfigValidator.checkJTAGDaisyChainBitsAfter(this);
+
+		} else if (ATTR_DAISYCHAIN_UB.equals(attr)) {
+			return AVRHardwareConfigValidator.checkJTAGDaisyChainUnitsBefore(this);
+
+		} else if (ATTR_DAISYCHAIN_UA.equals(attr)) {
+			return AVRHardwareConfigValidator.checkJTAGDaisyChainUnitsAfter(this);
 
 		}
+
 		// TODO Auto-generated method stub
-		return null;
+		return new ValidationResult(Result.OK, "");
 	}
 
 }

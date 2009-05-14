@@ -120,8 +120,8 @@ public class TargetConfigurationManager {
 					if (dot >= 0) {
 						String idstring = name.substring(dot + 1);
 						int id = Integer.parseInt(idstring);
-						if (id > maxid) {
-							maxid = id;
+						if (id >= maxid) {
+							maxid = id + 1;
 						}
 					}
 				}
@@ -192,10 +192,9 @@ public class TargetConfigurationManager {
 
 	private TargetConfiguration internalGetConfig(String id) throws IOException {
 		// Test for empty / null id
-		if (id == null)
+		if (id == null || id.length() == 0) {
 			return null;
-		if (id.length() == 0)
-			return null;
+		}
 
 		// Test if the config is already in the cache
 		if (fConfigsCache.containsKey(id)) {

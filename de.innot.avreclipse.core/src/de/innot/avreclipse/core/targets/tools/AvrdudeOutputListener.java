@@ -81,10 +81,10 @@ public class AvrdudeOutputListener implements ICommandOutputListener {
 		} else if (line.contains("Can't find programmer id")) {
 			abort = true;
 			fAbortReason = Reason.UNKNOWN_PROGRAMMER;
-		} else if (line.contains("no programmer has been specified")) {
-			abort = true;
-			fAbortReason = Reason.NO_PROGRAMMER;
-		} else if (line.matches("AVR Part.+not found")) {
+		} /*
+		 * else if (line.contains("no programmer has been specified")) { abort = true; fAbortReason
+		 * = Reason.NO_PROGRAMMER; }
+		 */else if (line.matches("AVR Part.+not found")) {
 			abort = true;
 			fAbortReason = Reason.UNKNOWN_MCU;
 		} else if (line.endsWith("execution aborted")) {

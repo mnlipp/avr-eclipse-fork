@@ -22,7 +22,7 @@ import java.util.EventListener;
  * Listener for Target Configuration changes.
  * 
  * @author Thomas Holland
- * @since
+ * @since 2.4
  * 
  */
 public interface ITargetConfigChangeListener extends EventListener {
@@ -44,4 +44,5 @@ public interface ITargetConfigChangeListener extends EventListener {
 	 */
 	public void attributeChange(ITargetConfiguration config, String attribute, String oldvalue,
 			String newvalue);
+
 }

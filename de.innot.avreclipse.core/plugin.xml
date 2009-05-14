@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.3"?>
 <plugin>
+   <extension-point id="targetToolFactories" name="targetToolFactories" schema="schema/targetToolFactories.exsd"/>
 
 <!-- 
 ####################################################################################### 
@@ -8,27 +9,7 @@
 ####################################################################################### 
 -->
 
-	<extension-point id="targetTool" 
-		name="Tools used by AVR Target Management" 
-		schema="schema/targetTool.exsd"/>
 
-	<extension point="de.innot.avreclipse.core.targetTool">
-    	<programmertool
-        	class="de.innot.avreclipse.core.targets.tools.NoneTool">
-    	</programmertool>
-    	<programmertool
-        	class="de.innot.avreclipse.core.targets.tools.AvrdudeTool">
-    	</programmertool>
-    	<programmertool
-        	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
-    	</programmertool>
-    	<gdbservertool
-        	class="de.innot.avreclipse.core.targets.tools.NoneTool">
-    	</gdbservertool>
-    	<gdbservertool
-        	class="de.innot.avreclipse.core.targets.tools.AvariceTool">
-    	</gdbservertool>
- </extension>
 
 
 
@@ -82,6 +63,18 @@
 			class="de.innot.avreclipse.core.preferences.PreferenceInitializer">
 		</initializer>
 	</extension>
+ <extension
+       point="de.innot.avreclipse.core.targetToolFactories">
+    <toolfactory
+          class="de.innot.avreclipse.core.targets.tools.AvariceToolFactory">
+    </toolfactory>
+    <toolfactory
+          class="de.innot.avreclipse.core.targets.tools.AvrdudeToolFactory">
+    </toolfactory>
+    <toolfactory
+          class="de.innot.avreclipse.core.targets.tools.NoneToolFactory">
+    </toolfactory>
+ </extension>
 	
  	
 

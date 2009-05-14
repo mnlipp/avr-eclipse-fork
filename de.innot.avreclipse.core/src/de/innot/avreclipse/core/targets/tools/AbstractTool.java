@@ -32,6 +32,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.targets.ITargetConfigConstants;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
+import de.innot.avreclipse.core.targets.ToolManager;
 import de.innot.avreclipse.core.toolinfo.ExternalCommandLauncher;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener;
 
@@ -42,11 +43,11 @@ import de.innot.avreclipse.core.toolinfo.ICommandOutputListener;
  */
 public abstract class AbstractTool {
 
-	/**
-	 * The system timestamp at which the last launch of the tool finished. Used to delay launches
-	 * when the user has specified a delay value for the USB port.
-	 */
-	private long	fLastToolFinish	= 0;
+	private final ITargetConfiguration	fHC;
+
+	protected AbstractTool(ITargetConfiguration hc) {
+		fHC = hc;
+	}
 
 	protected abstract String getName();
 
@@ -59,13 +60,15 @@ public abstract class AbstractTool {
 	 * the command name (e.g. 'avrdude') or a absolute path (e.g. '/usr/bin/avrdude')
 	 * </p>
 	 * 
-	 * @param tc
-	 *            Applicable hardware configuration
 	 * @return String with the command
 	 */
-	protected abstract String getCommand(ITargetConfiguration tc);
+	protected abstract String getCommand();
 
 	protected abstract ICommandOutputListener getOutputListener();
+
+	protected ITargetConfiguration getHardwareConfig() {
+		return fHC;
+	}
 
 	/**
 	 * Runs the tool with the given arguments.
@@ -77,8 +80,6 @@ public abstract class AbstractTool {
 	 * {@link AVRDudeException} with the reason is thrown.
 	 * </p>
 	 * 
-	 * @param The
-	 *            target configuration to use
 	 * @param arguments
 	 *            Zero or more arguments for avrdude
 	 * @return A list of all output lines, or <code>null</code> if the command could not be
@@ -86,15 +87,14 @@ public abstract class AbstractTool {
 	 * @throws AVRDudeException
 	 *             when avrdude cannot be started or when avrdude returned an
 	 */
-	public List<String> runCommand(ITargetConfiguration tc, String... arguments)
-			throws AVRDudeException {
+	public List<String> runCommand(String... arguments) throws AVRDudeException {
 
 		List<String> arglist = new ArrayList<String>(1);
 		for (String arg : arguments) {
 			arglist.add(arg);
 		}
 
-		return runCommand(tc, arglist, new NullProgressMonitor(), false, null);
+		return runCommand(arglist, new NullProgressMonitor(), false, null);
 	}
 
 	/**
@@ -109,9 +109,6 @@ public abstract class AbstractTool {
 	 * {@link AVRDudeException} with the reason is thrown.
 	 * </p>
 	 * 
-	 * @param tc
-	 *            The current target configuration. Used to access the parameters 'command name' and
-	 *            'useconsole'
 	 * @param arguments
 	 *            <code>List&lt;String&gt;</code> with the arguments
 	 * @param monitor
@@ -128,8 +125,8 @@ public abstract class AbstractTool {
 	 * @throws AVRDudeException
 	 *             when the tool cannot be started or when it returns with an error.
 	 */
-	public List<String> runCommand(ITargetConfiguration tc, List<String> arglist,
-			IProgressMonitor monitor, boolean forceconsole, IPath cwd) throws AVRDudeException {
+	public List<String> runCommand(List<String> arglist, IProgressMonitor monitor,
+			boolean forceconsole, IPath cwd) throws AVRDudeException {
 
 		try {
 			monitor.beginTask("Running " + getName(), 100);
@@ -141,7 +138,7 @@ public abstract class AbstractTool {
 			}
 
 			// TODO: resolve variables in the path
-			String command = getCommand(tc);
+			String command = getCommand();
 
 			// Set up the External Command
 			ExternalCommandLauncher launcher = new ExternalCommandLauncher(command, arglist, cwd);
@@ -150,7 +147,7 @@ public abstract class AbstractTool {
 			// Set the Console (if requested by the user for the target configuratio)
 			MessageConsole console = null;
 			String consoleattr = getId() + ".useconsole";
-			boolean useconsole = tc.getBooleanAttribute(consoleattr);
+			boolean useconsole = fHC.getBooleanAttribute(consoleattr);
 			if (useconsole || forceconsole) {
 				console = AVRPlugin.getDefault().getConsole("External Tools");
 				launcher.setConsole(console);
@@ -163,7 +160,7 @@ public abstract class AbstractTool {
 			// USB devices:
 			// This will delay the actual call if the previous call finished less than the
 			// user provided time in milliseconds
-			avrdudeInvocationDelay(tc, console, new SubProgressMonitor(monitor, 10));
+			avrdudeInvocationDelay(console, new SubProgressMonitor(monitor, 10));
 
 			// Run avrdude
 			try {
@@ -193,7 +190,8 @@ public abstract class AbstractTool {
 			return stdout;
 		} finally {
 			monitor.done();
-			fLastToolFinish = System.currentTimeMillis();
+			String progport = fHC.getAttribute(ITargetConfigConstants.ATTR_PROGRAMMER_PORT);
+			ToolManager.getDefault().setLastAccess(progport, System.currentTimeMillis());
 		}
 	}
 
@@ -209,8 +207,6 @@ public abstract class AbstractTool {
 	 * which case an {@link AVRDudeException} with {@link Reason#USER_CANCEL} is thrown.
 	 * </p>
 	 * 
-	 * @param tc
-	 *            The target configuration. Used to get the 'ATTR_USB_DELAY' value.
 	 * @param console
 	 *            If not <code>null</code>, then the start and end of the delay is logged on the
 	 *            console.
@@ -219,12 +215,12 @@ public abstract class AbstractTool {
 	 * @throws AVRDudeException
 	 *             when the user cancels the delay.
 	 */
-	private void avrdudeInvocationDelay(ITargetConfiguration tc, MessageConsole console,
-			IProgressMonitor monitor) throws AVRDudeException {
+	private void avrdudeInvocationDelay(MessageConsole console, IProgressMonitor monitor)
+			throws AVRDudeException {
 
 		// Get the (optional) invocation delay value
 		String delayattr = ITargetConfigConstants.ATTR_USB_DELAY;
-		String delayvalue = tc.getAttribute(delayattr);
+		String delayvalue = fHC.getAttribute(delayattr);
 		if (delayvalue == null || delayvalue.length() == 0) {
 			return;
 		}
@@ -238,16 +234,18 @@ public abstract class AbstractTool {
 			ostream = console.newOutputStream();
 		}
 
-		final long targetmillis = fLastToolFinish + delay;
+		String programmerport = fHC.getAttribute(ITargetConfigConstants.ATTR_PROGRAMMER_PORT);
+		long lastaccess = ToolManager.getDefault().getLastAccess(programmerport);
+		final long targetmillis = lastaccess + delay;
 
 		// Quick exit if the delay has already expired
-		int targetdelay = (int) (targetmillis - System.currentTimeMillis());
-		if (targetdelay < 1) {
+		long targetdelay = targetmillis - System.currentTimeMillis();
+		if (targetdelay < 1L) {
 			return;
 		}
 
 		try {
-			monitor.beginTask("delay", targetdelay);
+			monitor.beginTask("delay", (int) (targetdelay / 10));
 
 			writeOutput(ostream, "\n>>> " + getName() + " invocation delay: " + targetdelay
 					+ " milliseconds\n");
@@ -262,6 +260,7 @@ public abstract class AbstractTool {
 					throw new AVRDudeException(Reason.USER_CANCEL, "User cancelled");
 				}
 				Thread.sleep(10);
+				monitor.worked(1);
 			}
 			writeOutput(ostream, ">>> " + getName() + " invocation delay: finished\n");
 

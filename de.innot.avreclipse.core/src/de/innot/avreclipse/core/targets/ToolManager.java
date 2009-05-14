@@ -17,7 +17,6 @@
 package de.innot.avreclipse.core.targets;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,19 +46,24 @@ import de.innot.avreclipse.AVRPlugin;
  */
 public class ToolManager implements IRegistryEventListener {
 
-	private static ToolManager				fInstance;
+	private static ToolManager			fInstance;
 
-	private final static String				NAMESPACE			= AVRPlugin.PLUGIN_ID;
-	public final static String				EXTENSIONPOINT		= NAMESPACE + ".targetTool";
-	private final static String				ELEMENT_PROGRAMMER	= "programmertool";
-	private final static String				ELEMENT_GDBSERVER	= "gdbservertool";
+	private final static String			NAMESPACE			= AVRPlugin.PLUGIN_ID;
+	public final static String			EXTENSIONPOINT		= NAMESPACE + ".targetToolFactories";
+	private final static String			ELEMENT_FACTORY		= "toolfactory";
 
-	/** The list of all ProgrammerTool extensions, mapped to their ID for quick access. */
-	private Map<String, IProgrammerTool>	fProgrammerTools;
+	public final static String			AVRPROGRAMMERTOOL	= "avr.tool.programmer";
+	public final static String			AVRGDBSERVER		= "avr.tool.gdbserver";
 
-	/** The list of all GDBServerTool extensions, mapped to their ID for quick access. */
-	private Map<String, IGDBServerTool>		fGDBServerTools;
+	private Map<String, IToolFactory>	fFactoryRegistry;
 
+	private Map<String, Long>			fInterfaceLastCallMap;
+
+	/**
+	 * Get the default tool manager.
+	 * 
+	 * @return Default tool manager instance.
+	 */
 	public static ToolManager getDefault() {
 		if (fInstance == null) {
 			fInstance = new ToolManager();
@@ -87,46 +91,104 @@ public class ToolManager implements IRegistryEventListener {
 		return extpoints;
 	}
 
-	public IProgrammerTool[] getProgrammerTools() {
+	/**
+	 * Get the name of the tool with the given id.
+	 * <p>
+	 * This is the same as <code>getTool(targetconfig, id).getName()</code>, but without needing a
+	 * target configuration.
+	 * </p>
+	 * 
+	 * @param id
+	 *            A tool id vaue
+	 * @return The human readable name of the tool, or <code>null</code> if no tool with the given
+	 *         id exists.
+	 */
+	public String getToolName(String id) {
 
-		loadExtensions();
-		Collection<IProgrammerTool> alltools = fProgrammerTools.values();
-		return alltools.toArray(new IProgrammerTool[alltools.size()]);
+		String name = null;
 
-	}
+		Map<String, IToolFactory> registry = getRegistry();
 
-	public IGDBServerTool[] getGDBServerTools() {
-
-		loadExtensions();
-		Collection<IGDBServerTool> alltools = fGDBServerTools.values();
-		return alltools.toArray(new IGDBServerTool[alltools.size()]);
-
-	}
-
-	public IProgrammerTool getProgrammerTool(String id) {
-
-		loadExtensions();
-		return fProgrammerTools.get(id);
-	}
-
-	public IGDBServerTool getGDBServerTool(String id) {
-		loadExtensions();
-		return fGDBServerTools.get(id);
-	}
-
-	public ITargetConfigurationTool[] getAllTools() {
-		loadExtensions();
-
-		List<ITargetConfigurationTool> alltools = new ArrayList<ITargetConfigurationTool>();
-		for (ITargetConfigurationTool tool : fProgrammerTools.values()) {
-			alltools.add(tool);
-		}
-		for (ITargetConfigurationTool tool : fGDBServerTools.values()) {
-			alltools.add(tool);
+		if (registry.containsKey(id)) {
+			IToolFactory factory = registry.get(id);
+			name = factory.getName();
 		}
 
-		return alltools.toArray(new ITargetConfigurationTool[alltools.size()]);
+		return name;
+	}
 
+	/**
+	 * Get the tool with the given id for the given hardware configuration.
+	 * 
+	 * @param hc
+	 *            The hardware configuration the tool is applicable for.
+	 * @param id
+	 *            The tool id value.
+	 * @return The tool, or <code>null</code> if no tool exists for the given id.
+	 */
+	public ITargetConfigurationTool getTool(ITargetConfiguration hc, String id) {
+		Map<String, IToolFactory> registry = getRegistry();
+		ITargetConfigurationTool tool = null;
+
+		if (registry.containsKey(id)) {
+			IToolFactory factory = registry.get(id);
+			tool = factory.createTool(hc);
+		}
+
+		return tool;
+	}
+
+	/**
+	 * Get an array with the id values of all available tools.
+	 * 
+	 * @param tooltype
+	 *            Type of tool. If <code>null</code> all tools are returned.
+	 * @return List with tool id values.
+	 */
+	public List<String> getAllTools(String tooltype) {
+		Map<String, IToolFactory> registry = getRegistry();
+		List<String> resultids = new ArrayList<String>();
+
+		for (IToolFactory factory : registry.values()) {
+			if (tooltype == null || factory.isType(tooltype)) {
+				resultids.add(factory.getId());
+			}
+		}
+		return resultids;
+	}
+
+	/**
+	 * Remember the system time the given programmer port was last accessed.
+	 * 
+	 * @param programmerport
+	 *            The name of the port, e.g. <code>/dev/usb</code>
+	 * @param lastfinish
+	 *            last access time in ms (from <code>System.currentTimeMillis()</code>)
+	 */
+	public synchronized void setLastAccess(String programmerport, long lastfinish) {
+		if (fInterfaceLastCallMap == null) {
+			fInterfaceLastCallMap = new HashMap<String, Long>();
+		}
+		fInterfaceLastCallMap.put(programmerport, lastfinish);
+	}
+
+	/**
+	 * Get the system time of the last access to the given programmer port.
+	 * 
+	 * @param programmerport
+	 *            The name of the port, e.g. <code>/dev/usb</code>
+	 * @return the system time (in millis) of the last access, or <code>0</code> if the port has not
+	 *         been accessed before.
+	 */
+	public synchronized long getLastAccess(String programmerport) {
+		Long lastfinish = 0L;
+		if (fInterfaceLastCallMap != null) {
+			if (fInterfaceLastCallMap.containsKey(programmerport)) {
+				lastfinish = fInterfaceLastCallMap.get(programmerport);
+			}
+		}
+
+		return lastfinish;
 	}
 
 	/**
@@ -138,39 +200,39 @@ public class ToolManager implements IRegistryEventListener {
 	 * @see #added(IExtension[])
 	 * 
 	 */
-	private void loadExtensions() {
-		if (fProgrammerTools == null) {
-
-			fProgrammerTools = new HashMap<String, IProgrammerTool>();
-			fGDBServerTools = new HashMap<String, IGDBServerTool>();
+	private Map<String, IToolFactory> getRegistry() {
+		if (fFactoryRegistry == null) {
+			fFactoryRegistry = new HashMap<String, IToolFactory>();
 
 			IConfigurationElement[] elements = Platform.getExtensionRegistry()
 					.getConfigurationElementsFor(EXTENSIONPOINT);
+
 			for (IConfigurationElement element : elements) {
 
-				// Get an instance of the implementing class
-				Object obj;
-				try {
-					obj = element.createExecutableExtension("class");
-				} catch (CoreException e) {
-					// TODO log exception
-					continue;
-				}
 				String type = element.getName();
-
-				if (ELEMENT_PROGRAMMER.equalsIgnoreCase(type)) {
-					if (obj instanceof IProgrammerTool) {
-						IProgrammerTool tool = (IProgrammerTool) obj;
-						fProgrammerTools.put(tool.getId(), tool);
+				if (ELEMENT_FACTORY.equalsIgnoreCase(type)) {
+					// Get an instance of the implementing class
+					// and add it to the registry
+					Object obj;
+					try {
+						obj = element.createExecutableExtension("class");
+					} catch (CoreException e) {
+						// TODO log exception
+						continue;
 					}
-				} else if (ELEMENT_GDBSERVER.equalsIgnoreCase(type)) {
-					if (obj instanceof IGDBServerTool) {
-						IGDBServerTool tool = (IGDBServerTool) obj;
-						fGDBServerTools.put(tool.getId(), tool);
+
+					if (obj instanceof IToolFactory) {
+						IToolFactory factory = (IToolFactory) obj;
+						String id = factory.getId();
+						fFactoryRegistry.put(id, factory);
+					} else {
+						// invalid class
+						// TODO: log exception
 					}
 				}
 			}
 		}
+		return fFactoryRegistry;
 	}
 
 	/*
@@ -179,13 +241,12 @@ public class ToolManager implements IRegistryEventListener {
 	 * org.eclipse.core.runtime.IRegistryEventListener#added(org.eclipse.core.runtime.IExtension[])
 	 */
 	public void added(IExtension[] extensions) {
-		// Check if the extensions match any of the two points used by this manager.
+		// Check if the extensions matches the extension used by this manager.
 		// To keep things simple we just invalidate the current list of known extensions so that the
-		// list will be regenerated the next time getXxxTool() is called.
+		// list will be regenerated the next time getTool() is called.
 		for (IExtension ext : extensions) {
 			if (ext.getUniqueIdentifier().equals(EXTENSIONPOINT)) {
-				fProgrammerTools = null;
-				fGDBServerTools = null;
+				fFactoryRegistry = null;
 			}
 		}
 	}

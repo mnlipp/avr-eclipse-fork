@@ -16,12 +16,19 @@
 
 package de.innot.avreclipse.core.targets;
 
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
+
 /**
  * @author Thomas Holland
  * @since
  * 
  */
-public interface IGDBServerTool extends ITargetConfigurationTool {
+public interface IAttributeProvider {
 
-	public boolean isSimulator();
+	public String[] getAttributes();
+
+	public String getDefaultValue(String attribute);
+
+	public ValidationResult validate(String attribute);
+
 }

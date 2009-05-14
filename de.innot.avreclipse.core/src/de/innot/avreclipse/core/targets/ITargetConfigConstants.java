@@ -16,8 +16,8 @@
 
 package de.innot.avreclipse.core.targets;
 
-import de.innot.avreclipse.core.targets.tools.AvariceTool;
 import de.innot.avreclipse.core.targets.tools.AvrdudeTool;
+import de.innot.avreclipse.core.targets.tools.NoneToolFactory;
 
 /**
  * The common attributes of a target configuration and their default values.
@@ -90,6 +90,6 @@ public interface ITargetConfigConstants {
 
 	// GDBServer tool
 	public final static String	ATTR_GDBSERVER_ID		= "gdbservertool";
-	public final static String	DEF_GDBSERVER_ID		= AvariceTool.ID;
+	public final static String	DEF_GDBSERVER_ID		= NoneToolFactory.ID;
 
 }
