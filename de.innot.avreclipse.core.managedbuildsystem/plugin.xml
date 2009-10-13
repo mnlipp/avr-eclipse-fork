@@ -187,7 +187,7 @@
 					<not>
 						<checkOption
 							optionId="de.innot.avreclipse.assembler.option.debug.level"
-					  		value="de.innot.avreclipse.compiler.option.debug.level.none" />
+					  		value="de.innot.avreclipse.assembler.option.debug.level.none" />
 					</not>
 				</enablement>
 			</option>
