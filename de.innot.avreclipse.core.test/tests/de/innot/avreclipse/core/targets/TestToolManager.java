@@ -139,7 +139,7 @@ public class TestToolManager {
 	public void testAccessTimes() {
 
 		final String testport = "/foo/bar";
-		final Long testvalue = 123456L;
+		final long testvalue = 123456L;
 
 		assertEquals(0L, manager.getLastAccess(testport));
 

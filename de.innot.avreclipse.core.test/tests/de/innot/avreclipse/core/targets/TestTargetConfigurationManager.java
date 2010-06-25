@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +32,13 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
 
 /**
  * @author Thomas Holland
  * @since
  * 
  */
-public class TestTargetConfigurationManager {
+public class TestTargetConfigurationManager implements ITargetConfigConstants {
 
 	private TargetConfigurationManager	manager;
 
@@ -59,7 +58,7 @@ public class TestTargetConfigurationManager {
 	 * @throws CoreException
 	 */
 	@Test
-	public void testCreateNewConfig() throws CoreException {
+	public void testCreateNewConfig() throws CoreException, IOException {
 		ITargetConfiguration tc = manager.createNewConfig();
 		assertNotNull("CreateNewConfig returned null", tc);
 		assertNotNull("New config has null id", tc.getId());
@@ -69,12 +68,12 @@ public class TestTargetConfigurationManager {
 		assertNotNull("New config has null name", tc.getName());
 		assertTrue("New config has empty name", tc.getName().length() > 0);
 
-		assertNotNull("New config has null mcuid", tc.getMCUId());
-		assertTrue("New config has empty mcuid", tc.getMCUId().length() > 0);
+		assertNotNull("New config has null mcuid", tc.getMCU());
+		assertTrue("New config has empty mcuid", tc.getMCU().length() > 0);
 
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_NAME));
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_MCU));
-		assertNotNull(tc.getAttribute(ITargetConfiguration.ATTR_FCPU));
+		assertNotNull(tc.getAttribute(ATTR_NAME));
+		assertNotNull(tc.getAttribute(ATTR_MCU));
+		assertNotNull(tc.getAttribute(ATTR_FCPU));
 
 	}
 
@@ -83,7 +82,7 @@ public class TestTargetConfigurationManager {
 	 * {@link de.innot.avreclipse.core.targets.TargetConfigurationManager#exists(java.lang.String)}.
 	 */
 	@Test
-	public void testExists() {
+	public void testExists() throws IOException {
 		ITargetConfiguration tc = manager.createNewConfig();
 
 		assertTrue("Config does not exist", manager.exists(tc.getId()));
@@ -101,7 +100,7 @@ public class TestTargetConfigurationManager {
 	 * .
 	 */
 	@Test
-	public void testDeleteConfig() {
+	public void testDeleteConfig() throws IOException {
 		// Create a new config and then delete it again
 		ITargetConfiguration tc = manager.createNewConfig();
 
@@ -115,7 +114,7 @@ public class TestTargetConfigurationManager {
 	 * .
 	 */
 	@Test
-	public void testGetConfig() {
+	public void testGetConfig() throws IOException {
 		// Create two new configs and then get them
 		ITargetConfiguration tc1 = manager.createNewConfig();
 		ITargetConfiguration tc2 = manager.createNewConfig();
@@ -137,7 +136,7 @@ public class TestTargetConfigurationManager {
 	 * @throws CoreException
 	 */
 	@Test
-	public void testGetWorkingCopy() throws CoreException {
+	public void testGetWorkingCopy() throws CoreException, IOException {
 		ITargetConfiguration tc = manager.createNewConfig();
 
 		ITargetConfigurationWorkingCopy tcwc = manager.getWorkingCopy(tc.getId());
@@ -169,7 +168,7 @@ public class TestTargetConfigurationManager {
 	 * {@link de.innot.avreclipse.core.targets.TargetConfigurationManager#getConfigurationIDs()}.
 	 */
 	@Test
-	public void testGetConfigurationIDs() {
+	public void testGetConfigurationIDs() throws IOException {
 		// The list may or may not be empty at this point depending on the other tests that have
 		// already run.
 
@@ -184,31 +183,6 @@ public class TestTargetConfigurationManager {
 		assertTrue("First config id missing", allids.contains(tc1.getId()));
 		assertTrue("Second config id missing", allids.contains(tc2.getId()));
 
-	}
-
-	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.TargetConfigurationManager#getPreferences(java.lang.String)}
-	 * .
-	 * 
-	 * @throws BackingStoreException
-	 * @throws CoreException
-	 */
-	@Test
-	public void testGetPreferences() throws BackingStoreException, CoreException {
-		ITargetConfiguration tc = manager.createNewConfig();
-		Preferences prefs = manager.getPreferences(tc.getId());
-		assertNotNull(prefs);
-
-		assertEquals("Prefs name should be same as TC id", tc.getId(), prefs.name());
-
-		Map<String, String> tcattrs = tc.getAttributes();
-		String[] attrs = tcattrs.keySet().toArray(new String[tcattrs.size()]);
-		String[] prefkeys = prefs.keys();
-		assertTrue("Prefs must have at least 3 attributes", prefkeys.length >= 3);
-		for (String attr : attrs) {
-			assertNotNull("Prefs is missing attribute" + attr, prefs.get(attr, null));
-		}
 	}
 
 }
