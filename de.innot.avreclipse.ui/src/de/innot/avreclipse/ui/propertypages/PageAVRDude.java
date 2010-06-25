@@ -18,6 +18,7 @@ package de.innot.avreclipse.ui.propertypages;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IMultiConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -177,30 +178,34 @@ public class PageAVRDude extends AbstractAVRPage {
 
 		StringBuffer sb = new StringBuffer("avrdude\t");
 
-		// Get the standard AVRDude arguments as defined in the given
-		// properties.
-		List<String> allargs = avrdudeprops.getArguments();
-
-		for (String arg : allargs) {
-			sb.append(arg);
-			sb.append(" ");
-		}
-
-		sb.append("\n");
 		// Get the current configuration...
 		IConfiguration buildcfg = ManagedBuildManager.getConfigurationForDescription(getResDesc()
 		        .getConfiguration());
 
-		// ...and all action arguments for the current configuration
-		List<String> allactionargs = avrdudeprops.getActionArguments(buildcfg, true);
-
-		// append all actions, one per line for better readabilty
-		for (String arg : allactionargs) {
-			sb.append("\t\t\t");
-			sb.append(arg);
+		if (buildcfg instanceof IMultiConfiguration) {
+			sb.append("command preview not available for multiconfiguration!");
+		} else {
+			// Get the standard AVRDude arguments as defined in the given
+			// properties.
+			List<String> allargs = avrdudeprops.getArguments();
+	
+			for (String arg : allargs) {
+				sb.append(arg);
+				sb.append(" ");
+			}
+	
 			sb.append("\n");
+	
+			// ...and all action arguments for the current configuration
+			List<String> allactionargs = avrdudeprops.getActionArguments(buildcfg, true);
+	
+			// append all actions, one per line for better readabilty
+			for (String arg : allactionargs) {
+				sb.append("\t\t\t");
+				sb.append(arg);
+				sb.append("\n");
+			}
 		}
-
 		fPreviewText.setText(sb.toString());
 
 	}

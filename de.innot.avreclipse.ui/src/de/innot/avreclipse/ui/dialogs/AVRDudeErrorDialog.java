@@ -205,6 +205,23 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					message = MessageFormat.format(source, programmer);
 					break;
 
+				case INVALID_PORT:
+					if (port.length() == 0) {
+						// The user has not specified a port, so the OS default is used (but seemingly invalid).
+						// Try to get the port used by avrdude from the avrdude output
+						String abortline = avrdudeexc.getMessage();
+						String[] split = abortline.split("\"");
+						if (split.length >= 2) {
+							port = split[1];
+						} else {
+							port = "???";
+						}
+					}
+					source = "AVRDude has problems accessing the port \"{0}\".\n\n"
+							+ "Please check that the correct port has been selected in the programmer configuration.";
+					message = MessageFormat.format(source, port);
+					break;
+					
 				default:
 					message = "An unhandled Error occured while accessing AVRDude.\n\n"
 							+ "See below for details and report this error the the Plugin maintainer.\n"

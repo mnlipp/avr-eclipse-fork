@@ -74,8 +74,8 @@ public class DocumentByteValuesConnector {
 	private boolean							fInDocumentChange		= false;
 
 	/**
-	 * <code>true</code> while the ByteValues are modified from this class, so the ByteValues
-	 * change listener can ignore the resulting change events.
+	 * <code>true</code> while the ByteValues are modified from this class, so the ByteValues change
+	 * listener can ignore the resulting change events.
 	 */
 	private boolean							fInByteValuesChange		= false;
 
@@ -98,7 +98,9 @@ public class DocumentByteValuesConnector {
 	/** MCU property key string. */
 	private final static String				KEY_MCU					= "MCU";
 
-	/** Comment property key string. Called 'summary' to be compatible with AVR32 Studio file format. */
+	/**
+	 * Comment property key string. Called 'summary' to be compatible with AVR32 Studio file format.
+	 */
 	private final static String				KEY_COMMENT				= "summary";
 
 	/** RegEx pattern for comment lines. Comments are all lines starting with "#". */
@@ -121,8 +123,9 @@ public class DocumentByteValuesConnector {
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.jface.text.IDocumentListener#documentAboutToBeChanged(org.eclipse.jface.text.DocumentEvent)
+		 * @see
+		 * org.eclipse.jface.text.IDocumentListener#documentAboutToBeChanged(org.eclipse.jface.text
+		 * .DocumentEvent)
 		 */
 		public void documentAboutToBeChanged(DocumentEvent event) {
 			// ignore event
@@ -130,8 +133,9 @@ public class DocumentByteValuesConnector {
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.jface.text.IDocumentListener#documentChanged(org.eclipse.jface.text.DocumentEvent)
+		 * @see
+		 * org.eclipse.jface.text.IDocumentListener#documentChanged(org.eclipse.jface.text.DocumentEvent
+		 * )
 		 */
 		public void documentChanged(DocumentEvent event) {
 			if (fInDocumentChange) {
@@ -160,8 +164,9 @@ public class DocumentByteValuesConnector {
 
 		/*
 		 * (non-Javadoc)
-		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de.innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.fuses.IByteValuesChangeListener#byteValuesChanged(de
+		 * .innot.avreclipse.core.toolinfo.fuses.ByteValueChangeEvent[])
 		 */
 		public void byteValuesChanged(ByteValueChangeEvent[] events) {
 
@@ -251,9 +256,9 @@ public class DocumentByteValuesConnector {
 	 * <p>
 	 * The connector also registers itself as a listener to the provider to be informed if the
 	 * source file is moved or renamed. The source element, which needs to be adaptable to
-	 * <code>IFile</code> is used to determine the type of the ByteValues (FUSE or LOCKBITS) via
-	 * the file extension. The file is also needed to create the <code>IMarker</code>s for all
-	 * problems parsing the file.
+	 * <code>IFile</code> is used to determine the type of the ByteValues (FUSE or LOCKBITS) via the
+	 * file extension. The file is also needed to create the <code>IMarker</code>s for all problems
+	 * parsing the file.
 	 * </p>
 	 * <p>
 	 * The connector needs to be disposed when it is not needed anymore to remove the listeners.
@@ -264,8 +269,8 @@ public class DocumentByteValuesConnector {
 	 * @param document
 	 *            The source <code>IDocument</code>
 	 * @param element
-	 *            The source file as an object that can be adapted to an <code>IFile</code>, e.g.
-	 *            an <code>IFileEditorInput</code>
+	 *            The source file as an object that can be adapted to an <code>IFile</code>, e.g. an
+	 *            <code>IFileEditorInput</code>
 	 * @throws CoreException
 	 *             if the element is not adaptable to <code>IFile</code>.
 	 */
@@ -359,8 +364,8 @@ public class DocumentByteValuesConnector {
 	/**
 	 * Create a new ByteValues object from the source document.
 	 * 
-	 * @return Valid <code>ByteValues</code> object or <code>null</code> if either the source
-	 *         file has an unknown extension or there is 'MCU' property tag in the source document.
+	 * @return Valid <code>ByteValues</code> object or <code>null</code> if either the source file
+	 *         has an unknown extension or there is 'MCU' property tag in the source document.
 	 */
 	private ByteValues createByteValues() {
 
@@ -491,16 +496,15 @@ public class DocumentByteValuesConnector {
 	 *            The new comment, may be <code>null</code>
 	 */
 	private void setDocumentComment(String comment) {
-		if (comment == null) {
-			comment = "";
-		}
-
+	
+		String newcomment = comment==null?"":comment;
+		
 		// Escape all new line characters. The comment must stay on one line because the parser only
 		// works with single lines.
-		comment = comment.replace("\r\n", "\\n");
-		comment = comment.replace("\n", "\\n");
-		comment = comment.replace("\r", "\\n");
-		setDocumentValue(KEY_COMMENT, comment);
+		newcomment = newcomment.replace("\r\n", "\\n");
+		newcomment = newcomment.replace("\n", "\\n");
+		newcomment = newcomment.replace("\r", "\\n");
+		setDocumentValue(KEY_COMMENT, newcomment);
 	}
 
 	/**
@@ -532,15 +536,13 @@ public class DocumentByteValuesConnector {
 			int offset;
 			int length;
 			String text;
-			if (value == null) {
-				value = "";
-			}
+
 			Integer linenumber = fKeyLineMap.get(key);
 			if (linenumber == null) {
 				// Key does not exist yet - add it.
 				offset = fDocument.getLength();
 				length = 0;
-				text = key + "=" + value + "\n";
+				text = key + "=" + (value == null ? "" : value) + "\n";
 				fInDocumentChange = true;
 				fDocument.replace(offset, length, text);
 				linenumber = fDocument.getLineOfOffset(offset + 4);
@@ -550,7 +552,7 @@ public class DocumentByteValuesConnector {
 				Position position = fKeyValuePositionMap.get(key);
 				offset = position.getOffset();
 				length = position.getLength();
-				text = value;
+				text = value == null ? "" : value;
 				fInDocumentChange = true;
 				fDocument.replace(offset, length, text);
 

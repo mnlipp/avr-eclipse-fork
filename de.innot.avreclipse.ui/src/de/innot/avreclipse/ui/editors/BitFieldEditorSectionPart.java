@@ -529,12 +529,12 @@ public class BitFieldEditorSectionPart extends SectionPart implements IByteValue
 		 */
 		public void setValue(int value) {
 			if (value == -1) {
-				// TODO: change this to a tristate checkbox when we change to SWT 3.4
-				// for now we have to leave it unset (= 1)
-				value = 1;
+				fCheckButton.setGrayed(true);
+			} else {
+				fCheckButton.setGrayed(false);
+				boolean valueYes = value == fSetValue ? true : false;
+				fCheckButton.setSelection(valueYes);
 			}
-			boolean valueYes = value == fSetValue ? true : false;
-			fCheckButton.setSelection(valueYes);
 		}
 
 	}

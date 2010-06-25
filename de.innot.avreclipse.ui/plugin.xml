@@ -92,7 +92,7 @@
 	<extension point="org.eclipse.ui.actionSets">
 		<actionSet
 			label="AVRDUDE Action Set"
-			visible="true"
+			visible="false"
 			id="de.innot.avreclipse.actionset.avrdude">
 			<menu
 				label="A&amp;VR"
@@ -219,10 +219,38 @@
 				value="de.innot.avreclipse.core.avrnature">
 			</filter>            
 			<enabledWhen>
-				<or>
-					<instanceof value="org.eclipse.core.resources.IProject"/>
-					<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
-				</or>          
+				<and>
+					<or>
+						<instanceof value="org.eclipse.core.resources.IProject"/>
+						<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+					</or> 
+					<not>
+						<test property="de.innot.avreclipse.core.isStaticLib" />
+					</not>
+				</and>         
+			</enabledWhen>
+        </page>    
+		<!-- ############################### -->
+		<!-- AVRDude Properties for Static Lib -->
+		<!-- ############################### -->
+		<!-- Static Libs do not need avrdude support, so a dummy page is displayed -->
+		<page
+            class="de.innot.avreclipse.ui.propertypages.PageAVRDudeStaticLib"
+            id="de.innot.avreclipse.propertypage.avrdude.staticlib"
+            name="AVRDude"
+            category="de.innot.avreclipse.propertypage.avrmain" >
+			<filter
+				name="projectNature"
+				value="de.innot.avreclipse.core.avrnature">
+			</filter>            
+			<enabledWhen>
+				<and>
+					<or>
+						<instanceof value="org.eclipse.core.resources.IProject"/>
+						<instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+					</or> 
+					<test property="de.innot.avreclipse.core.isStaticLib" />
+				</and>         
 			</enabledWhen>
         </page>    
 		
@@ -400,10 +428,23 @@
 	<extension point="org.eclipse.ui.perspectiveExtensions">
 		<perspectiveExtension
 			targetID="org.eclipse.cdt.ui.CPerspective">
+			<actionSet id="de.innot.avreclipse.actionset.avrdude" />
 			<viewShortcut id="de.innot.avreclipse.views.AVRDeviceView" />
+			<viewShortcut id="de.innot.avreclipse.views.supportedmcus" />
 			<view id="de.innot.avreclipse.views.AVRDeviceView"
 				relative="org.eclipse.ui.views.TaskList" 
 				relationship="stack" />
+			<view id="de.innot.avreclipse.views.supportedmcus"
+				relative="org.eclipse.ui.views.TaskList" 
+				relationship="stack" />
+		</perspectiveExtension>
+		
+		<perspectiveExtension
+			targetID="org.eclipse.debug.ui.DebugPerspective">
+			<actionSet id="de.innot.avreclipse.actionset.avrdude" />
+			<viewShortcut id="de.innot.avreclipse.views.AVRDeviceView" />
+			<viewShortcut id="de.innot.avreclipse.views.supportedmcus" />
 		</perspectiveExtension>
 	</extension>
+
 </plugin>

@@ -123,7 +123,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 			// Enable the Edit button
 			fEditButton.setEnabled(true);
 
-			// Enable the rescan button of a system path item has been seelcted
+			// Enable the rescan button of a system path item has been selected
 			TableItem selected = fTable.getSelection()[0];
 			AVRPathManager path = (AVRPathManager) selected.getData();
 			switch (path.getSourceType()) {
@@ -331,7 +331,8 @@ public class AVRPathsFieldEditor extends FieldEditor {
 		super.refreshValidState();
 
 		// Get all TableItems, extract their IPathManager and check
-		// if it is valid. If any one IPathManager is invalid, the
+		// if it is valid and not optional.
+		// If any one IPathManager is invalid, the
 		// valid boolean is set to false and an error message indicating
 		// the culprit is shown.
 
@@ -342,7 +343,7 @@ public class AVRPathsFieldEditor extends FieldEditor {
 
 		for (TableItem ti : allitems) {
 			AVRPathManager pathitem = (AVRPathManager) ti.getData();
-			if (!pathitem.isValid()) {
+			if (!pathitem.isValid() && !pathitem.isOptional()) {
 				newValid = false;
 				invalidPath = pathitem.getName();
 			}
@@ -375,13 +376,14 @@ public class AVRPathsFieldEditor extends FieldEditor {
 
 		// add warn / error icons if path is empty / invalid
 		boolean valid = path.isValid();
+		boolean optional = path.isOptional();
 		boolean empty = (path.getPath().isEmpty());
-
+		
 		if (valid && !empty) {
 			// valid path
 			item.setImage((Image) null);
-		} else if (valid) {
-			// valid but empty path (use for optional paths)
+		} else if ((valid && empty) || (!valid && optional)) {
+			// valid but empty path or invalid and optional path (use for optional paths)
 			item.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
 					ISharedImages.IMG_OBJS_WARN_TSK));
 		} else {
