@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 01.12.08 15:27-->
+<!--Date: 17.06.10 12:52-->
 <!--Based on: Atmel Part Description File "ATmega16HVA.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="atmega16hva">
-<version build="37" status="RELEASED"/>
+<version build="38" status="RELEASED"/>
 <fusebyte default="0xDF" index="0" name="LOW">
 <bitfield default="0x01" desc="Watch-dog Timer always on" mask="0x80" name="WDTON"/>
 <bitfield default="0x01" desc="Preserve EEPROM through the Chip Erase cycle" mask="0x40" name="EESAVE"/>

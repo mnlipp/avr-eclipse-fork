@@ -232,22 +232,26 @@ public class AVRiohDeviceDescriptionProvider implements IDeviceDescriptionProvid
 		}
 
 		fMCUNamesMap = new HashMap<String, String>();
-		String curDev = null;
+		List<String> curDev = new ArrayList<String>();
 
 		String line;
-		Pattern defPat = Pattern.compile("^#(el)??if defined \\(__AVR_(.*)__\\)");
+		Pattern defPat = Pattern.compile("__AVR_(.*?)__");
 		Pattern incPat = Pattern.compile("^#  include <(.*)>");
 		Matcher m;
 		try {
 			while ((line = in.readLine()) != null) {
 				m = defPat.matcher(line);
-				if (m.matches()) {
-					// save the name
-					curDev = m.group(2);
+				
+				// There may be more than one "__AVR_xxxx__" entry per line
+				while (m.find()) {
+					curDev.add(m.group(1));
 				}
 				m = incPat.matcher(line);
-				if (m.matches() && curDev != null) {
-					fMCUNamesMap.put(AVRMCUidConverter.name2id(curDev), m.group(1));
+				if (m.matches() && curDev.size() != 0) {
+					for (String dev : curDev) {
+						fMCUNamesMap.put(AVRMCUidConverter.name2id(dev), m.group(1));
+					}
+					curDev.clear();
 				}
 			}
 		} catch (IOException ioe) {

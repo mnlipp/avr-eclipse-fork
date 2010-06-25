@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 01.12.08 15:27-->
+<!--Date: 17.06.10 12:52-->
 <!--Based on: Atmel Part Description File "AT90USB162.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="at90usb162">
-<version build="36" status="RELEASED"/>
+<version build="37" status="RELEASED"/>
 <fusebyte default="0xFF" index="2" name="EXTENDED">
 <bitfield default="0x07" desc="Brown-out Detector trigger level" mask="0x07" name="BODLEVEL">
 <value desc="Brown-out detection disabled" val="0x07"/>

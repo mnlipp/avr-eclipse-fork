@@ -16,6 +16,10 @@
 
 package de.innot.avreclipse.core.paths.win32;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.cdt.utils.WindowsRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -102,21 +106,35 @@ public class SystemPathsWin32 {
 		if (fWinAVRPath != null) {
 			return fWinAVRPath;
 		}
-		// get the last installed version of winAVR.
+		
+		MyWindowsRegistry registry = MyWindowsRegistry.getRegistry();
+		if (registry == null) {
+			// Fix for Bug 2872447
+			// can't access the registry. Fail gracefully by returning an empty String.
+			// This will cause errors pointing the user to set the paths manually.
+			fWinAVRPath = fEmptyPath;
+			return fEmptyPath;
+		}
+
+		// get the newest installed version of winAVR.
 		// There may be multiple versions of winAVR installed.
-		// This assumes, that the version keys in the Registry
-		// are in the order the versions have been installed.
+		// Grab all versions and sort them alphabetically go find the
+		// most recent version
 		int i = 0;
-		String winavrkey = null, nextkey = null;
+		List<String> winavrkeys = new ArrayList<String>();
+		String nextkey = null;
 		do {
 			nextkey = WindowsRegistry.getRegistry().getLocalMachineValueName("SOFTWARE\\WinAVR", i);
 			if (nextkey != null) {
-				winavrkey = nextkey;
+				winavrkeys.add(nextkey);
 				i++;
 			}
 		} while (nextkey != null);
 
-		if (winavrkey != null) {
+		if (winavrkeys.size() > 0) {
+			Collections.sort(winavrkeys);
+			String winavrkey = winavrkeys.get(winavrkeys.size() - 1);
+
 			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue("SOFTWARE\\WinAVR",
 					winavrkey);
 			if (winavr != null) {
@@ -133,13 +151,16 @@ public class SystemPathsWin32 {
 		do {
 			nextkey = WindowsRegistry.getRegistry().getLocalMachineKeyName(
 					"SOFTWARE\\Free Software Foundation", i);
-			if (nextkey != null) {
-				winavrkey = nextkey;
+			if (nextkey != null && nextkey.startsWith("WinAVR-")) {
+				winavrkeys.add(nextkey);
 				i++;
 			}
 		} while (nextkey != null);
 
-		if (winavrkey != null) {
+		if (winavrkeys.size() > 0 ) {
+			Collections.sort(winavrkeys);
+			String winavrkey = winavrkeys.get(winavrkeys.size() - 1);
+			
 			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue(
 					"SOFTWARE\\Free Software Foundation\\" + winavrkey, "GCC");
 			if (winavr != null) {

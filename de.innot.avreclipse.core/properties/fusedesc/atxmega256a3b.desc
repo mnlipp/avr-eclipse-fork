@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 01.12.08 15:27-->
+<!--Date: 17.06.10 12:52-->
 <!--Based on: Atmel Part Description File "ATXmega256A3B.xml"-->
 <!--SVN: $Id: FusesReader.java 580 2008-08-13 11:36:22Z innot $-->
 <description mcutype="atxmega256a3b">
@@ -68,11 +68,6 @@
 <value desc="Boot Loader Reset" val="0x00"/>
 <value desc="Application Reset" val="0x01"/>
 </bitfield>
-<bitfield desc="BOD Operation in Active Mode" mask="0x0C" name="BODACT">
-<value desc="BOD enabled in sampled mode" val="0x01"/>
-<value desc="BOD enabled continuously" val="0x02"/>
-<value desc="BOD Disabled" val="0x03"/>
-</bitfield>
 <bitfield desc="BOD Operation in Power-Down Mode" mask="0x03" name="BODPD">
 <value desc="BOD enabled in sampled mode" val="0x01"/>
 <value desc="BOD enabled continuously" val="0x02"/>
@@ -81,6 +76,7 @@
 </fusebyte>
 <fusebyte index="3" name=""/>
 <fusebyte index="4" name="FUSEBYTE4">
+<bitfield desc="External Reset Disable" mask="0x10" name="RSTDISBL"/>
 <bitfield desc="Start-up Time" mask="0x0C" name="SUT">
 <value desc="0 ms" val="0x03"/>
 <value desc="4 ms" val="0x01"/>
@@ -90,16 +86,20 @@
 <bitfield desc="JTAG Interface Enable" mask="0x01" name="JTAGEN"/>
 </fusebyte>
 <fusebyte index="5" name="FUSEBYTE5">
+<bitfield desc="BOD Operation in Active Mode" mask="0x30" name="BODACT">
+<value desc="BOD enabled in sampled mode" val="0x01"/>
+<value desc="BOD enabled continuously" val="0x02"/>
+<value desc="BOD Disabled" val="0x03"/>
+</bitfield>
 <bitfield desc="Preserve EEPROM Through Chip Erase" mask="0x08" name="EESAVE"/>
 <bitfield desc="Brown Out Detection Voltage Level" mask="0x07" name="BODLVL">
 <value desc="1.6 V" val="0x07"/>
-<value desc="1.8 V" val="0x06"/>
-<value desc="2.0 V" val="0x05"/>
-<value desc="2.2 V" val="0x04"/>
-<value desc="2.4 V" val="0x03"/>
-<value desc="2.7 V" val="0x02"/>
-<value desc="2.9 V" val="0x01"/>
-<value desc="3.2 V" val="0x00"/>
+<value desc="1.9 V" val="0x06"/>
+<value desc="2.1 V" val="0x05"/>
+<value desc="2.4 V" val="0x04"/>
+<value desc="2.6 V" val="0x03"/>
+<value desc="2.9 V" val="0x02"/>
+<value desc="3.2 V" val="0x01"/>
 </bitfield>
 </fusebyte>
 </description>

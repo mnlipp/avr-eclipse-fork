@@ -15,17 +15,16 @@
  *******************************************************************************/
 package de.innot.avreclipse.util;
 
-
 /**
  * Utility class to calculate an average download rate.
  * <p>
- * Objects of this class calculate the average rate of a download. To smooth the
- * rate, the download rate of the last <code>samplesize</code> blocks is used.
- * The sample size can be set and has a default of 20.
+ * Objects of this class calculate the average rate of a download. To smooth the rate, the download
+ * rate of the last <code>samplesize</code> blocks is used. The sample size can be set and has a
+ * default of 20.
  * </p>
  * <p>
- * The timing is started with the {@link #start()} method, which should be as
- * close as possible to the actual start of the download.
+ * The timing is started with the {@link #start()} method, which should be as close as possible to
+ * the actual start of the download.
  * </p>
  * Usage example with a sample size of 100:
  * 
@@ -44,23 +43,23 @@ package de.innot.avreclipse.util;
  */
 public class DownloadRateCalculator {
 
-	private final static int DEFAULT_SAMPLE_SIZE = 50;
+	private final static int	DEFAULT_SAMPLE_SIZE	= 50;
 
 	// Ring buffer for the last time/bytes read
-	private long[][] samples;
+	private long[][]			samples;
 
 	// Index for the ring buffer
-	private int currentindex;
+	private int					currentindex;
 
 	// the start time of the download
-	private long starttime;
+	private long				starttime;
 
 	// total number of bytes downloaded
-	private int totalbytes;
+	private int					totalbytes;
 
 	// Number of nanoseconds in a second
 	// Just a convenience so I don't miss a zero.
-	private final static long ONEBILLION = 1000 * 1000 * 1000;
+	private final static long	ONEBILLION			= 1000 * 1000 * 1000;
 
 	/**
 	 * Create a new DownloadRateCalculator with the default sample size.
@@ -84,24 +83,21 @@ public class DownloadRateCalculator {
 	/**
 	 * Sets the size of the samples buffer.
 	 * <p>
-	 * While high sample sizes will result in a smoother rate, they will also
-	 * cause the average rate to lag behind the real download rate.<br>
-	 * Very small samplesizes will make the returned rate erratic because the
-	 * time for a Stream.read() will differ dramatically for single calls
-	 * (depending on the fill state of the internal buffers).
+	 * While high sample sizes will result in a smoother rate, they will also cause the average rate
+	 * to lag behind the real download rate.<br>
+	 * Very small samplesizes will make the returned rate erratic because the time for a
+	 * Stream.read() will differ dramatically for single calls (depending on the fill state of the
+	 * internal buffers).
 	 * </p>
 	 * <p>
-	 * A good samplesize is probably around 10% of the number of blocks and at
-	 * least 20.
+	 * A good samplesize is probably around 10% of the number of blocks and at least 20.
 	 * </p>
 	 * 
 	 * @param size
 	 */
 	public void setSampleSize(int size) {
-		if (size < 3) {
-			size = 3;
-		}
-		samples = new long[size][2];
+
+		samples = new long[(size < 3 ? 3 : size)][2];
 		currentindex = 0;
 	}
 
@@ -125,13 +121,12 @@ public class DownloadRateCalculator {
 	/**
 	 * Return the current average download rate in <code>bytes per second</code>.
 	 * <p>
-	 * The returned rate is the average of the last <code>samplesize</code>
-	 * rates.
+	 * The returned rate is the average of the last <code>samplesize</code> rates.
 	 * </p>
 	 * 
 	 * @param bytesread
-	 *            The number of bytes read since the last call to this method
-	 *            (or since instantiation)
+	 *            The number of bytes read since the last call to this method (or since
+	 *            instantiation)
 	 * @return long with the current download rate in Bytes per Second
 	 */
 	public long getCurrentRate(int bytesread) {
@@ -149,7 +144,7 @@ public class DownloadRateCalculator {
 		// Get the least recent time/totalbytes point and calculate the download
 		// rate from that point to the current time/totalbytes
 		// The oldest point is the one just one ahead in the buffer
-		int fromindex = currentindex == samples.length -1 ? 0 : currentindex;
+		int fromindex = currentindex == samples.length - 1 ? 0 : currentindex;
 		long fromtime = samples[fromindex][0];
 		long frombytes = samples[fromindex][1];
 
@@ -163,15 +158,14 @@ public class DownloadRateCalculator {
 
 	}
 
-	private final static int KBYTE = 1024;
-	private final static int MBYTE = KBYTE * KBYTE;
+	private final static int	KBYTE	= 1024;
+	private final static int	MBYTE	= KBYTE * KBYTE;
 
 	/**
 	 * Returns the given current rate in a human readable format.
 	 * <p>
-	 * The returned String is automatically adjusted to MByte / KByte / Bytes
-	 * per second. Changeover to the next higher unit is done at 2.000 of the
-	 * previous unit.
+	 * The returned String is automatically adjusted to MByte / KByte / Bytes per second. Changeover
+	 * to the next higher unit is done at 2.000 of the previous unit.
 	 * </p>
 	 * 
 	 * @return <code>String</code> with the rate in human readable format.

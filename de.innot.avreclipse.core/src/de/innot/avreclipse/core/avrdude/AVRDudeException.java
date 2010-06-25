@@ -22,8 +22,8 @@ import java.io.IOException;
  * Wrapper for all Exceptions that may be thrown when accessing avrdude.
  * <p>
  * This Exceptions contains a reason, set when creating the Exception and readable with
- * {@link #getReason()}. This is used by the <code>AVRDudeErrorDialog</code> to display a human
- * readable detailed description of the error.
+ * {@link #getReason()}. This is used by the {@link AVRDudeErrorDialog} to display a human readable
+ * detailed description of the error.
  * </p>
  * 
  * @author Thomas Holland
@@ -35,7 +35,7 @@ public class AVRDudeException extends Exception {
 	private static final long	serialVersionUID	= 1L;
 
 	public enum Reason {
-		UNKNOWN, NO_AVRDUDE_FOUND, CANT_ACCESS_AVRDUDE, CONFIG_NOT_FOUND, UNKNOWN_MCU, UNKNOWN_PROGRAMMER, NO_PROGRAMMER, PORT_BLOCKED, NO_USB, TIMEOUT, PARSE_ERROR, INVALID_CWD, USER_CANCEL, SYNC_FAIL, INIT_FAIL, NO_TARGET_POWER;
+		UNKNOWN, NO_AVRDUDE_FOUND, CANT_ACCESS_AVRDUDE, CONFIG_NOT_FOUND, UNKNOWN_MCU, UNKNOWN_PROGRAMMER, NO_PROGRAMMER, PORT_BLOCKED, NO_USB, TIMEOUT, PARSE_ERROR, INVALID_CWD, USER_CANCEL, SYNC_FAIL, INIT_FAIL, NO_TARGET_POWER, INVALID_PORT;
 	}
 
 	/** The Reason for the exception */

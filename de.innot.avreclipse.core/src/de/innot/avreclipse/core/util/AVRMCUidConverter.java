@@ -51,6 +51,11 @@ public class AVRMCUidConverter {
 		if (mcuid.startsWith("at")) {
 			return mcuid.toUpperCase();
 		}
+		if (mcuid.startsWith("32")) {
+			// AVRDude now supports some AVR32 processors
+			// Even though the plugin does not we still accept the name
+			return mcuid.toUpperCase();
+		}
 		if (mcuid.startsWith("avr")) {
 			// don't include the generic family names
 			return null;

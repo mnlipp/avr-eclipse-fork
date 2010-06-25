@@ -77,6 +77,16 @@
  </extension>
 	
  	
+ 	
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+		<propertyTester
+			class="de.innot.avreclipse.core.ProjectTypeTester"
+			id="de.innot.avreclipse.core.projectTypeTester"
+			namespace="de.innot.avreclipse.core"
+			properties="isStaticLib"
+			type="org.eclipse.core.resources.IResource">
+		</propertyTester>
+	</extension>
 
 </plugin>
 

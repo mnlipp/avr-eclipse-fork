@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 01.12.08 15:27-->
+<!--Date: 17.06.10 12:52-->
 <!--Based on: Atmel Part Description File "AT90USB1286.xml"-->
 <!--SVN: $Id$-->
 <description mcutype="at90usb1286">

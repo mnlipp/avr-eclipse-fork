@@ -484,9 +484,10 @@ public class ExternalCommandLauncher {
 	private String winQuote(String s) {
 		if (!needsQuoting(s))
 			return s;
-		s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
-		s = s.replaceAll("([\\\\]*)\\z", "$1$1");
-		return "\"" + s + "\"";
+		
+		String qs = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
+		qs = qs.replaceAll("([\\\\]*)\\z", "$1$1");
+		return "\"" + qs + "\"";
 	}
 
 	/**

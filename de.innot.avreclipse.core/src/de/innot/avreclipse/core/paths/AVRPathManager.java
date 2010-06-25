@@ -210,6 +210,15 @@ public class AVRPathManager implements IPathProvider {
 	}
 
 	/**
+	 * Checks if the path managed by this manager is optional. 
+	 * 
+	 * @return <code>true</code> if path is not required for basic plugin operation.
+	 */
+	public boolean isOptional() {
+		return fAvrPath.isOptional();
+	}
+	
+	/**
 	 * Checks if the current path is valid.
 	 * <p>
 	 * Some paths are required, some are optional.

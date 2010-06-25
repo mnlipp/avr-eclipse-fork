@@ -16,10 +16,12 @@
 package de.innot.avreclipse.core.avrdude;
 
 import java.io.FileNotFoundException;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.List;
 
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -180,6 +182,7 @@ public abstract class BaseBytesProperties {
 
 		fWriteFlag = source.fWriteFlag;
 		fUseFile = source.fUseFile;
+		fFileName = source.fFileName;
 		fByteValues = new ByteValues(source.fByteValues);
 	}
 
@@ -675,6 +678,13 @@ public abstract class BaseBytesProperties {
 
 		String fusevaluestring = fPrefs.get(KEY_BYTEVALUES, "");
 
+		// Check if the mcu id is different than the parent. In that case we
+		// need a new ByteValues object
+		if (!(fMCUid.equals(parentmcuid))) {
+			// copy the old byte values to a new ByteValues Object for the given MCU
+			fByteValues = new ByteValues(getType(), fMCUid);
+		}
+
 		// Clear the old values
 		fByteValues.clearValues();
 
@@ -724,6 +734,13 @@ public abstract class BaseBytesProperties {
 	}
 
 	/**
+	 * @return <code>true</code> if the object has unsaved changes
+	 */
+	public boolean isDirty() {
+		return fDirty;
+	}
+
+	/**
 	 * Test if this Object is valid for the given MCU.
 	 * 
 	 * @return <code>true</code> if the current byte values (either immediate or from a file) are
@@ -757,21 +774,24 @@ public abstract class BaseBytesProperties {
 
 	}
 
-	private IFile getFileFromLocation(IPath location) throws CoreException {
+	private IFile getFileFromLocation(IPath location) {
+
+		// Convert the IPath to an URI (findFilesForLocation(IPath) is deprecated)
+		URI locationAsURI = URIUtil.toURI(location);
 
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
 
-		IFile[] files = root.findFilesForLocation(location);
-		if (files.length == 0) {
-			// throw a FileNotFoundException
-			IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID, "File ["
-					+ location.toOSString() + "] not found.", new FileNotFoundException(location
-					.toOSString()));
-			throw new CoreException(status);
+		try {
+			IFile[] files = root.findFilesForLocationURI(locationAsURI);
+			if (files.length != 0) {
+				return files[0];
+			}
+		} catch (IllegalArgumentException iae) {
+			// The caller will throw the appropriate FIleNotFound Exception
 		}
 
-		return files[0];
+		return null;
 
 	}
 
