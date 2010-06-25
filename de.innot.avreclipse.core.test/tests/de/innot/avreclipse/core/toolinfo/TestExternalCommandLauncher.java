@@ -31,7 +31,7 @@ public class TestExternalCommandLauncher {
 
 		// Test 2: the LogEventListener
 		final List<StreamSource> sources = new ArrayList<StreamSource>();
-		final List<String> lines = new ArrayList<String>(); 
+		final List<String> lines = new ArrayList<String>();
 		arguments = new ArrayList<String>(1);
 		arguments.add("test2");
 		testlauncher = new ExternalCommandLauncher(command, arguments);
@@ -41,16 +41,13 @@ public class TestExternalCommandLauncher {
 				lines.add(line);
 			}
 
-			@Override
 			public void init(IProgressMonitor monitor) {
 			}
 
-			@Override
 			public Reason getAbortReason() {
 				return null;
 			}
 
-			@Override
 			public String getAbortLine() {
 				return null;
 			}
