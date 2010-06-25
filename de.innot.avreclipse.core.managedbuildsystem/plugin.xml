@@ -17,14 +17,17 @@
             scope="project"/>
 		<buildOutputProvider>
 			<open/>
-			<scannerInfoConsoleParser class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"/>
+			<scannerInfoConsoleParser 
+				class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"
+				compilerCommands="avr-gcc,avr-g++" />
 		</buildOutputProvider>
 		<scannerInfoProvider providerId="specsFile">
 			<run
 				arguments="-E -P -v -dD ${plugin_state_location}/specs.c"
 				command="avr-gcc"
 				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
-			<scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
+			<scannerInfoConsoleParser 
+				class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
 		</scannerInfoProvider>
 	</extension>
 
@@ -108,12 +111,23 @@
 				name="Other GCC Flags"
 				category="de.innot.avreclipse.asm.category.general" 
 				valueType="string"  />
+
+	<!--	Bug 2485661: added a new option to select the assembler include path -->
+	<!--	'-I' only works for the preprocessor, so an '-Wa,-I' option has been added -->
+			<optionCategory id="de.innot.avreclipse.asm.category.paths" 
+				name="Paths" />
 			<option id="de.innot.avreclipse.asm.option.include.paths"
-				name="Include paths (-I)"
-				category="de.innot.avreclipse.asm.category.general" 
+				name="#include paths for preprocessor(-I)"
+				category="de.innot.avreclipse.asm.category.paths" 
 				valueType="includePath"
 				browseType="directory"
 				command="-I" />
+			<option id="de.innot.avreclipse.asm.option.include.gaspaths"
+				name=".include paths for assembler(-Wa,-I)"
+				category="de.innot.avreclipse.asm.category.paths" 
+				valueType="includePath"
+				browseType="directory"
+				command="-Wa,-I" />
 
 			<optionCategory id="de.innot.avreclipse.assembler.category.debug" 
 				name="Debugging" />
@@ -1555,6 +1569,13 @@
 				category="de.innot.avreclipse.toolchain.category.addtools"
 				valueType="boolean"
 				tip="Uploads the application to the target MCU" >
+				<!-- Bug 2454094: Avrdude should only be an option on applications, not on static libs -->
+				<enablement 
+					type="ALL">
+					<checkBuildProperty
+						property="org.eclipse.cdt.build.core.buildArtefactType"
+						value="de.innot.avreclipse.buildArtefactType.app" />
+				</enablement>
 			</option>
  	
  			

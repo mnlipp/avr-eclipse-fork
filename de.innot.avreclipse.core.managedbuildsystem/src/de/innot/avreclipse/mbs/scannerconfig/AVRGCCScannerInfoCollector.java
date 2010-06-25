@@ -40,6 +40,7 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
  * </p>
  * 
  */
+@SuppressWarnings("restriction")
 public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 		IScannerInfoCollector3, IManagedScannerInfoCollector {
 
@@ -50,7 +51,7 @@ public class AVRGCCScannerInfoCollector extends PerProjectSICollector implements
 	 *      org.eclipse.cdt.make.core.scannerconfig.ScannerInfoTypes)
 	 */
 	@Override
-	public List<?> getCollectedScannerInfo(Object resource, ScannerInfoTypes type) {
+	public List<String> getCollectedScannerInfo(Object resource, ScannerInfoTypes type) {
 		// Check if the requested ScannerInfoType is TARGET_SPECIFIC_OPTION
 		// If no, let the superclass handle this.
 		// If yes, return the "-mmcu" compiler option with the project MCDU

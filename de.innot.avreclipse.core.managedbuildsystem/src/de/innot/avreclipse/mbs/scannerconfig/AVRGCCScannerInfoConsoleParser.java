@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IProject;
  * "Based" on ManagedGCCScannerInfoConsoleParser, which unfortunately is
  * not exposed from the org.eclipse.cdt.managedbuilder.core plugin.
  */
+@SuppressWarnings("restriction")
 public class AVRGCCScannerInfoConsoleParser extends GCCScannerInfoConsoleParser {
 	Boolean fManagedBuildOnState;
 
