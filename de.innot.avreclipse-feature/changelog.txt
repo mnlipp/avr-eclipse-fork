@@ -13,8 +13,30 @@ Version 2.4.0
 
 Changed / Improved:
 -----------------------------
-* Changed default C Language Standard to 'gnu99' to be more compatible with the
-  avr-libc. (Feature Request 2459280)
+
+
+================================================================================
+Version 2.3.2 [23. June 2010]
+
+Changed / Improved:
+-----------------------------
+* Fuse description files updated to AVR Tools Build 700 (4.18 SP2)
+* Bug 2485661: Added a new Assembler tool settings option for assembler specific
+               paths (-Wa,-I)
+* Bug 2459280: Changed default C Language Standard to 'gnu99' to be more compatible with the
+               avr-libc.
+* Plugin download is now a P2 repository which can be installed via "Install New Software..."
+               
+Fixes:
+-----------------------------
+* Bug 2453936: AVR specific GUI Elements visible in all Perspectives
+* Bug 2453946: ClassCastExceptions / [All Configurations]
+               Partial fix -- no Exceptions anymore but MultiConfig still not supported
+* Bug 2454094: Remove AVRDude settings from static library projects
+* Bug 2494131: Invalid optional paths block the Paths Preference page
+* Bug 2715567: Tool Settings: Assembler Debug Format not inhibited
+* Bug 2872447: getWinAVRBasePath throws exception on Vista 64
+* avr/io.h parser updated for recent changes in the avr/io.h format
 
 ================================================================================
 Version 2.3.1 [04. December 2008]
