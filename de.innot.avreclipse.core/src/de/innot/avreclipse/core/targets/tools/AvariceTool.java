@@ -258,8 +258,8 @@ public class AvariceTool extends AbstractTool implements IProgrammerTool, IGDBSe
 		String description = "";
 
 		if (ATTR_CMD_NAME.equals(attr)) {
-			// Check that the command is valid by executing avarice with parameter "-?" and check
-			// that we get some output.
+			// Check that the command is valid by executing avarice with parameter "--known-devices" and check
+			// that the output is long enough.
 			try {
 				List<String> stdout;
 

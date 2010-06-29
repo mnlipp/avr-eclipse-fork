@@ -270,9 +270,14 @@ public class AvrdudeTool extends AbstractTool implements IProgrammerTool {
 			}
 
 			return new ValidationResult(Result.ERROR, "Invalid Command for AVRDude");
+		} else if (ATTR_USE_CONSOLE.equals(attr)) {
+			return ValidationResult.OK_RESULT;
+		} else if (ATTR_VERBOSITY.equals(attr)) {
+			return ValidationResult.OK_RESULT;
+		} else {
+			return new ValidationResult(Result.UNKNOWN_ATTRIBUTE, attr);
 		}
 
-		return null;
 	}
 
 	/*

@@ -196,7 +196,7 @@ public class AVRHardwareConfigValidator implements ITargetConfigConstants {
 						+ progtool.getName();
 				return new ValidationResult(Result.ERROR, msg);
 			}
-			if (!progtoolOK) {
+			if (!gdbserverOK) {
 				String msg = "Programmer interface not supported by gdbserver "
 						+ progtool.getName();
 				return new ValidationResult(Result.WARNING, msg);
