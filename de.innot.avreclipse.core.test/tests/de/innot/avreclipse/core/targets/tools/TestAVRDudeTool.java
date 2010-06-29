@@ -33,6 +33,8 @@ import org.junit.Test;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.Result;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
 import de.innot.avreclipse.core.targets.ToolManager;
@@ -220,7 +222,26 @@ public class TestAVRDudeTool {
 	 */
 	@Test
 	public void testValidate() {
-		fail("Not yet implemented");
+
+		String[] attributes = avrdude.getAttributes();
+		
+		// Generic test for all supported attributes
+		for (String attr : attributes) {
+			ValidationResult result = avrdude.validate(attr);
+			assertNotNull("Null ValidationResult for "+ attr, result);
+		}
+
+		// Test invalid attribute, should return Null
+		ValidationResult result = avrdude.validate("foobar");
+		assertEquals("Unexpected ValidationResult", Result.UNKNOWN_ATTRIBUTE, result.result);
+
+		// Specific tests
+		
+		// As avrdude may or may not be installed for the test we can only check if validate()
+		// returns a valid ValidationResult
+		result = avrdude.validate(AvrdudeTool.ATTR_CMD_NAME);
+		assertNotNull("Null ValidationResult", result);
+
 	}
 
 }

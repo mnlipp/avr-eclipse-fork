@@ -33,9 +33,11 @@ import org.junit.Test;
 import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.Result;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
 import de.innot.avreclipse.core.targets.ToolManager;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 
 /**
  * @author Thomas Holland
@@ -223,7 +225,34 @@ public class TestAvariceTool {
 	 */
 	@Test
 	public void testValidate() {
-		fail("Not yet implemented");
+
+		String[] attributes = avarice.getAttributes();
+		
+		// Generic test for all supported attributes
+		for (String attr : attributes) {
+			ValidationResult result = avarice.validate(attr);
+			assertNotNull("Null ValidationResult for "+ attr, result);
+		}
+
+		// Test invalid attribute, should return Null
+		ValidationResult result = avarice.validate("foobar");
+		assertEquals("Unexpected ValidationResult", Result.UNKNOWN_ATTRIBUTE, result.result);
+
+		// Specific tests
+		
+		// As avarice may or may not be installed for the test we can only check if validate()
+		// returns a valid ValidationResult
+		result = avarice.validate(AvariceTool.ATTR_CMD_NAME);
+		assertNotNull("Null ValidationResult for ATTR_CMD_NAME", result);
+		
+		// Test the other supported attributes
+		result = avarice.validate(AvariceTool.ATTR_USE_CONSOLE);
+		assertNotNull("Null ValidationResult for ATTR_USE_CONSOLE", result);
+		assertEquals("ATTR_USE_CONSOLE should be supported", Result.OK, result.result);
+
+		
+		
+
 	}
 
 	@Test
