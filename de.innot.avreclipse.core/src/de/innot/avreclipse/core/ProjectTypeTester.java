@@ -75,7 +75,7 @@ public class ProjectTypeTester extends PropertyTester {
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String,
 	 * java.lang.Object[], java.lang.Object)
 	 */
-	//@Override
+	// @Override
 	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 
 		if (!(receiver instanceof IResource)) {
@@ -85,24 +85,37 @@ public class ProjectTypeTester extends PropertyTester {
 
 		if (KEY_STATIC_LIB.equalsIgnoreCase(property)) {
 			IManagedProject p = getManagedProject((IResource) receiver);
-			IBuildObjectProperties props = p.getBuildProperties();
-			IBuildProperty prop = props.getProperty("org.eclipse.cdt.build.core.buildArtefactType");
-			IBuildPropertyValue value = prop.getValue();
-			if (value.getId().equals("de.innot.avreclipse.buildArtefactType.staticLib")) {
-				return true;
+			if (p != null) {
+				IBuildObjectProperties props = p.getBuildProperties();
+				IBuildProperty prop = props
+						.getProperty("org.eclipse.cdt.build.core.buildArtefactType");
+
+				// Bug 3023252: Makefile Projects don't have any properties, so prop may be null
+				if (prop != null) {
+					IBuildPropertyValue value = prop.getValue();
+					if (value.getId().equals("de.innot.avreclipse.buildArtefactType.staticLib")) {
+						return true;
+					}
+				}
 			}
 		}
 
 		if (KEY_APP.equalsIgnoreCase(property)) {
 			IManagedProject p = getManagedProject((IResource) receiver);
-			IBuildObjectProperties props = p.getBuildProperties();
-			IBuildProperty prop = props.getProperty("org.eclipse.cdt.build.core.buildArtefactType");
-			IBuildPropertyValue value = prop.getValue();
-			if (value.getId().equals("de.innot.avreclipse.buildArtefactType.app")) {
-				return true;
+			if (p != null) {
+				IBuildObjectProperties props = p.getBuildProperties();
+				IBuildProperty prop = props
+						.getProperty("org.eclipse.cdt.build.core.buildArtefactType");
+
+				// Bug 3023252: Makefile Projects don't have any properties, so prop may be null
+				if (prop != null) {
+					IBuildPropertyValue value = prop.getValue();
+					if (value.getId().equals("de.innot.avreclipse.buildArtefactType.app")) {
+						return true;
+					}
+				}
 			}
 		}
-
 		return false;
 	}
 
