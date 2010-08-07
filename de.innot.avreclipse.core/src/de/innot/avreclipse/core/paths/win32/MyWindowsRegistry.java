@@ -34,8 +34,9 @@ import org.eclipse.cdt.utils.WindowsRegistry;
  * registry.
  * </p>
  * <p>
- * Instead of using the JNI it will start the Windows <em>'reg query'</em> command and parse its output. In addition
- * to that it will also automatically look in the '\Wow6432Node' subnode if a key can not be found.
+ * Instead of using the JNI it will start the Windows <em>'reg query'</em> command and parse its
+ * output. In addition to that it will also automatically look in the '\Wow6432Node' subnode if a
+ * key can not be found.
  * </p>
  * <p>
  * Currently only the methods {@link #getLocalMachineValue(String, String)} and
@@ -78,7 +79,7 @@ public class MyWindowsRegistry {
 			try {
 				int c;
 				while ((c = is.read()) != -1)
-					sb.append((char)c);
+					sb.append((char) c);
 			} catch (IOException e) {
 				;
 			}
@@ -107,18 +108,12 @@ public class MyWindowsRegistry {
 	/** Start of the Registry value type. */
 	private static final String			REGTYPE_TOKEN		= "REG_";
 
-	/** The Current User branch of the registry. */
-	// Currently unused
-	// private static final String KEY_CURRUSER = "HKCU\\";
-
-	/** The local machine branch of the registry. */
-	private static final String			KEY_LOCALMACHINE	= "HKLM\\";
-
+	
 	private static MyWindowsRegistry	fInstance;
 	private static WindowsRegistry		fCDTRegistryInstance;
 
 	/** Flag to inhibit calls to the CDT WindowsRegistry class. Used for test purposes. */
-	private Boolean						fInhibitOriginal;
+	private boolean						fInhibitOriginal	= true;
 
 	/**
 	 * Get the singleton instance of this class.
@@ -138,7 +133,7 @@ public class MyWindowsRegistry {
 	/**
 	 * Inhibit usage of the original CDT WindowsRegistry class, always use the fallback method.
 	 * <p>
-	 * This call is intended only for testing this class.
+	 * This method is intended only for testing this class.
 	 * </p>
 	 * 
 	 * @param inhibit
@@ -152,32 +147,49 @@ public class MyWindowsRegistry {
 	/**
 	 * @see WindowsRegistry#getLocalMachineValue(String, String)
 	 */
-	public String getLocalMachineValue(String subkey, String name) {
+	public String getKeyValue(String subkey, String name) {
 		String result;
 
 		// First try the CDT WindowsRegistry Class
 		if (fCDTRegistryInstance != null && !fInhibitOriginal) {
-			result = fCDTRegistryInstance.getLocalMachineValue(subkey, name);
+			// remove HKLM / HKEY_LOCAL_MACHINE from key
+			// this gets added by getLacalMachineValue
+			String key  = subkey.replaceFirst("HKLM\\\\", "");
+			key = key.replaceFirst("HKEY_LOCAL_MACHINE\\\\", "");
+			result = fCDTRegistryInstance.getLocalMachineValue(key, name);
 			if (result != null) {
 				// Original WindowsRegistry class was successful
 				return result;
 			}
 		}
 
-		// Original WindowsRegistry failed: Try the fallback
-		result = getRegValue(KEY_LOCALMACHINE + subkey, name);
-		return result;
+		// Original CDT WindowsRegistry failed: Try the fallback
+		RegistryKeyValue[] results;
+		String[] testkeys = convertkeys(subkey);
+		for (String k : testkeys) {
+			String parameters = "\"" + k + "\" /v " + name;
+			results = executeKeyValueCommand(parameters);
+			if (results.length > 0) {
+				return results[0].value;
+			}
+		}
+
+		return null;
 	}
 
 	/**
 	 * @see WindowsRegistry#getLocalMachineValueName(String, int)
 	 */
-	public String getLocalMachineValueName(String subkey, int index) {
+	public String getKeyName(String subkey, int index) {
 		String result;
 
 		// First try the CDT WindowsRegistry Class
 		if (fCDTRegistryInstance != null && !fInhibitOriginal) {
-			result = fCDTRegistryInstance.getLocalMachineValueName(subkey, index);
+			// remove HKLM / HKEY_LOCAL_MACHINE from key
+			// this gets added by getLacalMachineValue
+			String key  = subkey.replaceFirst("HKLM\\\\", "");
+			key = key.replaceFirst("HKEY_LOCAL_MACHINE\\\\", "");
+			result = fCDTRegistryInstance.getLocalMachineValueName(key, index);
 			if (result != null) {
 				// Original WindowsRegistry class was successful
 				return result;
@@ -185,63 +197,54 @@ public class MyWindowsRegistry {
 		}
 
 		// Original WindowsRegistry failed: Try the fallback
-		result = getRegNames(KEY_LOCALMACHINE + subkey, index);
-		return result;
-
-	}
-
-	private String getRegValue(String key, String pathName) {
 		RegistryKeyValue[] results;
-
-		results = getRegValueDefault(key, pathName);
-		if (results.length == 0) {
-			results = getRegValue6432(key, pathName);
+		String[] testkeys = convertkeys(subkey);
+		for (String k : testkeys) {
+			String parameters = "\"" + k + "\" /s";
+			results = executeKeyValueCommand(parameters);
+			if (results.length > index) {
+				return results[index].key;
+			}
 		}
 
-		if (results.length > 0) {
-			return results[0].value;
-		} else {
-			return null;
+		return null;
+	}
+
+	public List<String> getSubkeys(String key) {
+		List<String> subkeys = new ArrayList<String>();
+
+		// First try the CDT WindowsRegistry Class
+		if (fCDTRegistryInstance != null && !fInhibitOriginal) {
+			// remove HKLM / HKEY_LOCAL_MACHINE from key
+			// this gets added by getLacalMachineValue
+			String subkey  = key.replaceFirst("HKLM\\\\", "");
+			subkey = subkey.replaceFirst("HKEY_LOCAL_MACHINE\\\\", "");
+
+			int i = 0;
+			String nextkey = null;
+			do {
+				nextkey = fCDTRegistryInstance.getLocalMachineValueName(subkey, i);
+				if (nextkey != null) {
+					subkeys.add(nextkey);
+					i++;
+				}
+			} while (nextkey != null);
+
+			if (subkeys.size() != 0) {
+				// Original WindowsRegistry class was successful
+				return subkeys;
+			}
 		}
-	}
 
-	private RegistryKeyValue[] getRegValueDefault(String key, String pathName) {
-		String parameters = "\"" + key + "\" /v " + pathName;
-		return executeRegCommand(parameters);
-
-	}
-
-	private RegistryKeyValue[] getRegValue6432(String key, String pathName) {
-		String key32 = key.replaceFirst("SOFTWARE", "SOFTWARE\\\\Wow6432Node");
-		String parameters = "\"" + key32 + "\" /v " + pathName;
-		return executeRegCommand(parameters);
-	}
-
-	private String getRegNames(String key, int index) {
-		RegistryKeyValue[] results;
-
-		results = getRegNamesDefault(key);
-		if (results.length == 0) {
-			results = getRegNames6432(key);
+		// Original WindowsRegistry failed: Try the fallback
+		subkeys = executeSubKeysCommand("\"" + key + "\"");
+		if (subkeys.size() == 0) {
+			// Try Win64 location
+			String key32 = key.replaceFirst("SOFTWARE", "SOFTWARE\\\\Wow6432Node");
+			subkeys = executeSubKeysCommand(key32);
 		}
 
-		if (index < results.length) {
-			return results[index].key;
-		} else {
-			return null;
-		}
-	}
-
-	private RegistryKeyValue[] getRegNamesDefault(String key) {
-		String parameters = "\"" + key + "\" /s";
-		return executeRegCommand(parameters);
-
-	}
-
-	private RegistryKeyValue[] getRegNames6432(String key) {
-		String key6432 = key.replaceFirst("SOFTWARE", "SOFTWARE\\\\Wow6432Node");
-		String parameters = "\"" + key6432 + "\" /s";
-		return executeRegCommand(parameters);
+		return subkeys;
 	}
 
 	/**
@@ -252,22 +255,28 @@ public class MyWindowsRegistry {
 	 *            for the "reg query" call
 	 * @return array of Key/Value objects. The array may be empty, but never <code>null</code>.
 	 */
-	private RegistryKeyValue[] executeRegCommand(String parameter) {
-		String command = REGQUERY_UTIL + " " + parameter;
+	private RegistryKeyValue[] executeKeyValueCommand(String parameter) {
 		List<RegistryKeyValue> results = new ArrayList<RegistryKeyValue>();
 
-		try {
-			Process process = Runtime.getRuntime().exec(command);
-			StreamReader reader = new StreamReader(process.getInputStream());
-			reader.start();
-			process.waitFor();
-			reader.join();
-			String[] alllines = reader.getResult();
-			for (String line : alllines) {
-				if (line.indexOf(REGTYPE_TOKEN) != -1) {
-					// line contains "REG_"
-					// split it into key, type, and value
-					String[] items = line.split("\t");
+		String[] alllines = executeRegCommand(parameter);
+		for (String line : alllines) {
+			if (line.indexOf(REGTYPE_TOKEN) != -1) {
+				// line contains "REG_"
+				// split it into key, type, and value
+				String[] items;
+				
+				// Problem: 'reg query' on win32 separtes key/type/value with tabs
+				// on win64 they are separated by four spaces.
+				String trimmedline = line.trim();
+				if (trimmedline.contains("\t")) {
+					items = trimmedline.split("\t");
+				} else if (trimmedline.contains("    ")) {
+					items = trimmedline.split("    ");
+				} else {
+					// not field separator found
+					break;
+				}
+				if (items.length >= 3) {
 					RegistryKeyValue keyvalue = new RegistryKeyValue();
 					keyvalue.key = items[0].trim();
 					keyvalue.type = items[1].trim();
@@ -275,12 +284,57 @@ public class MyWindowsRegistry {
 					results.add(keyvalue);
 				}
 			}
-		} catch (Exception e) {
-			// In case of an exception we return what we have found so far (which may be nothing =
-			// empty array)
 		}
 
 		return results.toArray(new RegistryKeyValue[results.size()]);
 	}
 
+	/**
+	 * Executes "reg query" with the given parameter string, parses the output and returns an array
+	 * of subkey Strings. If the call fails in any way an empty array is returned.
+	 * 
+	 * @param parameter
+	 *            for the "reg query" call
+	 * @return array of String objects. The array may be empty, but never <code>null</code>.
+	 */
+	private List<String> executeSubKeysCommand(String parameter) {
+		List<String> allkeys = new ArrayList<String>();
+		String[] alllines = executeRegCommand(parameter);
+		for (String line : alllines) {
+			if (line.indexOf("HKEY_") != -1) {
+				allkeys.add(line);
+			}
+		}
+		return allkeys;
+	}
+
+	private String[] executeRegCommand(String parameter) {
+		String command = REGQUERY_UTIL + " " + parameter;
+		String[] result = {};
+
+		try {
+			Process process = Runtime.getRuntime().exec(command);
+			StreamReader reader = new StreamReader(process.getInputStream());
+			reader.start();
+			process.waitFor();
+			reader.join();
+			result = reader.getResult();
+		} catch (Exception e) {
+			// In case of an exception we return what we have found so far (which may be nothing =
+			// empty array)
+		}
+
+		return result;
+
+	}
+
+	private String[] convertkeys(String key) {
+		String key32 = key.replaceFirst("SOFTWARE", "SOFTWARE\\\\Wow6432Node");
+
+		String[] allkeys = new String[2];
+		allkeys[0] = key;
+		allkeys[1] = key32;
+		return allkeys;
+
+	}
 }

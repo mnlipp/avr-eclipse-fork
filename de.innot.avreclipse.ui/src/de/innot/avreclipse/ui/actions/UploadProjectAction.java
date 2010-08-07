@@ -19,10 +19,13 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.List;
 
+import org.eclipse.cdt.core.model.ICElement;
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -129,12 +132,28 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 		}
 		IProject project = null;
 
-		// See if the given selection is an IProject (directly or via IAdaptable
+		// See if the given is an IProject (directly or via IAdaptable)
 		if (item instanceof IProject) {
 			project = (IProject) item;
+		} else if (item instanceof IResource) {
+			project = ((IResource) item).getProject();
 		} else if (item instanceof IAdaptable) {
 			IAdaptable adaptable = (IAdaptable) item;
 			project = (IProject) adaptable.getAdapter(IProject.class);
+			if (project == null) {
+				// Try ICProject -> IProject
+				ICProject cproject = (ICProject) adaptable.getAdapter(ICProject.class);
+				if (cproject == null) {
+					// Try ICElement -> ICProject -> IProject
+					ICElement celement = (ICElement) adaptable.getAdapter(ICElement.class);
+					if (celement != null) {
+						cproject = celement.getCProject();
+					}
+				}
+				if (cproject != null) {
+					project = cproject.getProject();
+				}
+			}
 		}
 
 		fProject = project;

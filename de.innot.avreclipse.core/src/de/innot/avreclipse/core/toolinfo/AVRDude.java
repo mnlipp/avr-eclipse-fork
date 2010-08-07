@@ -112,8 +112,11 @@ public class AVRDude implements IMCUProvider {
 	private final static String				fCommandName		= "avrdude";
 
 	/** The Path provider for the avrdude executable */
-	private final IPathProvider				fPathProvider		= new AVRPathProvider(
-																		AVRPath.AVRDUDE);
+	private final IPathProvider					fPathProvider		= new AVRPathProvider(
+																			AVRPath.AVRDUDE);
+
+	/** Bug 3023718: Remember the last MCU connected to a given programmer */
+	private final Map<ProgrammerConfig, String>	fLastMCUtypeMap		= new HashMap<ProgrammerConfig, String>();
 
 	private long							fLastAvrdudeFinish	= 0L;
 
@@ -303,12 +306,17 @@ public class AVRDude implements IMCUProvider {
 		// does not start with a whitespace
 		StringBuffer result = new StringBuffer();
 
-		// copy every line from the config file until we hit a single ';' in the first column
+		// TODO This still-in-section matcher is probably to simple, maybe try
+		// to find the ";" marking the end of a section (which requires parsing
+		// the subsections)
+		Pattern section = Pattern.compile("\\s+.*");
+		Matcher m;
 
 		int index = entry.linenumber;
 		while (true) {
 			String line = configcontent.get(index++);
-			if (line.startsWith(";")) {
+			m = section.matcher(line);
+			if (!m.matches()) {
 				break;
 			}
 			result.append(line.trim()).append('\n');
@@ -331,27 +339,58 @@ public class AVRDude implements IMCUProvider {
 			monitor.beginTask("Getting attached MCU", 100);
 			if (config == null)
 				throw new AVRDudeException(Reason.NO_PROGRAMMER, "", null);
-			List<String> configoptions = config.getArguments();
-			configoptions.add("-pm16");
 
-			List<String> stdout = runCommand(configoptions, monitor, false, null, config);
-			if (stdout == null) {
-				return null;
+			// Bug 3023718: List of avrdude mcu id's to test. The first entry will be replaced
+			// by the last muc used with this programmer.
+			String[] testmcus = { "", "m16", "x128a3" };
+			String lastMCU = fLastMCUtypeMap.get(config);
+			if (lastMCU != null) {
+				testmcus[0] = fMCUIdMap.get(lastMCU);
 			}
 
-			// Parse the output and look for a line "avrdude: Device signature =
-			// 0x123456"
-			Pattern mcuPat = Pattern.compile(".+signature.+(0x[\\da-fA-F]{6})");
-			Matcher m;
+			for (String testmcu : testmcus) {
 
-			for (String line : stdout) {
-				m = mcuPat.matcher(line);
-				if (!m.matches()) {
+				if ("".equals(testmcu)) {
 					continue;
 				}
-				// pattern matched. Get the Signature and convert it to a mcu id
-				String mcuid = Signatures.getDefault().getMCU(m.group(1));
-				return mcuid;
+
+				List<String> configoptions = config.getArguments();
+				configoptions.add("-p" + testmcu);
+
+				try {
+					List<String> stdout = runCommand(configoptions, new SubProgressMonitor(monitor,
+							30), false, null, config);
+					if (stdout == null) {
+						continue;
+					}
+
+					// Parse the output and look for a line "avrdude: Device signature =
+					// 0x123456"
+					Pattern mcuPat = Pattern.compile(".+signature.+(0x[\\da-fA-F]{6})");
+					Matcher m;
+
+					for (String line : stdout) {
+						m = mcuPat.matcher(line);
+						if (!m.matches()) {
+							continue;
+						}
+						// pattern matched. Get the Signature and convert it to a mcu id
+						String mcuid = Signatures.getDefault().getMCU(m.group(1));
+						fLastMCUtypeMap.put(config, mcuid);
+						return mcuid;
+					}
+				} catch (AVRDudeException ade) {
+					if (ade.getReason().equals(Reason.INIT_FAIL)) {
+						// if the init failed then (maybe) we tried the wrong MCU.
+						// continue with the next one:
+						continue;
+					} else {
+						throw ade;
+					}
+				}
+
+				// did not find a signature. Try the next candidate.
+
 			}
 			// Signature not found. This probably means that our simple parser is
 			// broken
@@ -402,10 +441,19 @@ public class AVRDude implements IMCUProvider {
 
 			IPath tempdir = getTempDir();
 
+			List<Integer> fuseindices = new ArrayList<Integer>();
+
 			for (int i = 0; i < fusebytecount; i++) {
 				String tmpfilename = tempdir.append("fuse" + i + ".hex").toOSString();
-				AVRDudeAction action = AVRDudeActionFactory.readFuseByte(mcuid, i, tmpfilename);
-				args.add(action.getArgument());
+				String bytename = values.getByteName(i);
+
+				// Skip the fusebyte if its name is empty. This will prevent avrdude from failing to
+				// read the undefined fusebyte 3 of XMega MCUs.
+				if (bytename.length() != 0) {
+					AVRDudeAction action = AVRDudeActionFactory.readFuseByte(mcuid, i, tmpfilename);
+					args.add(action.getArgument());
+					fuseindices.add(i);
+				}
 			}
 
 			List<String> stdout = runCommand(args, new SubProgressMonitor(monitor, 80), false,
@@ -416,7 +464,7 @@ public class AVRDude implements IMCUProvider {
 
 			// get the temporary files, read and parse them and delete them afterwards
 
-			for (int i = 0; i < fusebytecount; i++) {
+			for (int i : fuseindices) {
 				File tmpfile = tempdir.append("fuse" + i + ".hex").toFile();
 
 				BufferedReader in = null;
@@ -1246,7 +1294,9 @@ public class AVRDude implements IMCUProvider {
 				abort = true;
 				fAbortReason = Reason.SYNC_FAIL;
 			} else if (line.contains("initialization failed")) {
-				abort = true;
+				// don't set the abort flag so that the progress monitor does not get canceled. This
+				// is a hack to make the #getAttachedMCU() method work.
+				fAbortLine = line;
 				fAbortReason = Reason.INIT_FAIL;
 			} else if (line.contains("NO_TARGET_POWER")) {
 				abort = true;
@@ -1254,6 +1304,9 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.contains("can't set buffers for")) {
 				abort = true;
 				fAbortReason = Reason.INVALID_PORT;
+			} else if (line.contains("error in USB receive")) {
+				abort = true;
+				fAbortReason = Reason.USB_RECEIVE_ERROR;
 			}
 			if (abort) {
 				fProgressMonitor.setCanceled(true);

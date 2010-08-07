@@ -18,7 +18,7 @@ package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
+//import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
-import de.innot.avreclipse.core.toolinfo.fuses.IByteDescription;
+//import de.innot.avreclipse.core.toolinfo.fuses.IByteDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.MCUDescription;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -223,23 +223,23 @@ public class FusesReader extends BaseReader {
 
 				fos.close();
 
-				if (false) {
-					// Short fragment I used for debugging.
-					// This dumps all BitFieldDescriptions into a large CSV file,
-					// which can then be imported and analyzed with a Database.
-					FileWriter fw = new FileWriter(new File("allfuses.csv"), true);
-					for (FuseType type : FuseType.values()) {
-						List<IByteDescription> list = fusesdesc.getByteDescriptions(type);
-						for (IByteDescription desc : list) {
-							List<BitFieldDescription> bfdlist = desc.getBitFieldDescriptions();
-							for (BitFieldDescription bfd : bfdlist) {
-								fw.write(mcuid + "; " + type.name() + "; " + bfd.getName() + "; \""
-										+ bfd.getDescription() + "\"; " + bfd.getMaxValue() + "\n");
-							}
-						}
-					}
-					fw.close();
-				}
+//				if (false) {
+//					// Short fragment I used for debugging.
+//					// This dumps all BitFieldDescriptions into a large CSV file,
+//					// which can then be imported and analyzed with a Database.
+//					FileWriter fw = new FileWriter(new File("allfuses.csv"), true);
+//					for (FuseType type : FuseType.values()) {
+//						List<IByteDescription> list = fusesdesc.getByteDescriptions(type);
+//						for (IByteDescription desc : list) {
+//							List<BitFieldDescription> bfdlist = desc.getBitFieldDescriptions();
+//							for (BitFieldDescription bfd : bfdlist) {
+//								fw.write(mcuid + "; " + type.name() + "; " + bfd.getName() + "; \""
+//										+ bfd.getDescription() + "\"; " + bfd.getMaxValue() + "\n");
+//							}
+//						}
+//					}
+//					fw.close();
+//				}
 
 			} catch (ParserConfigurationException pce) {
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,

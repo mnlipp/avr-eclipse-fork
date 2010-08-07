@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.cdt.utils.WindowsRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
@@ -106,7 +105,7 @@ public class SystemPathsWin32 {
 		if (fWinAVRPath != null) {
 			return fWinAVRPath;
 		}
-		
+
 		MyWindowsRegistry registry = MyWindowsRegistry.getRegistry();
 		if (registry == null) {
 			// Fix for Bug 2872447
@@ -124,7 +123,7 @@ public class SystemPathsWin32 {
 		List<String> winavrkeys = new ArrayList<String>();
 		String nextkey = null;
 		do {
-			nextkey = WindowsRegistry.getRegistry().getLocalMachineValueName("SOFTWARE\\WinAVR", i);
+			nextkey = registry.getKeyName("HKLM\\SOFTWARE\\WinAVR", i);
 			if (nextkey != null) {
 				winavrkeys.add(nextkey);
 				i++;
@@ -135,34 +134,32 @@ public class SystemPathsWin32 {
 			Collections.sort(winavrkeys);
 			String winavrkey = winavrkeys.get(winavrkeys.size() - 1);
 
-			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue("SOFTWARE\\WinAVR",
-					winavrkey);
+			String winavr = registry.getKeyValue("HKLM\\SOFTWARE\\WinAVR", winavrkey);
 			if (winavr != null) {
 				fWinAVRPath = new Path(winavr);
 				return fWinAVRPath;
 			}
 		}
 
-		// No "HKML\Software\WinAVR" key in the registry
+		// No "HKLM\Software\WinAVR" key in the registry
 		// Lets try another location: "HKLM\Software\Free Software Foundation\WinAVR-xxxxx"
-		// 
+		//
 
-		i = 0;
-		do {
-			nextkey = WindowsRegistry.getRegistry().getLocalMachineKeyName(
-					"SOFTWARE\\Free Software Foundation", i);
-			if (nextkey != null && nextkey.startsWith("WinAVR-")) {
-				winavrkeys.add(nextkey);
-				i++;
+		List<String> allkeys = registry
+				.getSubkeys("HKLM\\SOFTWARE\\Free Software Foundation");
+		winavrkeys.clear();
+
+		for (String key : allkeys) {
+			if (key.contains("WinAVR")) {
+				winavrkeys.add(key);
 			}
-		} while (nextkey != null);
+		}
 
-		if (winavrkeys.size() > 0 ) {
+		if (winavrkeys.size() > 0) {
 			Collections.sort(winavrkeys);
 			String winavrkey = winavrkeys.get(winavrkeys.size() - 1);
-			
-			String winavr = WindowsRegistry.getRegistry().getLocalMachineValue(
-					"SOFTWARE\\Free Software Foundation\\" + winavrkey, "GCC");
+
+			String winavr = registry.getKeyValue(winavrkey, "GCC");
 			if (winavr != null) {
 				fWinAVRPath = new Path(winavr);
 				return fWinAVRPath;
@@ -185,10 +182,19 @@ public class SystemPathsWin32 {
 		if (fAVRToolsPath != null) {
 			return fAVRToolsPath;
 		}
+		
+		MyWindowsRegistry registry = MyWindowsRegistry.getRegistry();
+		if (registry == null) {
+			// can't access the registry. Fail gracefully by returning an empty String.
+			// This will cause errors pointing the user to set the paths manually.
+			fAVRToolsPath = fEmptyPath;
+			return fEmptyPath;
+		}
+
 
 		fAVRToolsPath = fEmptyPath;
-		String avrtools = WindowsRegistry.getRegistry().getLocalMachineValue(
-				"SOFTWARE\\Atmel\\AVRTools", "AVRToolsPath");
+		String avrtools = registry.getKeyValue(
+				"HKLM\\SOFTWARE\\Atmel\\AVRTools", "AVRToolsPath");
 		if (avrtools != null) {
 			fAVRToolsPath = new Path(avrtools);
 		}

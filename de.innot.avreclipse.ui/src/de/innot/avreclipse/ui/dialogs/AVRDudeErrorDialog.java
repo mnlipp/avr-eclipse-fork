@@ -222,6 +222,13 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 					message = MessageFormat.format(source, port);
 					break;
 					
+				case USB_RECEIVE_ERROR:
+					message = "Problems receiving data from USB\n\n"
+							+ "If you are using an XPlain board with the LUFA XPlainBridge firmware"
+							+ "check this link for an explanation and a possible solution."
+							+ "http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=91244";
+					break;
+					
 				default:
 					message = "An unhandled Error occured while accessing AVRDude.\n\n"
 							+ "See below for details and report this error the the Plugin maintainer.\n"

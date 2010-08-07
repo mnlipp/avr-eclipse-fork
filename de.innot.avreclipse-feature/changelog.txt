@@ -7,24 +7,35 @@
 ********************************************************************************
 $Id$
 
-
 ================================================================================
-Version 2.4.0
+Version 2.3.4 [07. August 2010]
 
 Changed / Improved:
 -----------------------------
+* F/R 2905839: Upload Project To Target Device from any point in Project
 
-
+Fixes:
+-----------------------------
+* Bug 3023718: Errors when working with XMega MCUs
+* Bug 2872447: getWinAVRBasePath throws exception on Vista 64 (finally)
+  
 ================================================================================
-Version 2.3.2 [23. June 2010]
+Version 2.3.3 [01. July 2010]
+
+Fixes:
+-----------------------------
+* Bug 3023252: NullPointerException when opening the Properties of a "Makefile" 
+               AVR-GCC Toolchain project.
+  
+================================================================================
+Version 2.3.2 [29. June 2010]
 
 Changed / Improved:
 -----------------------------
 * Fuse description files updated to AVR Tools Build 700 (4.18 SP2)
 * Bug 2485661: Added a new Assembler tool settings option for assembler specific
                paths (-Wa,-I)
-* Bug 2459280: Changed default C Language Standard to 'gnu99' to be more compatible with the
-               avr-libc.
+* F/R 2459280: gnu99 language standard now default for new projects
 * Plugin download is now a P2 repository which can be installed via "Install New Software..."
                
 Fixes:
@@ -38,6 +49,7 @@ Fixes:
 * Bug 2872447: getWinAVRBasePath throws exception on Vista 64
 * avr/io.h parser updated for recent changes in the avr/io.h format
 
+  
 ================================================================================
 Version 2.3.1 [04. December 2008]
 

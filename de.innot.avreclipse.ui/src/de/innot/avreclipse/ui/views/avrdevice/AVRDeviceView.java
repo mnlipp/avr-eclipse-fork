@@ -22,10 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.cdt.core.model.ICElement;
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -199,14 +202,13 @@ public class AVRDeviceView extends ViewPart {
 		providerChanged();
 
 		// Activate the Workbench selection listener
-		getSite().getWorkbenchWindow().getSelectionService().addPostSelectionListener(
-				fWorkbenchSelectionListener);
+		getSite().getWorkbenchWindow().getSelectionService()
+				.addPostSelectionListener(fWorkbenchSelectionListener);
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
 	@Override
@@ -221,15 +223,14 @@ public class AVRDeviceView extends ViewPart {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
 	 */
 	@Override
 	public void dispose() {
 		// remove the listeners from their objects
 		dmprovider.removeProviderChangeListener(fProviderChangeListener);
-		getSite().getWorkbenchWindow().getSelectionService().removePostSelectionListener(
-				fWorkbenchSelectionListener);
+		getSite().getWorkbenchWindow().getSelectionService()
+				.removePostSelectionListener(fWorkbenchSelectionListener);
 		super.dispose();
 	}
 
@@ -241,7 +242,8 @@ public class AVRDeviceView extends ViewPart {
 	 * </p>
 	 * <p>
 	 * This will handle arbitrary numbers of sources. While this is not really required today with
-	 * maximum two sources, it is ready in case the structure of the include files is changed.</p
+	 * maximum two sources, it is ready in case the structure of the include files is changed.
+	 * </p
 	 */
 	private void updateSourcelist(Composite parent, IDeviceDescription device) {
 
@@ -314,8 +316,8 @@ public class AVRDeviceView extends ViewPart {
 	 * Update all tabs.
 	 * <p>
 	 * One tab for each Category of the device is created. Each tab also gets a
-	 * <code>TreeViewer</code> associated to it, accessible via the
-	 * <code>CTabItem.getData()</code> method.
+	 * <code>TreeViewer</code> associated to it, accessible via the <code>CTabItem.getData()</code>
+	 * method.
 	 * </p>
 	 * <p>
 	 * If a new tab has the same name as the previously selected tab, it will be selected as well
@@ -413,10 +415,10 @@ public class AVRDeviceView extends ViewPart {
 	/**
 	 * Updates a TreeViewer to a new Category.
 	 * <p>
-	 * If the Category with this name does not yet exist the required <code>TreeColumns</code>
-	 * will be created and initialized to their default values. If a Category with this name has
-	 * already existed (even from a previous device>, then the <code>TreeColumns</code> will be
-	 * reused. Therefore any changes by the user are preserved.
+	 * If the Category with this name does not yet exist the required <code>TreeColumns</code> will
+	 * be created and initialized to their default values. If a Category with this name has already
+	 * existed (even from a previous device>, then the <code>TreeColumns</code> will be reused.
+	 * Therefore any changes by the user are preserved.
 	 * </p>
 	 * 
 	 * @param parent
@@ -536,8 +538,8 @@ public class AVRDeviceView extends ViewPart {
 	 * 
 	 * Three events are handled:
 	 * <ul>
-	 * <li><code>MouseEnter</code>: Change background color to show the user that this widget
-	 * can be clicked on.</li>
+	 * <li><code>MouseEnter</code>: Change background color to show the user that this widget can be
+	 * clicked on.</li>
 	 * <li><code>MouseExit</code>: Restore the background color.</li>
 	 * <li><code>MouseUp</code>: Open the sourcefile associated with the selected widget in an
 	 * Editor.</li>
@@ -718,12 +720,28 @@ public class AVRDeviceView extends ViewPart {
 
 			IProject project = null;
 
-			// See if the given is an IProject (directly or via IAdaptable
+			// See if the given is an IProject (directly or via IAdaptable)
 			if (item instanceof IProject) {
 				project = (IProject) item;
+			} else if (item instanceof IResource) {
+				project = ((IResource) item).getProject();
 			} else if (item instanceof IAdaptable) {
 				IAdaptable adaptable = (IAdaptable) item;
 				project = (IProject) adaptable.getAdapter(IProject.class);
+				if (project == null) {
+					// Try ICProject -> IProject
+					ICProject cproject = (ICProject) adaptable.getAdapter(ICProject.class);
+					if (cproject == null) {
+						// Try ICElement -> ICProject -> IProject
+						ICElement celement = (ICElement) adaptable.getAdapter(ICElement.class);
+						if (celement != null) {
+							cproject = celement.getCProject();
+						}
+					}
+					if (cproject != null) {
+						project = cproject.getProject();
+					}
+				}
 			}
 
 			if (project != null) {
