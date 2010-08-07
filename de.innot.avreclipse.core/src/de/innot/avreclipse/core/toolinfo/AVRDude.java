@@ -306,17 +306,12 @@ public class AVRDude implements IMCUProvider {
 		// does not start with a whitespace
 		StringBuffer result = new StringBuffer();
 
-		// TODO This still-in-section matcher is probably to simple, maybe try
-		// to find the ";" marking the end of a section (which requires parsing
-		// the subsections)
-		Pattern section = Pattern.compile("\\s+.*");
-		Matcher m;
+		// copy every line from the config file until we hit a single ';' in the first column
 
 		int index = entry.linenumber;
 		while (true) {
 			String line = configcontent.get(index++);
-			m = section.matcher(line);
-			if (!m.matches()) {
+			if (line.startsWith(";")) {
 				break;
 			}
 			result.append(line.trim()).append('\n');
