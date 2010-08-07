@@ -4,12 +4,7 @@ Bundle-Name: AVR Eclipse JUnit Tests
 Bundle-SymbolicName: de.innot.avreclipse_tests
 Bundle-Version: 1.0.0
 Bundle-Vendor: Thomas Holland
-Export-Package: de.innot.avreclipse.core.paths,
- de.innot.avreclipse.core.toolinfo,
- de.innot.avreclipse.core.util,
- de.innot.avreclipse.devicedescription;uses:="junit.framework",
- de.innot.avreclipse.ui.views
-Require-Bundle: de.innot.avreclipse.core,
+Require-Bundle: de.innot.avreclipse.core;bundle-version="0.0.0",
  de.innot.avreclipse.ui;bundle-version="0.0.0",
  org.eclipse.ui,
  org.junit4,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>de.innot.avreclipse-tests</name>
+	<name>de.innot.avreclipse.ui.tests</name>
 	<comment></comment>
 	<projects>
 		<project>de.innot.avreclipse</project>
