@@ -4,7 +4,7 @@ Bundle-Name: Tests for the de.innot.avreclipse.debug.core and .ui plugins
 Bundle-SymbolicName: de.innot.avreclipse.debug.tests;singleton:=true
 Bundle-Version: 0.0.0
 Bundle-Vendor: avr-eclipse project
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.junit4,
  de.innot.avreclipse.debug.core;bundle-version="0.0.0",
  de.innot.avreclipse.debug.ui;bundle-version="0.0.0",

@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.eclipse.ui.editors
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: de.innot.avreclipse.ui.actions;
   uses:="org.eclipse.jface.action,
    org.eclipse.jface.resource,
