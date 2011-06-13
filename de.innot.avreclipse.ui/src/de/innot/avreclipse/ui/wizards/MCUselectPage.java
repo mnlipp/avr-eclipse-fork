@@ -1,17 +1,13 @@
 /*******************************************************************************
- * 
- * Copyright (c) 2007 Thomas Holland (thomas@innot.de) and others
- * 
- * This program and the accompanying materials are made
- * available under the terms of the GNU Public License v3
+ * Copyright (c) 2008, 2011 Thomas Holland (thomas@innot.de) and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/gpl.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
- *	   Manuel Stahl - original idea and some remaining code fragments
- *     Thomas Holland - rewritten to be compatible with Eclipse 3.3 and the rest of the plugin
- *     
- * $Id$
+ *     Manuel Stahl - initial API and implementation
+ *     Thomas Holland - rewritten and fixed for Eclipse >= 3.4
  *     
  *******************************************************************************/
 package de.innot.avreclipse.ui.wizards;

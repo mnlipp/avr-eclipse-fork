@@ -1,17 +1,12 @@
 /*******************************************************************************
- * 
- * Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
- * 
- * This program and the accompanying materials are made
- * available under the terms of the GNU Public License v3
+ * Copyright (c) 2008, 2011 Thomas Holland (thomas@innot.de) and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/gpl.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     Thomas Holland - initial API and implementation
- *     
- * $Id$
- *     
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo;
 
