@@ -2,9 +2,9 @@
 <!-- Schema file written by PDE -->
 <schema targetNamespace="de.innot.avreclipse.debug.ui" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appinfo>
+      <appInfo>
          <meta.schema plugin="de.innot.avreclipse.debug.ui" id="gdbserverSettingsPage" name="GDBServerSettingsPage"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          Extension to this extension point implement the the GUI settings for a gdbserver suitable for debugging AVR applications.
       </documentation>
@@ -12,9 +12,9 @@
 
    <element name="extension">
       <annotation>
-         <appinfo>
+         <appInfo>
             <meta.element />
-         </appinfo>
+         </appInfo>
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
@@ -39,9 +39,9 @@
                <documentation>
                   
                </documentation>
-               <appinfo>
+               <appInfo>
                   <meta.attribute translatable="true"/>
-               </appinfo>
+               </appInfo>
             </annotation>
          </attribute>
       </complexType>
@@ -61,9 +61,9 @@
                <documentation>
                   Contains a descriptive name for the gdbserver. The value is presented on the user interface when the user selects a gdbserver.
                </documentation>
-               <appinfo>
+               <appInfo>
                   <meta.attribute translatable="true"/>
-               </appinfo>
+               </appInfo>
             </annotation>
          </attribute>
          <attribute name="class" type="string" use="required">
@@ -71,62 +71,61 @@
                <documentation>
                   Class implementing the IGDBServerSettingsPage interface.
                </documentation>
-               <appinfo>
+               <appInfo>
                   <meta.attribute kind="java" basedOn=":de.innot.avreclipse.debug.ui.IGDBServerSettingsPage"/>
-               </appinfo>
+               </appInfo>
             </annotation>
          </attribute>
       </complexType>
    </element>
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="since"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          2.4
       </documentation>
    </annotation>
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="examples"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          TODO once the API has been finished
       </documentation>
    </annotation>
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="apiinfo"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          [Enter API information here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="implementation"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          [Enter information about supplied implementation of this extension point.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="copyright"/>
-      </appinfo>
+      </appInfo>
       <documentation>
-         Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+         &lt;p&gt;Copyright &amp;copy; 2007, 2011 &lt;a href=&quot;mailto:thomas@innot.de&quot;&gt;Thomas Holland&lt;/a&gt; and others.&lt;/p&gt;
 
-This file and the accompanying materials are made
-available under the terms of the GNU Public License v3
+&lt;p&gt;All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/gpl.html
-
+http://www.eclipse.org/legal/epl-v10.html&lt;/p&gt;
       </documentation>
    </annotation>
 

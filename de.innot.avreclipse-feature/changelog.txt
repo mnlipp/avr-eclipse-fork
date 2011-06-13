@@ -5,7 +5,16 @@
 * of Processors.                                                               *
 * See details at http://avr-eclipse.sourceforge.net                            *
 ********************************************************************************
-$Id$
+
+================================================================================
+Version 2.3.4 []
+
+Changed / Improved:
+-----------------------------
+* S/R 3248913: Changed the license of the Plugin from the GPL to the EPL
+               (Eclipse Public License) so that the plugin can be bundled
+               and distributed together with Eclipse.
+
 
 ================================================================================
 Version 2.3.4 [07. August 2010]

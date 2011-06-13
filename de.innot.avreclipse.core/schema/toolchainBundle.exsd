@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="de.innot.avreclipse.core">
+<schema targetNamespace="de.innot.avreclipse.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appInfo>
          <meta.schema plugin="de.innot.avreclipse.core" id="avrgccbundle" name="AVR GCC Toolchain Binaries Bundle"/>
@@ -15,6 +15,11 @@
    </annotation>
 
    <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
       <complexType>
          <sequence>
             <element ref="avrgcc"/>
@@ -126,12 +131,12 @@ Any other name will be ignored.
          <meta.section type="copyright"/>
       </appInfo>
       <documentation>
-         Copyright (c) 2008 Thomas Holland (thomas@innot.de) and others
+         &lt;p&gt;Copyright &amp;copy; 2007, 2011 &lt;a href=&quot;mailto:thomas@innot.de&quot;&gt;Thomas Holland&lt;/a&gt; and others.&lt;/p&gt;
 
-This program and the accompanying materials are made
-available under the terms of the GNU Public License v3
+&lt;p&gt;All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/gpl.html
+http://www.eclipse.org/legal/epl-v10.html&lt;/p&gt;
       </documentation>
    </annotation>
 

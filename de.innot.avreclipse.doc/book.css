@@ -1,5 +1,9 @@
 @import "../PRODUCT_PLUGIN/book.css";
 
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
 td.lineabove {
 	border-top-width: medium;
 	border-top-style: solid;
