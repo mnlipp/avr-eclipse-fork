@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.innot.avreclipse"
-      label="AVR Eclipse Plugin"
-      version="0.0.0"
-      provider-name="%providerName">
+      label="%featureName"
+      version="2.5.0.qualifier"
+      provider-name="%providerName"
+      plugin="de.innot.avreclipse.core">
 
    <description>
       %description
@@ -21,10 +22,6 @@
       <update label="%updateSiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
       <discovery label="%discoverySiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
    </url>
-
-   <includes
-         id="de.innot.avreclipse.source"
-         version="0.0.0"/>
 
    <requires>
       <import plugin="org.eclipse.cdt.core" version="4.0.0" match="greaterOrEqual"/>
@@ -46,13 +43,6 @@
          unpack="false"/>
 
    <plugin
-         id="de.innot.avreclipse.doc"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="de.innot.avreclipse.core"
          download-size="0"
          install-size="0"
@@ -65,5 +55,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="de.innot.avreclipse.doc"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 
 </feature>
