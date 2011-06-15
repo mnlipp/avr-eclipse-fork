@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.innot.avreclipse.updatesite"
+      label="AVR Eclipse Plugin Update Site"
+      version="2.5.0.qualifier"
+      provider-name="avr-eclipse.sourceforge.net">
+
+   <url>
+      <update label="AVR Eclipse Plugin Update Site" url="http://avr-eclipse.sourceforge.net/updatesite"/>
+   </url>
+
+   <includes
+         id="de.innot.avreclipse"
+         version="0.0.0"/>
+
+<!--
+   <includes
+         id="de.innot.avreclipse.sdk"
+         version="0.0.0"/>
+-->
+</feature>
