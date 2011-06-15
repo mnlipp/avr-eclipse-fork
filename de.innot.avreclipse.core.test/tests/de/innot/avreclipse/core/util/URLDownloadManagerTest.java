@@ -41,7 +41,7 @@ import de.innot.avreclipse.util.URLDownloadManager;
  * @author U043192
  * 
  */
-public class TestURLDownloadManager {
+public class URLDownloadManagerTest {
 
 	@Before
 	public void setupTest() {

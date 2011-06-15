@@ -31,7 +31,7 @@ import org.junit.Test;
  * @author U043192
  * 
  */
-public class TestFuses {
+public class FusesTest {
 
 	private static Fuses	fFuses;
 

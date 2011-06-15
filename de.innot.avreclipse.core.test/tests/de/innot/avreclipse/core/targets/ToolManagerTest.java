@@ -31,7 +31,7 @@ import de.innot.avreclipse.core.targets.tools.NoneToolFactory;
  * @since 2.4
  * 
  */
-public class TestToolManager {
+public class ToolManagerTest {
 
 	private ToolManager	manager;
 

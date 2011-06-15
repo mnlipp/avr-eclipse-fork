@@ -29,19 +29,19 @@ import de.innot.avreclipse.core.avrdude.AVRDudeException;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.targets.ITargetConfiguration;
 import de.innot.avreclipse.core.targets.ITargetConfiguration.Result;
-import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 import de.innot.avreclipse.core.targets.ITargetConfigurationWorkingCopy;
 import de.innot.avreclipse.core.targets.TargetConfigurationManager;
 import de.innot.avreclipse.core.targets.ToolManager;
+import de.innot.avreclipse.core.targets.ITargetConfiguration.ValidationResult;
 
 /**
  * @author Thomas Holland
  * @since
  * 
  */
-public class TestAVRDudeTool {
+public class AvariceToolTest {
 
-	private AvrdudeTool						avrdude;
+	private AvariceTool						avarice;
 
 	private ITargetConfigurationWorkingCopy	config;
 
@@ -49,7 +49,7 @@ public class TestAVRDudeTool {
 	public void setup() throws IOException {
 		ITargetConfiguration hc = TargetConfigurationManager.getDefault().createNewConfig();
 		config = TargetConfigurationManager.getDefault().getWorkingCopy(hc.getId());
-		avrdude = (AvrdudeTool) ToolManager.getDefault().getTool(config, AvrdudeTool.ID);
+		avarice = (AvariceTool) ToolManager.getDefault().getTool(config, AvariceTool.ID);
 	}
 
 	@After
@@ -59,17 +59,17 @@ public class TestAVRDudeTool {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getName()}.
+	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getName()}.
 	 */
 	@Test
 	public void testBasics() {
-		assertEquals("AVRDude", avrdude.getName());
-		assertEquals(AvrdudeTool.ID, avrdude.getId());
+		assertEquals("AVaRICE", avarice.getName());
+		assertEquals(AvariceTool.ID, avarice.getId());
 	}
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getCommand(de.innot.avreclipse.core.targets.ITargetConfiguration)}
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getCommand(de.innot.avreclipse.core.targets.ITargetConfiguration)}
 	 * .
 	 * 
 	 * @throws IOException
@@ -77,36 +77,36 @@ public class TestAVRDudeTool {
 	@Test
 	public void testGetCommand() throws IOException {
 		// first check if default is returned for an unmodified hardware config
-		String cmd = avrdude.getCommand();
+		String cmd = avarice.getCommand();
 		assertNotNull("Null command", cmd);
 		assertTrue("Empty command", cmd.length() > 0);
-		assertEquals("Wrong default command", "avrdude", cmd);
+		assertEquals("Wrong default command", "avarice", cmd);
 
 		// Change the command attribute and check that it is propagated
-		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "foobar");
-		assertEquals("Wrong command", "foobar", avrdude.getCommand());
+		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "foobar");
+		assertEquals("Wrong command", "foobar", avarice.getCommand());
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getDefaults()}.
+	 * Test method for {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getAttributes()}.
 	 */
 	@Test
 	public void testGetAttributes() {
 		// Get the list and check that it contains all known attributes
-		String[] attrs = avrdude.getAttributes();
+		String[] attrs = avarice.getAttributes();
 		assertNotNull("Null defaults", attrs);
 		assertTrue("Empty defaults", attrs.length > 0);
 
 		List<String> attributeList = Arrays.asList(attrs);
-		assertTrue("Command attr missing", attributeList.contains(AvrdudeTool.ATTR_CMD_NAME));
-		assertTrue("UseConsole attr missing", attributeList.contains(AvrdudeTool.ATTR_USE_CONSOLE));
+		assertTrue("Command attr missing", attributeList.contains(AvariceTool.ATTR_CMD_NAME));
+		assertTrue("UseConsole attr missing", attributeList.contains(AvariceTool.ATTR_USE_CONSOLE));
 
 		// Add other attributes once they have been implemented
 	}
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getVersion(de.innot.avreclipse.core.targets.ITargetConfiguration)}
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getVersion(de.innot.avreclipse.core.targets.ITargetConfiguration)}
 	 * .
 	 * 
 	 * @throws IOException
@@ -114,22 +114,22 @@ public class TestAVRDudeTool {
 	 */
 	@Test
 	public void testGetVersion() throws IOException, AVRDudeException {
-		// Use the default avrdude command (avrdude must be on the system path)
-		String version = avrdude.getVersion();
+		// Use the default avarice command (avarice must be on the system path)
+		String version = avarice.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
 		// Do this again to test the cache. The result of this can be seen in the EclEmma test
 		// coverage output.
-		version = avrdude.getVersion();
+		version = avarice.getVersion();
 		assertNotNull("Null version", version);
 		assertTrue("Empty version", version.length() > 0);
 
 		// Test with invalid command. This should throw an AVRDudeException
-		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "invalidcommandname");
+		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "invalidcommandname");
 
 		try {
-			version = avrdude.getVersion();
+			version = avarice.getVersion();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -138,7 +138,7 @@ public class TestAVRDudeTool {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getMCUs(de.innot.avreclipse.core.targets.ITargetConfiguration)}
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getMCUs(de.innot.avreclipse.core.targets.ITargetConfiguration)}
 	 * .
 	 * 
 	 * @throws IOException
@@ -146,23 +146,23 @@ public class TestAVRDudeTool {
 	 */
 	@Test
 	public void testGetMCUs() throws IOException, AVRDudeException {
-		// Use the default avrdude command (avrdude must be on the system path)
-		Set<String> allmcus = avrdude.getMCUs();
+		// Use the default avarice command (avarice must be on the system path)
+		Set<String> allmcus = avarice.getMCUs();
 		assertNotNull("Null MCU list", allmcus);
 		assertTrue("Empty MCU List", allmcus.size() > 0);
 
-		// Check a few entries
-		String[] testmcus = new String[] { "atxmega128a1", "atmega6450", "at90usb1287", "attiny84",
-				"attiny11" };
+		// Check a few more or less entries
+		String[] testmcus = new String[] { "at90can128", "atmega128", "attiny13", "atxmega128a1" };
 
 		for (String mcu : testmcus) {
 			assertTrue("MCU List missing " + mcu, allmcus.contains(mcu));
 		}
 
 		// Test with invalid command. This should throw an AVRDudeException
-		config.setAttribute(AvrdudeTool.ATTR_CMD_NAME, "invalidcommandname");
+		config.setAttribute(AvariceTool.ATTR_CMD_NAME, "invalidcommandname");
+
 		try {
-			allmcus = avrdude.getMCUs();
+			allmcus = avarice.getMCUs();
 			fail("No Exception thrown for invalid command name");
 		} catch (AVRDudeException ade) {
 			// Maybe check the correct reason here
@@ -172,13 +172,38 @@ public class TestAVRDudeTool {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getProgrammers(de.innot.avreclipse.core.targets.ITargetConfiguration)}
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getProgrammers(de.innot.avreclipse.core.targets.ITargetConfiguration)}
+	 * .
+	 * 
+	 * @throws IOException
+	 * @throws AVRDudeException
+	 */
+	@Test
+	public void testGetProgrammers() throws IOException, AVRDudeException {
+		// Use the default avarice command (avarice must be on the system path)
+		Set<String> allproggers = avarice.getProgrammers();
+		assertNotNull("Null Programmers list", allproggers);
+		assertTrue("Empty Programmers List", allproggers.size() > 0);
+
+		// Check all currently implemented entries
+		String[] testproggers = new String[] { "dragon_jtag", "dragon_dw", "jtag1", "jtag2",
+				"jtag2dw" };
+
+		for (String progger : testproggers) {
+			assertTrue("Programmer missing " + progger, allproggers.contains(progger));
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#getProgrammer(de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String)}
 	 * .
 	 */
 	@Test
-	public void testGetProgrammers() {
-		// Check some currently implemented entries
-		String[] testproggers = new String[] { "c2n232i", "avrisp", "jtag1", "jtag2", "jtag2dw" };
+	public void testGetProgrammer() {
+		// Check all currently implemented entries
+		String[] testproggers = new String[] { "dragon_jtag", "dragon_dw", "jtag1", "jtag2",
+				"jtag2dw" };
 
 		for (String programmerid : testproggers) {
 			IProgrammer progger = config.getProgrammer(programmerid);
@@ -190,53 +215,44 @@ public class TestAVRDudeTool {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#getProgrammer(de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String)}
-	 * .
-	 * 
-	 * @throws AVRDudeException
-	 */
-	@Test
-	public void testGetProgrammer() throws AVRDudeException {
-		// Use the default avrdude command (avrdude must be on the system path)
-		Set<String> allproggers = avrdude.getProgrammers();
-		assertNotNull("Null Programmers list", allproggers);
-		assertTrue("Empty Programmers List", allproggers.size() > 0);
-
-		// Check some currently implemented programmers
-		String[] testproggers = new String[] { "c2n232i", "avrisp", "jtag1", "jtag2", "jtag2dw" };
-
-		for (String progger : testproggers) {
-			assertTrue("Programmer missing " + progger, allproggers.contains(progger));
-		}
-	}
-
-	/**
-	 * Test method for
-	 * {@link de.innot.avreclipse.core.targets.tools.AvrdudeTool#validate(de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String)}
+	 * {@link de.innot.avreclipse.core.targets.tools.AvariceTool#validate(de.innot.avreclipse.core.targets.ITargetConfiguration, java.lang.String)}
 	 * .
 	 */
 	@Test
 	public void testValidate() {
 
-		String[] attributes = avrdude.getAttributes();
+		String[] attributes = avarice.getAttributes();
 		
 		// Generic test for all supported attributes
 		for (String attr : attributes) {
-			ValidationResult result = avrdude.validate(attr);
+			ValidationResult result = avarice.validate(attr);
 			assertNotNull("Null ValidationResult for "+ attr, result);
 		}
 
 		// Test invalid attribute, should return Null
-		ValidationResult result = avrdude.validate("foobar");
+		ValidationResult result = avarice.validate("foobar");
 		assertEquals("Unexpected ValidationResult", Result.UNKNOWN_ATTRIBUTE, result.result);
 
 		// Specific tests
 		
-		// As avrdude may or may not be installed for the test we can only check if validate()
+		// As avarice may or may not be installed for the test we can only check if validate()
 		// returns a valid ValidationResult
-		result = avrdude.validate(AvrdudeTool.ATTR_CMD_NAME);
-		assertNotNull("Null ValidationResult", result);
+		result = avarice.validate(AvariceTool.ATTR_CMD_NAME);
+		assertNotNull("Null ValidationResult for ATTR_CMD_NAME", result);
+		
+		// Test the other supported attributes
+		result = avarice.validate(AvariceTool.ATTR_USE_CONSOLE);
+		assertNotNull("Null ValidationResult for ATTR_USE_CONSOLE", result);
+		assertEquals("ATTR_USE_CONSOLE should be supported", Result.OK, result.result);
+
+		
+		
 
 	}
 
+	@Test
+	public void testInvocationDelay() {
+		// Test that a defined invocation delay is honored
+		// for this we start two
+	}
 }

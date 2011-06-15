@@ -26,7 +26,7 @@ import de.innot.avreclipse.core.toolinfo.AVRDude;
  * @since
  * 
  */
-public class TestAvariceProgrammers {
+public class AvariceProgrammersTest {
 
 	private static String[]	allValues	= new String[] { "dragon_jtag", "dragon_dw", "jtag1",
 			"jtag2", "jtag2dw"			};

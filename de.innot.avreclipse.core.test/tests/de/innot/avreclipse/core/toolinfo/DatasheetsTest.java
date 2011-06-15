@@ -19,21 +19,18 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
  * @author U043192
  * 
  */
-public class TestDatasheets {
+public class DatasheetsTest {
 
 	private Datasheets	fDatasheets	= null;
 
+/**	
 	@BeforeClass
 	public static void showProgressView() throws PartInitException {
 		// Open the progress view
@@ -41,7 +38,8 @@ public class TestDatasheets {
 				.getActivePage().showView("org.eclipse.ui.views.ProgressView");
 		progressview.getSite().getPage().activate(progressview);
 	}
-
+*/
+	
 	/**
 	 * @throws java.lang.Exception
 	 */

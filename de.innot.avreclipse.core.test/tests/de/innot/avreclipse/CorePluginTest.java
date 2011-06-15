@@ -8,26 +8,28 @@
  * Contributors:
  *     Thomas Holland - initial API and implementation
  *******************************************************************************/
-package de.innot.avreclipse.core.paths;
+package de.innot.avreclipse;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import org.eclipse.core.runtime.IPath;
 import org.junit.Test;
 
-public class TestSystemPathHelper {
+/**
+ * @author Thomas Holland
+ * @since 2.3.2
+ *
+ */
+public class CorePluginTest {
 
+	/**
+	 * Test method for {@link de.innot.avreclipse.AVRPlugin#getDefault()}.
+	 */
 	@Test
-	public void testGetPath() {
-		AVRPath[] allpaths = AVRPath.values();
-
-		for (AVRPath avrpath : allpaths) {
-			IPath path = SystemPathHelper.getPath(avrpath, false);
-			assertNotNull(avrpath.getName() + "returned null path", path);
-			if (!avrpath.isOptional()) {
-				assertFalse(avrpath.getName() + " has empty path", path.isEmpty());
-			}
-		}
+	public void testGetDefault() {
+		AVRPlugin plugin = AVRPlugin.getDefault();
+		assertNotNull(plugin);
 	}
+	
+	
+
 }

@@ -38,7 +38,7 @@ import de.innot.avreclipse.core.targets.TargetInterface;
  * @author Thomas Holland
  * 
  */
-public class TestAVRDude {
+public class AVRDudeTest {
 
 	private AVRDude	tool	= null;
 

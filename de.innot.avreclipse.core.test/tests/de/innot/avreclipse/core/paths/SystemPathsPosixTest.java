@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import de.innot.avreclipse.core.paths.posix.SystemPathsPosix;
 
-public class TestSystemPathsPosix {
+public class SystemPathsPosixTest {
 
 	@Test
 	public void testGetDefault() {

@@ -23,7 +23,7 @@ import org.junit.Test;
  * @since 2.3.2
  * 
  */
-public class TestMyWindowsRegistry {
+public class MyWindowsRegistryTest {
 
 	private MyWindowsRegistry	registry;
 

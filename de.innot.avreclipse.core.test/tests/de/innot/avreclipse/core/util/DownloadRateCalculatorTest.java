@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import de.innot.avreclipse.util.DownloadRateCalculator;
 
-public class TestDownloadRateCalculator {
+public class DownloadRateCalculatorTest {
 
 	@Test
 	public synchronized void testGetCurrentRate() throws InterruptedException {

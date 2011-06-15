@@ -33,7 +33,7 @@ import org.junit.Test;
  * @since
  * 
  */
-public class TestTargetConfigurationManager implements ITargetConfigConstants {
+public class TargetConfigurationManagerTest implements ITargetConfigConstants {
 
 	private TargetConfigurationManager	manager;
 

@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -43,7 +44,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
  * @author Thomas Holland
  * 
  */
-public class TestFuseByteProperties {
+public class FuseBytePropertiesTest {
 
 	private IEclipsePreferences fPrefs;
 	private AVRDudeProperties fAVRDudeProps;
@@ -668,6 +669,7 @@ public class TestFuseByteProperties {
 	 * .
 	 */
 	@Test
+	@Ignore
 	public void testConvertTo() {
 		fail("Not yet implemented");
 	}
@@ -678,6 +680,7 @@ public class TestFuseByteProperties {
 	 * .
 	 */
 	@Test
+	@Ignore
 	public void testGetArguments() {
 		fail("Not yet implemented");
 	}

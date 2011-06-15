@@ -25,7 +25,7 @@ import org.osgi.service.prefs.BackingStoreException;
  * @author Thomas Holland
  * 
  */
-public class TestProgrammerConfig {
+public class ProgrammerConfigTest {
 
 	/**
 	 * Test method for

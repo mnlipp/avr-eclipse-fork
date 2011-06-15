@@ -41,7 +41,7 @@ import de.innot.avreclipse.core.toolinfo.AVRDude;
  * @since
  * 
  */
-public class TestTargetConfiguration implements ITargetConfigConstants {
+public class TargetConfigurationTest implements ITargetConfigConstants {
 
 	/**
 	 * Extension of {@link TargetConfiguration} to get access to the protected constructors.

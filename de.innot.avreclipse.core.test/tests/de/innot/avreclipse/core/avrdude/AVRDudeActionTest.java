@@ -29,7 +29,7 @@ import de.innot.avreclipse.core.avrdude.AVRDudeAction.MemType;
  * @author Thomas Holland
  * 
  */
-public class TestAVRDudeAction {
+public class AVRDudeActionTest {
 
 	/**
 	 * @throws java.lang.Exception

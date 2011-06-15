@@ -22,7 +22,7 @@ import org.junit.Test;
 import de.innot.avreclipse.core.avrdude.AVRDudeException.Reason;
 import de.innot.avreclipse.core.toolinfo.ICommandOutputListener.StreamSource;
 
-public class TestExternalCommandLauncher {
+public class ExternalCommandLauncherTest {
 
 	@Test
 	public void testExternalCommandLauncher() throws IOException {

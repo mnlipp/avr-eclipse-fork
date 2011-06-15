@@ -23,7 +23,7 @@ import de.innot.avreclipse.core.paths.AVRPath;
  * @since 
  *
  */
-public class TestSystemPathsWin32 {
+public class SystemPathsWin32Test {
 
 	/**
 	 * @throws java.lang.Exception

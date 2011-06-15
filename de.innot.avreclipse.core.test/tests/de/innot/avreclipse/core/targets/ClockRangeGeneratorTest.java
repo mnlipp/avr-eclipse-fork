@@ -26,7 +26,7 @@ import de.innot.avreclipse.core.targets.ClockValuesGenerator.ClockValuesType;
  * @since 2.4
  * 
  */
-public class TestClockRangeGenerator {
+public class ClockRangeGeneratorTest {
 
 	/**
 	 * Test method for

@@ -35,7 +35,7 @@ import de.innot.avreclipse.AVRPlugin;
  * @author U043192
  * 
  */
-public class TestSignatures {
+public class SignaturesTest {
 
 	private Signatures	fSigs	= null;
 

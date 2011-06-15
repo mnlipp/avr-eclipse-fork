@@ -21,13 +21,14 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.eclipse.core.runtime.CoreException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Thomas
  * 
  */
-public class TestByteValuesFactory {
+public class ByteValuesFactoryTest {
 
 	/**
 	 * Test method for
@@ -35,6 +36,7 @@ public class TestByteValuesFactory {
 	 * .
 	 */
 	@Test
+	@Ignore
 	public void testCreateByteValues() {
 
 		fail("Not yet implemented");

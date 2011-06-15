@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatus;
@@ -31,7 +32,7 @@ import de.innot.avreclipse.core.toolinfo.fuses.ConversionResults.ConversionStatu
  * @author U043192
  * 
  */
-public class TestFuseByteValues {
+public class FuseByteValuesTest {
 
 	private ByteValues				testvalues;
 
@@ -424,24 +425,21 @@ public class TestFuseByteValues {
 
 	}
 
-	private ByteValueChangeEvent[]	fEvents	= null;
-
 	/**
 	 * Test method for
 	 * {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#addByteValuesChangeListener}.
 	 */
 	@Test
 	public void testListener() {
+		ByteValueChangeEvent[]	fEvents	= null;
 		testvalues = new ByteValues(FUSE, "atmega16");
 		testvalues.setDefaultValues();
-		testvalues.addChangeListener(new IByteValuesChangeListener() {
-			public void byteValuesChanged(ByteValueChangeEvent[] events) {
-				fEvents = events;
-			}
-		});
+		MyByteValuesChangeListener myListener = new MyByteValuesChangeListener();
+		testvalues.addChangeListener(myListener);
 
 		// Cause a single BitField change event
 		testvalues.setNamedValue("SPIEN", 0x01);
+		fEvents = myListener.getEvents();
 		assertNotNull("No Events fired", fEvents);
 		assertEquals("Wrong number of event objects", 1, fEvents.length);
 		ByteValueChangeEvent event = fEvents[0];
@@ -453,6 +451,7 @@ public class TestFuseByteValues {
 		// cause multiple BitField change events
 		final String[] names = new String[] { "BODLEVEL", "BODEN", "SUT_CKSEL" };
 		testvalues.setValue(0, 0xC1);
+		fEvents = myListener.getEvents();
 		assertNotNull("No Events fired", fEvents);
 		assertEquals("Wrong number of event objects", 3, fEvents.length);
 		for (int i = 0; i < fEvents.length; i++) {
@@ -472,5 +471,16 @@ public class TestFuseByteValues {
 
 	private String bin(int value) {
 		return Integer.toBinaryString(value);
+	}
+	
+	@Ignore
+	private class MyByteValuesChangeListener implements IByteValuesChangeListener {
+		private ByteValueChangeEvent[] fEvents = null;
+		public void byteValuesChanged(ByteValueChangeEvent[] events) {
+			fEvents = events;
+		}
+		public ByteValueChangeEvent[] getEvents() {
+			return fEvents;
+		}
 	}
 }

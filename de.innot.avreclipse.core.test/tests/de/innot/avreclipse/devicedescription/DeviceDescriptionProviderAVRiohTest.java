@@ -27,7 +27,7 @@ import de.innot.avreclipse.devicedescription.avrio.DeviceDescription;
  * @author Thomas
  * 
  */
-public class TestDeviceDescriptionProviderAVRioh extends TestCase {
+public class DeviceDescriptionProviderAVRiohTest extends TestCase {
 
 	/**
 	 * Test method for

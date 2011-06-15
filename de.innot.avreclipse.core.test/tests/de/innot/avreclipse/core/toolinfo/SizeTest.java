@@ -19,8 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Set;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
@@ -29,18 +28,18 @@ import org.junit.Test;
 
 /**
  * @author U043192
- * 
+ *
  */
-public class TestGCC {
+public class SizeTest {
 
-	private GCC	tool	= null;
-
+	private Size tool = null;
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		tool = GCC.getDefault();
+		tool = Size.getDefault();
 	}
 
 	/**
@@ -49,8 +48,8 @@ public class TestGCC {
 	@Test
 	public void testGetDefault() {
 		assertNotNull(tool);
-		// this next test will fail if other than avr-tool toolchain is used
-		assertEquals("avr-gcc", tool.getCommandName());
+		// this next test will fail if other than avr-gcc toolchain is used
+		assertEquals("avr-size", tool.getCommandName());
 	}
 
 	/**
@@ -63,26 +62,30 @@ public class TestGCC {
 		File gccfile = gccpath.toFile();
 		if (isWindows()) {
 			// append .exe
-			String windowsname = gccfile.getPath() + ".exe";
+			String windowsname = gccfile.getPath() +".exe";
 			gccfile = new File(windowsname);
 		}
+
 		assertTrue("Toolpath does not point to an executable file", gccfile.canRead());
 	}
 
 	/**
 	 * Test method for {@link de.innot.avreclipse.core.toolinfo.GCC#getToolInfo(java.lang.String)}.
-	 * 
-	 * @throws IOException
 	 */
 	@Test
-	public void testGetMCUList() throws IOException {
-		Set<String> mcus = tool.getMCUList();
-		assertNotNull(mcus);
-		assertTrue(mcus.size() > 5); // at least a few micros should be in the list
-		assertTrue(mcus.contains("atmega16"));
-		assertFalse(mcus.contains("avr1"));
-		assertFalse(mcus.contains(""));
-		assertFalse(mcus.contains(null));
+	public void testGetToolInfo() {
+		Map<String, String> options = tool.getSizeOptions();
+		assertNotNull(options);
+		assertTrue(options.size()>1); // at least two formats should be in the list
+		assertTrue(options.containsValue("sysv"));
+		assertTrue(options.containsKey("SysV Format"));
+		if (options.size() == 3) {
+			// test the avr option
+			assertTrue(options.containsValue("avr"));
+			assertTrue(options.containsKey("AVR Specific Format"));
+		}
+		assertFalse(options.containsValue(""));
+		assertFalse(options.containsValue(null));
 	}
 
 	/**
@@ -91,5 +94,6 @@ public class TestGCC {
 	private static boolean isWindows() {
 		return (Platform.getOS().equals(Platform.OS_WIN32));
 	}
+
 
 }

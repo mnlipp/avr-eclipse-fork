@@ -70,7 +70,8 @@ public class TestHelper {
 	public static File getPluginFile(String filename) throws IOException {
 		URL url = getPluginFileURL(filename);
 		try {
-			return new File(url.toURI());
+			URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), null);
+			return new File(uri);
 		} catch (URISyntaxException e) {
 			// Unlikely to happen
 			e.printStackTrace();
@@ -130,8 +131,9 @@ public class TestHelper {
 
 		if (!file.exists()) {
 			try {
-				URI origuri = getPluginFileURL(filepath).toURI();
-				file.createLink(origuri, IResource.NONE, null);
+				URL url = getPluginFileURL(filepath);
+				URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), null);
+				file.createLink(uri, IResource.NONE, null);
 			} catch (URISyntaxException e1) {
 				// unlikely to happen. If it does happen wrap in a IOException
 				e1.printStackTrace();
