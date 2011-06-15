@@ -1,145 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Copyright (c) 2008 Sonatype, Inc.
-  All rights reserved. This program and the accompanying materials
-  are made available under the terms of the Eclipse Public License v1.0
-  which accompanies this distribution, and is available at
-  http://www.eclipse.org/legal/epl-v10.html
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<!-- Copyright (c) 2010 Thomas Holland (thomas@innot.de). All rights reserved. 
+	This program and the accompanying materials are made available under the 
+	terms of the Eclipse Public License v1.0 which accompanies this distribution, 
+	and is available at http://www.eclipse.org/legal/epl-v10.html -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>avreclipse</groupId>
-    <artifactId>de.innot.avreclipse.releng</artifactId>
-    <version>2.5.0-SNAPSHOT</version>
-    <relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
-  </parent>
+	<parent>
+		<groupId>avreclipse</groupId>
+		<artifactId>de.innot.avreclipse.releng</artifactId>
+		<version>2.5.0-SNAPSHOT</version>
+		<relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
+	</parent>
 
-  <artifactId>de.innot.avreclipse.updatesite</artifactId>
-  <packaging>eclipse-feature</packaging>
+	<artifactId>de.innot.avreclipse.updatesite</artifactId>
+	<packaging>eclipse-update-site</packaging>
 
-  <name>AVR Eclpse Plugin update site generator</name>
+	<name>AVR Eclpse Plugin update site generator</name>
 
-  <build>
-  	<extensions>
-		<extension>
-			<groupId>org.apache.maven.wagon</groupId>
-			<artifactId>wagon-ssh-external</artifactId>
-			<version>1.0-beta-7</version>
-		</extension>
-	</extensions>
-    <plugins>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-packaging-plugin</artifactId>
-		<version>${tycho-version}</version>
-        <configuration>
-          <deployableFeature>true</deployableFeature>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-p2-plugin</artifactId>
-		<version>${tycho-version}</version>
-        <executions>
-          <execution>
-            <id>categorization</id>
-            <phase>package</phase>
-            <goals>
-              <goal>category-p2-metadata</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <metadataRepositoryName>AVR Eclipse Plugin</metadataRepositoryName>
-          <artifactRepositoryName>AVR Eclipse Plugin</artifactRepositoryName>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>src/main/assembly/assembly.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id> 
-            <phase>package</phase> 
-            <goals>
-              <goal>single</goal> 
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
-  </build>
-
-<!-- 
-  <profiles>
-    <profile>
-      <id>publish-site</id>
-
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>maven-upload-plugin</artifactId>
-            <version>0.0.1</version>
-            <executions>
-              <execution>
-                <id>publish-site</id>
-                <phase>deploy</phase>
-                <goals>
-                  <goal>upload-file</goal>
-                </goals>
-                <configuration>
-                  <file>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</file>
-                  <serverId>forge-releases</serverId>
-                  <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>m2e/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>publish-site-latest</id>
-
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>maven-upload-plugin</artifactId>
-            <version>0.0.1</version>
-            <executions>
-              <execution>
-                <id>publish-site-latest</id>
-                <phase>deploy</phase>
-                <goals>
-                  <goal>upload-file</goal>
-                </goals>
-                <configuration>
-                  <file>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</file>
-                  <serverId>forge-releases</serverId>
-                  <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>m2e/${unqualifiedVersion}/N/LATEST</repositoryPath>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
- -->
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/repository</outputDirectory>
+							<resources>
+								<resource>
+									<directory>.</directory>
+									<includes>
+										<include>index.html</include>
+										<include>web/*</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
 

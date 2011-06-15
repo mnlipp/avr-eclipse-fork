@@ -29,6 +29,7 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
@@ -62,7 +63,7 @@ public class AVRPlugin extends Plugin {
 		plugin = this;
 
 		// Rescan all system paths (unless the "No startup scan" flag has been set
-		AVRPathsPreferences.scanAllPaths();
+		// AVRPathsPreferences.scanAllPaths();
 
 		ToolManager toolmanager = ToolManager.getDefault();
 		String[] extpoints = toolmanager.getExtensionPointIDs();
@@ -143,9 +144,18 @@ public class AVRPlugin extends Plugin {
 	 * 
 	 * @param name
 	 *            The name of the Console
-	 * @return A <code>MessageConsole</code> with the given name
+	 * @return A <code>MessageConsole</code> with the given name, 
+	 * or <code>null</code> if running in headless mode
 	 */
 	public MessageConsole getConsole(String name) {
+		
+		// Check if we are running headless (JUnit Test e.g.)
+		// If Headless we return null
+		Bundle b = Platform.getBundle("org.eclipse.swt");
+		if (b==null || b.getState() != Bundle.ACTIVE) {
+			return null;
+		} 
+		
 		// Get a list of all known Consoles from the Global Console Manager and
 		// see if a Console with the given name already exists.
 		IConsoleManager conman = ConsolePlugin.getDefault().getConsoleManager();

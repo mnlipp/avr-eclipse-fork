@@ -68,6 +68,10 @@ public class ByteValuesFactory {
 		}
 
 		ByteValues values = new ByteValues(type, mcuid);
+		
+		// The file summary property is used as a bytevalues comment
+		String comment = props.getProperty("summary", "");
+		values.setComment(comment);
 
 		// Now read all Bitfieldvalues
 		for (Object keyobj : props.keySet()) {
