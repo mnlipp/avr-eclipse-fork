@@ -17,7 +17,7 @@
 	<artifactId>de.innot.avreclipse.updatesite</artifactId>
 	<packaging>eclipse-update-site</packaging>
 
-	<name>AVR Eclpse Plugin update site generator</name>
+	<name>AVR Eclipse Generate Update Site</name>
 
 	<build>
 		<plugins>

@@ -18,7 +18,7 @@
 	<artifactId>de.innot.avreclipse.tests.swtbot</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
 
-	<name>AVR Eclipse UI Integration Test Plug-in</name>
+	<name>AVR Eclipse Tests UI / SWTBot</name>
 
 	<properties>
 		<local-p2-site>file:/${basedir}/../de.innot.avreclipse-updatesite/target/site</local-p2-site>

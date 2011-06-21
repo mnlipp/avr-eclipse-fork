@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import de.innot.avreclipse.debug.TestProjectCreator;
 
@@ -75,6 +76,11 @@ public class AbstractAVRDebugTest {
 	public void tearDown() throws Exception {
 	}
 
+	@Test
+	public void emptyTest() {
+		// do nothing - make surefire happy :-)
+	}
+	
 	/**
 	 * Get the path to a zipped project.
 	 * <p>
