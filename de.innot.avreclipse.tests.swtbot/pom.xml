@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2011, Chris Aniszczyk <caniszczyk@gmail.com> All rights 
+	reserved. This program and the accompanying materials are made available 
+	under the terms of the Eclipse Public License v1.0 which accompanies this 
+	distribution, and is available at http://www.eclipse.org/legal/epl-v10.html -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<version>2.5.0-SNAPSHOT</version>
+		<groupId>avreclipse</groupId>
+		<artifactId>de.innot.avreclipse.releng</artifactId>
+		<relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>de.innot.avreclipse.tests.swtbot</artifactId>
+	<packaging>eclipse-test-plugin</packaging>
+
+	<name>AVR Eclipse UI Integration Test Plug-in</name>
+
+	<properties>
+		<local-p2-site>file:/${basedir}/../de.innot.avreclipse-updatesite/target/site</local-p2-site>
+		<ui.test.vmargs>-Xmx512m -XX:MaxPermSize=256m</ui.test.vmargs>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>skip-ui-tests</id>
+			<activation>
+				<property>
+					<name>skip-ui-tests</name>
+				</property>
+			</activation>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+		</profile>
+	</profiles>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<!-- <testSuite>de.innot.avreclipse.tests.ui</testSuite> <testClass>de.innot.avreclipse.tests.ui.AllTests</testClass> -->
+					<useUIHarness>true</useUIHarness>
+					<useUIThread>false</useUIThread>
+					<product>org.eclipse.sdk.ide</product>
+					<argLine>${ui.test.vmargs}</argLine>
+					<application>org.eclipse.ui.ide.workbench</application>
+					<dependencies>
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>org.eclipse.sdk.ide</artifactId>
+							<version>0.0.0</version>
+						</dependency>
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>de.innot.avreclipse.feature.group</artifactId>
+							<version>1.0.0</version>
+						</dependency>
+					</dependencies>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>swtbot</id>
+			<layout>p2</layout>
+			<url>${swtbot-site}</url>
+		</repository>
+		<repository>
+			<id>orbit</id>
+			<layout>p2</layout>
+			<url>${orbit-site}</url>
+		</repository>
+
+	</repositories>
+
+</project>
