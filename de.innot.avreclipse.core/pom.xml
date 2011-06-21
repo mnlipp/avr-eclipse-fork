@@ -16,6 +16,7 @@
 	<packaging>eclipse-plugin</packaging>
 	<name>AVR Eclipse Plugin Core</name>
 
+<!-- 
 	<build>
 		<plugins>
 			<plugin>
@@ -28,5 +29,6 @@
 			</plugin>
 		</plugins>
 	</build>
+-->
 	
 </project>

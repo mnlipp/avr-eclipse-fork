@@ -31,10 +31,10 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/target/repository</outputDirectory>
+							<outputDirectory>${basedir}/target/site</outputDirectory>
 							<resources>
 								<resource>
-									<directory>.</directory>
+									<directory>${basedir}</directory>
 									<includes>
 										<include>index.html</include>
 										<include>web/*</include>

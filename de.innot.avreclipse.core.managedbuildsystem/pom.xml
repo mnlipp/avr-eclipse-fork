@@ -16,6 +16,7 @@
 	<packaging>eclipse-plugin</packaging>
 	<name>AVR Eclipse Plugin ManagedBuildSystem</name>
 
+<!-- 
 	<build>
 		<plugins>
 			<plugin>
@@ -28,5 +29,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+-->	
 </project>
