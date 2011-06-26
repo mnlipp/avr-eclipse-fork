@@ -26,7 +26,6 @@ import java.io.IOException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.After;
 import org.junit.Before;
@@ -58,8 +57,7 @@ public class FuseBytePropertiesTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		IScopeContext scope = new InstanceScope();
-		fPrefs = scope.getNode("de.innot.avreclipse.tests");
+		fPrefs = InstanceScope.INSTANCE.getNode("de.innot.avreclipse.tests");
 		AVRProjectProperties projectProps = new AVRProjectProperties(fPrefs);
 		fAVRDudeProps = new AVRDudeProperties(fPrefs, projectProps);
 	}

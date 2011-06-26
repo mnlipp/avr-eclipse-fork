@@ -22,10 +22,4 @@
       <discovery label="%discoverySiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
    </url>
 
-   <plugin
-         id="de.innot.avreclipse.plugin.source"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
 </feature>

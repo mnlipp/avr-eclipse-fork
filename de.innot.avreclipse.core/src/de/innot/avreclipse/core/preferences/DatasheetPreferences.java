@@ -27,7 +27,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
@@ -70,8 +69,7 @@ public class DatasheetPreferences {
 			return fInstanceStore;
 		}
 
-		IScopeContext scope = new InstanceScope();
-		IPreferenceStore store = new ScopedPreferenceStore(scope, QUALIFIER);
+		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, QUALIFIER);
 
 		fInstanceStore = store;
 		return store;
@@ -90,12 +88,10 @@ public class DatasheetPreferences {
 		// then add / overwrite all instance mcu ids.
 		try {
 			Set<String> allmcus = new HashSet<String>();
-			IScopeContext defaultscope = new DefaultScope();
-			IEclipsePreferences defaultnode = defaultscope.getNode(QUALIFIER);
+			IEclipsePreferences defaultnode = DefaultScope.INSTANCE.getNode(QUALIFIER);
 			allmcus.addAll(Arrays.asList(defaultnode.keys()));
 
-			IScopeContext instancescope = new InstanceScope();
-			IEclipsePreferences instancenode = instancescope.getNode(QUALIFIER);
+			IEclipsePreferences instancenode = InstanceScope.INSTANCE.getNode(QUALIFIER);
 			allmcus.addAll(Arrays.asList(instancenode.keys()));
 			return allmcus;
 		} catch (BackingStoreException e) {
@@ -126,8 +122,7 @@ public class DatasheetPreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getDefaultPreferences() {
-		IScopeContext scope = new DefaultScope();
-		return scope.getNode(QUALIFIER);
+		return DefaultScope.INSTANCE.getNode(QUALIFIER);
 	}
 
 	/**

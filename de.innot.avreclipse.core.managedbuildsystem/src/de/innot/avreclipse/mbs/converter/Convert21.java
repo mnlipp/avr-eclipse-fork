@@ -104,7 +104,7 @@ public class Convert21 {
 	/**
 	 * @param tools
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private static void checkOptions(IHoldsOptions optionholder, IConfiguration buildcfg) {
 
 		// Get the Project Properties for the given Configuration

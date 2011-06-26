@@ -32,7 +32,6 @@ import org.eclipse.ui.console.MessageConsole;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
-import de.innot.avreclipse.core.preferences.AVRPathsPreferences;
 import de.innot.avreclipse.core.targets.ToolManager;
 
 /**

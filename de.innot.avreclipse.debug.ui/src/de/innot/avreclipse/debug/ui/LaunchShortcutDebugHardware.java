@@ -22,9 +22,9 @@ import org.eclipse.cdt.core.model.IBinary;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.debug.core.CDebugCorePlugin;
+import org.eclipse.cdt.debug.core.CDebugUtils;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.debug.core.ICDebugConfiguration;
-import org.eclipse.cdt.launch.AbstractCLaunchDelegate;
 import org.eclipse.cdt.ui.CElementLabelProvider;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -254,8 +254,8 @@ public class LaunchShortcutDebugHardware implements ILaunchShortcut {
 					.getLaunchConfigurations(configType);
 
 			for (ILaunchConfiguration config : configs) {
-				IPath programPath = AbstractCLaunchDelegate.getProgramPath(config);
-				String projectName = AbstractCLaunchDelegate.getProjectName(config);
+				IPath programPath = CDebugUtils.getProgramPath(config);
+				String projectName = CDebugUtils.getProjectName(config);
 				if (programPath != null && programPath.equals(binaryname)) {
 					if (projectName != null
 							&& projectName.equals(bin.getCProject().getProject().getName())) {
@@ -307,7 +307,7 @@ public class LaunchShortcutDebugHardware implements ILaunchShortcut {
 
 			// Instantiate a new LaunchConfiguration
 			ILaunchConfigurationWorkingCopy wc = configType.newInstance(null, getLaunchManager()
-					.generateUniqueLaunchConfigurationNameFrom(binary.getElementName()));
+					.generateLaunchConfigurationName(binary.getElementName()));
 
 			// Set the project parameters
 			wc.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROGRAM_NAME, projectName);

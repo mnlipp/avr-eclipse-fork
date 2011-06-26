@@ -31,7 +31,7 @@
 ####################################################################################### 
 -->
 	<extension
-		point="org.eclipse.core.runtime.contentTypes">
+		point="org.eclipse.core.contenttype.contentTypes">
 		<content-type id="de.innot.avreclipse.contenttype.hexdump.flash"
 			base-type="org.eclipse.core.runtime.text"
 			file-extensions="hex"
@@ -39,7 +39,7 @@
 		</content-type>
 	</extension>
 	<extension
-		point="org.eclipse.core.runtime.contentTypes">
+		point="org.eclipse.core.contenttype.contentTypes">
 		<content-type id="de.innot.avreclipse.contenttype.hexdump.eeprom"
 			base-type="org.eclipse.core.runtime.text"
 			file-extensions="eep"
@@ -47,7 +47,7 @@
 		</content-type>
 	</extension>
 	<!--  this does not work because Eclipse is non-case-sensitive, e.g. .s == .S -->
-	<extension point="org.eclipse.core.runtime.contentTypes"> 
+	<extension point="org.eclipse.core.contenttype.contentTypes"> 
 		<file-association 
 	    	content-type="org.eclipse.cdt.core.asmSource"
 	       	file-extensions="s,S,asm"/>

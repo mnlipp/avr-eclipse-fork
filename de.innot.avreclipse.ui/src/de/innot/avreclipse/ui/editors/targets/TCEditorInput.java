@@ -100,7 +100,7 @@ public class TCEditorInput implements IEditorInput {
 	 * (non-Javadoc)
 	 * @see org.eclipse.core.runtime.IAdaptable#getAdapter(java.lang.Class)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 		// This might be a misuse of the adapter philosophy, but it saves some casts for the
 		// users of this editor input.

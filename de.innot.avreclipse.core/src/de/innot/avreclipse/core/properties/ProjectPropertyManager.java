@@ -312,8 +312,7 @@ public class ProjectPropertyManager {
 	}
 
 	private static IEclipsePreferences getDefaultPreferences() {
-		IScopeContext scope = new DefaultScope();
-		return scope.getNode(QUALIFIER);
+		return DefaultScope.INSTANCE.getNode(QUALIFIER);
 	}
 
 	private static IEclipsePreferences getProjectPreferences(IProject project) {

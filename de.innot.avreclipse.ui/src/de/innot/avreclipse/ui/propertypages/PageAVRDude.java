@@ -18,7 +18,6 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -140,8 +139,7 @@ public class PageAVRDude extends AbstractAVRPage {
 		// Add the Text control to the ExpandableComposite
 
 		// Read the previous page state from the preferences
-		IScopeContext scope = new InstanceScope();
-		IEclipsePreferences prefs = scope.getNode(QUALIFIER);
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(QUALIFIER);
 		boolean isexpanded = prefs.getBoolean(KEY_ISEXPANDED, false);
 		fSashWeights[EXPANDED][0] = prefs.getInt(KEY_WEIGHT_TOP_EXP, 80);
 		fSashWeights[EXPANDED][1] = prefs.getInt(KEY_WEIGHT_PREVIEW_EXP, 20);
@@ -230,8 +228,7 @@ public class PageAVRDude extends AbstractAVRPage {
 		fSashWeights[isexpanded ? EXPANDED : COLLAPSED] = fSashForm.getWeights();
 
 		// Save the current GUI state
-		IScopeContext scope = new InstanceScope();
-		IEclipsePreferences prefs = scope.getNode(QUALIFIER);
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(QUALIFIER);
 		prefs.putBoolean(KEY_ISEXPANDED, isexpanded);
 		prefs.putInt(KEY_WEIGHT_TOP_EXP, fSashWeights[EXPANDED][0]);
 		prefs.putInt(KEY_WEIGHT_PREVIEW_EXP, fSashWeights[EXPANDED][1]);

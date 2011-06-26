@@ -47,6 +47,7 @@ import org.eclipse.cdt.managedbuilder.internal.core.ToolChain;
  * @author Thomas Holland
  * @version 1.0
  */
+@SuppressWarnings("restriction")
 public class AddToolsValueHandler extends ManagedOptionValueHandler {
 
 	/** Array of all available tools on this computer.*/

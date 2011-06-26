@@ -15,7 +15,6 @@ import java.io.IOException;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -61,8 +60,7 @@ public class AVRDudePreferences {
 			return fInstanceStore;
 		}
 
-		IScopeContext scope = new InstanceScope();
-		IPreferenceStore store = new ScopedPreferenceStore(scope, QUALIFIER);
+		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, QUALIFIER);
 
 		fInstanceStore = store;
 		return store;
@@ -74,8 +72,7 @@ public class AVRDudePreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getConfigPreferences() {
-		IScopeContext scope = new InstanceScope();
-		IEclipsePreferences root = scope.getNode(CONFIGQUALIFIER);
+		IEclipsePreferences root = InstanceScope.INSTANCE.getNode(CONFIGQUALIFIER);
 		return root;
 	}
 
@@ -100,8 +97,7 @@ public class AVRDudePreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getDefaultPreferences() {
-		IScopeContext scope = new DefaultScope();
-		return scope.getNode(QUALIFIER);
+		return DefaultScope.INSTANCE.getNode(QUALIFIER);
 	}
 
 	/**
