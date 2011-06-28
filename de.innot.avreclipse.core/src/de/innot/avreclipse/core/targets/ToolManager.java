@@ -41,7 +41,7 @@ import de.innot.avreclipse.AVRPlugin;
  */
 public class ToolManager implements IRegistryEventListener {
 
-	private static ToolManager			fInstance;
+	private static volatile ToolManager			fInstance = null;
 
 	private final static String			NAMESPACE			= AVRPlugin.PLUGIN_ID;
 	public final static String			EXTENSIONPOINT		= NAMESPACE + ".targetToolFactories";

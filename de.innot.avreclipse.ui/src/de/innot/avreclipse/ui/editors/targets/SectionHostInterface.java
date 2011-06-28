@@ -12,6 +12,7 @@
 package de.innot.avreclipse.ui.editors.targets;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -117,7 +118,7 @@ public class SectionHostInterface extends AbstractTCSectionPart implements ITarg
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*

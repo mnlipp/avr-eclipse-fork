@@ -75,7 +75,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*
@@ -85,7 +85,7 @@ public class SectionProgrammerTool extends AbstractTCSectionPart implements ITar
 	 */
 	@Override
 	protected String[] getDependentAttributes() {
-		return PART_DEPENDS;
+		return Arrays.copyOf(PART_DEPENDS, PART_DEPENDS.length);
 	}
 
 	/*

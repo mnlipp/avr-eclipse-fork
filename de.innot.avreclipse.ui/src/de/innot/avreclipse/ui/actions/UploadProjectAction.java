@@ -341,7 +341,7 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 	 * The background Job to execute the requested avrdude commands.
 	 * 
 	 */
-	private class UploadJob extends Job {
+	private static class UploadJob extends Job {
 
 		private final List<String>		fOptions;
 		private final List<String>		fActions;

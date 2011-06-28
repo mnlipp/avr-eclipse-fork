@@ -82,7 +82,7 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*
@@ -92,7 +92,7 @@ public class SectionProgrammer extends AbstractTCSectionPart implements ITargetC
 	 */
 	@Override
 	protected String[] getDependentAttributes() {
-		return PART_DEPENDS;
+		return Arrays.copyOf(PART_DEPENDS, PART_DEPENDS.length);
 	}
 
 	/*

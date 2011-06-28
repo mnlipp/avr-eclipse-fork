@@ -12,6 +12,7 @@
 package de.innot.avreclipse.ui.editors.targets;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +84,7 @@ public class SectionMCU extends AbstractTCSectionPart implements ITargetConfigCo
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*

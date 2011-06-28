@@ -139,7 +139,7 @@ public class TargetConfigurationView extends ViewPart implements ITargetConfigCh
 		}
 	}
 
-	class NameSorter extends ViewerSorter {
+	private static class NameSorter extends ViewerSorter {
 	}
 
 	/*

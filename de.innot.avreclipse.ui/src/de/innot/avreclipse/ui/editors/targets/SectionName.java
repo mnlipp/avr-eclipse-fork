@@ -11,6 +11,8 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -62,7 +64,7 @@ public class SectionName extends AbstractTCSectionPart implements
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*

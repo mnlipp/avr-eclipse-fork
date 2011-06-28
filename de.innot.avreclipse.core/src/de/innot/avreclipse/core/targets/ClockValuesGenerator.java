@@ -68,19 +68,19 @@ public final class ClockValuesGenerator {
 			1000000								};
 
 	/** JTAG2 values cache. */
-	private static int[]			fJTAG2Values;
+	private static int[]			fJTAG2Values = null;
 
 	/** STK500 values cache. */
-	private static int[]			fSTK500Values;
+	private static int[]			fSTK500Values = null;
 
 	/** AVRISPMK2 values cache. */
-	private static int[]			fAVRISPMK2Values;
+	private static int[]			fAVRISPMK2Values = null;
 
 	/** STK600 values cache. */
-	private static int[]			fSTK600Values;
+	private static int[]			fSTK600Values = null;
 
 	/** USBTiny values cache. */
-	private static int[]			fUSBTinyValues;
+	private static int[]			fUSBTinyValues = null;
 
 	/**
 	 * Static list of all possible AVRISPMk2 values.
@@ -203,10 +203,11 @@ public final class ClockValuesGenerator {
 
 			// Now reverse the list and convert it to integers
 			int numvalues = values.size();
-			fJTAG2Values = new int[numvalues];
+			int[] tmpvalues = new int[numvalues];
 			for (int i = 0; i < numvalues; i++) {
-				fJTAG2Values[i] = values.get(numvalues - i - 1);
+				tmpvalues[i] = values.get(numvalues - i - 1);
 			}
+			fJTAG2Values = tmpvalues;
 		}
 
 		return fJTAG2Values;
@@ -261,10 +262,11 @@ public final class ClockValuesGenerator {
 
 			// Now reverse the list and convert it to integers
 			int numvalues = values.size();
-			fSTK500Values = new int[numvalues];
+			int[] tmpvalues = new int[numvalues];
 			for (int i = 0; i < numvalues; i++) {
-				fSTK500Values[i] = values.get(numvalues - i - 1);
+				tmpvalues[i] = values.get(numvalues - i - 1);
 			}
+			fSTK500Values = tmpvalues;
 		}
 
 		return fSTK500Values;
@@ -298,10 +300,11 @@ public final class ClockValuesGenerator {
 
 			// Now reverse the list
 			int numvalues = values.size();
-			fAVRISPMK2Values = new int[numvalues];
+			int[] tmpvalues = new int[numvalues];
 			for (int i = 0; i < numvalues; i++) {
-				fAVRISPMK2Values[i] = values.get(numvalues - i - 1);
+				tmpvalues[i] = values.get(numvalues - i - 1);
 			}
+			fAVRISPMK2Values = tmpvalues;
 		}
 
 		return fAVRISPMK2Values;
@@ -340,10 +343,11 @@ public final class ClockValuesGenerator {
 
 			// Now reverse the list
 			int numvalues = values.size();
-			fSTK600Values = new int[numvalues];
+			int[] tmpvalues = new int[numvalues];
 			for (int i = 0; i < numvalues; i++) {
-				fSTK600Values[i] = values.get(numvalues - i - 1);
+				tmpvalues[i] = values.get(numvalues - i - 1);
 			}
+			fSTK600Values = tmpvalues;
 		}
 
 		return fSTK600Values;
@@ -382,10 +386,11 @@ public final class ClockValuesGenerator {
 
 			// Now reverse the list and convert it to integers
 			int numvalues = values.size();
-			fUSBTinyValues = new int[numvalues];
+			int[] tmpvalues = new int[numvalues];
 			for (int i = 0; i < numvalues; i++) {
-				fUSBTinyValues[i] = values.get(numvalues - i - 1);
+				tmpvalues[i] = values.get(numvalues - i - 1);
 			}
+			fUSBTinyValues = tmpvalues;
 		}
 
 		return fUSBTinyValues;

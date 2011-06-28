@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,7 +75,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 public class AVRDude implements IMCUProvider {
 
 	/** The singleton instance of this class */
-	private static AVRDude					instance			= null;
+	private static volatile AVRDude					instance			= null;
 
 	/** The preference store for AVRDude */
 	private final IPreferenceStore			fPrefsStore;
@@ -730,51 +731,51 @@ public class AVRDude implements IMCUProvider {
 
 		String type = avrdudetype.toLowerCase(); // just in case
 		if (type.equals("serbb")) {
-			return SERIALBBPORT;
+			return Arrays.copyOf(SERIALBBPORT, SERIALBBPORT.length);
 		}
 		if (type.equals("par")) {
-			return PARALLELPORT;
+			return Arrays.copyOf(PARALLELPORT, PARALLELPORT.length);
 		}
 		if (type.contains("usb")) {
-			return USBPORT;
+			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
 		if (avrdudeid.startsWith("stk500") || type.equals("stk500")) {
 			// The STK500 has only a serial port
-			return SERIALPORT;
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
 		if (type.equals("stk500v2")) {
 			// This can be either USB or SERIAL. We need to check the id
 			if (avrdudeid.equals("avrispv2") || avrdudeid.equals("avrispmkII")
 					|| avrdudeid.equals("avrisp2")) {
 				// The AVR ISP MkII uses the STK500v2 protokoll, but over USB
-				return USBPORT;
+				return Arrays.copyOf(USBPORT, USBPORT.length);
 			}
 			// All other STK500v2 versions / clones use the serial port
-			return SERIALPORT;
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
 		if (type.startsWith("stk600")) {
-			return USBPORT;
+			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
 		if (type.equals("avr910") || type.equals("butterfly")) {
 			// Bootloader types
-			return SERIALPORT;
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
 		if (type.startsWith("dragon")) {
 			// AVR Dragon
-			return USBPORT;
+			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
 		if (type.startsWith("jtag")) {
 			// AVR ICE MkI normally uses the Serial port, but some clones have an USB port as well
 			// AVR ICE MkII has both a serial and an usb port.
-			return SERIAL_USB_PORT;
+			return Arrays.copyOf(SERIAL_USB_PORT, SERIAL_USB_PORT.length);
 		}
 		if (type.startsWith("arduino")) {
 			// All newer Arduinos have an USB Port, but some old versions came with a serial port.
-			return SERIAL_USB_PORT;
+			return Arrays.copyOf(SERIAL_USB_PORT, SERIAL_USB_PORT.length);
 		}
 		if (type.startsWith("buspirate")) {
 			// some very old Buspirate Boards have only a serial port, but I think we can ignore them.
-			return USBPORT;
+			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
 
 		// TODO remove when testing is finished

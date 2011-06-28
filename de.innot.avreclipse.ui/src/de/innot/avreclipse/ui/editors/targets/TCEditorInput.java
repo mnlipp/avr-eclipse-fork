@@ -142,5 +142,14 @@ public class TCEditorInput implements IEditorInput {
 		}
 		return false;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		// A simple hashcode to ensure that equal TCEditorInput objects have the same hashcode.
+		return fHardwareConfigID.hashCode() % 0x12345678;
+	}
 
 }

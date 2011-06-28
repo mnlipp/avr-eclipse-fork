@@ -87,7 +87,7 @@ public class GenerateMCULists implements IApplication {
 	 * core plugin.
 	 * </p>
 	 */
-	private class MyFusesReader extends FusesReader {
+	private static class MyFusesReader extends FusesReader {
 
 		private final static String	DESCRIPTION_FOLDER	= "fusedesc";
 
@@ -118,7 +118,7 @@ public class GenerateMCULists implements IApplication {
 	 * </p>
 	 * 
 	 */
-	private class MySignatureReader extends SignatureReader {
+	private static class MySignatureReader extends SignatureReader {
 
 		private final Properties	fSignatureProperties;
 

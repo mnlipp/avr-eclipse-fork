@@ -11,6 +11,7 @@
 
 package de.innot.avreclipse.core.targets.tools;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,7 +98,7 @@ public class AvrdudeTool extends AbstractTool implements IProgrammerTool {
 	 * @see de.innot.avreclipse.core.targets.IAttributeProvider#getAttributes()
 	 */
 	public String[] getAttributes() {
-		return ALL_ATTRS;
+		return Arrays.copyOf(ALL_ATTRS, ALL_ATTRS.length);
 	}
 
 	/*

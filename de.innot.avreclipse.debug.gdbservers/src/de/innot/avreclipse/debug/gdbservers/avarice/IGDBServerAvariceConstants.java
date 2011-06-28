@@ -71,10 +71,6 @@ public interface IGDBServerAvariceConstants {
 																					+ ".avarice.interface";
 	public static final String		DEFAULT_GDBSERVER_AVARICE_INTERFACE		= "AVR Dragon";
 
-	public final static String[][]	AVARICE_INTERFACES						= new String[][] {
-			{ "AVR Dragon", "--dragon" }, { "AVRISP MkI or compatible", "--mkI" },
-			{ "AVRICE MkII or compatible", "--mkII" }						};
-
 	/** The host system port for the JTAG interface. Default: "usb". */
 	public static final String		ATTR_GDBSERVER_AVARICE_JTAGPORT			= PLUGIN_ID
 																					+ ".avarice.jtagport";
@@ -84,10 +80,6 @@ public interface IGDBServerAvariceConstants {
 	public static final String		ATTR_GDBSERVER_AVARICE_JTAGBITRATE		= PLUGIN_ID
 																					+ ".avarice.jtagbitrate";
 	public static final String		DEFAULT_GDBSERVER_AVARICE_JTAGBITRATE	= "";
-
-	/** The (fixed?) MkI bitrates. MkII bitrates can be between 22 and 6400 kHz */
-	public final static String[]	AVARICE_JTAG_BITRATES					= new String[] {
-			"125kHz", "250kHz", "500kHz", "1000kHz"						};
 
 	/** Flag for avarice to use the debugWire interface. Default: <code>false</code> */
 	public static final String		ATTR_GDBSERVER_AVARICE_DEBUGWIRE		= PLUGIN_ID

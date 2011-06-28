@@ -54,7 +54,7 @@ public class MyWindowsRegistry {
 	/**
 	 * Small container to return the results of a query.
 	 */
-	protected class RegistryKeyValue {
+	protected static class RegistryKeyValue {
 		public String	key;	// Key name
 		public String	type;	// Registry type, e.g. REG_SZ or REG_EXPANDED_SZ
 		public String	value;	// Key value
@@ -63,7 +63,7 @@ public class MyWindowsRegistry {
 	/**
 	 * Small class that reads all incoming chars from the InputStream and stores them in a String.
 	 */
-	protected class StreamReader extends Thread {
+	protected static class StreamReader extends Thread {
 		private InputStream		is;
 		private StringBuilder	sb;
 
@@ -316,7 +316,10 @@ public class MyWindowsRegistry {
 			process.waitFor();
 			reader.join();
 			result = reader.getResult();
-		} catch (Exception e) {
+		} catch (IOException e) {
+			// In case of an exception we return what we have found so far (which may be nothing =
+			// empty array)
+		} catch (InterruptedException e) {
 			// In case of an exception we return what we have found so far (which may be nothing =
 			// empty array)
 		}

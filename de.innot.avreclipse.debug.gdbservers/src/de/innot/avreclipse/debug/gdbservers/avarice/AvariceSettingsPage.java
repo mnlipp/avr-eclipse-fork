@@ -43,18 +43,26 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 		IGDBServerAvariceConstants {
 
 	/** Name to be shown in the user interface. */
-	private final static String	COMMANDNAME	= "AVaRICE";
+	private final static String		COMMANDNAME				= "AVaRICE";
+
+	private final static String[][]	AVARICE_INTERFACES		= new String[][] {
+			{ "AVR Dragon", "--dragon" }, { "AVRISP MkI or compatible", "--mkI" },
+			{ "AVRICE MkII or compatible", "--mkII" }		};
+
+	/** The (fixed?) MkI bitrates. MkII bitrates can be between 22 and 6400 kHz */
+	private final static String[]	AVARICE_JTAG_BITRATES	= new String[] { "125kHz", "250kHz",
+			"500kHz", "1000kHz"							};
 
 	// The GUI widgets
-	private Text				fCommandName;
-	private Button				fVerbose;
-	private Text				fPortNumber;
-	private Combo				fInterface;
-	private Text				fJTAGPort;
-	private Combo				fJTAGBitRate;
-	private Button				fDebugWire;
-	private Button				fIgnoreIntr;
-	private Text				fOtherOptions;
+	private Text					fCommandName;
+	private Button					fVerbose;
+	private Text					fPortNumber;
+	private Combo					fInterface;
+	private Text					fJTAGPort;
+	private Combo					fJTAGBitRate;
+	private Button					fDebugWire;
+	private Button					fIgnoreIntr;
+	private Text					fOtherOptions;
 
 	/*
 	 * (non-Javadoc)

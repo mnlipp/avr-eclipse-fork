@@ -11,6 +11,8 @@
 
 package de.innot.avreclipse.ui.editors.targets;
 
+import java.util.Arrays;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
@@ -83,7 +85,7 @@ public class SectionAvrdude extends AbstractTCSectionPart {
 	 */
 	@Override
 	public String[] getPartAttributes() {
-		return PART_ATTRS;
+		return Arrays.copyOf(PART_ATTRS, PART_ATTRS.length);
 	}
 
 	/*
@@ -93,7 +95,7 @@ public class SectionAvrdude extends AbstractTCSectionPart {
 	 */
 	@Override
 	protected String[] getDependentAttributes() {
-		return PART_DEPENDS;
+		return Arrays.copyOf(PART_DEPENDS, PART_DEPENDS.length);
 	}
 
 	/*

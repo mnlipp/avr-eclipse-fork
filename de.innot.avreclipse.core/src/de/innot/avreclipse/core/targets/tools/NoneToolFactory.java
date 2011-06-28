@@ -84,7 +84,7 @@ public class NoneToolFactory implements IToolFactory {
 	/**
 	 * This is a special virtual tool that represents no selected tool.
 	 */
-	private class NoneTool implements IGDBServerTool, IProgrammerTool {
+	private static class NoneTool implements IGDBServerTool, IProgrammerTool {
 		/*
 		 * (non-Javadoc)
 		 * @see de.innot.avreclipse.core.targets.ITargetConfigurationTool#getId()
