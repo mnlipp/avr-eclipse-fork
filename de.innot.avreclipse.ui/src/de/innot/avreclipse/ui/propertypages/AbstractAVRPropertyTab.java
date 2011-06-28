@@ -10,13 +10,18 @@
  *******************************************************************************/
 package de.innot.avreclipse.ui.propertypages;
 
+import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICResourceDescription;
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.ui.properties.AbstractCBuildPropertyTab;
 import org.eclipse.cdt.ui.newui.ICPropertyTab;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -35,6 +40,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import de.innot.avreclipse.AVRPlugin;
 import de.innot.avreclipse.core.properties.AVRProjectProperties;
 import de.innot.avreclipse.core.properties.ProjectPropertyManager;
+import de.innot.avreclipse.mbs.scannerconfig.ScannerConfigUtil;
 
 /**
  * Abstract parent class for all AVR Property tabs.
@@ -46,8 +52,8 @@ import de.innot.avreclipse.core.properties.ProjectPropertyManager;
  * <p>
  * {@link #performApply(AVRProjectProperties)} and {@link #updateData(AVRProjectProperties)} are
  * almost identical to the methods in <code>ICPropertyTab</code>, while
- * <code>performDefaults()</code> is replaced by {@link #performCopy(AVRProjectProperties)},
- * which enables this class to send different default properties to the implementor.
+ * <code>performDefaults()</code> is replaced by {@link #performCopy(AVRProjectProperties)}, which
+ * enables this class to send different default properties to the implementor.
  * </p>
  * 
  * @author Thomas Holland
@@ -60,7 +66,12 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * special Tab message to indicate that the given Properties should be copied. This is very
 	 * similar to {@link ICPropertyTab#DEFAULTS} message.
 	 */
-	public final static int	COPY	= 200;
+	public final static int	COPY				= 200;
+
+	/**
+	 * Flag to indicate that something affecting the build-in paths or symbols has changed.
+	 */
+	private boolean			isDiscoveryRequired	= false;
 
 	/**
 	 * Action for an Apply event.
@@ -69,8 +80,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * properties.
 	 * </p>
 	 * The given properties are fresh, unmodified props from the properties storage. They will be
-	 * saved once this method returns.
-	 * </p>
+	 * saved once this method returns. </p>
 	 * 
 	 * @param dstprops
 	 *            Destination properties.
@@ -132,13 +142,12 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#handleTabEvent(int, java.lang.Object)
 	 */
 	@Override
 	public void handleTabEvent(int kind, Object data) {
 		// Override handleTabEvent to handle the COPY and DEFAULTS messages.
-		// 
+		//
 		// The DEFAULTS message is intercepted here, because the handling of
 		// defaults is different in the AVR tabs compared to the standard
 		// CPropertyTabs. The default properties are not writable (at least not
@@ -147,7 +156,7 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		// Instead the default properties are passed to the new performCopy(),
 		// which is implemented in subclasses and in which they copy their
 		// relevant properties from the given default/project properties.
-		// 
+		//
 		// The same method is used to reset a tab to the project settings. If
 		// the "Copy Project Settings" Button is pressed, the parent
 		// AbstractAVRPage will get the Project properties and generate a COPY
@@ -177,9 +186,9 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performApply(org.eclipse.cdt.core.settings.model.ICResourceDescription,
-	 *      org.eclipse.cdt.core.settings.model.ICResourceDescription)
+	 * @see
+	 * org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performApply(org.eclipse.cdt.core.settings.
+	 * model.ICResourceDescription, org.eclipse.cdt.core.settings.model.ICResourceDescription)
 	 */
 	@Override
 	protected void performApply(ICResourceDescription src, ICResourceDescription dst) {
@@ -206,12 +215,36 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 			ErrorDialog.openError(super.usercomp.getShell(), "AVR Properties Error", null, status);
 			e.printStackTrace();
 		}
+
+		if (isDiscoveryRequired) {
+			// Now we need to invalidate all discovered paths and symbols, because they still
+			// contain stale data.
+			clearDiscovery();
+			isDiscoveryRequired = true;
+		}
+
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#updateData(org.eclipse.cdt.core.settings.model.ICResourceDescription)
+	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#performOK()
+	 */
+	@Override
+	protected void performOK() {
+		if (isDiscoveryRequired) {
+			// Now we need to invalidate all discovered paths and symbols, because they still
+			// contain stale data.
+			clearDiscovery();
+			runDiscovery();
+			isDiscoveryRequired = false;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.cdt.ui.newui.AbstractCPropertyTab#updateData(org.eclipse.cdt.core.settings.model
+	 * .ICResourceDescription)
 	 */
 	@Override
 	protected void updateData(ICResourceDescription resdesc) {
@@ -224,7 +257,6 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.eclipse.cdt.ui.newui.AbstractCPropertyTab#updateButtons()
 	 */
 	@Override
@@ -239,8 +271,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	/**
 	 * Sets the rebuild flag for the current configuration or the complete project.
 	 * <p>
-	 * Passing <code>false</code> is not recommended, as it might prevent necessary rebuilds
-	 * caused by changes outside of the AVR property world.
+	 * Passing <code>false</code> is not recommended, as it might prevent necessary rebuilds caused
+	 * by changes outside of the AVR property world.
 	 * </p>
 	 * 
 	 * @param rebuild
@@ -257,6 +289,18 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 			// Set the rebuild flag for the complete project
 			ManagedBuildManager.getBuildInfo(getCfg().getOwner()).setRebuildState(rebuild);
 		}
+	}
+
+	/**
+	 * Set the "Discovery required" flag.
+	 * <p>
+	 * This method must be called whenever something has changed that requires a re-build of the
+	 * built-in paths and symbols. The actual re-build is performed by this class at the appropriate
+	 * time (after a performApply() or performOK() event).
+	 * </p>
+	 */
+	protected void setDiscoveryRequired() {
+		isDiscoveryRequired = true;
 	}
 
 	/**
@@ -336,8 +380,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * @param text
 	 *            Target <code>Text</code> Control
 	 * @param exts
-	 *            <code>String[]</code> with all valid file extensions. Files with other
-	 *            extensions will be filtered.
+	 *            <code>String[]</code> with all valid file extensions. Files with other extensions
+	 *            will be filtered.
 	 * @return <code>Button</code> Control with the created Button.
 	 */
 	protected Button setupFilesystemButton(Composite parent, final Text text, String[] exts) {
@@ -401,8 +445,8 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 	 * @param text
 	 *            Root file name
 	 * @param exts
-	 *            <code>String[]</code> with all valid file extensions. Files with other
-	 *            extensions will be filtered.
+	 *            <code>String[]</code> with all valid file extensions. Files with other extensions
+	 *            will be filtered.
 	 * @return <code>String</code> with the selected filename or <cod>null</code> if the user has
 	 *         cancelled or an error occured.
 	 */
@@ -435,4 +479,59 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		}
 	}
 
+	/**
+	 * Clear all discovered paths and symbols.
+	 * <p>
+	 * Depending on the perConfig flag this method will either clear the current config or all
+	 * configs.
+	 * </p>
+	 */
+	protected void clearDiscovery() {
+		try {
+
+			AbstractAVRPage avrpage = (AbstractAVRPage) page;
+			if (avrpage.isPerConfig()) {
+				// Only clear the current config
+				IConfiguration currcfg = getCfg();
+				ScannerConfigUtil.clearDiscovery(currcfg);
+			} else {
+				// Clear all configurations.
+				// While there are many ways to get a list of all configurations, this is the only
+				// one I could find that would actually work, i.e. get the scanner info of the
+				// configuration actually cleared.
+				ICConfigurationDescription[] alldesc = page.getCfgsEditable();
+				for (ICConfigurationDescription desc : alldesc) {
+					IConfiguration cfg = getCfg(desc);
+					ScannerConfigUtil.clearDiscovery(cfg);
+				}
+			}
+		} catch (CoreException e) {
+			final Shell shell = super.buttoncomp.getShell();
+			MessageDialog.openError(shell, "MCU Change Error",
+					"Could not clear discovered path & symbols.\n\n" + e.getLocalizedMessage());
+
+		}
+	}
+
+	/**
+	 * Re-discover all build in paths and symbols.
+	 * <p>
+	 * This method will first clear all previously discovered paths and symbols and then re-run the
+	 * ScannerConfigBuilder to re-discover the Symbols (which might have changed due to some AVR
+	 * property changes (like MCU or AVR toolchain).
+	 * </p>
+	 * <p>
+	 * The <code>perConfig</code> flag is honored. If it is set, only the current config is cleared
+	 * and rebuild, otherwise all configs of the current project are cleared/rebuild.
+	 * </p>
+	 * <p>
+	 * A error dialog is shown upon for any errors during the clearing. The builder is run
+	 * asynchronously, so errors there will only be logged.
+	 * </p>
+	 */
+	protected void runDiscovery() {
+
+		// Run the Scanner Config Builder to re-Discover all paths and symbols.
+		ScannerConfigUtil.runDiscovery((IProject) getCfg().getOwner());
+	}
 }

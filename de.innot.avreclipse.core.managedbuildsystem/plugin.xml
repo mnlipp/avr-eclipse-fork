@@ -13,7 +13,7 @@
 		id="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC"
 		name="AVR-GCC managed project profile (C)">
 		<scannerInfoCollector
-            class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
+            class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector" 
             scope="project"/>
 		<buildOutputProvider>
 			<open/>
@@ -25,7 +25,7 @@
 			<run
 				arguments="-E -P -v -dD ${plugin_state_location}/specs.c"
 				command="avr-gcc"
-				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+				class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCSpecsRunSIProvider"/>
 			<scannerInfoConsoleParser 
 				class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
 		</scannerInfoProvider>
@@ -36,17 +36,19 @@
 		id="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileCPP"
 		name="AVR-GCC managed project profile (C++)">
 		<scannerInfoCollector
-            class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector"
+            class="org.eclipse.cdt.managedbuilder.internal.scannerconfig.DefaultGCCScannerInfoCollector" 
             scope="project"/>
 		<buildOutputProvider>
 			<open/>
-			<scannerInfoConsoleParser class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"/>
+			<scannerInfoConsoleParser 
+				class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser"
+				compilerCommands="avr-gcc,avr-g++" />
 		</buildOutputProvider>
 		<scannerInfoProvider providerId="specsFile">
 			<run
 				arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp"
 				command="avr-g++"
-				class="org.eclipse.cdt.make.internal.core.scannerconfig2.GCCSpecsRunSIProvider"/>
+				class="de.innot.avreclipse.mbs.scannerconfig.AVRGCCSpecsRunSIProvider"/>
 			<scannerInfoConsoleParser class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCSpecsConsoleParser"/>
 		</scannerInfoProvider>
 	</extension>
@@ -509,7 +511,7 @@
 				dependencyExtensions="h"
 				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2"
 	 			languageId="org.eclipse.cdt.core.gcc" 
-				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC" />
+				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC|org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile" />
 
 			<outputType id="de.innot.avreclipse.compiler.winavr.output"
 				name="Object Files"
@@ -822,7 +824,7 @@
 				dependencyExtensions="h,H,hpp"
 				dependencyCalculator="org.eclipse.cdt.managedbuilder.makegen.gnu.DefaultGCCDependencyCalculator2"
 				languageId="org.eclipse.cdt.core.g++"
-				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileCPP" />
+				scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileCPP||org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile" />
           
 			<outputType id="de.innot.avreclipse.cppcompiler.output"
 				name="Object Files"
@@ -1516,8 +1518,7 @@
 	        id="de.innot.avreclipse.toolchain.winavr.base"
 	        name="AVR-GCC Toolchain"
 	        configurationEnvironmentSupplier="de.innot.avreclipse.mbs.AVRTargetEnvvarSupplier"
-	        configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier"
-	        scannerConfigDiscoveryProfileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC">
+	        configurationMacroSupplier="de.innot.avreclipse.mbs.AVRTargetBuildMacroSupplier" >
 			
   			<targetPlatform id="de.innot.avreclipse.targetplatform.avr" 
 				name="AVR Cross-Target"

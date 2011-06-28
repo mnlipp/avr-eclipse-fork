@@ -16,10 +16,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.cdt.build.core.scannerconfig.CfgInfoContext;
-import org.eclipse.cdt.build.internal.core.scannerconfig.CfgDiscoveredPathManager;
-import org.eclipse.cdt.make.core.MakeCorePlugin;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -281,21 +277,14 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		dst.setFCPU(newFCPU);
 
 		// Check if a rebuild is required
-		checkRebuildRequired();
+		boolean rebuild = setRebuildRequired();
+		if (rebuild) {
+			setDiscoveryRequired();
+		}
 
 		fOldMCUid = newMCUid;
 		fOldFCPU = newFCPU;
 
-		// Now we need to invalidate all discovered Symbols, because they still contain infos about
-		// the previous MCU.
-		// TODO: check if a rebuild is actually required
-		if (false) { // This does not work
-			IProject project = (IProject) getCfg().getManagedProject().getOwner();
-			MakeCorePlugin.getDefault().getDiscoveryManager().removeDiscoveredInfo(project);
-			CfgDiscoveredPathManager.getInstance().removeDiscoveredInfo(
-					(IProject) getCfg().getManagedProject().getOwner(),
-					new CfgInfoContext(getCfg()));
-		}
 	}
 
 	/*
@@ -318,7 +307,12 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	@Override
 	protected void performOK() {
 		// We override this to set the rebuild state as required
-		checkRebuildRequired();
+		boolean rebuild = setRebuildRequired();
+		if (rebuild) {
+			// Now we need to invalidate all discovered Symbols, because they still contain infos
+			// about the previous MCU.
+			setDiscoveryRequired();
+		}
 		super.performOK();
 	}
 
@@ -418,13 +412,15 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 * Checks if the current target values are different from the original ones and set the rebuild
 	 * flag for the configuration / project if yes.
 	 */
-	private void checkRebuildRequired() {
+	private boolean setRebuildRequired() {
 		if (fOldMCUid != null) {
 			if (!(fTargetProps.getMCUId().equals(fOldMCUid))
 					|| !(fTargetProps.getFCPU().equals(fOldFCPU))) {
 				setRebuildState(true);
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -516,4 +512,5 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 		readJob.setUser(true);
 		readJob.schedule();
 	}
+
 }

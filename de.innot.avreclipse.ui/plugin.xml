@@ -321,6 +321,14 @@
 			parent="de.innot.avreclipse.ui.propertypages.PageAVRDude"/>
 	</extension>
 
+     <extension
+         point="org.eclipse.cdt.make.ui.DiscoveryProfilePage">
+      <profilePage
+            class="org.eclipse.cdt.make.ui.dialogs.GCCPerProjectSCDProfilePage"
+            name="AVR-GCC managed project profile (C)"
+            profileId="de.innot.avreclipse.core.AVRGCCManagedMakePerProjectProfileC"/>
+	</extension>
+
 <!--
 ####################################################################################### 
 #    Wizard Pages                                                                     # 

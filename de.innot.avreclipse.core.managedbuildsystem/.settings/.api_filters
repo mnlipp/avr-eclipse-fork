@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="de.innot.avreclipse.core.managedbuildsystem" version="2">
-    <resource path="src/de/innot/avreclipse/mbs/scannerconfig/AVRGCCScannerInfoCollector.java" type="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoCollector">
-        <filter comment="Test" id="576720909">
+    <resource path="src/de/innot/avreclipse/mbs/scannerconfig/AVRGCCScannerInfoConsoleParser.java" type="de.innot.avreclipse.mbs.scannerconfig.AVRGCCScannerInfoConsoleParser">
+        <filter id="576720909">
             <message_arguments>
-                <message_argument value="PerProjectSICollector"/>
-                <message_argument value="AVRGCCScannerInfoCollector"/>
+                <message_argument value="GCCScannerInfoConsoleParser"/>
+                <message_argument value="AVRGCCScannerInfoConsoleParser"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/de/innot/avreclipse/mbs/scannerconfig/AVRGCCSpecsRunSIProvider.java" type="de.innot.avreclipse.mbs.scannerconfig.AVRGCCSpecsRunSIProvider">
+        <filter id="576720909">
+            <message_arguments>
+                <message_argument value="DefaultRunSIProvider"/>
+                <message_argument value="AVRGCCSpecsRunSIProvider"/>
             </message_arguments>
         </filter>
     </resource>
