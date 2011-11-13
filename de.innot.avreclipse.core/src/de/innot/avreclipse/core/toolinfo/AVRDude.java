@@ -1298,6 +1298,9 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.contains("error in USB receive")) {
 				abort = true;
 				fAbortReason = Reason.USB_RECEIVE_ERROR;
+			} else if (line.contains("Operation not permitted")) {
+				abort = true;
+				fAbortReason = Reason.OPERATION_NOT_PERMITTED;
 			}
 			if (abort) {
 				fProgressMonitor.setCanceled(true);

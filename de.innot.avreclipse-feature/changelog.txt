@@ -22,6 +22,7 @@ Fixes:
                The whole Symbol Discovery mess should now work correctly,
                i.e. changing the MCU will clear all cached Paths and Symbols
                and will rerun both Discovery and the indexer.
+* Bug 3366241: avrdude "operation not permitted" error.
 
 
 ================================================================================

@@ -224,6 +224,14 @@ public class AVRDudeErrorDialog extends ErrorDialog {
 							+ "http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=91244";
 					break;
 					
+				case OPERATION_NOT_PERMITTED:
+					message = "Problem accessing the USB Port\n\n"
+							+ "This may be due to insufficient access permissions.\n"
+							+ "If you are using Ubuntu check this link for fixing the "
+							+ "permission problem."
+							+ "http://avr-eclipse.sourceforge.net/wiki/index.php/Known_Issues#.22Operation_not_permitted.22_error";
+					break;
+					
 				default:
 					message = "An unhandled Error occured while accessing AVRDude.\n\n"
 							+ "See below for details and report this error the the Plugin maintainer.\n"
