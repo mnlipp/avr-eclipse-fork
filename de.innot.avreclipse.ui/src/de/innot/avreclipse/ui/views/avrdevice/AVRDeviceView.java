@@ -11,6 +11,7 @@
 package de.innot.avreclipse.ui.views.avrdevice;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -496,12 +497,24 @@ public class AVRDeviceView extends ViewPart {
 		public void selectionChanged(SelectionChangedEvent event) {
 			String devicename = (String) ((StructuredSelection) event.getSelection())
 					.getFirstElement();
-			devicename = AVRMCUidConverter.name2id(devicename);
+			if (devicename == null) {
+				// The new provider does not know the previously selected mcu
+				if (fMemento != null) {
+					String oldmcu = fMemento.getString("combovalue");
+					if (oldmcu != null) {
+						String msg = MessageFormat.format("The previously selected mcu [{0}] is not known", oldmcu);
+						showMessage(msg);
+					}
+				}
+
+				return;
+			}
 			if (fMemento != null) {
 				// persist the selected mcu
 				fMemento.putString("combovalue", devicename);
 			}
-			IDeviceDescription device = dmprovider.getDeviceDescription(devicename);
+			String deviceid = AVRMCUidConverter.name2id(devicename);
+			IDeviceDescription device = dmprovider.getDeviceDescription(deviceid);
 			if (device == null) {
 				showMessage(dmprovider.getErrorMessage());
 			} else {

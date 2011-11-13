@@ -58,13 +58,14 @@ public class DeviceListContentProvider implements IStructuredContentProvider {
 		List<String> devices = new ArrayList<String>(devicesset);
 		Collections.sort(devices);
 		// Convert the IDs to names
-		String[] nameslist = new String[devices.size()];
-		int i = 0;
+		List<String> nameslist = new ArrayList<String>();
 		for (String deviceid : devices) {
-			nameslist[i] = AVRMCUidConverter.id2name(deviceid);
-			i++;
+			String devicename = AVRMCUidConverter.id2name(deviceid);
+			if (devicename != null) {
+				nameslist.add(devicename);
+			}
 		}
-		return nameslist;
+		return nameslist.toArray(new String[nameslist.size()]);
 	}
 
 	/*

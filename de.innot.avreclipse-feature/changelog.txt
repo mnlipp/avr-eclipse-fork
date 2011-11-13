@@ -15,6 +15,10 @@ Changed / Improved:
                (Eclipse Public License) so that the plugin can be bundled
                and distributed together with Eclipse.
 
+Fixes:
+-----------------------------
+* Bug 3417812: NullPointerExeption with AVRDeviceExplorer
+
 
 ================================================================================
 Version 2.3.4 [07. August 2010]
