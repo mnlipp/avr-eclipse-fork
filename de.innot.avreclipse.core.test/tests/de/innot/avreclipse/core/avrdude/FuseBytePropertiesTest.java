@@ -101,7 +101,7 @@ public class FuseBytePropertiesTest {
 		// and change the values
 		props.setMCUId("atmega128");
 		props.setUseFile(!oldusefile);
-		props.setWrite(!oldusefile);
+		props.setWrite(!oldwrite);
 		props.setValues(testvalues);
 		props.setFileName("foobar");
 
