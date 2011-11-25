@@ -238,7 +238,7 @@ public class MyWindowsRegistry {
 		if (subkeys.size() == 0) {
 			// Try Win64 location
 			String key32 = key.replaceFirst("SOFTWARE", "SOFTWARE\\\\Wow6432Node");
-			subkeys = executeSubKeysCommand(key32);
+			subkeys = executeSubKeysCommand("\"" + key32 + "\"");
 		}
 
 		return subkeys;

@@ -57,7 +57,7 @@ public class FuseBytePropertiesTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		fPrefs = InstanceScope.INSTANCE.getNode("de.innot.avreclipse.tests");
+		fPrefs = new InstanceScope().getNode("de.innot.avreclipse.tests");
 		AVRProjectProperties projectProps = new AVRProjectProperties(fPrefs);
 		fAVRDudeProps = new AVRDudeProperties(fPrefs, projectProps);
 	}

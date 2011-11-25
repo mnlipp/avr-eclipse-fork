@@ -60,7 +60,7 @@ public class AVRDudePreferences {
 			return fInstanceStore;
 		}
 
-		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, QUALIFIER);
+		IPreferenceStore store = new ScopedPreferenceStore(new InstanceScope(), QUALIFIER);
 
 		fInstanceStore = store;
 		return store;
@@ -72,7 +72,7 @@ public class AVRDudePreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getConfigPreferences() {
-		IEclipsePreferences root = InstanceScope.INSTANCE.getNode(CONFIGQUALIFIER);
+		IEclipsePreferences root = new InstanceScope().getNode(CONFIGQUALIFIER);
 		return root;
 	}
 
@@ -97,7 +97,7 @@ public class AVRDudePreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getDefaultPreferences() {
-		return DefaultScope.INSTANCE.getNode(QUALIFIER);
+		return new DefaultScope().getNode(QUALIFIER);
 	}
 
 	/**

@@ -101,8 +101,8 @@ public class MyWindowsRegistryTest {
 		// Test the fallback
 		registry.setInhibitOriginal(true);
 
-		// The Prefixes registry entry has at least 5 entries
-		for (int i = 0; i < 5; i++) {
+		// The Prefixes registry entry has at least 4 entries
+		for (int i = 0; i < 4; i++) {
 
 			// Test the fallback
 			registry.setInhibitOriginal(true);
@@ -147,7 +147,7 @@ public class MyWindowsRegistryTest {
 		registry.setInhibitOriginal(true);
 		
 		// The test requires that at least one WinAVR is installed
-		String key = "HKLM\\SOFTWARE\\Free Software Foundation\\";
+		String key = "HKLM\\SOFTWARE\\Free Software Foundation";
 		List<String> winavr1 = registry.getSubkeys(key);
 		assertNotNull("getLocalMachineSubKeys returned null", winavr1);
 		

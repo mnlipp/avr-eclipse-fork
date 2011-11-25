@@ -69,7 +69,7 @@ public class DatasheetPreferences {
 			return fInstanceStore;
 		}
 
-		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, QUALIFIER);
+		IPreferenceStore store = new ScopedPreferenceStore(new InstanceScope(), QUALIFIER);
 
 		fInstanceStore = store;
 		return store;
@@ -88,10 +88,10 @@ public class DatasheetPreferences {
 		// then add / overwrite all instance mcu ids.
 		try {
 			Set<String> allmcus = new HashSet<String>();
-			IEclipsePreferences defaultnode = DefaultScope.INSTANCE.getNode(QUALIFIER);
+			IEclipsePreferences defaultnode = new DefaultScope().getNode(QUALIFIER);
 			allmcus.addAll(Arrays.asList(defaultnode.keys()));
 
-			IEclipsePreferences instancenode = InstanceScope.INSTANCE.getNode(QUALIFIER);
+			IEclipsePreferences instancenode = new InstanceScope().getNode(QUALIFIER);
 			allmcus.addAll(Arrays.asList(instancenode.keys()));
 			return allmcus;
 		} catch (BackingStoreException e) {
@@ -122,7 +122,7 @@ public class DatasheetPreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getDefaultPreferences() {
-		return DefaultScope.INSTANCE.getNode(QUALIFIER);
+		return new DefaultScope().getNode(QUALIFIER);
 	}
 
 	/**
