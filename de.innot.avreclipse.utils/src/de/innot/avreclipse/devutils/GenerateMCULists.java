@@ -25,6 +25,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 
@@ -36,8 +39,8 @@ import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader;
 import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader;
 
 /**
- * This is a simple Eclipse Application to read all Atmel part description files, parse them and
- * store the extracted properties.
+ * This is a simple Eclipse Application to read all Atmel part description
+ * files, parse them and store the extracted properties.
  * 
  * @author Thomas Holland
  * @since 2.2
@@ -45,23 +48,42 @@ import de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader;
  */
 public class GenerateMCULists implements IApplication {
 
-	private final IPath	DATASHEETPROPSPATH	= new Path("properties/datasheet.properties");
+	private final IPath DATASHEETPROPSPATH = new Path(
+			"properties/datasheet.properties");
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.IApplicationContext)
+	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.
+	 * IApplicationContext)
 	 */
 	public Object start(IApplicationContext context) throws Exception {
 
+		// Query the path of the Description Files
+		Display display = new Display();
+		Shell shell = new Shell(display);
+
+		DirectoryDialog directoryDialog = new DirectoryDialog(shell);
+
+		directoryDialog.setMessage("Please select the PartDescriptionFiles directory  and click OK");
+
+		String dir = directoryDialog.open();
+		if (dir == null) {
+			return null;
+		}
+
+		IPath folder = new Path(dir);
+		
 		// Build a list of partdescriptionfiles readers
 		List<IPDFreader> readers = new ArrayList<IPDFreader>();
 		readers.add(new MyFusesReader());
 		readers.add(new MySignatureReader());
 		readers.add(new MyDatasheetReader());
 
-		PartDescriptionFilesReader pdreader = new PartDescriptionFilesReader(readers);
+		PartDescriptionFilesReader pdreader = new PartDescriptionFilesReader(
+				readers);
 
+		pdreader.setDevicesFolder(folder);
 		pdreader.parseAllFiles(new NullProgressMonitor());
 
 		return null;
@@ -80,26 +102,28 @@ public class GenerateMCULists implements IApplication {
 	/**
 	 * Modified {@link FusesReader}.
 	 * <p>
-	 * The only modifications is a different storage location (The storage area of this plugin as
-	 * opposed to the storage area of the core plugin.
+	 * The only modifications is a different storage location (The storage area
+	 * of this plugin as opposed to the storage area of the core plugin.
 	 * </p>
-	 * The generated files can be copied to the <code>properties/fusedesc</code> Folder of the
-	 * core plugin.
-	 * </p>
+	 * The generated files can be copied to the <code>properties/fusedesc</code>
+	 * Folder of the core plugin. </p>
 	 */
 	private static class MyFusesReader extends FusesReader {
 
-		private final static String	DESCRIPTION_FOLDER	= "fusedesc";
+		private final static String DESCRIPTION_FOLDER = "fusedesc";
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader#getStoragePath()
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.FusesReader
+		 * #getStoragePath()
 		 */
 		@Override
 		protected IPath getStoragePath() {
 			IPath statelocation = Activator.getDefault().getStateLocation();
-			IPath descriptionlocation = statelocation.append(DESCRIPTION_FOLDER);
+			IPath descriptionlocation = statelocation
+					.append(DESCRIPTION_FOLDER);
 
 			return descriptionlocation;
 		}
@@ -109,18 +133,20 @@ public class GenerateMCULists implements IApplication {
 	/**
 	 * Modified {@link SignatureReader}.
 	 * <p>
-	 * Instead of interacting with the <code>Signatures</code> class, this modified reader will
-	 * store all signatures in a new properties file "signature.properties", located in the state
-	 * storage area of this application plugin.
+	 * Instead of interacting with the <code>Signatures</code> class, this
+	 * modified reader will store all signatures in a new properties file
+	 * "signature.properties", located in the state storage area of this
+	 * application plugin.
 	 * </p>
 	 * <p>
-	 * The generated file can be copied to the <code>properties</code> folder of the core plugin.
+	 * The generated file can be copied to the <code>properties</code> folder of
+	 * the core plugin.
 	 * </p>
 	 * 
 	 */
 	private static class MySignatureReader extends SignatureReader {
 
-		private final Properties	fSignatureProperties;
+		private final Properties fSignatureProperties;
 
 		public MySignatureReader() {
 			fSignatureProperties = new Properties();
@@ -130,8 +156,9 @@ public class GenerateMCULists implements IApplication {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader#storeSignature(java.lang.String,
-		 *      java.lang.String)
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.SignatureReader
+		 * #storeSignature(java.lang.String, java.lang.String)
 		 */
 		@Override
 		protected void storeSignature(String mcuid, String signature) {
@@ -144,11 +171,13 @@ public class GenerateMCULists implements IApplication {
 			// in the de.innot.avreclipse.utils state storage area
 			IPath statelocation = Activator.getDefault().getStateLocation();
 
-			File signaturefile = statelocation.append("signature.properties").toFile();
+			File signaturefile = statelocation.append("signature.properties")
+					.toFile();
 
 			try {
 				FileOutputStream ostream = new FileOutputStream(signaturefile);
-				fSignatureProperties.store(ostream, "# Created by GenerateMCULists - do not edit");
+				fSignatureProperties.store(ostream,
+						"# Created by GenerateMCULists - do not edit");
 				ostream.close();
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
@@ -159,18 +188,21 @@ public class GenerateMCULists implements IApplication {
 	/**
 	 * Internal class to handle the Datasheet properties.
 	 * <p>
-	 * The previous list of datasheet URLs is loaded, any new MCU id values in the part description
-	 * files are added (with an empty datasheet URL) and then the whole list is written back.
+	 * The previous list of datasheet URLs is loaded, any new MCU id values in
+	 * the part description files are added (with an empty datasheet URL) and
+	 * then the whole list is written back.
 	 * </p>
 	 */
 	private class MyDatasheetReader extends BaseReader {
 
-		private Properties	fDatasheetProps;
+		private Properties fDatasheetProps;
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#start()
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader
+		 * #start()
 		 */
 		public void start() {
 			// Load the previous datasheet props from the core plugin
@@ -178,7 +210,8 @@ public class GenerateMCULists implements IApplication {
 			Bundle avrplugin = AVRPlugin.getDefault().getBundle();
 			InputStream is = null;
 			try {
-				is = FileLocator.openStream(avrplugin, DATASHEETPROPSPATH, false);
+				is = FileLocator.openStream(avrplugin, DATASHEETPROPSPATH,
+						false);
 				oldDatasheetProps.load(is);
 				is.close();
 			} catch (IOException e) {
@@ -195,10 +228,12 @@ public class GenerateMCULists implements IApplication {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse(org.w3c.dom.Document)
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader
+		 * #parse(org.w3c.dom.Document)
 		 */
 		@Override
-		protected void parse(Document document) {
+		protected void parse(Document document, File sourcefile) {
 			// Just take the MCU, which has already been extracted by the
 			// superclass, and add it to the datasheet list properties if it did
 			// not exist before.
@@ -210,18 +245,22 @@ public class GenerateMCULists implements IApplication {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#finish()
+		 * @see
+		 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader
+		 * #finish()
 		 */
 		public void finish() {
 			// Write the signature properties to the file "datasheet.properties"
 			// in the de.innot.avreclipse.utils state storage area
 
 			IPath statelocation = Activator.getDefault().getStateLocation();
-			File datasheetfile = statelocation.append("datasheet.properties").toFile();
+			File datasheetfile = statelocation.append("datasheet.properties")
+					.toFile();
 
 			try {
 				FileOutputStream ostream = new FileOutputStream(datasheetfile);
-				fDatasheetProps.store(ostream, "# Add datasheet URLs as available");
+				fDatasheetProps.store(ostream,
+						"# Add datasheet URLs as available");
 				ostream.close();
 			} catch (IOException ioe) {
 				ioe.printStackTrace();

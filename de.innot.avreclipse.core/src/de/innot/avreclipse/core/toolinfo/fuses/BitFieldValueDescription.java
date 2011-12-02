@@ -54,9 +54,15 @@ public class BitFieldValueDescription {
 	/** XML attribute name for the description */
 	public final static String	ATTR_DESCRIPTION	= "desc";
 
+	/** XML attribute name for the name */
+	public final static String	ATTR_NAME	= "name";
+
 	/** The description of this bitfield enumeration value. */
 	private String				fDescription		= "???";
 
+	/** The symbolic name of this bitfield enumeration value. */
+	private String fName = "???";
+	
 	/** The value of this bitfield enumeration value */
 	private int					fValue				= 0x00;
 
@@ -66,9 +72,10 @@ public class BitFieldValueDescription {
 	 * @param value
 	 * @param description
 	 */
-	public BitFieldValueDescription(int value, String description) {
+	public BitFieldValueDescription(int value, String description, String name) {
 		fDescription = description;
 		fValue = value;
+		fName = name;
 	}
 
 	/**
@@ -96,6 +103,9 @@ public class BitFieldValueDescription {
 			if (ATTR_DESCRIPTION.equalsIgnoreCase(attr.getNodeName())) {
 				fDescription = attr.getTextContent();
 			}
+			if (ATTR_NAME.equalsIgnoreCase(attr.getNodeName())) {
+				fName = attr.getTextContent();
+			}
 		}
 	}
 
@@ -106,6 +116,13 @@ public class BitFieldValueDescription {
 		return fDescription;
 	}
 
+	/**
+	 * @return the symbolic name of this bitfield value enumeration element.
+	 */
+	public String getName()  {
+		return fName;
+	}
+	
 	/**
 	 * @return the value of this bitfield value enumeration element
 	 */
@@ -128,7 +145,8 @@ public class BitFieldValueDescription {
 		Element element = document.createElement(TAG_VALUE);
 		element.setAttribute(ATTR_VALUE, ByteDescription.toHex(fValue));
 		element.setAttribute(ATTR_DESCRIPTION, fDescription);
-
+		element.setAttribute(ATTR_NAME, fName);
+		
 		parentnode.appendChild(element);
 	}
 
@@ -139,7 +157,7 @@ public class BitFieldValueDescription {
 	 */
 	@Override
 	public String toString() {
-		return ByteDescription.toHex(fValue) + ": " + fDescription;
+		return ByteDescription.toHex(fValue) + ": (" + fName + ") " + fDescription;
 	}
 
 }

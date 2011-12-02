@@ -72,7 +72,8 @@ public class FuseByteValuesTest {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#FuseByteValues(java.lang.String)}.
+	 * {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#FuseByteValues(java.lang.String)}
+	 * .
 	 */
 	@Test
 	public void testFuseByteValuesString() {
@@ -93,7 +94,8 @@ public class FuseByteValuesTest {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#FuseByteValues(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)}.
+	 * {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#FuseByteValues(de.innot.avreclipse.core.toolinfo.fuses.ByteValues)}
+	 * .
 	 */
 	@Test
 	public void testFuseByteValuesByteValues() {
@@ -118,7 +120,8 @@ public class FuseByteValuesTest {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#getByteCount()}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.FuseByteValues#getByteCount()}
+	 * .
 	 */
 	@Test
 	public void testGetByteCount() {
@@ -156,7 +159,8 @@ public class FuseByteValuesTest {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setValue(int, int)}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setValue(int, int)}
+	 * .
 	 */
 	@Test
 	public void testSetValues() {
@@ -194,7 +198,8 @@ public class FuseByteValuesTest {
 	}
 
 	/**
-	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setValue(int, int)}.
+	 * Test method for {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setValue(int, int)}
+	 * .
 	 */
 	@Test
 	public void testSetValue() {
@@ -245,7 +250,8 @@ public class FuseByteValuesTest {
 
 	/**
 	 * Test method for
-	 * {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setNamedValue(java.lang.String, int)}.
+	 * {@link de.innot.avreclipse.core.toolinfo.fuses.ByteValues#setNamedValue(java.lang.String, int)}
+	 * .
 	 */
 	@Test
 	public void testSetNamedValue() {
@@ -407,18 +413,18 @@ public class FuseByteValuesTest {
 		targetvalues = testvalues.convertTo("atmega161", results);
 
 		assertEquals("Wrong MCU", "atmega161", targetvalues.getMCUId());
-		assertEquals("SPIEN not successful", ConversionStatus.SUCCESS, results
-				.getStatusForName("SPIEN"));
-		assertEquals("BOOTRST not successful", ConversionStatus.SUCCESS, results
-				.getStatusForName("BOOTRST"));
-		assertEquals("JTAGEN wrong status", ConversionStatus.NOT_IN_TARGET, results
-				.getStatusForName("JTAGEN"));
-		assertEquals("BODLEVEL wrong status", ConversionStatus.NOT_IN_TARGET, results
-				.getStatusForName("BODLEVEL"));
-		assertEquals("SUT wrong status", ConversionStatus.NOT_IN_SOURCE, results
-				.getStatusForName("SUT"));
-		assertEquals("CKSEL wrong status", ConversionStatus.NOT_IN_SOURCE, results
-				.getStatusForName("CKSEL"));
+		assertEquals("SPIEN not successful", ConversionStatus.SUCCESS,
+				results.getStatusForName("SPIEN"));
+		assertEquals("BOOTRST not successful", ConversionStatus.SUCCESS,
+				results.getStatusForName("BOOTRST"));
+		assertEquals("JTAGEN wrong status", ConversionStatus.NOT_IN_TARGET,
+				results.getStatusForName("JTAGEN"));
+		assertEquals("BODLEVEL wrong status", ConversionStatus.NOT_IN_TARGET,
+				results.getStatusForName("BODLEVEL"));
+		assertEquals("SUT wrong status", ConversionStatus.NOT_IN_SOURCE,
+				results.getStatusForName("SUT"));
+		assertEquals("CKSEL wrong status", ConversionStatus.NOT_IN_SOURCE,
+				results.getStatusForName("CKSEL"));
 
 		assertTrue("SUT_CKSEL illegally converted to CKSEL.",
 				testvalues.getNamedValue("SUT_CKSEL") != targetvalues.getNamedValue("CKSEL"));
@@ -431,22 +437,29 @@ public class FuseByteValuesTest {
 	 */
 	@Test
 	public void testListener() {
-		ByteValueChangeEvent[]	fEvents	= null;
+		ByteValueChangeEvent[] fEvents = null;
 		testvalues = new ByteValues(FUSE, "atmega16");
 		testvalues.setDefaultValues();
 		MyByteValuesChangeListener myListener = new MyByteValuesChangeListener();
 		testvalues.addChangeListener(myListener);
 
-		// Cause a single BitField change event
+		// Changing a single bit for a currently undefined byte will set all bits of that byte to 1
+		// therefore causing, in this case, 7 change events.
 		testvalues.setNamedValue("SPIEN", 0x01);
+		fEvents = myListener.getEvents();
+		assertNotNull("No Events fired", fEvents);
+		assertEquals("Wrong number of event objects", 7, fEvents.length);
+
+		// Changing the same bit again will cause only a single event
+		testvalues.setNamedValue("SPIEN", 0x00);
 		fEvents = myListener.getEvents();
 		assertNotNull("No Events fired", fEvents);
 		assertEquals("Wrong number of event objects", 1, fEvents.length);
 		ByteValueChangeEvent event = fEvents[0];
 		assertEquals("Wrong BitField in event", "SPIEN", event.name);
-		assertEquals("Wrong new value in event", 1, event.bitfieldvalue);
+		assertEquals("Wrong new value in event", 0, event.bitfieldvalue);
 		assertEquals("Wrong byte index", 1, event.byteindex);
-		assertEquals("Wrong byte value", 0xB9, event.bytevalue);
+		assertEquals("Wrong byte value", 0xDF, event.bytevalue);
 
 		// cause multiple BitField change events
 		final String[] names = new String[] { "BODLEVEL", "BODEN", "SUT_CKSEL" };
@@ -472,13 +485,15 @@ public class FuseByteValuesTest {
 	private String bin(int value) {
 		return Integer.toBinaryString(value);
 	}
-	
+
 	@Ignore
 	private class MyByteValuesChangeListener implements IByteValuesChangeListener {
-		private ByteValueChangeEvent[] fEvents = null;
+		private ByteValueChangeEvent[]	fEvents	= null;
+
 		public void byteValuesChanged(ByteValueChangeEvent[] events) {
 			fEvents = events;
 		}
+
 		public ByteValueChangeEvent[] getEvents() {
 			return fEvents;
 		}

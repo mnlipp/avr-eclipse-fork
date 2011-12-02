@@ -11,8 +11,6 @@
 package de.innot.avreclipse.core.toolinfo.fuses;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
@@ -43,16 +41,15 @@ public class MCUDescription implements IMCUDescription {
 
 	private final static String			ELEMENT_VERSION		= "version";
 	private final static String			ATTR_VERSION_BUILD	= "build";
-	private final static String			ATTR_VERSION_STATUS	= "status";
 
 	/** The MCU for this description. */
 	private String						fMCUid;
 
-	/** The build number from the Part Description File */
+	/**
+	 * The build number from the Part Description File. As of AVR Studio 5.0 this is the date of the
+	 * last modification of the source file.
+	 */
 	private int							fBuildVersion;
-
-	/** The release status from the Part Description File */
-	private String						fStatus;
 
 	/** The list of Fuse byte descriptions. */
 	private final List<ByteDescription>	fFuseByteDescList;
@@ -83,7 +80,6 @@ public class MCUDescription implements IMCUDescription {
 		// Default attribute values for the <version> element.
 		// Used when these attributes are missing from the xml file.
 		fBuildVersion = 0;
-		fStatus = "UNKNOWN";
 
 		// Get the root node and read the attributes
 		NodeList nodes = document.getElementsByTagName(ELEMENT_ROOT);
@@ -106,14 +102,13 @@ public class MCUDescription implements IMCUDescription {
 		// read the <version> element (only first one if multiple elements are present).
 		NodeList versionnodes = document.getElementsByTagName(ELEMENT_VERSION);
 		if (versionnodes.getLength() > 0) {
-			// The <version> element has two attributes: "build" and "status"
+			// The <version> element has one attribute: "build".
+			// The "status" attribute is deprecated and ignored
 			attrs = versionnodes.item(0).getAttributes();
 			for (int i = 0; i < attrs.getLength(); i++) {
 				Node attr = attrs.item(i);
 				if (ATTR_VERSION_BUILD.equalsIgnoreCase(attr.getNodeName())) {
 					fBuildVersion = Integer.decode(attr.getNodeValue());
-				} else if (ATTR_VERSION_STATUS.equalsIgnoreCase(attr.getNodeName())) {
-					fStatus = attr.getNodeValue();
 				}
 			}
 		}
@@ -122,32 +117,19 @@ public class MCUDescription implements IMCUDescription {
 		NodeList bytenodes = document.getElementsByTagName(FuseType.FUSE.getElementName());
 		for (int i = 0; i < bytenodes.getLength(); i++) {
 			ByteDescription bd = new ByteDescription(bytenodes.item(i));
-			fFuseByteDescList.add(bd);
+			addByteDescription(FuseType.FUSE, bd);
 		}
 
 		// and the <lockbitsbyte> elements.
 		bytenodes = document.getElementsByTagName(FuseType.LOCKBITS.getElementName());
 		for (int i = 0; i < bytenodes.getLength(); i++) {
 			ByteDescription bd = new ByteDescription(bytenodes.item(i));
-			fLockbitsByteDescList.add(bd);
+			addByteDescription(FuseType.LOCKBITS, bd);
 		}
-
-		// Sort the fuse bytes and lockbits elements according to their index
-		Comparator<ByteDescription> indexcomparator = new Comparator<ByteDescription>() {
-			public int compare(ByteDescription o1, ByteDescription o2) {
-				int index1 = o1.getIndex();
-				int index2 = o2.getIndex();
-				return index1 - index2;
-			}
-		};
-
-		Collections.sort(fFuseByteDescList, indexcomparator);
-		Collections.sort(fLockbitsByteDescList, indexcomparator);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getMCUId()
 	 */
 	public String getMCUId() {
@@ -156,16 +138,6 @@ public class MCUDescription implements IMCUDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getStatus()
-	 */
-	public String getStatus() {
-		return fStatus;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getVersion()
 	 */
 	public int getVersion() {
@@ -176,17 +148,16 @@ public class MCUDescription implements IMCUDescription {
 	 * Set the build version and the status as defined by the part description file.
 	 * 
 	 * @param buildversion
-	 * @param status
 	 */
-	public void setVersionAndStatus(int buildversion, String status) {
+	public void setVersion(int buildversion) {
 		fBuildVersion = buildversion;
-		fStatus = status;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteCount(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteCount(de.innot.avreclipse.
+	 * core.toolinfo.fuses.FuseType)
 	 */
 	public int getByteCount(FuseType type) {
 		switch (type) {
@@ -204,10 +175,10 @@ public class MCUDescription implements IMCUDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(java.lang.String)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(java.lang.String)
 	 */
-	public IByteDescription getByteDescription(String name) {
+	public IFuseObjectDescription getByteDescription(String name) {
 		// go thru both fusebytes and lockbitsbyte list and see if we can find a match.
 		for (ByteDescription bd : fFuseByteDescList) {
 			if (bd.getName().equalsIgnoreCase(name)) {
@@ -224,11 +195,11 @@ public class MCUDescription implements IMCUDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(de.innot.avreclipse.core.toolinfo.fuses.FuseType,
-	 *      int)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescription(de.innot.avreclipse
+	 * .core.toolinfo.fuses.FuseType, int)
 	 */
-	public IByteDescription getByteDescription(FuseType type, int index) {
+	public IFuseObjectDescription getByteDescription(FuseType type, int index) {
 		switch (type) {
 			case FUSE:
 				return fFuseByteDescList.get(index);
@@ -241,15 +212,16 @@ public class MCUDescription implements IMCUDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescriptions(de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#getByteDescriptions(de.innot.avreclipse
+	 * .core.toolinfo.fuses.FuseType)
 	 */
-	public List<IByteDescription> getByteDescriptions(FuseType type) {
+	public List<IFuseObjectDescription> getByteDescriptions(FuseType type) {
 		switch (type) {
 			case FUSE:
-				return new ArrayList<IByteDescription>(fFuseByteDescList);
+				return new ArrayList<IFuseObjectDescription>(fFuseByteDescList);
 			case LOCKBITS:
-				return new ArrayList<IByteDescription>(fLockbitsByteDescList);
+				return new ArrayList<IFuseObjectDescription>(fLockbitsByteDescList);
 			default:
 				IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
 						"Internal error: undefined fuse memory type " + type.toString(), null);
@@ -261,19 +233,27 @@ public class MCUDescription implements IMCUDescription {
 
 	public void addByteDescription(FuseType type, ByteDescription desc) {
 
+		int index = desc.getIndex();
+		List<ByteDescription> list = null;
 		switch (type) {
 			case FUSE:
-				fFuseByteDescList.add(desc);
+				list = fFuseByteDescList;
 				break;
 			case LOCKBITS:
-				fFuseByteDescList.add(desc);
+				list = fLockbitsByteDescList;
 				break;
 			default:
 				IStatus status = new Status(IStatus.ERROR, AVRPlugin.PLUGIN_ID,
 						"Internal error: undefined fuse memory type " + type.toString(), null);
 				AVRPlugin.getDefault().log(status);
+				return;
 				// do nothing
 		}
+
+		while (index >= list.size()) {
+			list.add(null);
+		}
+		list.set(index, desc);
 	}
 
 	/**
@@ -326,25 +306,28 @@ public class MCUDescription implements IMCUDescription {
 		// Set the version and release status
 		Element versionnode = document.createElement(ELEMENT_VERSION);
 		versionnode.setAttribute(ATTR_VERSION_BUILD, Integer.toString(fBuildVersion));
-		versionnode.setAttribute(ATTR_VERSION_STATUS, fStatus);
 		rootnode.appendChild(versionnode);
 
 		// Now a <fusebyte> element for each fusebytes
 		for (ByteDescription bd : fFuseByteDescList) {
-			bd.toXML(rootnode);
+			if (bd != null) {
+				bd.toXML(rootnode);
+			}
 		}
 
 		// and the same for the lockbit bytes
 		for (ByteDescription bd : fLockbitsByteDescList) {
-			bd.toXML(rootnode);
+			if (bd != null) {
+				bd.toXML(rootnode);
+			}
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription,
-	 *      de.innot.avreclipse.core.toolinfo.fuses.FuseType)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription#isCompatibleWith(de.innot.avreclipse
+	 * .core.toolinfo.fuses.IMCUDescription, de.innot.avreclipse.core.toolinfo.fuses.FuseType)
 	 */
 	public boolean isCompatibleWith(IMCUDescription target, FuseType type) {
 
@@ -354,12 +337,15 @@ public class MCUDescription implements IMCUDescription {
 		}
 
 		// Next get a list of all ByteDescription Objects and compare them each
-		List<IByteDescription> ourlist = getByteDescriptions(type);
-		List<IByteDescription> targetlist = target.getByteDescriptions(type);
+		List<IFuseObjectDescription> ourlist = getByteDescriptions(type);
+		List<IFuseObjectDescription> targetlist = target.getByteDescriptions(type);
 
 		for (int i = 0; i < ourlist.size(); i++) {
-			IByteDescription ourbyte = ourlist.get(i);
-			IByteDescription targetbyte = targetlist.get(i);
+			IFuseObjectDescription ourbyte = ourlist.get(i);
+			IFuseObjectDescription targetbyte = targetlist.get(i);
+			if (ourbyte == null) {
+				return targetbyte == null;
+			}
 			if (!ourbyte.isCompatibleWith(targetbyte)) {
 				return false;
 			}
@@ -372,24 +358,23 @@ public class MCUDescription implements IMCUDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Fuses Description for " + getMCUId());
 		sb.append(" [");
-		sb.append(" build version " + fBuildVersion + " (" + fStatus + ") ");
+		sb.append(" build version " + fBuildVersion);
 		sb.append(" Fuses: ");
-		for (IByteDescription bd : fFuseByteDescList) {
+		for (IFuseObjectDescription bd : fFuseByteDescList) {
 			sb.append("[" + bd.toString() + "]");
 		}
 		sb.append(" Fuses: ");
-		for (IByteDescription bd : fFuseByteDescList) {
+		for (IFuseObjectDescription bd : fFuseByteDescList) {
 			sb.append("[" + bd.toString() + "]");
 		}
 		sb.append(" Lockbits: ");
-		for (IByteDescription bd : fLockbitsByteDescList) {
+		for (IFuseObjectDescription bd : fLockbitsByteDescList) {
 			sb.append("[" + bd.toString() + "]");
 		}
 		sb.append(" ]");

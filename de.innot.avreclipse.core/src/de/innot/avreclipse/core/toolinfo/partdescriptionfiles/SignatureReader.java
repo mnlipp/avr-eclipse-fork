@@ -10,11 +10,14 @@
  *******************************************************************************/
 package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import de.innot.avreclipse.AVRPlugin;
@@ -23,10 +26,12 @@ import de.innot.avreclipse.core.toolinfo.Signatures;
 /**
  * Signature reader.
  * <p>
- * This Class will take a PartDescriptionFile Document and read the MCU signature from it.
+ * This Class will take a PartDescriptionFile Document and read the MCU
+ * signature from it.
  * </p>
  * <p>
- * The Signature is taken from the three Elements "ADDR000", "ADDR001" and "ADDR002"
+ * The Signature is taken from the three <PROPERTY> Elements "SIGNATURE0",
+ * "SIGNATURE1" and "SIGNATURE2"
  * </p>
  * 
  * @author Thomas Holland
@@ -35,16 +40,21 @@ import de.innot.avreclipse.core.toolinfo.Signatures;
  */
 public class SignatureReader extends BaseReader {
 
-	/** ADDR00x Element prefix */
-	private final static String		ADDR00x		= "ADDR00";
+	private final static String ELEM_PROPERTY = "property";
+	private final static String ATTR_NAME = "name";
+	private final static String ATTR_VALUE = "value";
+
+	/** SIGNATUREx Attribute name prefix */
+	private final static String NAME_SIGNATURE = "signature";
 
 	/** Signatures manager instance. */
-	private static final Signatures	fSignatures	= Signatures.getDefault();
+	private static final Signatures fSignatures = Signatures.getDefault();
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#start()
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#start()
 	 */
 	public void start() {
 		// Nothing to init.
@@ -53,28 +63,55 @@ public class SignatureReader extends BaseReader {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse(org.w3c.dom.Document)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse
+	 * (org.w3c.dom.Document)
 	 */
 	@Override
-	public void parse(Document document) {
+	public void parse(Document document, File sourcefile) {
 
-		// Get the signature from the three <ADDR000> to <ADDR002> elements and
-		// concatenate them to a single String with a "0x" prefix.
-		StringBuffer id = new StringBuffer("0x");
-		for (int i = 0; i < 3; i++) {
-			NodeList nodes = document.getElementsByTagName(ADDR00x + i);
-			if (nodes.getLength() == 0) {
-				return;
+		String[] signatureBytes = new String[3];
+		int counter = 0;
+
+		// Get all property elements and then find the three elements with the
+		// "SIGNATUREx" names.
+		// The Document may not have any signature properties (e.g for AVR32
+		// MCUs)
+		NodeList nodes = document.getElementsByTagName(ELEM_PROPERTY);
+		for (int i = 0; i < nodes.getLength(); i++) {
+			Node n = nodes.item(i);
+			NamedNodeMap attributes = n.getAttributes();
+			Node nameattr = attributes.getNamedItem(ATTR_NAME);
+			if (nameattr != null) {
+				String name = nameattr.getNodeValue().toLowerCase();
+				if (name.startsWith(NAME_SIGNATURE)) {
+					// The last char is the index
+					int idx = name.charAt(name.length() - 1) - '0';
+					signatureBytes[idx] = attributes.getNamedItem(ATTR_VALUE)
+							.getNodeValue().toUpperCase();
+					counter++;
+				}
 			}
-			String basevalue = nodes.item(0).getFirstChild().getNodeValue();
-			// The signature byte starts with an "$" with older part description files.
-			// Newer PDFs (ATXmega) start with "0x".
-			// So we just take the last two chars of the basevalue which should be fine
-			// for either case (and future changes)
-
-			id.append(basevalue.substring(basevalue.length() - 2));
 		}
-		String signature = id.toString();
+
+		if (counter < 3) {
+			// No valid signature found
+			// TODO: Read the JTAG signature once we can do something with it
+			return;
+		}
+
+		// Assemble the signature and store it in the internal list.
+
+		StringBuilder sig = new StringBuilder("0x");
+		for (int i = 0; i < signatureBytes.length; i++) {
+			// Each signature byte appears to begin with "0x" in the Atmel
+			// Device xml files.
+			// So we just take the last the two characters which should
+			// protect against changes of the current format.
+			sig.append(signatureBytes[i].substring(signatureBytes[i].length() - 2));
+		}
+
+		String signature = sig.toString();
 
 		storeSignature(fMCUid, signature);
 	}
@@ -82,7 +119,9 @@ public class SignatureReader extends BaseReader {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#finish()
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#finish
+	 * ()
 	 */
 	public void finish() {
 		try {
@@ -99,9 +138,9 @@ public class SignatureReader extends BaseReader {
 	/**
 	 * Add the signature to the signature properties.
 	 * <p>
-	 * This method can be overridden to store the signature to somewhere else. The default is to
-	 * call {@link Signatures#addSignature(String, String)} to add it to the plugin instance
-	 * properties.
+	 * This method can be overridden to store the signature to somewhere else.
+	 * The default is to call {@link Signatures#addSignature(String, String)} to
+	 * add it to the plugin instance properties.
 	 * </p>
 	 * 
 	 * @param mcuid

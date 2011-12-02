@@ -53,9 +53,9 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  * is also a Label at the top to indicate MCU and Fuse/Lockbit type.
  * </p>
  * <p>
- * It is extended from <code>Composite</code>, but should be used like a <code>Control</code>.
- * For example the {@link #setLayout(org.eclipse.swt.widgets.Layout)} method should not be used,
- * because this class already uses its own layout.
+ * It is extended from <code>Composite</code>, but should be used like a <code>Control</code>. For
+ * example the {@link #setLayout(org.eclipse.swt.widgets.Layout)} method should not be used, because
+ * this class already uses its own layout.
  * </p>
  * <dl>
  * <dt><b>Styles:</b></dt>
@@ -152,8 +152,8 @@ public class FuseBytePreviewControl extends Composite {
 	 * @throws SWTException
 	 *             <ul>
 	 *             <li> ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the
-	 *             parent</li>
-	 *             <li> ERROR_INVALID_SUBCLASS - if this class is not an allowed subclass </li>
+	 *             parent</li> <li> ERROR_INVALID_SUBCLASS - if this class is not an allowed
+	 *             subclass </li>
 	 *             </ul>
 	 */
 	public FuseBytePreviewControl(Composite parent, int style) {
@@ -294,14 +294,19 @@ public class FuseBytePreviewControl extends Composite {
 		int[] values = newvalues.getValues();
 		int i = 0;
 		for (int value : values) {
+			String bytename = newvalues.getByteName(i);
+			if (bytename == null) {
+				bytename = "RESERVED";
+			}
 			TreeItem byteitem = new TreeItem(fTree, SWT.NONE);
 			byteitem.setData(TAG_VALUE, newvalues.getValue(i));
 			byteitem.setData(TAG_BOLD, true);
-			byteitem.setText(COLUMN_NAME, newvalues.getByteName(i++));
+			byteitem.setText(COLUMN_NAME, bytename);
 			byteitem.setText(COLUMN_VALUE, toHex(value));
 			byteitem.setText(COLUMN_BITS, "");
 			byteitem.setFont(fBoldDialogFont);
 			fRootItems.add(byteitem);
+			i++;
 		}
 
 		// Now we get a list of all bitfields that the ByteValues object has and
@@ -436,10 +441,10 @@ public class FuseBytePreviewControl extends Composite {
 	/**
 	 * Format the given integer to a String with the format "0xXX".
 	 * <p>
-	 * Unlike the normal <code>Integer.toHexString(i)</code> method, this method will always
-	 * produce two digits, even with the high nibble at zero, and will output the hex value in
-	 * uppercase. This should make the value more readable than the standard
-	 * <code>Integer.toHexString</code> output.
+	 * Unlike the normal <code>Integer.toHexString(i)</code> method, this method will always produce
+	 * two digits, even with the high nibble at zero, and will output the hex value in uppercase.
+	 * This should make the value more readable than the standard <code>Integer.toHexString</code>
+	 * output.
 	 * </p>
 	 * <p>
 	 * If the given value is <code>-1</code>, then "n/a" is returned.
@@ -637,8 +642,7 @@ public class FuseBytePreviewControl extends Composite {
 	 * directly adjacent to the value.
 	 * </p>
 	 * The bitfield name is taken from the {@link FuseBytePreviewControl#TAG_NAME} property of the
-	 * tree item.
-	 * </p>
+	 * tree item. </p>
 	 * 
 	 */
 	private class ToolTipListener implements Listener {
@@ -654,13 +658,12 @@ public class FuseBytePreviewControl extends Composite {
 
 		/*
 		 * (non-Javadoc)
-		 * 
 		 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 		 */
 		public void handleEvent(Event event) {
 
 			switch (event.type) {
-				// most events will cause disposal of an visible ToolTip window
+			// most events will cause disposal of an visible ToolTip window
 				case SWT.Dispose:
 				case SWT.KeyDown:
 				case SWT.MouseMove: {

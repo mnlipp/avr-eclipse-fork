@@ -28,13 +28,16 @@ import org.w3c.dom.NodeList;
  * 
  * @author Thomas Holland
  * @since 2.3
+ * @version 2.4 Added description
  * 
  */
-public class ByteDescription implements IByteDescription {
+public class ByteDescription implements IFuseObjectDescription {
 
 	protected final static String			ATTR_BYTE_INDEX		= "index";
+	protected final static String			ATTR_DESCRIPTION	= "description";
 	protected final static String			ATTR_BYTE_NAME		= "name";
 	protected final static String			ATTR_DEFAULT_VALUE	= "default";
+	protected final static String			ATTR_SIZE			= "size";
 
 	/** The type of this byte. Either FUSE or LOCKBITS */
 	private final FuseType					fType;
@@ -43,8 +46,18 @@ public class ByteDescription implements IByteDescription {
 	/** Fuse byte name (from the part description file). */
 	private final String					fName;
 
+	/** A short description of this Byte. */
+	private final String					fDescription;
+
 	/** The index of the Byte. (0 up to 5 for fuse bytes, 0 for the lockbits byte) */
 	private final int						fIndex;
+
+	/**
+	 * The number of bytes in this object.
+	 * 
+	 * @since 2.4
+	 */
+	private final int						fSize;
 
 	/** The default values. <code>-1</code> if no default value is defined. */
 	private final int						fDefaultValue;
@@ -61,13 +74,16 @@ public class ByteDescription implements IByteDescription {
 	 *            The name of this byte as defined in the part description file, e.g "LOW",
 	 *            "FUSEBYTE3" or "LOCKBITS".
 	 * @param index
-	 *            The index of this byte within its memory. <code>0</code> up to <code>5</code>
-	 *            for fuse bytes (depending on MCU) or <code>0</code> for the lockbits byte.
+	 *            The index of this byte within its memory. <code>0</code> up to <code>5</code> for
+	 *            fuse bytes (depending on MCU) or <code>0</code> for the lockbits byte.
 	 */
-	public ByteDescription(FuseType type, String name, int index, int defaultvalue) {
+	public ByteDescription(FuseType type, String description, String name, int index, int size,
+			int defaultvalue) {
 		fType = type;
+		fDescription = description;
 		fName = name;
 		fIndex = index;
+		fSize = size;
 		fDefaultValue = defaultvalue;
 		fBitFieldList = new ArrayList<BitFieldDescription>();
 	}
@@ -97,8 +113,9 @@ public class ByteDescription implements IByteDescription {
 			fType = FuseType.LOCKBITS;
 		}
 
-		// The byte element has three attributes: "index", "name" and optional "default"
-		// Both must be present and valid, otherwise an Exception is thrown.
+		// The byte element has up to five attributes: "index" and "name" are required
+		// "default", "description" and "size" are optional, depending on the version
+		// of the generator.
 
 		NamedNodeMap attrs = byteelement.getAttributes();
 
@@ -116,11 +133,26 @@ public class ByteDescription implements IByteDescription {
 		}
 		fName = namenode.getNodeValue();
 
+		Node sizenode = attrs.getNamedItem(ATTR_SIZE);
+		if (sizenode != null) {
+			fSize = Integer.decode(sizenode.getNodeValue());
+		} else {
+			fSize = 1;
+		}
+
+		Node descriptionNode = attrs.getNamedItem(ATTR_DESCRIPTION);
+		if (descriptionNode != null) {
+			fDescription = descriptionNode.getNodeValue();
+		} else {
+			fDescription = fName;
+		}
+
+
 		Node defaultnode = attrs.getNamedItem(ATTR_DEFAULT_VALUE);
 		if (defaultnode == null) {
 			fDefaultValue = -1;
 		} else {
-			fDefaultValue = Integer.decode(defaultnode.getTextContent());
+			fDefaultValue = Integer.decode(defaultnode.getNodeValue());
 		}
 
 		// Now read the children of the byte element:
@@ -140,7 +172,6 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getBitFieldDescriptions()
 	 */
 	public List<BitFieldDescription> getBitFieldDescriptions() {
@@ -149,7 +180,6 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getName()
 	 */
 	public String getName() {
@@ -158,7 +188,21 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getDescription()
+	 */
+	public String getDescription() {
+		return fDescription;
+	}
+
+	/* (non-Javadoc)
+	 * @see de.innot.avreclipse.core.toolinfo.fuses.IFuseObjectDescription#getSize()
+	 */
+	public int getSize() {
+		return fSize;
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getIndex()
 	 */
 	public int getIndex() {
@@ -167,7 +211,6 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#getDefaultValue()
 	 */
 	public int getDefaultValue() {
@@ -180,7 +223,8 @@ public class ByteDescription implements IByteDescription {
 	/**
 	 * Add a <code>BitFieldDescription</code> object to this ByteDescription.
 	 * <p>
-	 * The list of all BitFieldDescriptions can be retrieved with {@link #getBitFieldDescriptions()}.
+	 * The list of all BitFieldDescriptions can be retrieved with {@link #getBitFieldDescriptions()}
+	 * .
 	 * </p>
 	 * 
 	 * @param bitfielddescription
@@ -192,10 +236,11 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#isCompatibleWith(de.innot.avreclipse.core.toolinfo.fuses.IByteDescription)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.fuses.IByteDescription#isCompatibleWith(de.innot.avreclipse
+	 * .core.toolinfo.fuses.IByteDescription)
 	 */
-	public boolean isCompatibleWith(IByteDescription target) {
+	public boolean isCompatibleWith(IFuseObjectDescription target) {
 
 		// Get the list of the target BitFieldDescriptions and convert it into a map with BitField
 		// names and their masks.
@@ -231,8 +276,10 @@ public class ByteDescription implements IByteDescription {
 
 		// Create the byte node
 		Element bytenode = document.createElement(fType.getElementName());
+		bytenode.setAttribute(ATTR_DESCRIPTION, fDescription);
 		bytenode.setAttribute(ATTR_BYTE_INDEX, Integer.toString(fIndex));
 		bytenode.setAttribute(ATTR_BYTE_NAME, fName);
+		bytenode.setAttribute(ATTR_SIZE, Integer.toString(fSize));
 		if (fDefaultValue != -1) {
 			bytenode.setAttribute(ATTR_DEFAULT_VALUE, toHex(fDefaultValue));
 
@@ -249,10 +296,10 @@ public class ByteDescription implements IByteDescription {
 	/**
 	 * Format the given integer to a String with the format "0xXX".
 	 * <p>
-	 * Unlike the normal <code>Integer.toHexString(i)</code> method, this method will always
-	 * produce two digits, even with the high nibble at zero, and will output the hex value in
-	 * uppercase. This should make the value more readable than the standard
-	 * <code>Integer.toHexString</code> output.
+	 * Unlike the normal <code>Integer.toHexString(i)</code> method, this method will always produce
+	 * two digits, even with the high nibble at zero, and will output the hex value in uppercase.
+	 * This should make the value more readable than the standard <code>Integer.toHexString</code>
+	 * output.
 	 * </p>
 	 * 
 	 * @param value
@@ -266,7 +313,6 @@ public class ByteDescription implements IByteDescription {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

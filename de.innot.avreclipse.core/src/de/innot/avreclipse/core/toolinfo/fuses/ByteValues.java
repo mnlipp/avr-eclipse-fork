@@ -223,7 +223,7 @@ public class ByteValues {
 
 		if (fConversionResults != null) {
 			IMCUDescription desc = getDescription(fMCUId);
-			IByteDescription bytedesc = desc.getByteDescription(fType, index);
+			IFuseObjectDescription bytedesc = desc.getByteDescription(fType, index);
 			List<BitFieldDescription> allbfds = bytedesc.getBitFieldDescriptions();
 			for (BitFieldDescription bfd : allbfds) {
 				String name = bfd.getName();
@@ -429,8 +429,9 @@ public class ByteValues {
 	 */
 	public void setDefaultValues() {
 		IMCUDescription desc = getDescription(fMCUId);
-		List<IByteDescription> allbytes = desc.getByteDescriptions(fType);
-		for (IByteDescription bytedesc : allbytes) {
+		List<IFuseObjectDescription> allbytes = desc.getByteDescriptions(fType);
+		for (IFuseObjectDescription bytedesc : allbytes) {
+			@SuppressWarnings("deprecation")
 			int value = bytedesc.getDefaultValue();
 			int index = bytedesc.getIndex();
 			setValue(index, value);
@@ -524,12 +525,13 @@ public class ByteValues {
 	 * 
 	 * @param index
 	 *            Between 0 and {@link #getByteCount()} - 1.
-	 * @return Name of the byte from the part description file.
+	 * @return Name of the byte from the part description file, or <code>null</code> if the byte was
+	 *         not defined, i.e. the Fusebyte3 of all ATXmega MCUs
 	 */
 	public String getByteName(int index) {
 		IMCUDescription fusesdesc = getDescription(fMCUId);
-		IByteDescription bytedesc = fusesdesc.getByteDescription(fType, index);
-		return bytedesc.getName();
+		IFuseObjectDescription bytedesc = fusesdesc.getByteDescription(fType, index);
+		return bytedesc != null ? bytedesc.getName() : null;
 	}
 
 	/**
@@ -593,12 +595,14 @@ public class ByteValues {
 
 		// Get all byte descriptions, get the bitfield descriptions from them
 		// and fill the map.
-		List<IByteDescription> bytedesclist = fusedescription.getByteDescriptions(fType);
+		List<IFuseObjectDescription> bytedesclist = fusedescription.getByteDescriptions(fType);
 
-		for (IByteDescription bytedesc : bytedesclist) {
-			List<BitFieldDescription> bitfieldlist = bytedesc.getBitFieldDescriptions();
-			for (BitFieldDescription desc : bitfieldlist) {
-				fBitFieldNames.put(desc.getName(), desc);
+		for (IFuseObjectDescription bytedesc : bytedesclist) {
+			if (bytedesc != null) {
+				List<BitFieldDescription> bitfieldlist = bytedesc.getBitFieldDescriptions();
+				for (BitFieldDescription desc : bitfieldlist) {
+					fBitFieldNames.put(desc.getName(), desc);
+				}
 			}
 		}
 	}
@@ -623,8 +627,8 @@ public class ByteValues {
 	 * Get the description object for the given mcu id.
 	 * 
 	 * @param mcuid
-	 * @return <code>IFusesdescription</code> Object or <code>null</code> if the description
-	 *         could not be loaded.
+	 * @return <code>IFusesdescription</code> Object or <code>null</code> if the description could
+	 *         not be loaded.
 	 */
 	private IMCUDescription getDescription(String mcuid) {
 
@@ -675,8 +679,8 @@ public class ByteValues {
 	 * If the source values are for an incompatible MCU type then two cases are possible as
 	 * determined by the <code>forceMCU</code> flag.
 	 * <ul>
-	 * <li><code>true</code>: The MCU of this ByteValues object is changed to the MCU of the
-	 * source ByteValues and then the values from the source are copied 1:1.</li>
+	 * <li><code>true</code>: The MCU of this ByteValues object is changed to the MCU of the source
+	 * ByteValues and then the values from the source are copied 1:1.</li>
 	 * <li><code>false</code>: The MCU of this ByteValues object remains the same and the source
 	 * ByteValues are first converted to this MCU and then the values are copied.</li>
 	 * </ul>
@@ -687,8 +691,8 @@ public class ByteValues {
 	 * @param sourcevalues
 	 *            An <code>ByteValues</code> object with the source values
 	 * @param forceMCU
-	 *            <code>true</code> to change this MCU to that of the source, <code>false</code>
-	 *            to convert the source values to this MCU.
+	 *            <code>true</code> to change this MCU to that of the source, <code>false</code> to
+	 *            convert the source values to this MCU.
 	 */
 	public void setValues(ByteValues sourcevalues, boolean forceMCU) {
 
@@ -724,8 +728,8 @@ public class ByteValues {
 	 * </p>
 	 * <p>
 	 * All BitFields of the newly created target <code>ByteValues</code>, which do not have a
-	 * matching BitField in this <code>ByteValues</code> object, are set to their default value
-	 * (if defined) or to all <code>1</code>s.
+	 * matching BitField in this <code>ByteValues</code> object, are set to their default value (if
+	 * defined) or to all <code>1</code>s.
 	 * </p>
 	 * 
 	 * @param mcuid
@@ -733,8 +737,8 @@ public class ByteValues {
 	 * @param results
 	 *            A {@link ConversionResults} object which will maintain the lists of successful and
 	 *            unsuccessful BitField conversions.
-	 * @return A new <code>ByteValues</code> object valid for the given MCU and with those
-	 *         BitFields filled that match this object. All other bits are set to <code>1</code>.
+	 * @return A new <code>ByteValues</code> object valid for the given MCU and with those BitFields
+	 *         filled that match this object. All other bits are set to <code>1</code>.
 	 */
 	public ByteValues convertTo(String mcuid, ConversionResults results) {
 

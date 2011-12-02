@@ -13,7 +13,6 @@ package de.innot.avreclipse.core.toolinfo.partdescriptionfiles;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-//import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,7 +47,6 @@ import de.innot.avreclipse.core.toolinfo.fuses.BitFieldValueDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.ByteDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.FuseType;
 import de.innot.avreclipse.core.toolinfo.fuses.Fuses;
-//import de.innot.avreclipse.core.toolinfo.fuses.IByteDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.IMCUDescription;
 import de.innot.avreclipse.core.toolinfo.fuses.MCUDescription;
 import de.innot.avreclipse.core.util.AVRMCUidConverter;
@@ -56,7 +54,7 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
 /**
  * Fuses info reader.
  * <p>
- * This Class will take a PartDescriptionFile Document and read either the Fuse Byte or the Lockbit
+ * This Class will take a Atmel Device XML Document and read either the Fuse Byte or the Lockbit
  * settings from it. What to read is determined by the subclass.
  * </p>
  * <p>
@@ -72,14 +70,30 @@ import de.innot.avreclipse.core.util.AVRMCUidConverter;
  */
 public class FusesReader extends BaseReader {
 
-	private final static String			FILE_POSTFIX	= ".desc";
+	private final static String			FILE_POSTFIX		= ".desc";
+
+	private final static String			ELEM_REGISTER_GROUP	= "register-group";
+	private final static String			ELEM_REGISTER		= "register";
+	private final static String			ELEM_BITFIELD		= "bitfield";
+	private final static String			ELEM_VALUE_GROUP	= "value-group";
+	private final static String			ELEM_VALUE			= "value";
+
+	private final static String			ATTR_CAPTION		= "caption";
+	private final static String			ATTR_TEXT			= "text";
+	private final static String			ATTR_OFFSET			= "offset";
+	private final static String			ATTR_SIZE			= "size";
+	private final static String			ATTR_MASK			= "mask";
+	private final static String			ATTR_VALUES			= "values";
+	private final static String			ATTR_VALUE			= "value";
 
 	/** List of all Fuses Descriptions */
 	private Map<String, MCUDescription>	fFuseDescriptions;
 
+	// FIXME: debugging only
+	File								fFile;
+
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#start()
 	 */
 	public void start() {
@@ -88,39 +102,47 @@ public class FusesReader extends BaseReader {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse(org.w3c.dom.Document)
+	 * @see
+	 * de.innot.avreclipse.core.toolinfo.partdescriptionfiles.BaseReader#parse(org.w3c.dom.Document)
 	 */
 	@Override
-	public void parse(Document document) {
+	public void parse(Document document, File sourcefile) {
+
+		fFile = sourcefile;
 
 		// initialize the description object we will fill with data
 		MCUDescription desc = new MCUDescription(fMCUid);
 
-		// Get the default Fuse byte values (if present)
-		Map<String, Integer> defaults = getDefaultValues(document);
+		// Read all <value-group> nodes and store them in a hashmap indexed by their name for easy
+		// access later on.
+		Map<String, Node> bitfieldValueNodes = new HashMap<String, Node>();
+		NodeList valueGroupList = document.getElementsByTagName(ELEM_VALUE_GROUP);
+		for (int i = 0; i < valueGroupList.getLength(); i++) {
+			Node node = valueGroupList.item(i);
+			Node nameAttr = node.getAttributes().getNamedItem(ATTR_NAME);
+			String name = nameAttr.getNodeValue();
+			name = valueGroupNameFixer(desc, name);
+			bitfieldValueNodes.put(name, node);
+		}
 
-		// Find the <registers memspace="FUSE|LOCKBIT"> nodes.
-		// Get all <registers> nodes and look for the one which has the
-		// right memspace attribute.
-		NodeList allregistersnodes = document.getElementsByTagName("registers");
-
-		for (int i = 0; i < allregistersnodes.getLength(); i++) {
-			Node node = allregistersnodes.item(i);
-			if (node.hasAttributes()) {
-				NamedNodeMap attributes = allregistersnodes.item(i).getAttributes();
-				Node memspaceattr = attributes.getNamedItem("memspace");
-				if (memspaceattr != null) {
-					if ("FUSE".equalsIgnoreCase(memspaceattr.getTextContent())
-							|| "LOCKBIT".equalsIgnoreCase(memspaceattr.getTextContent())) {
-						readRegistersNode(node, desc, defaults);
-					}
-				}
+		// Get all <register-group> nodes and filter those with an attribute of either
+		// name="*FUSE*", i.e. "FUSE", "FUSES" or "NVM_FUSES"
+		NodeList registerGroupList = document.getElementsByTagName(ELEM_REGISTER_GROUP);
+		for (int i = 0; i < registerGroupList.getLength(); i++) {
+			Node registerGroupNode = registerGroupList.item(i);
+			NamedNodeMap attributesMap = registerGroupNode.getAttributes();
+			Node nameAttributeNode = attributesMap.getNamedItem(ATTR_NAME);
+			String nameValue = nameAttributeNode.getNodeValue();
+			if (nameValue.contains("FUSE")) {
+				readRegisters(registerGroupNode, desc, FuseType.FUSE, bitfieldValueNodes);
+			}
+			if (nameValue.contains("LOCKBIT")) {
+				readRegisters(registerGroupNode, desc, FuseType.LOCKBITS, bitfieldValueNodes);
 			}
 		}
 
 		// and the build version and the status
-		setVersionAndStatus(document, desc);
+		setVersion(sourcefile, desc);
 
 		// Add the description object to the internal list of all
 		// descriptions.
@@ -130,22 +152,11 @@ public class FusesReader extends BaseReader {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see de.innot.avreclipse.core.toolinfo.partdescriptionfiles.IPDFreader#finish()
 	 */
 	public void finish() {
 
-		// The FuseDescription Objects are serialized to the plugin storage
-		// area.
-
-		// Serialization was chosen instead of text properties, because the
-		// FuseDescription is a more complex object which would have required
-		// some code to write to and read from a properties file. Object
-		// serialization is much easier to code and, because the files are
-		// generated and should not require manual modifications, this binary
-		// storage format is suitable.
-		// However, changes to the FuseDescription Class or its subclasses
-		// should be made carefully not to break compatibility.
+		// The FuseDescription Objects are written as xml files to the plugin storage area.
 
 		// get the location where the descriptions will be written to.
 		IPath location = getStoragePath();
@@ -193,12 +204,8 @@ public class FusesReader extends BaseReader {
 						+ new SimpleDateFormat().format(new Date()));
 				document.appendChild(comment);
 
-				comment = document.createComment("Based on: Atmel Part Description File \""
+				comment = document.createComment("Based on: Atmel Device File \""
 						+ AVRMCUidConverter.id2name(mcuid) + ".xml\"");
-				document.appendChild(comment);
-
-				comment = document
-						.createComment("SVN: $Id$");
 				document.appendChild(comment);
 
 				// And now add the Actual Description to the document
@@ -218,23 +225,23 @@ public class FusesReader extends BaseReader {
 
 				fos.close();
 
-//				if (false) {
-//					// Short fragment I used for debugging.
-//					// This dumps all BitFieldDescriptions into a large CSV file,
-//					// which can then be imported and analyzed with a Database.
-//					FileWriter fw = new FileWriter(new File("allfuses.csv"), true);
-//					for (FuseType type : FuseType.values()) {
-//						List<IByteDescription> list = fusesdesc.getByteDescriptions(type);
-//						for (IByteDescription desc : list) {
-//							List<BitFieldDescription> bfdlist = desc.getBitFieldDescriptions();
-//							for (BitFieldDescription bfd : bfdlist) {
-//								fw.write(mcuid + "; " + type.name() + "; " + bfd.getName() + "; \""
-//										+ bfd.getDescription() + "\"; " + bfd.getMaxValue() + "\n");
-//							}
-//						}
-//					}
-//					fw.close();
-//				}
+				// if (false) {
+				// // Short fragment I used for debugging.
+				// // This dumps all BitFieldDescriptions into a large CSV file,
+				// // which can then be imported and analyzed with a Database.
+				// FileWriter fw = new FileWriter(new File("allfuses.csv"), true);
+				// for (FuseType type : FuseType.values()) {
+				// List<IByteDescription> list = fusesdesc.getByteDescriptions(type);
+				// for (IByteDescription desc : list) {
+				// List<BitFieldDescription> bfdlist = desc.getBitFieldDescriptions();
+				// for (BitFieldDescription bfd : bfdlist) {
+				// fw.write(mcuid + "; " + type.name() + "; " + bfd.getName() + "; \""
+				// + bfd.getDescription() + "\"; " + bfd.getMaxValue() + "\n");
+				// }
+				// }
+				// }
+				// fw.close();
+				// }
 
 			} catch (ParserConfigurationException pce) {
 				IStatus status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
@@ -281,77 +288,118 @@ public class FusesReader extends BaseReader {
 	}
 
 	/**
-	 * @param registersnode
-	 *            A &lt;registers memspace="FUSE|LOCKBIT"&gt; node.
+	 * Read all fuse or lockbits bytes from the given &lt;registry-group&gt; node.
+	 * 
+	 * @param registerGroupNode
+	 *            A &lt;register-group&gt; node for fuses
 	 * @param desc
 	 *            A <code>MCUDescription</code> container which will be filled with the
 	 *            <code>ByteDescription</code> objects for each byte.
-	 * @param A
-	 *            map with the names of all fuse bytes and their default value.
 	 */
-	private void readRegistersNode(Node registersnode, MCUDescription desc,
-			Map<String, Integer> defaults) {
+	private void readRegisters(Node registerGroupNode, MCUDescription desc, FuseType type,
+			Map<String, Node> valueGroupList) {
+		// Now get and parse all <register> nodes. Each <register> node stands for one fuses /
+		// lockbits object (either 8 bit or 32 bit).
+		Node registerNode = registerGroupNode.getFirstChild();
 
-		// First get the type of the node
-		NamedNodeMap attrs = registersnode.getAttributes();
-		Node memspacenode = attrs.getNamedItem("memspace");
-		String memspacevalue = memspacenode.getTextContent();
-		FuseType type = FuseType.getTypeFromPDFmemspace(memspacevalue);
+		while (registerNode != null) {
 
-		// Then read all enumerators. The Enumerators are siblings of the <registers> node.
-		Map<String, List<BitFieldValueDescription>> enumerators = new HashMap<String, List<BitFieldValueDescription>>();
-		Node child = registersnode.getParentNode().getFirstChild();
-		while (child != null) {
-			if ("enumerator".equals(child.getNodeName())) {
-				readEnumeratorNode(child, enumerators);
-			}
-			child = child.getNextSibling();
-		}
+			if (ELEM_REGISTER.equalsIgnoreCase(registerNode.getNodeName())) {
 
-		// Now get and parse all <reg> nodes. Each <reg> node stands for one byte.
-		Node regnode = registersnode.getFirstChild();
+				// Get the caption, name, offset and size of this fuse register.
+				NamedNodeMap attributesMap = registerNode.getAttributes();
+				Node captionNode = attributesMap.getNamedItem(ATTR_CAPTION);
+				Node nameNode = attributesMap.getNamedItem(ATTR_NAME);
+				Node sizeNode = attributesMap.getNamedItem(ATTR_SIZE);
+				Node offsetNode = attributesMap.getNamedItem(ATTR_OFFSET);
 
-		while (regnode != null) {
-			if ("reg".equals(regnode.getNodeName())) {
+				// Sanity check
+				if (captionNode == null || nameNode == null || sizeNode == null
+						|| offsetNode == null) {
+					System.err.println("Missing attribute in the XML for MCU " + desc.getMCUId());
+				}
 
-				// read the offset attribute and store it
-				// This is used to get the correct order of the bytes (they
-				// are in reverse order within the document).
-				// We also read the name of the byte. This is later used to
-				// map to the correct name for avrdude.
-				Node offsetattr = regnode.getAttributes().getNamedItem("offset");
-				Integer offset = Integer.decode(offsetattr.getTextContent());
+				String caption = captionNode.getNodeValue();
+				String name = nameNode.getNodeValue();
+				int offset = hex2int(offsetNode.getNodeValue());
+				int size = Integer.parseInt(sizeNode.getNodeValue());
 
-				Node nameattr = regnode.getAttributes().getNamedItem("name");
-				String name = (nameattr != null) ? nameattr.getTextContent() : "";
-
-				int defaultvalue = defaults.containsKey(name) ? defaults.get(name) : -1;
-
-				ByteDescription bytedesc = new ByteDescription(type, name, offset, defaultvalue);
+				ByteDescription bytedesc = new ByteDescription(type, caption, name, offset, size,
+						-1);
 
 				// Now we can read the bitfields for each node
-				Node bitfieldnode = regnode.getFirstChild();
+				Node bitfieldnode = registerNode.getFirstChild();
 				while (bitfieldnode != null) {
-					if ("bitfield".equals(bitfieldnode.getNodeName())) {
-						BitFieldDescription bitfield = readBitfieldNode(bitfieldnode, enumerators,
-								offset, defaultvalue);
-						bytedesc.addBitFieldDescription(bitfield);
+					if (ELEM_BITFIELD.equals(bitfieldnode.getNodeName())) {
+						readBitfieldNode(bytedesc, bitfieldnode, valueGroupList, offset);
 					}
 					bitfieldnode = bitfieldnode.getNextSibling();
 				}
 
 				desc.addByteDescription(type, bytedesc);
 			}
-			regnode = regnode.getNextSibling();
-		}
 
+			registerNode = registerNode.getNextSibling();
+		}
 	}
 
 	/**
-	 * Read the given &lt;enumerator&gt; node and add its content to the given global enumerators
+	 * @param desc
+	 *            The fuses / lockbits object onto which to add this bitfield description.
+	 * @param node
+	 *            A &lt;bitfield&gt; node
+	 * @param valuesGroupNodeMap
+	 *            The map of all &lt;value-group&gt; element nodes.
+	 * @param index
+	 *            the fuse byte index this bitfield is for.
+	 * @return A <code>BitFieldDescription</code> object representing the given &lt;bitfield&gt;
+	 *         node.
+	 */
+	private void readBitfieldNode(ByteDescription desc, Node node,
+			Map<String, Node> valuesGroupNodeMap, int index) {
+
+		List<BitFieldValueDescription> valuesList = null;
+
+		// Get the Attributes of the <bitfield> node
+		NamedNodeMap attrs = node.getAttributes();
+		String name = attrs.getNamedItem(ATTR_NAME).getTextContent();
+		Long mask = Long.decode(attrs.getNamedItem(ATTR_MASK).getTextContent());
+
+		// The caption attribute is optional. If it is not set then take the name of the value as
+		// its description.
+		Node descriptionNode = attrs.getNamedItem(ATTR_CAPTION);
+		String description = descriptionNode != null ? descriptionNode.getNodeValue() : name;
+
+		// The values attribute is optional as well. It contains the name of a <values-group>
+		// element.
+		Node valuesNode = attrs.getNamedItem(ATTR_VALUES);
+
+		if (valuesNode != null) {
+			String valuesRefName = valuesNode.getNodeValue();
+			Node valueGroupNode = valuesGroupNodeMap.get(valuesRefName);
+			if (valueGroupNode != null) {
+				valuesList = readValueGroupNode(valueGroupNode);
+			} else {
+				System.out.println(fFile.getName()
+						+ " Found non-existing <value-group> reference: " + valuesRefName);
+			}
+		}
+
+		// Check if this bitfield is one that contains errors in the part description files and fix
+		// the errors.
+		name = bitfieldNameFixer(name, mask, description);
+
+		BitFieldDescription bitfield = new BitFieldDescription(index, name, description,
+				mask.intValue(), -1, valuesList);
+
+		desc.addBitFieldDescription(bitfield);
+	}
+
+	/**
+	 * Read the given &lt;value-group&gt; node and add its content to the given global enumerators
 	 * list.
 	 * <p>
-	 * All &lt;enum&gt; children of the &lt;enumerator&gt; node are collected in a list of
+	 * All &lt;value&gt; children of the &lt;value-group&gt; node are collected in a list of
 	 * BitFieldValueDescription objects and mapped to the name of the enumerator node, which is then
 	 * added to the global list.
 	 * </p>
@@ -362,251 +410,71 @@ public class FusesReader extends BaseReader {
 	 *            The global map of all enumerator names and their
 	 *            <code>BitFieldValueDescription</code> lists
 	 */
-	private void readEnumeratorNode(Node node, Map<String, List<BitFieldValueDescription>> enums) {
+	private List<BitFieldValueDescription> readValueGroupNode(Node valueGroupNode) {
 
-		List<BitFieldValueDescription> values = new ArrayList<BitFieldValueDescription>();
+		List<BitFieldValueDescription> valuesList = new ArrayList<BitFieldValueDescription>();
 
-		// Get the name of the <enumerator>
-		NamedNodeMap attrs = node.getAttributes();
-		Node nameattr = attrs.getNamedItem("name");
-		String enumname = nameattr.getTextContent();
-
-		// Get all <enum> children
-		NodeList children = node.getChildNodes();
-
-		for (int i = 0; i < children.getLength(); i++) {
-			Node child = children.item(i);
-			if ("enum".equalsIgnoreCase(child.getNodeName())) {
-				BitFieldValueDescription value = readEnumNode(child);
-				values.add(value);
+		// Get all <value> children
+		Node valueNode = valueGroupNode.getFirstChild();
+		while (valueNode != null) {
+			if (ELEM_VALUE.equals(valueNode.getNodeName())) {
+				BitFieldValueDescription bfvd = readValueNode(valueNode);
+				valuesList.add(bfvd);
 			}
+			valueNode = valueNode.getNextSibling();
 		}
 
-		enums.put(enumname, values);
+		return valuesList;
 	}
 
 	/**
-	 * Read the given &lt;enum&gt; node and return a new BitFieldValueDescription with the
-	 * descriptive text and the value of the enum node.
+	 * Read the given &lt;value&gt; node and return a new BitFieldValueDescription with the
+	 * descriptive text and the value of the value node.
 	 * 
 	 * @param node
-	 *            A &lt;enum&gt; node
-	 * @return New <code>BitFieldValueDescription</code> object with the values from the "text"
-	 *         and "val" attributes.
+	 *            A &lt;value&gt; node
+	 * @return New <code>BitFieldValueDescription</code> object with the values from the "caption",
+	 *         "name" and "value" attributes.
 	 */
-	private BitFieldValueDescription readEnumNode(Node node) {
+	private BitFieldValueDescription readValueNode(Node node) {
 
 		NamedNodeMap attrs = node.getAttributes();
 
-		String description = attrs.getNamedItem("text").getNodeValue();
-		int value = Integer.decode(attrs.getNamedItem("val").getNodeValue());
+		String name = attrs.getNamedItem(ATTR_NAME).getNodeValue();
+		int value = Integer.decode(attrs.getNamedItem(ATTR_VALUE).getNodeValue());
 
-		return new BitFieldValueDescription(value, description);
+		// The caption attribute is optional. If it is not set then take the name of the value as
+		// its description.
+		Node descriptionNode = attrs.getNamedItem(ATTR_CAPTION);
+		String description = descriptionNode != null ? descriptionNode.getNodeValue() : name;
+
+		// The same goes for the text attribute, which is used by the AVR32 files instead of the
+		// caption attribute.
+		Node textNode = attrs.getNamedItem(ATTR_TEXT);
+		description = textNode != null ? textNode.getNodeValue() : description;
+
+		return new BitFieldValueDescription(value, description, name);
 	}
 
 	/**
-	 * @param node
-	 *            A &lt;bitfield&gt; node
-	 * @param enumerators
-	 *            The global list of enumerators for this node.
-	 * @param index
-	 *            the fuse byte index this bitfield is for.
-	 * @return A <code>BitFieldDescription</code> object representing the given &lt;bitfield&gt;
-	 *         node.
-	 */
-	private BitFieldDescription readBitfieldNode(Node node,
-			Map<String, List<BitFieldValueDescription>> enumerators, int index, int defaultvalue) {
-
-		// Get the Attributes of the <bitfield> node
-		NamedNodeMap attrs = node.getAttributes();
-		String name = attrs.getNamedItem("name").getTextContent();
-		String description = attrs.getNamedItem("text").getTextContent();
-		int mask = Integer.decode(attrs.getNamedItem("mask").getTextContent());
-
-		List<BitFieldValueDescription> values = null;
-
-		Node enumattrnode = attrs.getNamedItem("enum");
-		if (enumattrnode != null) {
-			String enumname = enumattrnode.getTextContent();
-			values = enumerators.get(enumname);
-			if (values == null) {
-				System.out.println("Found non-existing enum value: " + enumname);
-			}
-		}
-
-		// Check if this bitfield is one that contains errors in the part description files and fix
-		// the errors.
-		name = bitfieldNameFixer(name, mask, description);
-
-		BitFieldDescription bitfield = new BitFieldDescription(index, name, description, mask,
-				defaultvalue, values);
-		return bitfield;
-	}
-
-	/**
-	 * Extract the build version and release status from the part description file document and call
-	 * the {@link #setVersionAndStatus(IMCUDescription, int, String)} method of the subclass to set
-	 * the values.
+	 * Set the version of the {@link IMCUDescription} to the last modification date of the source
+	 * file.
 	 * 
-	 * @param document
-	 *            Part description file DOM
+	 * @param sourcefile
+	 *            Device description file
 	 * @param desc
-	 *            The description holder created by the {@link #getDescriptionHolder(String, int)}
-	 *            call.
+	 *            The MCUDescription
 	 */
-	private void setVersionAndStatus(Document document, MCUDescription desc) {
+	private void setVersion(File sourcefile, MCUDescription desc) {
 
-		int version = 0;
-		String status = "UNKNOWN";
+		// get the file date and store it as the version number
+		long lastmodified = sourcefile.lastModified();
+		Date date = new Date(lastmodified);
+		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+		String versionString = df.format(date);
+		int version = Integer.parseInt(versionString);
 
-		// Find the <BUILD> element and extract its value
-		NodeList nodeslist = document.getElementsByTagName("BUILD");
-
-		if (nodeslist.getLength() > 0) {
-			Node buildnode = nodeslist.item(0);
-			String value = buildnode.getFirstChild().getNodeValue();
-			version = Integer.decode(value);
-		}
-
-		// Find the <RELEASE_STATUS> element and extract its value
-		nodeslist = document.getElementsByTagName("RELEASE_STATUS");
-
-		if (nodeslist.getLength() > 0) {
-			Node buildnode = nodeslist.item(0);
-			status = buildnode.getFirstChild().getNodeValue();
-		}
-
-		desc.setVersionAndStatus(version, status);
-	}
-
-	/**
-	 * Read the Document and extract the default values for all fuse bytes.
-	 * 
-	 * @param document
-	 */
-	private Map<String, Integer> getDefaultValues(Document document) {
-
-		Map<String, Integer> defaultsmap = new HashMap<String, Integer>(6);
-
-		// Get the <FUSE> nodes (from the old, pre-V2, part of the PDF)
-		NodeList allfusenodes = document.getElementsByTagName("FUSE");
-		for (int i = 0; i < allfusenodes.getLength(); i++) {
-			Node fusenode = allfusenodes.item(i);
-
-			String[] fusenames = new String[] {};
-
-			// The <LIST> child node has the name of all Fuse Bytes defined
-			Node childnode = fusenode.getFirstChild();
-			while (childnode != null) {
-				if ("LIST".equalsIgnoreCase(childnode.getNodeName())) {
-					// Get the value of the <LIST> node, remove the Brackets and
-					// split it into the separate fusenames.
-					Node valuenode = childnode.getFirstChild();
-					String allnames = valuenode.getNodeValue();
-					allnames = allnames.substring(1, allnames.length() - 1);
-					fusenames = allnames.split(":");
-					break;
-				}
-				childnode = childnode.getNextSibling();
-			}
-
-			// Now we have the names of the fuse bytes
-			// Iterate once again through all child nodes, this time look for a node
-			// which matches one of the fusenames. Once found pass this node to
-			// readFuseByteNode() to read all fuse bits and their default value.
-
-			childnode = fusenode.getFirstChild();
-			while (childnode != null) {
-				for (String fuse : fusenames) {
-					if (fuse.equalsIgnoreCase(childnode.getNodeName())) {
-						// Found the fuse node in the childnodes
-						int defaultvalue = readFuseByteNode(childnode);
-						String name = childnode.getNodeName();
-
-						defaultsmap.put(name, Integer.valueOf(defaultvalue));
-					}
-				}
-				childnode = childnode.getNextSibling();
-			}
-		}
-		return defaultsmap;
-	}
-
-	/**
-	 * With the given fuse byte element (e.g. &lt;LOW&gt;, &lt;HIGH&gt; or &lt;FUSEYTE0&gt;) extract
-	 * the default values.
-	 * <p>
-	 * For all bits of the byte which do not have a &lt;DEFAULT&gt; element, <code>1</code> is
-	 * used as a default value (= unset fusebit), unless no bit has a &lt;DEFAULT&gt; element, in
-	 * which case -1 (= no default available) is returned.
-	 * </p>
-	 * 
-	 * @param fusenode
-	 *            The fuse byte element node.
-	 * @return An <code>int</code> with a byte value (0x00-0xff), or <code>-1</code> if no
-	 *         defaults are available.
-	 */
-	private int readFuseByteNode(Node fusenode) {
-
-		int value = 0xFF;
-
-		// This is set to true if at least one <DEFAULT> Element was found
-		boolean hasDefault = false;
-
-		// We could read the <NMB_FUSE_BITS> node to get the number of fuse
-		// bits. However we don't bother and read just interpret all <FUSEx>
-		// child nodes that are there.
-		Node bitnode = fusenode.getFirstChild();
-		while (bitnode != null) {
-			String nodename = bitnode.getNodeName();
-			if (nodename.startsWith("FUSE")) {
-				String bitnumberstring = nodename.substring(4);
-				int bitnumber = Integer.parseInt(bitnumberstring);
-				int bitvalue = readFuseBitNode(bitnode);
-				if (bitvalue != -1) {
-					hasDefault = true;
-				}
-				// Clear the bit if <DEFAULT>0</DEFAULT>
-				if (bitvalue == 0)
-					value &= ~(1 << bitnumber);
-				// we don't need to set bits because they are set by default.
-			}
-
-			bitnode = bitnode.getNextSibling();
-		}
-		if (hasDefault) {
-			return value;
-		}
-		return -1;
-	}
-
-	/**
-	 * With the given &lt;FUSEx&gt; element node, return the value of the &lt;DEFAULT&gt; child
-	 * element.
-	 * 
-	 * @param bitnode
-	 *            A &lt;FUSEx&gt; element node.
-	 * @return The value of the &lt;DEFAULT&gt; element, or <code>-1</code> if no &lt;DEFAULT&gt;
-	 *         element exists.
-	 */
-	private int readFuseBitNode(Node bitnode) {
-
-		Node childnode = bitnode.getFirstChild();
-		while (childnode != null) {
-
-			String nodename = childnode.getNodeName();
-			if ("DEFAULT".equalsIgnoreCase(nodename)) {
-				// This is the right node. Get its value
-				// The value is in the first child (the TEXT node)
-				String value = childnode.getFirstChild().getNodeValue();
-				return Integer.parseInt(value, 2);
-			}
-			childnode = childnode.getNextSibling();
-		}
-
-		// Did not find any <DEFAULT> Node.
-		// Return -1, which means "not available"
-		return -1;
+		desc.setVersion(version);
 	}
 
 	/**
@@ -623,23 +491,21 @@ public class FusesReader extends BaseReader {
 	 * @param description
 	 * @return The fixed name, or the original name if no fix was required.
 	 */
-	private String bitfieldNameFixer(String name, int mask, String description) {
-		if (name.equals("CKSEL") && mask == 0x3f) {
-			// This is a bug in the atmega32.xml file
-			// The bitfield is named "CKSEL", even though it is a combined
-			// SUT and CKSEL field (like most other MCUs)
-			return "SUT_CKSEL";
-		}
+	private String bitfieldNameFixer(String name, long mask, String description) {
 		if (name.equals("WTDON") && description.startsWith("Watch-Dog Timer")) {
 			// This is a typo in the atmega8.xml file
 			// Should be "WDTON", like in all other MCUs.
-			return "WTDON";
+			return "WDTON";
 		}
 
 		// The atmega103.xml file is really fucked up. All Fuses names are wrong in the part
 		// description file! We can fix two of them, but because at this point we do not know the
 		// MCU Id, we cannot fix the last bug: The "CKSEL" field is in reality a "SUT" as
 		// documented in the datasheet.
+
+		// AVR Studio 5.0 does not have a file for the ATmega103 anymore. But we leave this in
+		// anyway
+
 		if (name.equals("CKSEL3") && description.startsWith("Preserve EEPROM")) {
 			// According to the description this bitfield should be "EESAVE"
 			return "EESAVE";
@@ -650,5 +516,61 @@ public class FusesReader extends BaseReader {
 		}
 
 		return name;
+	}
+
+	/**
+	 * Try to fix some obvious errors in the Atmel device files.
+	 * <p>
+	 * This method is called with the name of the &lt;value-group&gt; element and returns the name
+	 * that matches the values attribute of the &lt;bitfield&gt; element.
+	 * </p>
+	 * 
+	 * @param desc
+	 *            IMCUDescrtiption with the current MCU.
+	 * @param name
+	 *            of the &lt;value-group&gt; element.
+	 * @return name used by the value attribute.
+	 */
+	private String valueGroupNameFixer(MCUDescription desc, String name) {
+
+		String mcuid = desc.getMCUId();
+
+		// Fix for the AT32UC3C1512C.xml & AT32UC3C2512C.xml files
+		// The BODxx references all end with "_VALUES", while the actual <value-group> names do not
+		if (mcuid.equals("at32uc3c1512c") || mcuid.equals("at32uc3c2512c")) {
+
+			if (name.equals("BOD33EN")) {
+				return "BODEN33_VALUES";
+			}
+			if (name.equals("BODEN") || name.equals("BODHYST") || name.equals("BODLEVEL")) {
+				return name + "_VALUES";
+			}
+		}
+
+		// Fix for the AT32UC3C0512C.xml file.
+		// The reference is "BODEN33", while the actual <value-group> name is "BOD33EN".
+		if (mcuid.equals("at32uc3c0512c") && name.equals("BOD33EN")) {
+			return "BODEN33";
+		}
+
+		return name;
+	}
+
+	/**
+	 * Convert a hex String to an integer.
+	 * <p>
+	 * The hex string may or may not start with '0x'.
+	 * </p>
+	 * 
+	 * @param hex
+	 * @return
+	 */
+	private int hex2int(String hex) {
+		String value = hex.toLowerCase();
+		if (value.startsWith("0x")) {
+			value = value.substring(2);
+		}
+
+		return Integer.parseInt(value, 16);
 	}
 }

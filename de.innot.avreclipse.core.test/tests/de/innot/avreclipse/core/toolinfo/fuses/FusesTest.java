@@ -143,7 +143,7 @@ public class FusesTest {
 	@Test
 	public void testGetFuseByteCount() throws IOException {
 
-		// Test a 6 fuse bytes MCU
+		// Test a 5 fuse bytes MCU
 		int count = fFuses.getFuseByteCount("atxmega128a1");
 		assertEquals("getFuseByteCount(\"atxmega128a1\")", 6, count);
 
