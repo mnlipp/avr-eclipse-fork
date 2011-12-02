@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
+<!--Author: automatically created by AVR Eclipse plugin-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATtiny84A.xml"-->
+<description mcutype="attiny84a">
+<version build="20110526"/>
+<fusebyte description="" index="2" name="EXTENDED" size="1">
+<bitfield desc="Self Programming enable" mask="0x01" name="SELFPRGEN"/>
+</fusebyte>
+<fusebyte description="" index="1" name="HIGH" size="1">
+<bitfield desc="Reset Disabled (Enable PB3 as i/o pin)" mask="0x80" name="RSTDISBL"/>
+<bitfield desc="Debug Wire enable" mask="0x40" name="DWEN"/>
+<bitfield desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
+<bitfield desc="Watch-dog Timer always on" mask="0x10" name="WDTON"/>
+<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
+<bitfield desc="Brown-out Detector trigger level" mask="0x07" name="BODLEVEL">
+<value desc="Brown-out detection disabled" name="DISABLED" val="0x07"/>
+<value desc="Brown-out detection at VCC=1.8 V" name="1V8" val="0x06"/>
+<value desc="Brown-out detection at VCC=2.7 V" name="2V7" val="0x05"/>
+<value desc="Brown-out detection at VCC=4.3 V" name="4V3" val="0x04"/>
+<value desc="Brown-out detection at VCC=2.3 V" name="2V3" val="0x03"/>
+<value desc="Brown-out detection at VCC=2.2 V" name="2V2" val="0x02"/>
+<value desc="Brown-out detection at VCC=1.9 V" name="1V9" val="0x01"/>
+<value desc="Brown-out detection at VCC=2.0 V" name="2V0" val="0x00"/>
+</bitfield>
+</fusebyte>
+<fusebyte description="" index="0" name="LOW" size="1">
+<bitfield desc="Divide clock by 8 internally" mask="0x80" name="CKDIV8"/>
+<bitfield desc="Clock output on PORTB2" mask="0x40" name="CKOUT"/>
+<bitfield desc="Select Clock source" mask="0x3F" name="SUT_CKSEL">
+<value desc="Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms" name="EXTCLK_6CK_14CK_0MS" val="0x00"/>
+<value desc="Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms" name="EXTCLK_6CK_14CK_4MS1" val="0x10"/>
+<value desc="Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/14 CK + 65 ms" name="EXTCLK_6CK_14CK_65MS" val="0x20"/>
+<value desc="Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms" name="INTRCOSC_8MHZ_6CK_14CK_0MS" val="0x02"/>
+<value desc="Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4 ms" name="INTRCOSC_8MHZ_6CK_14CK_4MS" val="0x12"/>
+<value desc="Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 64 ms; default value" name="INTRCOSC_8MHZ_6CK_14CK_64MS_DEFAULT" val="0x22"/>
+<value desc="WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 0 ms" name="WDOSC_128KHZ_6CK_14CK_0MS" val="0x04"/>
+<value desc="WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 4 ms" name="WDOSC_128KHZ_6CK_14CK_4MS" val="0x14"/>
+<value desc="WD. Osc. 128 kHz; Start-up time PWRDWN/RESET: 6 CK/14 CK + 64 ms" name="WDOSC_128KHZ_6CK_14CK_64MS" val="0x24"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 1K CK/14 CK + 0 ms" name="EXTLOFXTAL_1KCK_14CK_0MS" val="0x06"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 1K CK/14 CK + 4 ms" name="EXTLOFXTAL_1KCK_14CK_4MS" val="0x16"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time PWRDWN/RESET: 32K CK/14 CK + 64 ms" name="EXTLOFXTAL_32KCK_14CK_64MS" val="0x26"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1" val="0x08"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS" val="0x18"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS" val="0x28"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1" val="0x38"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS" val="0x09"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS" val="0x19"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1" val="0x29"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS" val="0x39"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1" val="0x0A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS" val="0x1A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS" val="0x2A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1" val="0x3A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS" val="0x0B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS" val="0x1B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1" val="0x2B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS" val="0x3B"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1" val="0x0C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS" val="0x1C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS" val="0x2C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1" val="0x3C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS" val="0x0D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS" val="0x1D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1" val="0x2D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS" val="0x3D"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_258CK_14CK_4MS1" val="0x0E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 258 CK/14 CK + 65 ms" name="EXTXOSC_8MHZ_XX_258CK_14CK_65MS" val="0x1E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 0 ms" name="EXTXOSC_8MHZ_XX_1KCK_14CK_0MS" val="0x2E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1" val="0x3E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 1K CK /14 CK + 65 ms" name="EXTXOSC_8MHZ_XX_1KCK_14CK_65MS" val="0x0F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 0 ms" name="EXTXOSC_8MHZ_XX_16KCK_14CK_0MS" val="0x1F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1" val="0x2F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time PWRDWN/RESET: 16K CK/14 CK + 65 ms" name="EXTXOSC_8MHZ_XX_16KCK_14CK_65MS" val="0x3F"/>
+</bitfield>
+</fusebyte>
+<lockbitsbyte description="" index="0" name="LOCKBIT" size="1">
+<bitfield desc="Memory Lock" mask="0x03" name="LB">
+<value desc="Further programming and verification disabled" name="PROG_VER_DISABLED" val="0x00"/>
+<value desc="Further programming disabled" name="PROG_DISABLED" val="0x02"/>
+<value desc="No memory lock features enabled" name="NO_LOCK" val="0x03"/>
+</bitfield>
+</lockbitsbyte>
+</description>

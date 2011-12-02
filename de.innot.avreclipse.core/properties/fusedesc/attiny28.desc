@@ -1,37 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
 <!--Author: automatically created by AVR Eclipse plugin-->
-<!--Date: 17.06.10 12:52-->
-<!--Based on: Atmel Part Description File "ATtiny28.xml"-->
-<!--SVN: $Id$-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATtiny28.xml"-->
 <description mcutype="attiny28">
-<version build="1" status="RELEASED"/>
-<fusebyte index="0" name="LOW">
+<version build="20110526"/>
+<fusebyte description="" index="0" name="LOW" size="1">
 <bitfield desc="Internal load capacitors between XTAL1/XTAL2 and GND" mask="0x10" name="INTCAP"/>
 <bitfield desc="Clock Select" mask="0x0F" name="CKSEL">
-<value desc="External Crystal / Ceramic Resonator" val="0x0F"/>
-<value desc="External Crystal / Ceramic Resonator" val="0x0E"/>
-<value desc="External Crystal / Ceramic Resonator" val="0x0D"/>
-<value desc="External Crystal / Ceramic Resonator" val="0x0C"/>
-<value desc="External Crystal / Ceramic Resonator" val="0x0B"/>
-<value desc="External Crystal / Ceramic Resonator" val="0x0A"/>
-<value desc="External Low-Frequency Crystal" val="0x09"/>
-<value desc="External Low-Frequency Crystal" val="0x08"/>
-<value desc="External RC Ocsillator" val="0x07"/>
-<value desc="External RC Ocsillator" val="0x06"/>
-<value desc="External RC Ocsillator" val="0x05"/>
-<value desc="Internal RC Ocsillator" val="0x04"/>
-<value desc="Internal RC Ocsillator" val="0x03"/>
-<value desc="Internal RC Ocsillator" val="0x02"/>
-<value desc="External Clock" val="0x01"/>
-<value desc="External Clock" val="0x00"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0F"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0E"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0D"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0C"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0B"/>
+<value desc="External Crystal / Ceramic Resonator" name="EXTXTALCRES" val="0x0A"/>
+<value desc="External Low-Frequency Crystal" name="EXTLOFXTAL" val="0x09"/>
+<value desc="External Low-Frequency Crystal" name="EXTLOFXTAL" val="0x08"/>
+<value desc="External RC Ocsillator" name="EXTRCOSC" val="0x07"/>
+<value desc="External RC Ocsillator" name="EXTRCOSC" val="0x06"/>
+<value desc="External RC Ocsillator" name="EXTRCOSC" val="0x05"/>
+<value desc="Internal RC Ocsillator" name="INTRCOSC" val="0x04"/>
+<value desc="Internal RC Ocsillator" name="INTRCOSC" val="0x03"/>
+<value desc="Internal RC Ocsillator" name="INTRCOSC" val="0x02"/>
+<value desc="External Clock" name="EXTCLK" val="0x01"/>
+<value desc="External Clock" name="EXTCLK" val="0x00"/>
 </bitfield>
 </fusebyte>
-<lockbitsbyte index="0" name="LOCKBIT">
+<lockbitsbyte description="" index="0" name="LOCKBIT" size="1">
 <bitfield desc="Memory Lock" mask="0x06" name="LB">
-<value desc="Further programming and verification disabled" val="0x00"/>
-<value desc="Further programming disabled" val="0x01"/>
-<value desc="No memory lock features enable" val="0x03"/>
+<value desc="Further programming and verification disabled" name="PROG_VER_DISABLED" val="0x00"/>
+<value desc="Further programming disabled" name="PROG_DISABLED" val="0x01"/>
+<value desc="No memory lock features enabled" name="NO_LOCK" val="0x03"/>
 </bitfield>
 </lockbitsbyte>
 </description>

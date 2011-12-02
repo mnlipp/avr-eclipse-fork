@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
+<!--Author: automatically created by AVR Eclipse plugin-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATtiny1634.xml"-->
+<description mcutype="attiny1634">
+<version build="20110526"/>
+<fusebyte description="" index="2" name="EXTENDED" size="1">
+<bitfield desc="BOD mode of operation when the device is in sleep mode" mask="0x18" name="BODPD">
+<value desc="Sampled" name="BOD_SAMPLED" val="0x01"/>
+<value desc="Enabled" name="BOD_ENABLED" val="0x02"/>
+<value desc="Disabled" name="BOD_DISABLED" val="0x03"/>
+</bitfield>
+<bitfield desc="BOD mode of operation when the device is active or idle" mask="0x06" name="BODACT">
+<value desc="Sampled" name="BOD_SAMPLED" val="0x01"/>
+<value desc="Enabled" name="BOD_ENABLED" val="0x02"/>
+<value desc="Disabled" name="BOD_DISABLED" val="0x03"/>
+</bitfield>
+<bitfield desc="Self Programming enable" mask="0x01" name="SELFPRGEN"/>
+</fusebyte>
+<fusebyte description="" index="1" name="HIGH" size="1">
+<bitfield desc="Reset Disabled (Enable PC2 as i/o pin)" mask="0x80" name="RSTDISBL"/>
+<bitfield desc="Debug Wire enable" mask="0x40" name="DWEN"/>
+<bitfield desc="Serial program downloading (SPI) enabled" mask="0x20" name="SPIEN"/>
+<bitfield desc="Watch-dog Timer always on" mask="0x10" name="WDTON"/>
+<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
+<bitfield desc="Brown-out Detector trigger level" mask="0x07" name="BODLEVEL">
+<value desc="Brown-out detection at VCC=4.3 V" name="4V3" val="0x04"/>
+<value desc="Brown-out detection at VCC=2.7 V" name="2V7" val="0x05"/>
+<value desc="Brown-out detection at VCC=1.8 V" name="1V8" val="0x06"/>
+</bitfield>
+</fusebyte>
+<fusebyte description="" index="0" name="LOW" size="1">
+<bitfield desc="Divide clock by 8 internally" mask="0x80" name="CKDIV8"/>
+<bitfield desc="Clock output on PORTC2" mask="0x40" name="CKOUT"/>
+<bitfield desc="Select Clock Source" mask="0x1F" name="SUT_CKSEL">
+<value desc="Ext. Clock; Start-up time PWRDWN/RESET: 6 CK/16 CK + 16 ms" name="EXTCLK_6CK_16CK_16MS" val="0x00"/>
+<value desc="Int. RC Osc. 8 MHz; Start-up time PWRDWN/RESET: 6 CK/16 CK + 16 ms" name="INTRCOSC_8MHZ_6CK_16CK_16MS" val="0x02"/>
+<value desc="Int. ULP Osc. 32 kHz; Start-up time PWRDWN/RESET: 6 CK/16 CK + 16 ms" name="INTULPOSC_32KHZ_6CK_16CK_16MS" val="0x04"/>
+<value desc="Ext. Ceramic Res. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 258 CK/16 CK + 16 ms" name="EXTCRES_0MHZ4_0MHZ9_258CK_16CK_16MS" val="0x08"/>
+<value desc="Ext. Ceramic Res. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 1K CK/16 CK + 16 ms" name="EXTCRES_0MHZ4_0MHZ9_1KCK_16CK_16MS" val="0x18"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time PWRDWN/RESET: 16 K CK/16 CK + 16 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_16CK_16MS" val="0x09"/>
+<value desc="Ext. Ceramic Res. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 258 CK/16 CK + 16 ms" name="EXTCRES_0MHZ9_3MHZ_258CK_16CK_16MS" val="0x0A"/>
+<value desc="Ext. Ceramic Res. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 1K CK/16 CK + 16 ms" name="EXTCRES_0MHZ9_3MHZ_1KCK_16CK_16MS" val="0x1A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time PWRDWN/RESET: 16 K CK/16 CK + 16 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_16CK_16MS" val="0x0B"/>
+<value desc="Ext. Ceramic Res. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 258 CK/16 CK + 16 ms" name="EXTCRES_3MHZ_8MHZ_258CK_16CK_16MS" val="0x0C"/>
+<value desc="Ext. Ceramic Res. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 1K CK/16 CK + 16 ms" name="EXTCRES_3MHZ_8MHZ_1KCK_16CK_16MS" val="0x1C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time PWRDWN/RESET: 16 K CK/16 CK + 16 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_16CK_16MS" val="0x0D"/>
+<value desc="Ext. Ceramic Res. 8.0- MHz; Start-up time PWRDWN/RESET: 258 CK/16 CK + 16 ms" name="EXTCRES_8MHZ_XX_258CK_16CK_16MS" val="0x0E"/>
+<value desc="Ext. Ceramic Res. 8.0- MHz; Start-up time PWRDWN/RESET: 1K CK/16 CK + 16 ms" name="EXTCRES_8MHZ_XX_1KCK_16CK_16MS" val="0x1E"/>
+<value desc="Ext. Crystal Osc. 8.0- MHz; Start-up time PWRDWN/RESET: 16 K CK/16 CK + 16 ms" name="EXTXOSC_8MHZ_XX_16KCK_16CK_16MS" val="0x0F"/>
+</bitfield>
+</fusebyte>
+<lockbitsbyte description="" index="0" name="LOCKBIT" size="1">
+<bitfield desc="Memory Lock" mask="0x03" name="LB">
+<value desc="Further programming and verification disabled" name="PROG_VER_DISABLED" val="0x00"/>
+<value desc="Further programming disabled" name="PROG_DISABLED" val="0x02"/>
+<value desc="No memory lock features enabled" name="NO_LOCK" val="0x03"/>
+</bitfield>
+</lockbitsbyte>
+</description>

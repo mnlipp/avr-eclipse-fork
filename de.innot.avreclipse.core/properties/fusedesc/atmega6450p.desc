@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
+<!--Author: automatically created by AVR Eclipse plugin-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATmega6450P.xml"-->
+<description mcutype="atmega6450p">
+<version build="20110526"/>
+<fusebyte description="" index="2" name="EXTENDED" size="1">
+<bitfield desc="Brown-out Detector trigger level" mask="0x06" name="BODLEVEL">
+<value desc="Brown-out detection disabled" name="DISABLED" val="0x03"/>
+<value desc="Brown-out detection at VCC=1.8 V" name="1V8" val="0x02"/>
+<value desc="Brown-out detection at VCC=2.7 V" name="2V7" val="0x01"/>
+<value desc="Brown-out detection at VCC=4.3 V" name="4V3" val="0x00"/>
+</bitfield>
+<bitfield desc="External Reset Disable" mask="0x01" name="RSTDISBL"/>
+</fusebyte>
+<fusebyte description="" index="1" name="HIGH" size="1">
+<bitfield desc="On-Chip Debug Enabled" mask="0x80" name="OCDEN"/>
+<bitfield desc="JTAG Interface Enabled" mask="0x40" name="JTAGEN"/>
+<bitfield desc="Serial program downloading (SPI) enable" mask="0x20" name="SPIEN"/>
+<bitfield desc="Watchdog timer always on" mask="0x10" name="WDTON"/>
+<bitfield desc="Preserve EEPROM through the Chip Erase cycle" mask="0x08" name="EESAVE"/>
+<bitfield desc="Select Boot Size" mask="0x06" name="BOOTSZ">
+<value desc="Boot Flash size=512 words Boot address=$7E00" name="512W_7E00" val="0x03"/>
+<value desc="Boot Flash size=1024 words Boot address=$7C00" name="1024W_7C00" val="0x02"/>
+<value desc="Boot Flash size=2048 words Boot address=$7800" name="2048W_7800" val="0x01"/>
+<value desc="Boot Flash size=4096 words Boot address=$7000" name="4096W_7000" val="0x00"/>
+</bitfield>
+<bitfield desc="Boot Reset vector Enabled" mask="0x01" name="BOOTRST"/>
+</fusebyte>
+<fusebyte description="" index="0" name="LOW" size="1">
+<bitfield desc="Divide clock by 8 internally" mask="0x80" name="CKDIV8"/>
+<bitfield desc="Clock output on PORTE7" mask="0x40" name="CKOUT"/>
+<bitfield desc="Select Clock Source" mask="0x3F" name="SUT_CKSEL">
+<value desc="Ext. Clock; Start-up time: 6 CK + 0 ms" name="EXTCLK_6CK_0MS" val="0x00"/>
+<value desc="Ext. Clock; Start-up time: 6 CK + 4.1 ms" name="EXTCLK_6CK_4MS1" val="0x10"/>
+<value desc="Ext. Clock; Start-up time: 6 CK + 65 ms" name="EXTCLK_6CK_65MS" val="0x20"/>
+<value desc="Int. RC Osc.; Start-up time: 6 CK + 0 ms" name="INTRCOSC_6CK_0MS" val="0x02"/>
+<value desc="Int. RC Osc.; Start-up time: 6 CK + 4.1 ms" name="INTRCOSC_6CK_4MS1" val="0x12"/>
+<value desc="Int. RC Osc.; Start-up time: 6 CK + 65 ms" name="INTRCOSC_6CK_65MS" val="0x22"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 32K CK + 0 ms" name="EXTLOFXTAL_32KCK_0MS" val="0x07"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 32K CK + 4.1 ms" name="EXTLOFXTAL_32KCK_4MS1" val="0x17"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 32K CK + 65 ms" name="EXTLOFXTAL_32KCK_65MS" val="0x27"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 1K CK + 0 ms" name="EXTLOFXTAL_1KCK_0MS" val="0x06"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 1K CK + 4.1 ms" name="EXTLOFXTAL_1KCK_4MS1" val="0x16"/>
+<value desc="Ext. Low-Freq. Crystal; Start-up time: 1K CK + 65 ms" name="EXTLOFXTAL_1KCK_65MS" val="0x26"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 258 CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_258CK_4MS1" val="0x08"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 258 CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_258CK_65MS" val="0x18"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 1K CK + 0 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_0MS" val="0x28"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 1K CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_4MS1" val="0x38"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 1K CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_1KCK_65MS" val="0x09"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 16K CK + 0 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_0MS" val="0x19"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 16K CK + 4.1 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_4MS1" val="0x29"/>
+<value desc="Ext. Crystal Osc. 0.4-0.9 MHz; Start-up time: 16K CK + 65 ms" name="EXTXOSC_0MHZ4_0MHZ9_16KCK_65MS" val="0x39"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 258 CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_258CK_4MS1" val="0x0A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 258 CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_258CK_65MS" val="0x1A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 1K CK + 0 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_0MS" val="0x2A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 1K CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_4MS1" val="0x3A"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 1K CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_1KCK_65MS" val="0x0B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 16K CK + 0 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_0MS" val="0x1B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 16K CK + 4.1 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_4MS1" val="0x2B"/>
+<value desc="Ext. Crystal Osc. 0.9-3.0 MHz; Start-up time: 16K CK + 65 ms" name="EXTXOSC_0MHZ9_3MHZ_16KCK_65MS" val="0x3B"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 258 CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_258CK_4MS1" val="0x0C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 258 CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_258CK_65MS" val="0x1C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 1K CK + 0 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_0MS" val="0x2C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 1K CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_4MS1" val="0x3C"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 1K CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_1KCK_65MS" val="0x0D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 16K CK + 0 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_0MS" val="0x1D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 16K CK + 4.1 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_4MS1" val="0x2D"/>
+<value desc="Ext. Crystal Osc. 3.0-8.0 MHz; Start-up time: 16K CK + 65 ms" name="EXTXOSC_3MHZ_8MHZ_16KCK_65MS" val="0x3D"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 258 CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_258CK_4MS1" val="0x0E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 258 CK + 65 ms" name="EXTXOSC_8MHZ_XX_258CK_65MS" val="0x1E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 1K CK + 0 ms" name="EXTXOSC_8MHZ_XX_1KCK_0MS" val="0x2E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 1K CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_1KCK_4MS1" val="0x3E"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 1K CK + 65 ms" name="EXTXOSC_8MHZ_XX_1KCK_65MS" val="0x0F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 16K CK + 0 ms" name="EXTXOSC_8MHZ_XX_16KCK_0MS" val="0x1F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 16K CK + 4.1 ms" name="EXTXOSC_8MHZ_XX_16KCK_4MS1" val="0x2F"/>
+<value desc="Ext. Crystal Osc. 8.0-    MHz; Start-up time: 16K CK + 65 ms" name="EXTXOSC_8MHZ_XX_16KCK_65MS" val="0x3F"/>
+</bitfield>
+</fusebyte>
+<lockbitsbyte description="" index="0" name="LOCKBIT" size="1">
+<bitfield desc="Memory Lock" mask="0x03" name="LB">
+<value desc="Further programming and verification disabled" name="PROG_VER_DISABLED" val="0x00"/>
+<value desc="Further programming disabled" name="PROG_DISABLED" val="0x02"/>
+<value desc="No memory lock features enabled" name="NO_LOCK" val="0x03"/>
+</bitfield>
+<bitfield desc="Boot Loader Protection Mode" mask="0x0C" name="BLB0">
+<value desc="LPM and SPM prohibited in Application Section" name="LPM_SPM_DISABLE" val="0x00"/>
+<value desc="LPM prohibited in Application Section" name="LPM_DISABLE" val="0x01"/>
+<value desc="SPM prohibited in Application Section" name="SPM_DISABLE" val="0x02"/>
+<value desc="No lock on SPM and LPM in Application Section" name="NO_LOCK" val="0x03"/>
+</bitfield>
+<bitfield desc="Boot Loader Protection Mode" mask="0x30" name="BLB1">
+<value desc="LPM and SPM prohibited in Boot Section" name="LPM_SPM_DISABLE" val="0x00"/>
+<value desc="LPM prohibited in Boot Section" name="LPM_DISABLE" val="0x01"/>
+<value desc="SPM prohibited in Boot Section" name="SPM_DISABLE" val="0x02"/>
+<value desc="No lock on SPM and LPM in Boot Section" name="NO_LOCK" val="0x03"/>
+</bitfield>
+</lockbitsbyte>
+</description>

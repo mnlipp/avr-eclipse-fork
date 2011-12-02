@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
+<!--Author: automatically created by AVR Eclipse plugin-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATXmega64B3.xml"-->
+<description mcutype="atxmega64b3">
+<version build="20111031"/>
+<lockbitsbyte description="Lock Bits" index="0" name="LOCKBITS" size="1">
+<bitfield desc="Boot Lock Bits - Boot Section" mask="0xC0" name="BLBB">
+<value desc="Read and write not allowed" name="RWLOCK" val="0x00"/>
+<value desc="Read not allowed" name="RLOCK" val="0x01"/>
+<value desc="Write not allowed" name="WLOCK" val="0x02"/>
+<value desc="No locks" name="NOLOCK" val="0x03"/>
+</bitfield>
+<bitfield desc="Boot Lock Bits - Application Section" mask="0x30" name="BLBA">
+<value desc="Read and write not allowed" name="RWLOCK" val="0x00"/>
+<value desc="Read not allowed" name="RLOCK" val="0x01"/>
+<value desc="Write not allowed" name="WLOCK" val="0x02"/>
+<value desc="No locks" name="NOLOCK" val="0x03"/>
+</bitfield>
+<bitfield desc="Boot Lock Bits - Application Table" mask="0x0C" name="BLBAT">
+<value desc="Read and write not allowed" name="RWLOCK" val="0x00"/>
+<value desc="Read not allowed" name="RLOCK" val="0x01"/>
+<value desc="Write not allowed" name="WLOCK" val="0x02"/>
+<value desc="No locks" name="NOLOCK" val="0x03"/>
+</bitfield>
+<bitfield desc="Lock Bits" mask="0x03" name="LB">
+<value desc="Read and write not allowed" name="RWLOCK" val="0x00"/>
+<value desc="Write not allowed" name="WLOCK" val="0x02"/>
+<value desc="No locks" name="NOLOCK" val="0x03"/>
+</bitfield>
+</lockbitsbyte>
+<fusebyte description="JTAG User ID" index="0" name="FUSEBYTE0" size="1">
+<bitfield desc="JTAG User ID" mask="0xFF" name="JTAGUSERID"/>
+</fusebyte>
+<fusebyte description="Watchdog Configuration" index="1" name="FUSEBYTE1" size="1">
+<bitfield desc="Watchdog Window Timeout Period" mask="0xF0" name="WDWP">
+<value desc="8 cycles (8ms @ 3.3V)" name="8CLK" val="0x00"/>
+<value desc="16 cycles (16ms @ 3.3V)" name="16CLK" val="0x01"/>
+<value desc="32 cycles (32ms @ 3.3V)" name="32CLK" val="0x02"/>
+<value desc="64 cycles (64ms @ 3.3V)" name="64CLK" val="0x03"/>
+<value desc="128 cycles (0.125s @ 3.3V)" name="128CLK" val="0x04"/>
+<value desc="256 cycles (0.25s @ 3.3V)" name="256CLK" val="0x05"/>
+<value desc="512 cycles (0.5s @ 3.3V)" name="512CLK" val="0x06"/>
+<value desc="1K cycles (1s @ 3.3V)" name="1KCLK" val="0x07"/>
+<value desc="2K cycles (2s @ 3.3V)" name="2KCLK" val="0x08"/>
+<value desc="4K cycles (4s @ 3.3V)" name="4KCLK" val="0x09"/>
+<value desc="8K cycles (8s @ 3.3V)" name="8KCLK" val="0x0A"/>
+</bitfield>
+<bitfield desc="Watchdog Timeout Period" mask="0x0F" name="WDP">
+<value desc="8 cycles (8ms @ 3.3V)" name="8CLK" val="0x00"/>
+<value desc="16 cycles (16ms @ 3.3V)" name="16CLK" val="0x01"/>
+<value desc="32 cycles (32ms @ 3.3V)" name="32CLK" val="0x02"/>
+<value desc="64 cycles (64ms @ 3.3V)" name="64CLK" val="0x03"/>
+<value desc="128 cycles (0.125s @ 3.3V)" name="128CLK" val="0x04"/>
+<value desc="256 cycles (0.25s @ 3.3V)" name="256CLK" val="0x05"/>
+<value desc="512 cycles (0.5s @ 3.3V)" name="512CLK" val="0x06"/>
+<value desc="1K cycles (1s @ 3.3V)" name="1KCLK" val="0x07"/>
+<value desc="2K cycles (2s @ 3.3V)" name="2KCLK" val="0x08"/>
+<value desc="4K cycles (4s @ 3.3V)" name="4KCLK" val="0x09"/>
+<value desc="8K cycles (8s @ 3.3V)" name="8KCLK" val="0x0A"/>
+</bitfield>
+</fusebyte>
+<fusebyte description="Reset Configuration" index="2" name="FUSEBYTE2" size="1">
+<bitfield desc="Boot Loader Section Reset Vector" mask="0x40" name="BOOTRST">
+<value desc="Boot Loader Reset" name="BOOTLDR" val="0x00"/>
+<value desc="Application Reset" name="APPLICATION" val="0x01"/>
+</bitfield>
+<bitfield desc="Timer Oscillator pin location" mask="0x20" name="TOSCSEL">
+<value desc="TOSC1 / TOSC2 on separate pins" name="ALTERNATE" val="0x00"/>
+<value desc="TOSC1 / TOSC2 shared with XTAL1 / XTAL2" name="XTAL" val="0x01"/>
+</bitfield>
+<bitfield desc="BOD Operation in Power-Down Mode" mask="0x03" name="BODPD">
+<value desc="BOD enabled in sampled mode" name="SAMPLED" val="0x01"/>
+<value desc="BOD enabled continuously" name="CONTINUOUS" val="0x02"/>
+<value desc="BOD Disabled" name="DISABLED" val="0x03"/>
+</bitfield>
+</fusebyte>
+<fusebyte description="Start-up Configuration" index="4" name="FUSEBYTE4" size="1">
+<bitfield desc="External Reset Disable" mask="0x10" name="RSTDISBL"/>
+<bitfield desc="Start-up Time" mask="0x0C" name="SUT">
+<value desc="0 ms" name="0MS" val="0x03"/>
+<value desc="4 ms" name="4MS" val="0x01"/>
+<value desc="64 ms" name="64MS" val="0x00"/>
+</bitfield>
+<bitfield desc="Watchdog Timer Lock" mask="0x02" name="WDLOCK"/>
+<bitfield desc="JTAG Interface Enable" mask="0x01" name="JTAGEN"/>
+</fusebyte>
+<fusebyte description="EESAVE and BOD Level" index="5" name="FUSEBYTE5" size="1">
+<bitfield desc="BOD Operation in Active Mode" mask="0x30" name="BODACT">
+<value desc="BOD enabled in sampled mode" name="SAMPLED" val="0x01"/>
+<value desc="BOD enabled continuously" name="CONTINUOUS" val="0x02"/>
+<value desc="BOD Disabled" name="DISABLED" val="0x03"/>
+</bitfield>
+<bitfield desc="Preserve EEPROM Through Chip Erase" mask="0x08" name="EESAVE"/>
+<bitfield desc="Brown Out Detection Voltage Level" mask="0x07" name="BODLVL">
+<value desc="1.6 V" name="1V6" val="0x07"/>
+<value desc="1.8 V" name="1V8" val="0x06"/>
+<value desc="2.0 V" name="2V0" val="0x05"/>
+<value desc="2.2 V" name="2V2" val="0x04"/>
+<value desc="2.4 V" name="2V4" val="0x03"/>
+<value desc="2.6 V" name="2V6" val="0x02"/>
+<value desc="2.8 V" name="2V8" val="0x01"/>
+<value desc="3.0 V" name="3V0" val="0x00"/>
+</bitfield>
+</fusebyte>
+</description>
