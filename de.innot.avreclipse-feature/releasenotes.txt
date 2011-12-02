@@ -5,7 +5,18 @@
 * AVR series of Processors.                                                    *
 * See details at http://avr-eclipse.sourceforge.net                            *
 ********************************************************************************
-$Id$
+
+================================================================================
+Version 2.4.0
+
+The AVR Eclipse Plugin is now licensed under the EPL 1.0 instead of the GPL.
+This was done to facilitate bundling the plugin together with Eclipse and also
+to allow easier code "borrowing" from the Eclipse/CDT source code.
+
+Also the issues with the discovery of paths and symbols should be fixed, making 
+the plugin work better under Eclipse Indigo (3.7).
+Other than that there are no new features and only a few small bugfixes to make 
+the plugin more compatible with the latest releases of the AVR Toolchain.
 
 ================================================================================
 Version 2.3.4
