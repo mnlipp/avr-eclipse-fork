@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="de.innot.avreclipse.feature"
+      id="de.innot.avreclipse"
       label="%featureName"
       version="2.4.0.qualifier"
       provider-name="%providerName"
@@ -15,7 +15,7 @@
    </copyright>
 
    <license url="http://www.eclipse.org/legal/epl-v10.html">
-      %licence
+      %license
    </license>
 
    <url>
@@ -36,7 +36,7 @@
    </requires>
 
    <plugin
-         id="de.innot.avreclipse"
+         id="de.innot.avreclipse.root"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -44,6 +44,13 @@
 
    <plugin
          id="de.innot.avreclipse.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="de.innot.avreclipse.core.managedbuildsystem"
          download-size="0"
          install-size="0"
          version="0.0.0"
