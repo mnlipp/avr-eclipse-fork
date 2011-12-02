@@ -431,10 +431,12 @@ public class ByteValues {
 		IMCUDescription desc = getDescription(fMCUId);
 		List<IFuseObjectDescription> allbytes = desc.getByteDescriptions(fType);
 		for (IFuseObjectDescription bytedesc : allbytes) {
-			@SuppressWarnings("deprecation")
-			int value = bytedesc.getDefaultValue();
-			int index = bytedesc.getIndex();
-			setValue(index, value);
+			if (bytedesc != null) {
+				@SuppressWarnings("deprecation")
+				int value = bytedesc.getDefaultValue();
+				int index = bytedesc.getIndex();
+				setValue(index, value);
+			}
 		}
 	}
 
