@@ -20,5 +20,18 @@
       </settingspage>
       
    </extension>
+   <extension
+         point="de.innot.avreclipse.debug.core.gdbServer">
+      <gdbserverfactory
+            class="de.innot.avreclipse.debug.gdbservers.avarice.AvariceGDBServerFactory"
+            description="Local AVaRICE gdbserver"
+            gdbserverid="de.innot.avreclipse.debug.gdbservers.avarice">
+      </gdbserverfactory>
+      <gdbserverfactory
+            class="de.innot.avreclipse.debug.gdbservers.remote.RemoteGDBServerFactory"
+            description="Remote gdbserver"
+            gdbserverid="de.innot.avreclipse.debug.gdbservers.remote">
+      </gdbserverfactory>
+   </extension>
 
 </plugin>

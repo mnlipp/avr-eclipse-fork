@@ -6,11 +6,15 @@ Bundle-Version: 2.5.0.qualifier
 Bundle-Activator: de.innot.avreclipse.debug.core.AVRDebugPlugin
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.cdt.debug.mi.core,
  org.eclipse.cdt.debug.core,
  org.eclipse.debug.core,
  org.eclipse.cdt.core,
- org.eclipse.cdt.launch
+ org.eclipse.cdt.launch,
+ org.eclipse.cdt.dsf.gdb,
+ org.eclipse.cdt.dsf,
+ org.eclipse.cdt.debug.gdbjtag.core,
+ org.eclipse.core.variables
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: de.innot.avreclipse.debug.core
+Export-Package: de.innot.avreclipse.debug.core,
+ de.innot.avreclipse.debug.gdbserver
