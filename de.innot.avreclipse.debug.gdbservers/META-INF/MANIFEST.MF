@@ -9,6 +9,5 @@ Require-Bundle: de.innot.avreclipse.debug.core;bundle-version="0.0.0",
  de.innot.avreclipse.debug.ui;bundle-version="0.0.0",
  org.eclipse.ui,
  org.eclipse.debug.ui,
- org.eclipse.debug.core,
  org.eclipse.core.runtime,
- org.eclipse.cdt.debug.mi.core
+ org.eclipse.cdt.core

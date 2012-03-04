@@ -16,6 +16,7 @@ import org.eclipse.cdt.debug.mi.core.IMILaunchConfigurationConstants;
 import org.eclipse.cdt.debug.mi.core.MIPlugin;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryDescriptor;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryManager;
+import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -111,6 +112,8 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 	 */
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(ATTR_DEBUG_NAME, fAVRGDBCommand.getText().trim());
+		// GDB base plugin doesn't use default name, sigh
+		configuration.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME, fAVRGDBCommand.getText().trim());
 		configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY, DEFAULT_COMMAND_FACTORY);
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, DEFAULT_DEBUGGER_PROTOCOL);
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, fVerboseMode.getSelection());
@@ -123,6 +126,8 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 	 */
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(ATTR_DEBUG_NAME, DEFAULT_COMMAND_NAME);
+		// GDB base plugin doesn't use default name, sigh
+		configuration.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME, DEFAULT_COMMAND_NAME);
 
 		CommandFactoryManager cfManager = MIPlugin.getDefault().getCommandFactoryManager();
 		CommandFactoryDescriptor defDesc = cfManager.getDefaultDescriptor(DEBUGGER_ID);

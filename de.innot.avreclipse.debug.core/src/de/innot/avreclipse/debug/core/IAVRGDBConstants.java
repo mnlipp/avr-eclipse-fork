@@ -24,7 +24,7 @@ package de.innot.avreclipse.debug.core;
 public interface IAVRGDBConstants {
 
 	public static final String	LAUNCH_TYPE_ID					= "de.innot.avreclipse.debug.lcTypeAVRGDBHardware";
-	public static final String	DEBUGGER_ID						= "de.innot.avreclipse.debug.core.AVRGDBDebugger";
+	public static final String	DEBUGGER_ID						= "org.eclipse.cdt.debug.mi.core.CDebuggerNew";
 
 	// Debugger
 	public final static String	DEFAULT_COMMAND_NAME			= "avr-gdb";
