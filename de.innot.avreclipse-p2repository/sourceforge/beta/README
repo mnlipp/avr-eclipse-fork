@@ -1,0 +1,7 @@
+This folder contains beta releases of the AVR Eclipse Plugin.
+
+Beta releases have not yet been tested in depth. They should work, but they may still contain some bugs.
+If you like to try a beta release it is recommended to use an Eclipse installation separate from your 
+production Eclipse installation. The same goes for your Workspace. Create a new Workspace and import any
+existing AVR projects into this new workspace. At least make a backup of your projects before using
+a beta release of the AVR Eclipse Plugin.
