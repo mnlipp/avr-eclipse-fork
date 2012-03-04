@@ -22,6 +22,9 @@
 		<module>../de.innot.avreclipse.core</module>
 		<module>../de.innot.avreclipse.core.managedbuildsystem</module>
 		<module>../de.innot.avreclipse.ui</module>
+		<module>../de.innot.avreclipse.debug.core</module>
+		<module>../de.innot.avreclipse.debug.gdbservers</module>
+		<module>../de.innot.avreclipse.debug.ui</module>
 		<module>../de.innot.avreclipse.doc</module>
 		<module>../de.innot.avreclipse-feature</module>
 		<module>../de.innot.avreclipse-p2repository</module>
@@ -183,7 +186,7 @@
 		<profile>
 			<id>platform-helios</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 				<property>
 					<name>platform-version-name</name>
 					<value>helios</value>
@@ -200,6 +203,7 @@
 		<profile>
 			<id>platform-indigo</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>platform-version-name</name>
 					<value>indigo</value>
