@@ -25,6 +25,14 @@
 		<ui.test.vmargs>-Xmx512m -XX:MaxPermSize=256m</ui.test.vmargs>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>local-p2</id>
+			<layout>p2</layout>
+			<url>${local-p2-site}</url>
+		</repository>
+	</repositories>
+
 	<profiles>
 		<profile>
 			<id>skip-ui-tests</id>
@@ -55,33 +63,24 @@
 					<application>org.eclipse.ui.ide.workbench</application>
 					<dependencies>
 						<dependency>
+							<artifactId>org.eclipse.platform.feature.group</artifactId>
+							<version>${platform-version}</version>
 							<type>p2-installable-unit</type>
-							<artifactId>org.eclipse.sdk.ide</artifactId>
-							<version>0.0.0</version>
 						</dependency>
 						<dependency>
+							<artifactId>org.eclipse.cdt.feature.group</artifactId>
+							<version>[6.0.0,9.0.0)</version>
 							<type>p2-installable-unit</type>
+						</dependency>
+						<dependency>
 							<artifactId>de.innot.avreclipse.feature.group</artifactId>
-							<version>1.0.0</version>
+							<version>[2.0.0, 3.0.0)</version>
+							<type>p2-installable-unit</type>
 						</dependency>
 					</dependencies>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>swtbot</id>
-			<layout>p2</layout>
-			<url>${swtbot-site}</url>
-		</repository>
-		<repository>
-			<id>orbit</id>
-			<layout>p2</layout>
-			<url>${orbit-site}</url>
-		</repository>
-
-	</repositories>
 
 </project>

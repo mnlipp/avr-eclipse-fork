@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Tests for the de.innot.avreclipse.debug.core and .ui plugins
 Bundle-SymbolicName: de.innot.avreclipse.debug.tests;singleton:=true
-Bundle-Version: 2.5.0.qualifier
+Bundle-Version: 2.4.0.qualifier
 Bundle-Vendor: avr-eclipse project
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.junit4,

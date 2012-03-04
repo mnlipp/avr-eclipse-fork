@@ -438,9 +438,9 @@ public class AVRDude implements IMCUProvider {
 				String tmpfilename = tempdir.append("fuse" + i + ".hex").toOSString();
 				String bytename = values.getByteName(i);
 
-				// Skip the fusebyte if its name is empty. This will prevent avrdude from failing to
+				// Skip the fusebyte if its name is null. This will prevent avrdude from failing to
 				// read the undefined fusebyte 3 of XMega MCUs.
-				if (bytename.length() != 0) {
+				if (bytename != null) {
 					AVRDudeAction action = AVRDudeActionFactory.readFuseByte(mcuid, i, tmpfilename);
 					args.add(action.getArgument());
 					fuseindices.add(i);

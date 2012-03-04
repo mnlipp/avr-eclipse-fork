@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--Fuse/Lockbit description file for the AVR Eclipse plugin-->
+<!--Author: automatically created by AVR Eclipse plugin-->
+<!--Date: 01.12.11 16:14-->
+<!--Based on: Atmel Device File "ATUC128D3.xml"-->
+<description mcutype="atuc128d3">
+<version build="20110526"/>
+<fusebyte description="Flash Controller General Purpose Fuse Register Low" index="24" name="FGPFRLO" size="4">
+<bitfield desc="LOCK0" mask="0x01" name="LOCK0"/>
+<bitfield desc="LOCK1" mask="0x02" name="LOCK1"/>
+<bitfield desc="LOCK2" mask="0x04" name="LOCK2"/>
+<bitfield desc="LOCK3" mask="0x08" name="LOCK3"/>
+<bitfield desc="LOCK4" mask="0x10" name="LOCK4"/>
+<bitfield desc="LOCK5" mask="0x20" name="LOCK5"/>
+<bitfield desc="LOCK6" mask="0x40" name="LOCK6"/>
+<bitfield desc="LOCK7" mask="0x80" name="LOCK7"/>
+<bitfield desc="LOCK8" mask="0x00" name="LOCK8"/>
+<bitfield desc="LOCK9" mask="0x00" name="LOCK9"/>
+<bitfield desc="LOCK10" mask="0x00" name="LOCK10"/>
+<bitfield desc="LOCK11" mask="0x00" name="LOCK11"/>
+<bitfield desc="LOCK12" mask="0x00" name="LOCK12"/>
+<bitfield desc="LOCK13" mask="0x00" name="LOCK13"/>
+<bitfield desc="LOCK14" mask="0x00" name="LOCK14"/>
+<bitfield desc="LOCK15" mask="0x00" name="LOCK15"/>
+<bitfield desc="EPFL" mask="0x00" name="EPFL"/>
+<bitfield desc="BOOTPROT" mask="0x00" name="BOOTPROT">
+<value desc="Boot area:  32 Kbyte" name="Boot area:  32 Kbyte" val="0x00"/>
+<value desc="Boot area:  16 Kbyte" name="Boot area:  16 Kbyte" val="0x01"/>
+<value desc="Boot area:   8 Kbyte" name="Boot area:   8 Kbyte" val="0x02"/>
+<value desc="Boot area:   4 Kbyte" name="Boot area:   4 Kbyte" val="0x03"/>
+<value desc="Boot area:   2 Kbyte" name="Boot area:   2 Kbyte" val="0x04"/>
+<value desc="Boot area:   1 Kbyte" name="Boot area:   1 Kbyte" val="0x05"/>
+<value desc="Boot area: 512 byte" name="Boot area: 512 byte" val="0x06"/>
+<value desc="Boot area:   0 byte" name="Boot area:   0 byte" val="0x07"/>
+</bitfield>
+<bitfield desc="BODLEVEL" mask="0x00" name="BODLEVEL">
+<value desc="BOD Level OFF" name="BOD Level OFF" val="0x00"/>
+<value desc="BOD Level 1.56V" name="BOD Level 1.56V" val="0x1F"/>
+<value desc="BOD Level 1.65V" name="BOD Level 1.65V" val="0x27"/>
+</bitfield>
+<bitfield desc="BODHYST" mask="0x00" name="BODHYST">
+<value desc="Disabled" name="Disabled" val="0x00"/>
+<value desc="Enabled" name="Enabled" val="0x01"/>
+</bitfield>
+<bitfield desc="BODEN" mask="0x00" name="BODEN">
+<value desc="BOD disabled" name="BOD disabled" val="0x00"/>
+<value desc="BOD enabled, BOD reset enabled" name="BOD enabled, BOD reset enabled" val="0x01"/>
+<value desc="BOD enabled, BOD reset disabled" name="BOD enabled, BOD reset disabled" val="0x02"/>
+<value desc="BOD disabled" name="BOD disabled" val="0x03"/>
+</bitfield>
+</fusebyte>
+</description>

@@ -32,26 +32,10 @@ public interface IMCUDescription {
 	public String getMCUId();
 
 	/**
-	 * Get the release status of the description.
-	 * <p>
-	 * This is the value of the &lt;RELEASE_STATUS&gt; element from the atmel part description file.
-	 * </p>
-	 * <p>
-	 * As of now the this field has two possible values:
-	 * <ul>
-	 * <li>RELEASED</li>
-	 * <li>INTERNAL</li>
-	 * </ul>
-	 * </p>
-	 * 
-	 * @return The value of the release status element.
-	 */
-	public String getStatus();
-
-	/**
 	 * Get the build number of the description.
 	 * <p>
-	 * This is the value of the &lt;BUILD&gt; element from the atmel part description file.
+	 * As this is not provided anymore by the latest Atmel Device files, the file date of the source
+	 * file is used instead.
 	 * </p>
 	 * <p>
 	 * It is used to by the plugin to determine if a fuse/lockbit description file is newer than the
@@ -74,17 +58,17 @@ public interface IMCUDescription {
 	public int getByteCount(FuseType type);
 
 	/**
-	 * Get the {@link IByteDescription} for a single byte with the given name.
+	 * Get the {@link IFuseObjectDescription} for a single byte with the given name.
 	 * 
 	 * @param name
 	 *            The name of the byte as used in the part description file.
-	 * @return The description for the selected byte, or <code>null</code> if no byte with the
-	 *         name exists.
+	 * @return The description for the selected byte, or <code>null</code> if no byte with the name
+	 *         exists.
 	 */
-	public IByteDescription getByteDescription(String name);
+	public IFuseObjectDescription getByteDescription(String name);
 
 	/**
-	 * Get the {@link IByteDescription} for a single fuse or lockbits byte.
+	 * Get the {@link IFuseObjectDescription} for a single fuse or lockbits byte.
 	 * 
 	 * @param type
 	 *            the type of bytedescription required. Either {@link FuseType#FUSE} or
@@ -96,10 +80,10 @@ public interface IMCUDescription {
 	 * @throws ArrayIndexOutOfBoundsException
 	 *             when the index is invalid.
 	 */
-	public IByteDescription getByteDescription(FuseType type, int index);
+	public IFuseObjectDescription getByteDescription(FuseType type, int index);
 
 	/**
-	 * Get the list of {@link IByteDescription}s for all fuse or lockbits bytes.
+	 * Get the list of {@link IFuseObjectDescription}s for all fuse or lockbits bytes.
 	 * <p>
 	 * The returned list is a copy of the internal list and can be modified without affecting the
 	 * internal list.
@@ -110,7 +94,7 @@ public interface IMCUDescription {
 	 *            {@link FuseType#LOCKBITS}.
 	 * @return
 	 */
-	public List<IByteDescription> getByteDescriptions(FuseType type);
+	public List<IFuseObjectDescription> getByteDescriptions(FuseType type);
 
 	/**
 	 * Checks if the target IMCUDescription is compatible with this IMCUDescription.

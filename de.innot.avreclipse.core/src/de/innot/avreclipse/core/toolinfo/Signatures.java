@@ -196,7 +196,7 @@ public class Signatures implements IMCUProvider {
 		Assert.isNotNull(signature);
 
 		String oldsig = fProps.getProperty(mcuid);
-		if (!signature.equals(oldsig)) {
+		if (!signature.equalsIgnoreCase(oldsig)) {
 			fProps.setProperty(mcuid, signature);
 		}
 	}

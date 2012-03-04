@@ -12,19 +12,11 @@ package de.innot.avreclipse.core.toolinfo;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import de.innot.avreclipse.core.paths.AVRPath;
 import de.innot.avreclipse.core.paths.AVRPathProvider;
@@ -45,6 +37,8 @@ public class PartDescriptionFilesReader {
 
 	private List<IPDFreader> fReaders;
 
+	private IPath fDevicesFolder;
+
 	public static PartDescriptionFilesReader getDefault() {
 		if (fInstance == null) {
 			fInstance = new PartDescriptionFilesReader();
@@ -61,17 +55,36 @@ public class PartDescriptionFilesReader {
 		fReaders = readers;
 	}
 
+	/**
+	 * Set the folder containing all PartDescriptionFiles.
+	 * 
+	 * @param folder
+	 */
+	public void setDevicesFolder(IPath folder) {
+		fDevicesFolder = folder;
+	}
+
+	/**
+	 * Read all PartDescriptionFiles, parse them and pass each document to all
+	 * registered readers for further analysis.
+	 * 
+	 * @param monitor
+	 */
 	public void parseAllFiles(IProgressMonitor monitor) {
 
 		// Get the path to the PartDescriptionFiles
-		IPathProvider provider = new AVRPathProvider(AVRPath.PDFPATH);
-		IPath pdfpath = provider.getPath();
-		File pdfdirectory = pdfpath.toFile();
+		if (fDevicesFolder == null) {
+			IPathProvider provider = new AVRPathProvider(AVRPath.PDFPATH);
+			fDevicesFolder = provider.getPath();
+		}
+
+		File pdfdirectory = fDevicesFolder.toFile();
 		if (!pdfdirectory.isDirectory()) {
 			return;
 		}
 
 		// get and parse all XML files in the PartDescriptionFiles directory
+
 		File[] allfiles = pdfdirectory.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				if (name.endsWith(".xml")) {
@@ -82,7 +95,8 @@ public class PartDescriptionFilesReader {
 		});
 
 		try {
-			monitor.beginTask("Parsing Atmel Part Description Files", allfiles.length);
+			monitor.beginTask("Parsing Atmel Part Description Files",
+					allfiles.length);
 
 			// Tell all registered readers that we are about to start reading
 			// files.
@@ -94,11 +108,10 @@ public class PartDescriptionFilesReader {
 			// every registered reader
 			for (File pdffile : allfiles) {
 				monitor.subTask("Reading [" + pdffile.getName() + "]");
-				Document root = getDocument(pdffile);
 
-				// Pass the document to all readers
+				// Pass the file to all readers
 				for (IPDFreader reader : fReaders) {
-					reader.read(root);
+					reader.read(pdffile);
 				}
 				monitor.worked(1);
 			}
@@ -114,39 +127,5 @@ public class PartDescriptionFilesReader {
 
 	}
 
-	/**
-	 * Read and parse the given XML file and return an DOM for it.
-	 * 
-	 * @param pdffile
-	 *            <code>File</code> to an XML file.
-	 * @return <code>Document</code> root node of the DOM or <code>null</code>
-	 *         if the file could not be read or parsed.
-	 */
-	private Document getDocument(File pdffile) {
-
-		Document root = null;
-		try {
-			// Read the xml file
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			root = builder.parse(pdffile);
-
-		} catch (SAXParseException spe) {
-			System.out.println("\n** Parsing error, line " + spe.getLineNumber() + ", uri "
-			        + spe.getSystemId());
-			System.out.println("   " + spe.getMessage());
-			Exception e = (spe.getException() != null) ? spe.getException() : spe;
-			e.printStackTrace();
-		} catch (SAXException sxe) {
-			Exception e = (sxe.getException() != null) ? sxe.getException() : sxe;
-			e.printStackTrace();
-		} catch (ParserConfigurationException pce) {
-			pce.printStackTrace();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-
-		return root;
-	}
 
 }

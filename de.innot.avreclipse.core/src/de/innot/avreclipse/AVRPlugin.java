@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
@@ -150,8 +151,8 @@ public class AVRPlugin extends Plugin {
 		
 		// Check if we are running headless (JUnit Test e.g.)
 		// If Headless we return null
-		Bundle b = Platform.getBundle("org.eclipse.swt");
-		if (b==null || b.getState() != Bundle.ACTIVE) {
+		Bundle b = Platform.getBundle("org.eclipse.ui"); 
+		if ((b==null) || (b.getState() != Bundle.ACTIVE) || (! PlatformUI.isWorkbenchRunning())) {
 			return null;
 		} 
 		

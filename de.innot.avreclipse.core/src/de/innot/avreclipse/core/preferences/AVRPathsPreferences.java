@@ -72,7 +72,7 @@ public class AVRPathsPreferences {
 			return fInstanceStore;
 		}
 
-		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, QUALIFIER);
+		IPreferenceStore store = new ScopedPreferenceStore(new InstanceScope(), QUALIFIER);
 
 		fInstanceStore = store;
 		return store;
@@ -98,7 +98,7 @@ public class AVRPathsPreferences {
 		IScopeContext projectscope = new ProjectScope(project);
 		ScopedPreferenceStore store = new ScopedPreferenceStore(projectscope, QUALIFIER);
 
-		store.setSearchContexts(new IScopeContext[] { projectscope, InstanceScope.INSTANCE });
+		store.setSearchContexts(new IScopeContext[] { projectscope, new InstanceScope() });
 
 		fProjectStoreMap.put(project, store);
 
@@ -124,7 +124,7 @@ public class AVRPathsPreferences {
 	 * @return
 	 */
 	public static IEclipsePreferences getDefaultPreferences() {
-		return DefaultScope.INSTANCE.getNode(QUALIFIER);
+		return new DefaultScope().getNode(QUALIFIER);
 	}
 
 	/**

@@ -21,27 +21,26 @@
 		<module>../de.innot.avreclipse</module>
 		<module>../de.innot.avreclipse.core</module>
 		<module>../de.innot.avreclipse.core.managedbuildsystem</module>
+		<module>../de.innot.avreclipse.ui</module>
 		<module>../de.innot.avreclipse.debug.core</module>
 		<module>../de.innot.avreclipse.debug.gdbservers</module>
 		<module>../de.innot.avreclipse.debug.ui</module>
-		<module>../de.innot.avreclipse.ui</module>
 		<module>../de.innot.avreclipse.doc</module>
 		<module>../de.innot.avreclipse-feature</module>
-		<module>../de.innot.avreclipse-updatesite</module>
 		<module>../de.innot.avreclipse-p2repository</module>
+		<!-- <module>../de.innot.avreclipse-updatesite</module> -->
 		<module>../de.innot.avreclipse.core.test</module>
-		<module>../de.innot.avreclipse.debug.tests</module>
 		<module>../de.innot.avreclipse.ui.tests</module>
 		<module>../de.innot.avreclipse.tests.swtbot</module>
 	</modules>
 
 	<properties>
-		<tycho-version>0.12.0</tycho-version>
+		<tycho-version>0.13.0</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<platform-version-name>helios</platform-version-name>
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository/</orbit-site>
-		<!-- <eclipse-site>http://download.eclipse.org/releases/${platform-version-name}</eclipse-site> 
-			<swtbot-site>http://download.eclipse.org/technology/swtbot/${platform-version-name}/dev-build/update-site</swtbot-site> -->
+		<!-- <eclipse-site>http://download.eclipse.org/releases/${platform-version-name}</eclipse-site> -->
+		<swtbot-site>http://download.eclipse.org/technology/swtbot/${platform-version-name}/dev-build/update-site</swtbot-site>
 	</properties>
 
 	<build>
@@ -96,7 +95,7 @@
 				<artifactId>tycho-packaging-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<configuration>
-					<format>'beta-'yyyyMMdd-HHmm</format>
+					<format>yyyyMMdd-HHmm'-beta'</format>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -187,7 +186,7 @@
 		<profile>
 			<id>platform-helios</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 				<property>
 					<name>platform-version-name</name>
 					<value>helios</value>
@@ -204,6 +203,7 @@
 		<profile>
 			<id>platform-indigo</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>platform-version-name</name>
 					<value>indigo</value>
@@ -212,6 +212,22 @@
 			<properties>
 				<eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
 				<platform-version>[3.7,3.8)</platform-version>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site</swtbot-site>
+				<wikitext-site>http://download.eclipse.org/tools/mylyn/update/weekly</wikitext-site>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>platform-juno</id>
+			<activation>
+				<property>
+					<name>platform-version-name</name>
+					<value>juno</value>
+				</property>
+			</activation>
+			<properties>
+				<eclipse-site>http://download.eclipse.org/releases/juno</eclipse-site>
+				<platform-version>[3.8,3.9)</platform-version>
 				<swtbot-site>http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site</swtbot-site>
 				<wikitext-site>http://download.eclipse.org/tools/mylyn/update/weekly</wikitext-site>
 			</properties>
@@ -246,6 +262,7 @@
 			</build>
 		</profile>
 
+<!-- 
 		<profile>
 			<id>coverage</id>
 			<activation>
@@ -255,6 +272,7 @@
 				<module>org.eclemma.runtime.equinox</module>
 			</modules>
 		</profile>
+-->
 
 		<profile>
 			<id>static-checks</id>
@@ -279,9 +297,14 @@
 			<layout>p2</layout>
 			<url>${eclipse-site}</url>
 		</repository>
-		<!-- <repository> <id>swtbot</id> <layout>p2</layout> <url>${swtbot-site}</url> 
-			</repository> <repository> <id>wikitext</id> <layout>p2</layout> <url>${wikitext-site}</url> 
-			</repository> <repository> <id>orbit</id> <layout>p2</layout> <url>${orbit-site}</url> 
+		<repository>
+			<id>swtbot</id>
+			<layout>p2</layout>
+			<url>${swtbot-site}</url>
+		</repository>
+		<!-- <repository> <id>wikitext</id> <layout>p2</layout> <url>${wikitext-site}</url> 
+			</repository> -->
+		<!-- <repository> <id>orbit</id> <layout>p2</layout> <url>${orbit-site}</url> 
 			</repository> -->
 	</repositories>
 

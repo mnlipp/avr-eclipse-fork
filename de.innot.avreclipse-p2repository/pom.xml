@@ -16,8 +16,8 @@
 
 	<artifactId>de.innot.avreclipse.p2repository</artifactId>
 	<name>AVR Eclipse Generate p2 Repository</name>
-	<version>2.5.0-SNAPSHOT</version>
 	<packaging>eclipse-repository</packaging>
+	<version>2.5.0-SNAPSHOT</version>
 
 </project>
 
