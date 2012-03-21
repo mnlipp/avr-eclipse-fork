@@ -170,14 +170,14 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 	 */
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
+		String gdbservername = fGDBServerSelector.getText();
+		String gdbserverid = fNameToIdMap.get(gdbservername);
+		configuration.setAttribute(ATTR_GDBSERVER_ID, gdbserverid);
+		
 		// Tell all subpages to apply their current settings
 		for (IGDBServerSettingsPage settingspage : fSettingPages.values()) {
 			settingspage.performApply(configuration);
 		}
-
-		String gdbservername = fGDBServerSelector.getText();
-		String gdbserverid = fNameToIdMap.get(gdbservername);
-		configuration.setAttribute(ATTR_GDBSERVER_ID, gdbserverid);
 	}
 
 	/*
@@ -251,7 +251,7 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 				String id = fNameToIdMap.get(name);
 				Composite page = fPages.get(id);
 				fPageBook.showPage(page);
-
+				updateDialog();
 			}
 		});
 

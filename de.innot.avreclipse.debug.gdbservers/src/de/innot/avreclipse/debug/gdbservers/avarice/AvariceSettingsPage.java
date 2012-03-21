@@ -433,6 +433,20 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 		}
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_PORT, portnumber);
 
+		try {
+			// If we're selected, adjust gdb's host and port number to ours
+			String selectedServer = configuration.getAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
+			if (selectedServer.equals(this.getClass().getPackage().getName())) {
+				configuration.setAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_IP_ADDRESS,
+							DEFAULT_GDBSERVER_AVARICE_HOSTNAME);
+				configuration.setAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_PORT_NUMBER, portnumber);
+			}
+		} catch(CoreException e) {
+		}
+		
 		boolean verbose = fVerbose.getSelection();
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_VERBOSE, verbose);
 

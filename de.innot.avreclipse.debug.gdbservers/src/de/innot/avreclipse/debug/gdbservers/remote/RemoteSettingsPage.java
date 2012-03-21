@@ -169,6 +169,18 @@ public class RemoteSettingsPage extends AbstractGDBServerSettingsPage implements
 		}
 		configuration.setAttribute(ATTR_GDBSERVER_REMOTE_PORT, portnumber);
 
+		try {
+			// If we're selected, adjust gdb's host and port number to ours
+			String selectedServer = configuration.getAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
+			if (selectedServer.equals(this.getClass().getPackage().getName())) {
+				configuration.setAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_IP_ADDRESS, hostname);
+				configuration.setAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_PORT_NUMBER, portnumber);
+			}
+		} catch(CoreException e) {
+		}
 	}
 
 	/*
