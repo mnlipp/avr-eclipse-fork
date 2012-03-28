@@ -49,4 +49,6 @@ public interface IAVRGDBConstants {
 	public static final String	ATTR_GDBSERVER_PORT_NUMBER		= AVRDebugPlugin.PLUGIN_ID
 																		+ ".portNumber";
 
+	public static final String ATTR_SET_RESUME 					= AVRDebugPlugin.PLUGIN_ID + ".setResume"; //$NON-NLS-1$
+	public static final boolean DEFAULT_SET_RESUME				= true;
 }

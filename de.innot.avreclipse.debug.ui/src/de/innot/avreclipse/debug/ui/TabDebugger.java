@@ -12,6 +12,7 @@ package de.innot.avreclipse.debug.ui;
 
 import java.io.File;
 
+import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.debug.mi.core.IMILaunchConfigurationConstants;
 import org.eclipse.cdt.debug.mi.core.MIPlugin;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryDescriptor;
@@ -23,6 +24,8 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.StringVariableSelectionDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.accessibility.AccessibleAdapter;
+import org.eclipse.swt.accessibility.AccessibleEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -55,6 +58,9 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 	// The GUI Elements
 	private Text				fAVRGDBCommand;
 	private Button				fVerboseMode;
+	private Button fStopInMain;
+	private Text fStopInMainSymbol;
+	private Button fResume;
 
 	/*
 	 * (non-Javadoc)
@@ -98,6 +104,12 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 			boolean verboseModeAttr = configuration.getAttribute(ATTR_DEBUGGER_VERBOSE_MODE,
 					DEFAULT_VERBOSE_MODE);
 			fVerboseMode.setSelection(verboseModeAttr);
+			fStopInMain.setSelection(configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN,
+					ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_DEFAULT));
+			fStopInMainSymbol.setText(configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL,
+					ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_SYMBOL_DEFAULT));
+			fResume.setSelection(configuration.getAttribute(ATTR_SET_RESUME,
+					DEFAULT_SET_RESUME));
 
 		} catch (CoreException e) {
 			AVRGDBUIPlugin.log(e.getStatus());
@@ -117,6 +129,24 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY, DEFAULT_COMMAND_FACTORY);
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, DEFAULT_DEBUGGER_PROTOCOL);
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, fVerboseMode.getSelection());
+		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN, fStopInMain.getSelection());
+		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL, fStopInMainSymbol.getText());
+		configuration.setAttribute(ATTR_SET_RESUME, fResume.getSelection());
+	}
+
+	public boolean isValid(ILaunchConfiguration config) {
+		if (fStopInMain != null && fStopInMainSymbol != null) {
+			// The "Stop on startup at" field must not be empty
+			String mainSymbol = fStopInMainSymbol.getText().trim();
+			if (fStopInMain.getSelection() && mainSymbol.length() == 0) {
+				setErrorMessage("The \"Stop on startup at\" field must not be empty"); 
+				return false;
+			}
+		}
+		if (super.isValid(config) == false) {
+			return false;
+		}
+		return true;
 	}
 
 	/*
@@ -135,6 +165,11 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, defDesc.getMIVersions()[0]);
 
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, DEFAULT_VERBOSE_MODE);
+		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN,
+				ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_DEFAULT);
+		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL,
+				ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_SYMBOL_DEFAULT);
+		configuration.setAttribute(ATTR_SET_RESUME, DEFAULT_SET_RESUME);
 	}
 
 	/*
@@ -155,12 +190,13 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		comp.setLayout(topLayout);
 		comp.setFont(parent.getFont());
 
+		
 		// Composite comp = new Composite(sc, SWT.NONE);
 		// comp.setLayout(new GridLayout());
 		// sc.setContent(comp);
 
 		createCommandGroup(comp);
-
+		createOptionGroup(comp);
 	}
 
 	/**
@@ -230,6 +266,57 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 			}
 		});
 
+	}
+
+	/**
+	 * Add the "Runtime Options" group to the parent composite.
+	 * 
+	 * @param parent
+	 */
+	private void createOptionGroup(Composite parent) {
+
+		Group group = new Group(parent, SWT.NONE);
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		group.setLayout(new GridLayout());
+		group.setText("Runtime Options");
+
+		Composite optComp = new Composite(group, SWT.NONE);
+		optComp.setLayout(new GridLayout(2, false));
+
+		fStopInMain = createCheckButton(optComp, "Stop on startup at:");
+		fStopInMain.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				fStopInMainSymbol.setEnabled(fStopInMain.getSelection());
+				updateLaunchConfigurationDialog();
+			}
+		});
+		fStopInMainSymbol = new Text(optComp, SWT.SINGLE | SWT.BORDER);
+		final GridData gridData = new GridData(GridData.FILL, GridData.CENTER, false, false);
+		gridData.widthHint = 100;
+		fStopInMainSymbol.setLayoutData(gridData);
+		fStopInMainSymbol.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent evt) {
+				updateLaunchConfigurationDialog();
+			}
+		});
+		fStopInMainSymbol.getAccessible().addAccessibleListener(
+			new AccessibleAdapter() {                       
+				public void getName(AccessibleEvent e) {
+					e.result = "Stop on startup at:";
+				}
+			}
+		);
+
+		optComp = new Composite(group, SWT.NONE);
+		optComp.setLayout(new GridLayout());
+
+		fResume = createCheckButton(optComp, "Resume");
+		fResume.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				updateLaunchConfigurationDialog();
+			}
+		});
+		
 	}
 
 	/**

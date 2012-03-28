@@ -20,8 +20,6 @@ package de.innot.avreclipse.debug.core;
  *
  */
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -29,10 +27,9 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.cdt.debug.core.CDebugUtils;
+import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.cdt.debug.gdbjtag.core.Messages;
-import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.GDBJtagDeviceContribution;
-import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.GDBJtagDeviceContributionFactory;
 import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice;
 import org.eclipse.cdt.dsf.concurrent.CountingRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
@@ -292,58 +289,6 @@ public class AVRGDBFinalLaunchSequence extends Sequence {
             		requestMonitor.done();
             	}
             }},
-        /*
-         * Tell GDB to automatically load or not the shared library symbols
-         */
-        new Step() { 
-            public void execute(RequestMonitor requestMonitor) {
-        		try {
-        			boolean autolib = fLaunch.getLaunchConfiguration().getAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_AUTO_SOLIB,
-        					                                                        IGDBLaunchConfigurationConstants.DEBUGGER_AUTO_SOLIB_DEFAULT);
-                    fCommandControl.queueCommand(
-                    	fCommandFactory.createMIGDBSetAutoSolib(fCommandControl.getContext(), autolib), 
-                    	new DataRequestMonitor<MIInfo>(getExecutor(), requestMonitor));
-        		} catch (CoreException e) {
-        			requestMonitor.setStatus(new Status(IStatus.ERROR, AVRDebugPlugin.PLUGIN_ID, -1, "Cannot set shared library option", e)); //$NON-NLS-1$
-        			requestMonitor.done();
-        		}
-            }},
-        /*
-         * Set the shared library paths
-         */
-        new Step() { 
-            @Override
-            public void execute(final RequestMonitor requestMonitor) {
-          		try {
-        			List<String> p = fGDBBackend.getSharedLibraryPaths();
-          		    
-       				if (p.size() > 0) {
-       					String[] paths = p.toArray(new String[p.size()]);
-       	                fCommandControl.queueCommand(
-       	                	fCommandFactory.createMIGDBSetSolibSearchPath(fCommandControl.getContext(), paths), 
-       	                	new DataRequestMonitor<MIInfo>(getExecutor(), requestMonitor) {
-       	                		@Override
-       	                		protected void handleSuccess() {
-    // Sysroot is not available in GDB6.6 and will make the launch fail in that case.
-    // Let's remove it for now
-       	                			requestMonitor.done();
-//	       	                			// If we are able to set the solib-search-path,
-//	       	                			// we should disable the sysroot variable, as indicated
-//	       	                			// in the GDB documentation.  This is to avoid the sysroot
-//	       	                			// variable finding libraries that were not meant to be found.
-//	       	        	                fCommandControl.queueCommand(
-//	       	        	   	                	new MIGDBSetSysroot(fCommandControl.getContext()), 
-//	       	        	   	                	new DataRequestMonitor<MIInfo>(getExecutor(), requestMonitor));
-       	                		};
-       	                	});
-       				} else {
-       	                requestMonitor.done();
-       				}
-        		} catch (CoreException e) {
-                    requestMonitor.setStatus(new Status(IStatus.ERROR, AVRDebugPlugin.PLUGIN_ID, -1, "Cannot set share library paths", e)); //$NON-NLS-1$
-                    requestMonitor.done();
-        		}
-        	}},
 
 // -environment-directory with a lot of paths could
 // make setting breakpoint incredibly slow, which makes
@@ -457,8 +402,8 @@ public class AVRGDBFinalLaunchSequence extends Sequence {
 			public void execute(RequestMonitor rm) {
 				ILaunchConfiguration config = fLaunch.getLaunchConfiguration();
 				try {
-					if (config.getAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT, IGDBJtagConstants.DEFAULT_SET_STOP_AT)) {
-						String stopAt = config.getAttribute(IGDBJtagConstants.ATTR_STOP_AT, IGDBJtagConstants.DEFAULT_STOP_AT); //$NON-NLS-1$
+					if (config.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN, ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_DEFAULT)) {
+						String stopAt = config.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL, ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_SYMBOL_DEFAULT); //$NON-NLS-1$
 						List<String> commands = new ArrayList<String>();
 						fGdbJtagDevice.doStopAt(stopAt, commands);
 						queueCommands(commands, rm);								
@@ -479,7 +424,7 @@ public class AVRGDBFinalLaunchSequence extends Sequence {
 			public void execute(RequestMonitor rm) {
 				ILaunchConfiguration config = fLaunch.getLaunchConfiguration();
 				try {
-					if (config.getAttribute(IGDBJtagConstants.ATTR_SET_RESUME, IGDBJtagConstants.DEFAULT_SET_RESUME)) {
+					if (config.getAttribute(IAVRGDBConstants.ATTR_SET_RESUME, IAVRGDBConstants.DEFAULT_SET_RESUME)) {
 						List<String> commands = new ArrayList<String>();
 						fGdbJtagDevice.doContinue(commands);
 						queueCommands(commands, rm);									

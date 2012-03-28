@@ -49,8 +49,10 @@ public class AvariceGDBServerFactory implements IGDBServerFactory,
 		args.add(itf);
 		args.add("-j");
 		args.add(port);
-		args.add("-B");
-		args.add(bitRate);
+		if (bitRate.length() > 0) {
+			args.add("-B");
+			args.add(bitRate);
+		}
 		if (debWire) {
 			args.add("-w");
 		}
