@@ -836,7 +836,7 @@ public class AVRDude implements IMCUProvider {
 
 		fMCUList = new HashMap<String, ConfigEntry>();
 		// Execute avrdude with the "-p?" to get a list of all supported mcus.
-		readAVRDudeConfigOutput(fMCUList, "-p?");
+		readAVRDudeConfigOutput(fMCUList, "-p?", "-v");
 
 		// The returned list has avrdude mcu id values, which are not the same
 		// as the ones used in this Plugin. Instead the returned name is
@@ -867,7 +867,7 @@ public class AVRDude implements IMCUProvider {
 			fProgrammerConfigEntries = new HashMap<String, ConfigEntry>();
 			// Execute avrdude with the "-c?" to get a list of all supported
 			// programmers.
-			readAVRDudeConfigOutput(fProgrammerConfigEntries, "-c?");
+			readAVRDudeConfigOutput(fProgrammerConfigEntries, "-c?", "-v");
 
 			// Convert the ConfigEntries to IProgrammerTypes
 			fProgrammerList = new HashMap<String, IProgrammer>();
