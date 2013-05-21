@@ -395,7 +395,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Return the Fuse Bytes of the device currently attached to the given Programmer.
 	 * <p>
-	 * The values are read by calling avdude with the "-U" option to read all available fusebytes
+	 * The values are read by calling avrdude with the "-U" option to read all available fusebytes
 	 * and storing them in tempfiles in the system temp directory. These files are read to get the
 	 * values and deleted afterwards.
 	 * </p>
@@ -494,7 +494,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Return the lockbits of the device currently attached to the given Programmer.
 	 * <p>
-	 * The values are read by calling avdude with the "-U" option to read all available locks
+	 * The values are read by calling avrdude with the "-U" option to read all available locks
 	 * (currently only one) and storing them in tempfiles in the system temp directory. These files
 	 * are read to get the values and deleted afterwards.
 	 * </p>
@@ -582,7 +582,7 @@ public class AVRDude implements IMCUProvider {
 	 * Return the current erase cycle counter of the device currently attached to the given
 	 * Programmer.
 	 * <p>
-	 * The value is read by calling avdude with the "-y" option.
+	 * The value is read by calling avrdude with the "-y" option.
 	 * </p>
 	 * 
 	 * @param config
@@ -630,7 +630,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * Set the erase cycle counter of the device currently attached to the given Programmer.
 	 * <p>
-	 * The value is set by calling avdude with the "-Y xxxx" option. The method returns the new
+	 * The value is set by calling avrdude with the "-Y xxxx" option. The method returns the new
 	 * value as read from the MCU as a crosscheck that the value has been written.
 	 * </p>
 	 * 
@@ -728,10 +728,10 @@ public class AVRDude implements IMCUProvider {
 	public static HostInterface[] getHostInterfaces(String avrdudeid, String avrdudetype) {
 
 		String type = avrdudetype.toLowerCase(); // just in case
-		if (type.equals("serbb")) {
+		if (type.equals("serial") || type.equals("serbb")) {
 			return Arrays.copyOf(SERIALBBPORT, SERIALBBPORT.length);
 		}
-		if (type.equals("par")) {
+		if (type.equals("parallel") || type.equals("par")) {
 			return Arrays.copyOf(PARALLELPORT, PARALLELPORT.length);
 		}
 		if (type.contains("usb")) {
@@ -777,7 +777,7 @@ public class AVRDude implements IMCUProvider {
 		}
 
 		// TODO remove when testing is finished
-		throw new IllegalArgumentException("Can't determine host interface");
+		throw new IllegalArgumentException("Can't determine host interface from type: '" + type + "'");
 	}
 
 	/**
@@ -907,9 +907,13 @@ public class AVRDude implements IMCUProvider {
 			if (!m.matches()) {
 				continue;
 			}
+			String descr = m.group(2);
+			if (descr.startsWith("deprecated")) {
+				continue;
+			}
 			ConfigEntry entry = new ConfigEntry();
 			entry.avrdudeid = m.group(1);
-			entry.description = m.group(2);
+			entry.description = descr;
 			entry.configfile = new Path(m.group(3));
 			entry.linenumber = Integer.valueOf(m.group(4));
 
@@ -1515,9 +1519,17 @@ public class AVRDude implements IMCUProvider {
 					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
 					String info = getConfigDetailInfo(entry);
 
-					// find the type by looking for "type = xxx" in the info text
-					Pattern typePat = Pattern.compile(".* type \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
-					Matcher m = typePat.matcher(info);
+					// find the type by looking for either
+					//   "connection_type = xxx", or
+					//   "type = xxx" in the info text
+					Pattern typePat;
+					Matcher m;
+					typePat = Pattern.compile(".* \\bconnection_type\\b \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
+					m = typePat.matcher(info);
+					if (!m.matches()) {
+						typePat = Pattern.compile(".* \\btype\\b \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
+						m = typePat.matcher(info);
+					}
 					if (m.matches()) {
 						fType = m.group(1);
 					} else {
