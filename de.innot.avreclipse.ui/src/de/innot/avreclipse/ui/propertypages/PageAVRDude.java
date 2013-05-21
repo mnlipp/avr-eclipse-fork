@@ -224,8 +224,10 @@ public class PageAVRDude extends AbstractAVRPage {
 	@Override
 	public void dispose() {
 		// Get the current SashForm weights
-		boolean isexpanded = fPreviewCompo.isExpanded();
-		fSashWeights[isexpanded ? EXPANDED : COLLAPSED] = fSashForm.getWeights();
+		boolean isexpanded = fPreviewCompo != null ? fPreviewCompo.isExpanded() : false;
+		if (fSashForm != null) {
+			fSashWeights[isexpanded ? EXPANDED : COLLAPSED] = fSashForm.getWeights();
+		}
 
 		// Save the current GUI state
 		IEclipsePreferences prefs = new InstanceScope().getNode(QUALIFIER);
