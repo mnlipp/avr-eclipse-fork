@@ -357,7 +357,7 @@ public class AVRDude implements IMCUProvider {
 
 					// Parse the output and look for a line "avrdude: Device signature =
 					// 0x123456"
-					Pattern mcuPat = Pattern.compile(".+signature.+(0x[\\da-fA-F]{6})");
+					Pattern mcuPat = Pattern.compile(".+ signature .+ (0x[\\da-fA-F]{6})", Pattern.COMMENTS);
 					Matcher m;
 
 					for (String line : stdout) {
@@ -609,7 +609,7 @@ public class AVRDude implements IMCUProvider {
 
 			// Parse the output and look for a line "avrdude: current erase-rewrite cycle count is
 			// xx"
-			Pattern mcuPat = Pattern.compile(".*erase-rewrite cycle count.*?([0-9]+).*");
+			Pattern mcuPat = Pattern.compile(".* erase-rewrite cycle count .*? ([0-9]+) .*", Pattern.COMMENTS);
 			Matcher m;
 
 			for (String line : stdout) {
@@ -899,7 +899,7 @@ public class AVRDude implements IMCUProvider {
 		// " id = description [pathtoavrdude.conf:line]"
 		// The following pattern splits this into the four groups:
 		// id / description / path / line
-		Pattern mcuPat = Pattern.compile("\\s*(\\S+)\\s*=\\s*(.+?)\\s*\\[(.+):(\\d+)\\]\\.*");
+		Pattern mcuPat = Pattern.compile("\\s* (\\S+) \\s* = \\s* (.+?) \\s* \\[ (.+) : (\\d+) \\] \\.*", Pattern.COMMENTS);
 		Matcher m;
 
 		for (String line : stdout) {
@@ -941,7 +941,7 @@ public class AVRDude implements IMCUProvider {
 		}
 
 		// look for a line matching "*Version TheVersionNumber *"
-		Pattern mcuPat = Pattern.compile(".*Version\\s+([\\d\\.]+).*");
+		Pattern mcuPat = Pattern.compile(".* Version \\s+ ([\\d\\.]+) .*", Pattern.COMMENTS);
 		Matcher m;
 		for (String line : stdout) {
 			m = mcuPat.matcher(line);
@@ -1516,7 +1516,7 @@ public class AVRDude implements IMCUProvider {
 					String info = getConfigDetailInfo(entry);
 
 					// find the type by looking for "type = xxx" in the info text
-					Pattern typePat = Pattern.compile(".*type\\s*=\\s*(\\w*);.*", Pattern.DOTALL);
+					Pattern typePat = Pattern.compile(".* type \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
 					Matcher m = typePat.matcher(info);
 					if (m.matches()) {
 						fType = m.group(1);
