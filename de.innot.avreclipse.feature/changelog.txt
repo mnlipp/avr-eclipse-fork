@@ -7,6 +7,16 @@
 ********************************************************************************
 
 ================================================================================
+Version 2.4.1 [SNAPSHOT]
+
+Changed / Improved:
+-----------------------------
+* The build process was updated to use tycho 0.16.0
+* The search for AVR tools on Linux has been modified a little. /usr was
+  replaced by /usr/bin and /home is removed.  This speeds up the discovery
+  of installed tools on systems that have large /usr/src directories.
+
+================================================================================
 Version 2.4.0 [04. March 2012]
 
 Changed / Improved:

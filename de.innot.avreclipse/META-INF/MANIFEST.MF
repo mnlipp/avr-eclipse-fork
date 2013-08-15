@@ -3,6 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: de.innot.avreclipse.root; singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 2.4.0.201203041437
+Bundle-Version: 2.4.1.qualifier
 Bundle-Vendor: %providerName
 Bundle-ActivationPolicy: lazy

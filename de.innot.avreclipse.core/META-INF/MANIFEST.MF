@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: de.innot.avreclipse.core;singleton:=true
-Bundle-Version: 2.4.0.201203041437
+Bundle-Version: 2.4.1.qualifier
 Bundle-Localization: plugin
 Bundle-Vendor: %providerName
 Require-Bundle: 

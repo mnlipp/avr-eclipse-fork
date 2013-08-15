@@ -9,7 +9,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<version>2.4.0.201203041437</version>
+		<version>2.4.1-SNAPSHOT</version>
 		<groupId>avreclipse</groupId>
 		<artifactId>master</artifactId>
 		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
@@ -21,7 +21,7 @@
 	<name>AVR Eclipse Tests UI / SWTBot</name>
 
 	<properties>
-		<local-p2-site>file:/${basedir}/../de.innot.avreclipse-updatesite/target/site</local-p2-site>
+		<local-p2-site>file:${basedir}/../de.innot.avreclipse-updatesite</local-p2-site>
 		<ui.test.vmargs>-Xmx512m -XX:MaxPermSize=256m</ui.test.vmargs>
 	</properties>
 
