@@ -1280,6 +1280,8 @@ public class AVRDude implements IMCUProvider {
 			} else if (line.endsWith("execution aborted")) {
 				abort = true;
 				fAbortReason = Reason.USER_CANCEL;
+			} else if (line.contains("usbdev_open(): Found ")) {
+				// This is not an error, but probably a message due to -v option
 			} else if (line.contains("usbdev_open")) {
 				abort = true;
 				fAbortReason = Reason.NO_USB;
