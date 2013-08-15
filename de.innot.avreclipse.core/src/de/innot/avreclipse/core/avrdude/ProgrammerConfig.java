@@ -100,6 +100,13 @@ public class ProgrammerConfig {
 	 */
 	private String				fPostAVRDudeDelay;
 	public final static String	KEY_POSTAVRDUDE_DELAY_MS	= "postAvrdudeDelayMs";
+	
+	/**
+	 * Other AVRDude options. Free text for avrdude options not directly
+	 * supported by the plugin
+	 */
+	private String				fOtherOptions;
+	public final static String	KEY_OTHER_OPTIONS			= "otherOptions";
 
 	/** Flag to mark modifications of this config */
 	private boolean				fDirty;
@@ -167,6 +174,7 @@ public class ProgrammerConfig {
 			prefs.put(KEY_EXITSPEC_RESET, fExitReset);
 			prefs.put(KEY_EXITSPEC_VCC, fExitVcc);
 			prefs.put(KEY_POSTAVRDUDE_DELAY_MS, fPostAVRDudeDelay);
+			prefs.put(KEY_OTHER_OPTIONS, fOtherOptions);
 
 			// flush the Preferences to the persistent storage
 			prefs.flush();
@@ -203,6 +211,12 @@ public class ProgrammerConfig {
 		}
 		if (exitspec.length() > 0) {
 			args.add("-E" + exitspec.toString());
+		}
+		if (fOtherOptions!=null && fOtherOptions.length() > 0) {
+			String[] options = fOtherOptions.split("\\s+");
+			for (String option : options) {
+				args.add(option);
+			}
 		}
 		return args;
 	}
@@ -395,6 +409,24 @@ public class ProgrammerConfig {
 	public String getPostAvrdudeDelay() {
 		return fPostAVRDudeDelay;
 	}
+	
+	/**
+	 * 
+	 * @return the free text options passed as is to AVRDude
+	 */
+	public String getOtherOptions() {
+		return fOtherOptions;
+	}
+
+	/**
+	 * Sets the free text options passed as is to AVRDude
+	 * 
+	 * @param otherOptions
+	 *            free text to be passed as extra options to AVRDude
+	 */
+	public void setOtherOptions(String fOtherOptions) {
+		this.fOtherOptions = fOtherOptions;
+	}
 
 	/**
 	 * Load the values of this Configuration from the preference storage area.
@@ -411,6 +443,7 @@ public class ProgrammerConfig {
 		fExitReset = prefs.get(KEY_EXITSPEC_RESET, "");
 		fExitVcc = prefs.get(KEY_EXITSPEC_VCC, "");
 		fPostAVRDudeDelay = prefs.get(KEY_POSTAVRDUDE_DELAY_MS, "");
+		fOtherOptions = prefs.get(KEY_OTHER_OPTIONS, "");
 	}
 
 	/**
@@ -429,6 +462,7 @@ public class ProgrammerConfig {
 		fExitVcc = config.fExitVcc;
 		fDirty = config.fDirty;
 		fPostAVRDudeDelay = config.fPostAVRDudeDelay;
+		fOtherOptions = config.getOtherOptions();
 	}
 
 	/**
@@ -446,6 +480,7 @@ public class ProgrammerConfig {
 		fExitReset = "";
 		fExitVcc = "";
 		fPostAVRDudeDelay = "";
+		fOtherOptions = "";
 	}
 
 	/*

@@ -164,6 +164,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		addPortControl(composite);
 
 		addBaudrateControl(composite);
+		
+		addOtherOptionsComposite(composite);
 
 		addExitspecComposite(composite);
 
@@ -404,6 +406,43 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				if (!text.matches("[0-9]*")) {
 					event.doit = false;
 				}
+			}
+		});
+	}
+	
+	/**
+	 * Add the other options controls.
+	 * 
+	 * <p>
+	 * This contains a single text field where any other options not covered by
+	 * the UI can be specified
+	 * </p>
+	 * 
+	 * @param parent
+	 */
+	private void addOtherOptionsComposite(Composite parent) {
+		Group group = new Group(parent, SWT.NONE);
+		group.setText("Other options");
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		group.setLayout(new GridLayout(1, false));
+
+		Label label = new Label(group, SWT.NONE);
+		label.setText("Use this field to add any avdude option not covered by the plugin.");
+		final Text options = new Text(group, SWT.BORDER);
+		options.setText(fConfig.getOtherOptions());
+		options.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		options.addModifyListener(new ModifyListener() {
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.
+			 * swt.events.ModifyEvent)
+			 */
+			public void modifyText(ModifyEvent e) {
+				String otheroptions = options.getText();
+				fConfig.setOtherOptions(otheroptions);
+				updateCommandPreview();
 			}
 		});
 	}
