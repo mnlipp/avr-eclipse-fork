@@ -7,8 +7,8 @@
 	<parent>
 		<version>2.4.0.201203041437</version>
 		<groupId>avreclipse</groupId>
-		<artifactId>de.innot.avreclipse.releng</artifactId>
-		<relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
+		<artifactId>de.innot.avreclipse.master</artifactId>
+		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
 	</parent>
 
 	<artifactId>de.innot.avreclipse.doc</artifactId>

@@ -9,9 +9,9 @@
 
 	<parent>
 		<groupId>avreclipse</groupId>
-		<artifactId>de.innot.avreclipse.releng</artifactId>
+		<artifactId>de.innot.avreclipse.master</artifactId>
 		<version>2.4.0.201203041437</version>
-		<relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
+		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
 	</parent>
 
 	<artifactId>de.innot.avreclipse.p2repository</artifactId>
