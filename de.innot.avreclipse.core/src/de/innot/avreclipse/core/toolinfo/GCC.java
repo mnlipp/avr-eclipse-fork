@@ -134,7 +134,9 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 
 		// Execute avr-gcc with the "--target-help" option and parse the
 		// output
-		List<String> stdout = runCommand("--target-help");
+		// Also add -Wa,-mlist-devices so that it works in more recent versions
+		// Of GCC and AVR CrossPack in Mac OS X
+		List<String> stdout = runCommand("-Wa,-mlist-devices", "--target-help");
 		if (stdout == null) {
 			// Return empty map on failures
 			return fMCUmap;
