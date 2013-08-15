@@ -24,7 +24,7 @@
 		<module>../de.innot.avreclipse.ui</module>
 		<module>../de.innot.avreclipse.doc</module>
 		<module>../de.innot.avreclipse.feature</module>
-		<module>../de.innot.avreclipse-p2repository</module>
+		<module>../de.innot.avreclipse.p2repository</module>
 		<!-- <module>../de.innot.avreclipse-updatesite</module> -->
 		<module>../de.innot.avreclipse.core.test</module>
 		<module>../de.innot.avreclipse.ui.tests</module>
