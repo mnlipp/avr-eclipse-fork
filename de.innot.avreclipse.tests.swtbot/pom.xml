@@ -11,7 +11,7 @@
 	<parent>
 		<version>2.4.0.201203041437</version>
 		<groupId>avreclipse</groupId>
-		<artifactId>de.innot.avreclipse.master</artifactId>
+		<artifactId>master</artifactId>
 		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
 	</parent>
 
