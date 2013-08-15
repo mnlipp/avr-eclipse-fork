@@ -58,8 +58,14 @@ public class SystemPathsPosix {
 	// /etc/ was used to find the avrdude.conf file. While this is currently not
 	// required I leave it in just in case we will be looking for some other
 	// configuration file in a future version of the plugin.
-	private final static String[]	fSearchPaths	= { "/usr/local/", "/usr/", "/opt/", "~/",
-			"/home/", "/etc/"						};
+	private final static String[]	fSearchPaths	= {
+			"/usr/local/",
+			"/usr/bin",
+			"/opt/",
+			"~/",
+			// "/home/",
+			"/etc/",
+			};
 
 	private SystemPathsPosix() {
 		// prevent instantiation
