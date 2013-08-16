@@ -5,7 +5,7 @@ Bundle-SymbolicName: de.innot.avreclipse.debug.tests;singleton:=true
 Bundle-Version: 2.4.1.qualifier
 Bundle-Vendor: avr-eclipse project
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: org.junit4,
+Require-Bundle: org.junit,
  de.innot.avreclipse.debug.core;bundle-version="0.0.0",
  de.innot.avreclipse.debug.ui;bundle-version="0.0.0",
  org.eclipse.cdt.core,

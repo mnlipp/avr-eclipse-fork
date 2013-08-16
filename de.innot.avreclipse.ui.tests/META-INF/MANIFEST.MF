@@ -7,5 +7,5 @@ Bundle-Vendor: Thomas Holland
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Fragment-Host: de.innot.avreclipse.ui
-Require-Bundle: org.junit4
+Require-Bundle: org.junit
 

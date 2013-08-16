@@ -6,5 +6,5 @@ Bundle-Version: 2.4.1.qualifier
 Bundle-Vendor: Thomas Holland
 Fragment-Host: de.innot.avreclipse.core;bundle-version="0.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: org.junit4,
+Require-Bundle: org.junit,
  de.innot.avreclipse.core.managedbuildsystem
