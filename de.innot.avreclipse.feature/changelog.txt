@@ -16,6 +16,13 @@ Changed / Improved:
   replaced by /usr/bin and /home is removed.  This speeds up the discovery
   of installed tools on systems that have large /usr/src directories.
 
+Fixes (numbers as in https://sourceforge.net/p/avr-eclipse/bugs):
+-----------------------------
+#59, #61        On MacOS with CrossPack-AVR the list of supported MCUs was
+                not given. And thus the user could not select any device.
+#60             Adding -v option for avrdude would abort device communication
+
+
 ================================================================================
 Version 2.4.0 [04. March 2012]
 
