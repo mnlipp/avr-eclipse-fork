@@ -1161,7 +1161,7 @@
 				name="Options to create flash image"
 				category="de.innot.avreclipse.objcopy.flash.category.general"
 				valueType="string"
-				defaultValue="-R .eeprom -O ihex" />
+				defaultValue="-R .eeprom -R .fuse -R .lock -R .signature -O ihex" />
 			<option id="de.innot.avreclipse.objcopy.option.flash.addopts"
 				name="Additional Options for objcopy"
 				category="de.innot.avreclipse.objcopy.flash.category.general"

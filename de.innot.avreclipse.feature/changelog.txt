@@ -20,7 +20,11 @@ Fixes (numbers as in https://sourceforge.net/p/avr-eclipse/bugs):
 -----------------------------
 #59, #61        On MacOS with CrossPack-AVR the list of supported MCUs was
                 not given. And thus the user could not select any device.
-#60             Adding -v option for avrdude would abort device communication
+#60             Adding -v option for avrdude would abort device
+                communication
+#49             Default configuration adds more sections to exclude from
+                the flash .hex
+
 
 
 ================================================================================
