@@ -430,6 +430,18 @@
 				command="-fshort-enums"
 				valueType="boolean"
 				defaultValue="true" />
+			<option id="de.innot.avreclipse.compiler.option.optimize.functionsections"
+				name="Each function in its own section (-ffunction-sections)"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				command="-ffunction-sections"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.compiler.option.optimize.datasections"
+				name="Each data item in its own section (-fdata-sections)"
+				category="de.innot.avreclipse.compiler.category.optimization"
+				command="-fdata-sections"
+				valueType="boolean"
+				defaultValue="true" />
 			<option id="de.innot.avreclipse.compiler.option.optimize.other"
 				name="Other Optimization Flags"
 				category="de.innot.avreclipse.compiler.category.optimization"
@@ -738,6 +750,18 @@
 				command="-fshort-enums"
 				valueType="boolean"
 				defaultValue="true" />
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize.functionsections"
+				name="Each function in its own section (-ffunction-sections)"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				command="-ffunction-sections"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.cppcompiler.option.optimize.datasections"
+				name="Each data item in its own section (-fdata-sections)"
+				category="de.innot.avreclipse.cppcompiler.category.optimization"
+				command="-fdata-sections"
+				valueType="boolean"
+				defaultValue="true" />
 			<option id="de.innot.avreclipse.cppcompiler.option.optimize.other"
 				name="Other Optimization Flags"
 				category="de.innot.avreclipse.cppcompiler.category.optimization"
@@ -976,6 +1000,18 @@
 				command="-nostdlib"
 				valueType="boolean"
 				defaultValue="false" />
+			<option id="de.innot.avreclipse.cpplinker.option.mrelax"
+				name="Relax branches (-mrelax)"
+				category="de.innot.avreclipse.cpplinker.category.general" 
+				command="-mrelax"
+				valueType="boolean"
+				defaultValue="true" />
+			<option id="de.innot.avreclipse.cpplinker.option.gcsections"
+				name="Remove unused sections (-Wl,--gc-sections)"
+				category="de.innot.avreclipse.cpplinker.category.general" 
+				command="-Wl,--gc-sections"
+				valueType="boolean"
+				defaultValue="true" />
 			<option id="de.innot.avreclipse.cpplinker.option.otherlinkargs"
 				name="Other Arguments" 
 				category="de.innot.avreclipse.cpplinker.category.general"
@@ -983,6 +1019,13 @@
 
 			<optionCategory id="de.innot.avreclipse.cpplinker.category.libs"
 				name="Libraries" />
+			<option id="de.innot.avreclipse.cpplinker.option.library.libm"
+				name="Include Math lib (-lm)"
+				category="de.innot.avreclipse.cpplinker.category.libs"
+				command="-lm"
+				valueType="boolean"
+				defaultValue="true" >
+			</option>
 			<option id="de.innot.avreclipse.cpplinker.option.libs"
 				name="Libraries (-l)"
 				category="de.innot.avreclipse.cpplinker.category.libs" 
@@ -1008,6 +1051,7 @@
 				category="de.innot.avreclipse.cpplinker.category.objs"
 				valueType="userObjs"
 				browseType="file" />
+
 <!--  This causes linking errors if floating point is selected.
       Also the -lm enablement does not work
 			<optionCategory id="de.innot.avreclipse.cpplinker.category.library"
@@ -1063,8 +1107,8 @@
 					</or>					
 				</enablement>
 			</option>
--->				
-				
+-->
+
 			<option id="de.innot.avreclipse.cpplinker.option.targetmcu" 
 				name="MCU Type"
 				valueType="string"
