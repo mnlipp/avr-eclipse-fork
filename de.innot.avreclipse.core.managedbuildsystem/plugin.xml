@@ -1019,13 +1019,6 @@
 
 			<optionCategory id="de.innot.avreclipse.cpplinker.category.libs"
 				name="Libraries" />
-			<option id="de.innot.avreclipse.cpplinker.option.library.libm"
-				name="Include Math lib (-lm)"
-				category="de.innot.avreclipse.cpplinker.category.libs"
-				command="-lm"
-				valueType="boolean"
-				defaultValue="true" >
-			</option>
 			<option id="de.innot.avreclipse.cpplinker.option.libs"
 				name="Libraries (-l)"
 				category="de.innot.avreclipse.cpplinker.category.libs" 
