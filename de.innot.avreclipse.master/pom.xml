@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 
 	<name>AVR Eclipse</name>
-	<description>AVR Eclipse Plugin for AVR devlopment support</description>
+	<description>AVR Eclipse Plugin for AVR development support</description>
 	<url>http://avr-eclipse.sourceforge.net</url>
 	<inceptionYear>2007</inceptionYear>
 
@@ -21,7 +21,7 @@
 		<module>../de.innot.avreclipse.doc</module>
 		<module>../de.innot.avreclipse.feature</module>
 		<module>../de.innot.avreclipse.p2repository</module>
-		<!-- <module>../de.innot.avreclipse-updatesite</module> -->
+		<module>../de.innot.avreclipse-updatesite</module>
 		<module>../de.innot.avreclipse.core.test</module>
 		<module>../de.innot.avreclipse.ui.tests</module>
 		<!-- <module>../de.innot.avreclipse.tests.swtbot</module> -->
