@@ -53,6 +53,7 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
+import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigProgrammerEntry;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 
 /**
@@ -135,7 +136,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			fConfigNameMap = new HashMap<String, IProgrammer>(programmers.size());
 			for (IProgrammer type : programmers) {
 				fConfigIDMap.put(type.getId(), type);
-				fConfigNameMap.put(type.getDescription(), type);
+				if (type.hasParent()) {
+					// We need a unique string and the parent may have the same description
+					fConfigNameMap.put(type.getDescription() + " (" + type.getId() + ")", type);
+				} else {
+					fConfigNameMap.put(type.getDescription(), type);
+				}
 			}
 		} catch (AVRDudeException e) {
 			AVRDudeErrorDialog.openAVRDudeError(getShell(), e, null);
@@ -677,7 +683,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 *            The multiline <code>Text</code> control for the details
 	 */
 	private void updateDetails(IProgrammer type, Text from, Text details) {
-		ConfigEntry entry;
+		ConfigProgrammerEntry entry;
 		try {
 			entry = AVRDude.getDefault().getProgrammerInfo(type.getId());
 		} catch (AVRDudeException e) {
@@ -686,8 +692,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			from.setText("Error reading avrdude.conf file");
 			return;
 		}
-		from.setText("Programmer details from [" + entry.configfile.toOSString() + ":"
-				+ entry.linenumber + "]");
+		from.setText("Programmer details from [" + entry.fConfigfile.toOSString() + ":"
+				+ entry.fLinenumber + "]");
 		Job job = new UpdateDetailsJob(entry, details);
 		job.setSystem(true);
 		job.setPriority(Job.SHORT);
@@ -755,7 +761,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				// But just in case we log the Error
 				Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 						"Can't access avrdude configuration file "
-								+ fConfigEntry.configfile.toOSString(), ioe);
+								+ fConfigEntry.fConfigfile.toOSString(), ioe);
 				AVRPlugin.getDefault().log(status);
 			} finally {
 				monitor.done();

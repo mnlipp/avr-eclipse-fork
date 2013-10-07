@@ -106,4 +106,9 @@ public interface IProgrammer {
 	 * @return <code>true</code> if the programmer supports JTAG daisy chaining.
 	 */
 	public boolean isDaisyChainCapable();
+
+	/**
+	 * Returns true if the config has a parent.
+	 */
+	public boolean hasParent();
 }

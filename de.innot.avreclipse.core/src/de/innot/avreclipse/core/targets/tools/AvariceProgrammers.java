@@ -57,6 +57,11 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	dragon_dw("Atmel AVR Dragon in debugWire mode") {
@@ -78,6 +83,11 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public boolean isDaisyChainCapable() {
+			return false;
+		}
+
+		@Override
+		public boolean hasParent() {
 			return false;
 		}
 
@@ -105,6 +115,11 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	jtag2("Atmel JTAG ICE mkII") {
@@ -129,6 +144,11 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	jtag2dw("Atmel JTAG ICE mkII in debugWire mode") {
@@ -150,6 +170,11 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public boolean isDaisyChainCapable() {
+			return false;
+		}
+
+		@Override
+		public boolean hasParent() {
 			return false;
 		}
 

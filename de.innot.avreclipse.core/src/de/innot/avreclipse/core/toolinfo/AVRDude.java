@@ -94,7 +94,7 @@ public class AVRDude implements IMCUProvider {
 	/**
 	 * A List of all Programmer ConfigEntries to their respective id's.
 	 */
-	private Map<String, ConfigEntry>		fProgrammerConfigEntries;
+	private Map<String, ConfigProgrammerEntry>		fProgrammerConfigEntries;
 
 	/**
 	 * Mapping of the Plugin MCU Id values (as keys) to the avrdude mcu id values (as values)
@@ -108,7 +108,7 @@ public class AVRDude implements IMCUProvider {
 	private final static String				fCommandName		= "avrdude";
 
 	/** The Path provider for the avrdude executable */
-	private final IPathProvider					fPathProvider		= new AVRPathProvider(
+	private final IPathProvider				fPathProvider		= new AVRPathProvider(
 																			AVRPath.AVRDUDE);
 
 	/** Bug 3023718: Remember the last MCU connected to a given programmer */
@@ -261,7 +261,7 @@ public class AVRDude implements IMCUProvider {
 	 *         executable
 	 * @throws AVRDudeException
 	 */
-	public ConfigEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
+	public ConfigProgrammerEntry getProgrammerInfo(String programmerid) throws AVRDudeException {
 		loadProgrammersList(); // update the list (if required)
 
 		return fProgrammerConfigEntries.get(programmerid);
@@ -289,7 +289,7 @@ public class AVRDude implements IMCUProvider {
 
 		List<String> configcontent = null;
 		// Test if we have already loaded the config file
-		IPath configpath = entry.configfile;
+		IPath configpath = entry.fConfigfile;
 		if (fConfigFileCache.containsKey(configpath)) {
 			configcontent = fConfigFileCache.get(configpath);
 		} else {
@@ -304,7 +304,7 @@ public class AVRDude implements IMCUProvider {
 
 		// copy every line from the config file until we hit a single ';' in the first column
 
-		int index = entry.linenumber;
+		int index = entry.fLinenumber;
 		while (true) {
 			String line = configcontent.get(index++);
 			if (line.startsWith(";")) {
@@ -842,8 +842,8 @@ public class AVRDude implements IMCUProvider {
 		fMCUIdMap = new HashMap<String, String>(fMCUList.size());
 		Collection<ConfigEntry> allentries = fMCUList.values();
 		for (ConfigEntry entry : allentries) {
-			String mcuid = AVRMCUidConverter.name2id(entry.description);
-			fMCUIdMap.put(mcuid, entry.avrdudeid);
+			String mcuid = AVRMCUidConverter.name2id(entry.fDescription);
+			fMCUIdMap.put(mcuid, entry.fAvrdudeId);
 		}
 
 		return fMCUIdMap;
@@ -862,10 +862,10 @@ public class AVRDude implements IMCUProvider {
 		}
 
 		if (fProgrammerList == null) {
-			fProgrammerConfigEntries = new HashMap<String, ConfigEntry>();
+			fProgrammerConfigEntries = new HashMap<String, ConfigProgrammerEntry>();
 			// Execute avrdude with the "-c?" to get a list of all supported
 			// programmers.
-			readAVRDudeConfigOutput(fProgrammerConfigEntries, "-c?", "-v");
+			readAVRDudeProgrammerInfo(fProgrammerConfigEntries);
 
 			// Convert the ConfigEntries to IProgrammerTypes
 			fProgrammerList = new HashMap<String, IProgrammer>();
@@ -912,12 +912,107 @@ public class AVRDude implements IMCUProvider {
 				continue;
 			}
 			ConfigEntry entry = new ConfigEntry();
-			entry.avrdudeid = m.group(1);
-			entry.description = descr;
-			entry.configfile = new Path(m.group(3));
-			entry.linenumber = Integer.valueOf(m.group(4));
+			entry.fAvrdudeId = m.group(1);
+			entry.fDescription = descr;
+			entry.fConfigfile = new Path(m.group(3));
+			entry.fLinenumber = Integer.valueOf(m.group(4));
 
-			resultmap.put(entry.avrdudeid, entry);
+			resultmap.put(entry.fAvrdudeId, entry);
+		}
+	}
+
+	/**
+	 * Internal method to execute avrdude and parse the output as ConfigEntries.
+	 *
+	 * @see #loadMCUList()
+	 * @see #loadProgrammersList()
+	 *
+	 * @param resultmap
+	 * @throws AVRDudeException
+	 */
+	private void readAVRDudeProgrammerInfo(Map<String, ConfigProgrammerEntry> resultmap)
+			throws AVRDudeException {
+
+		// First run the command to get the name of the conf file
+		String configFname = null;
+		Pattern pat = Pattern.compile("\\s*System wide configuration file is \"([^\"]+)\"");
+		Matcher m;
+		List<String> lines = runCommand("-v", "-c?");
+		if (lines == null) {
+			return;
+		}
+		for (String line : lines) {
+			m = pat.matcher(line);
+			if (m.matches()) {
+				configFname = m.group(1);
+				break;
+			}
+		}
+		if (configFname == null) {
+			return;
+		}
+
+		// Load the config file
+		try {
+			lines = loadConfigFile(new Path(configFname));
+		} catch (IOException e) {
+			// TODO Maybe we need to issue a warning
+			return;
+		}
+		ConfigProgrammerEntry entry = null;
+		Pattern linePat = Pattern.compile("\\s* (\\S+) \\s* = \\s* (.+?) ;", Pattern.COMMENTS);
+		Pattern parentPat = Pattern.compile("programmer \\s+ parent \\s+ \" ([^\"]+) \"", Pattern.COMMENTS);
+		String k;
+		String v;
+		String vstr;
+		int lineno = 0;
+		for (String line : lines) {
+			lineno++;
+			if (entry != null) {
+				entry.fConfigLines.add(line);
+			}
+			if (line.startsWith("#")) {
+				continue;
+			} else if (line.startsWith("programmer")) {
+				// Start a new programmer
+				entry = new ConfigProgrammerEntry();
+				entry.fConfigfile = new Path(configFname);
+				entry.fLinenumber = lineno;
+				// If there is a parent referal ...
+				m = parentPat.matcher(line);
+				if (m.matches()) {
+					String parentId = m.group(1);
+					if (resultmap.containsKey(parentId)) {
+						entry.fParent = resultmap.get(parentId);
+					}
+				}
+				continue;
+			} else if (line.startsWith(";")) {
+				entry = null;
+				continue;
+			}
+
+			if (entry != null) {
+				m = linePat.matcher(line);
+				if (m.matches()) {
+					k = m.group(1);
+					v = m.group(2);
+					vstr = v;
+					if (vstr.startsWith("\"") && vstr.endsWith("\"")) {
+						vstr = vstr.substring(1, vstr.length() - 1);
+					}
+					if (k.equals("id")) {
+						entry.fAvrdudeId = vstr;
+						resultmap.put(entry.fAvrdudeId, entry);
+					} else if (k.equals("desc")) {
+						entry.fDescription = vstr;
+					} else if (k.equals("type")) {
+						entry.fType = vstr;
+					} else if (k.equals("connection_type")) {
+						entry.fConnectionType = vstr;
+					}
+				}
+			}
 		}
 	}
 
@@ -1347,17 +1442,77 @@ public class AVRDude implements IMCUProvider {
 	 * 
 	 */
 	public static class ConfigEntry {
+
 		/** AVRDude internal id for this entry */
-		public String	avrdudeid;
+		String					fAvrdudeId;
 
 		/** (Human readable) description of this entry */
-		public String	description;
+		String					fDescription;
 
 		/** Path to the configuration file which contains the definition */
-		public IPath	configfile;
+		public IPath			fConfigfile;
 
 		/** line number of the start of the definition */
-		public int		linenumber;
+		public int				fLinenumber;
+	}
+
+	/**
+	 * Class for AVRDude configuration programmer entries.
+	 * <p>
+	 * This class is stores the information that avrdude supplies about a Programming device:
+	 * </p>
+	 * <ul>
+	 * <li>{@link #avrdudeid} = AVRDude internal id</li>
+	 * <li>{@link #description} = Human readable description</li>
+	 * </ul>
+	 */
+	public static class ConfigProgrammerEntry extends ConfigEntry {
+
+		/** The type  */
+		String					fType;
+		String					fConnectionType;
+
+		/** Optional parent */
+		ConfigProgrammerEntry	fParent;
+
+		List<String>			fConfigLines;
+
+		ConfigProgrammerEntry() {
+			fConfigLines = new ArrayList<String>();
+		}
+
+		String getType() {
+			String type = fType;
+			if (type == null || type == "") {
+				type = fConnectionType;
+			}
+			if (type == null || type == "") {
+				if (fParent != null) {
+					type = fParent.getType();
+				}
+			}
+			return type;
+		}
+
+		String getDescription() {
+			String desc = fDescription;
+			if (desc == null || desc == "") {
+				if (fParent != null) {
+					desc = fParent.getDescription();
+				}
+			}
+			return desc;
+		}
+
+		List<String> getConfigLines() {
+			List<String> lines = new ArrayList<String>();
+			lines.addAll(fConfigLines);
+			if (fParent != null) {
+				lines.add("\nparent " + fParent.fAvrdudeId + "\n");
+				lines.addAll(fParent.getConfigLines());
+			}
+			return lines;
+		}
 	}
 
 	private class ProgrammerType implements IProgrammer {
@@ -1393,8 +1548,8 @@ public class AVRDude implements IMCUProvider {
 		public String getDescription() {
 			if (fDescription == null) {
 				try {
-					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
-					fDescription = entry.description;
+					ConfigProgrammerEntry entry = getProgrammerInfo(fAvrdudeId);
+					fDescription = entry.getDescription();
 				} catch (AVRDudeException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1410,18 +1565,14 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public String getAdditionalInfo() {
 
+			String addinfo = null;
 			try {
-				ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
-				String addinfo = getConfigDetailInfo(entry);
-				return "avrdude.conf entry for this programmer:\n\n" + addinfo;
+				ConfigProgrammerEntry entry = getProgrammerInfo(fAvrdudeId);
+				addinfo = entry.getConfigLines().toString();
 			} catch (AVRDudeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				addinfo = "<not found>";
 			}
-			return "";
+			return "avrdude.conf entry for this programmer:\n\n" + addinfo;
 		}
 
 		/*
@@ -1516,41 +1667,26 @@ public class AVRDude implements IMCUProvider {
 		 */
 		private String getType() {
 			if (fType == null) {
+				ConfigProgrammerEntry entry;
 				try {
-					// get the Detailed info for the programmer
-					ConfigEntry entry = getProgrammerInfo(fAvrdudeId);
-					String info = getConfigDetailInfo(entry);
-
-					// find the type by looking for either
-					//   "connection_type = xxx", or
-					//   "type = xxx" in the info text
-					Pattern typePat;
-					Matcher m;
-					typePat = Pattern.compile(".* \\bconnection_type\\b \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
-					m = typePat.matcher(info);
-					if (!m.matches()) {
-						typePat = Pattern.compile(".* \\btype\\b \\s* = \\s* (\\w*) ; .*", Pattern.DOTALL | Pattern.COMMENTS);
-						m = typePat.matcher(info);
-					}
-					if (m.matches()) {
-						fType = m.group(1);
-					} else {
-						// could not find the 'type = xxx' pattern in the info.
-						// This should not happen and means that the avrdude.conf
-						// has errors.
-						// TODO: log a message
-						fType = "";
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					entry = getProgrammerInfo(fAvrdudeId);
+					fType = entry.getType();
 				} catch (AVRDudeException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					fType = "";
 				}
-
 			}
 			return fType;
+		}
+
+		@Override
+		public boolean hasParent() {
+			ConfigProgrammerEntry entry;
+			try {
+				entry = getProgrammerInfo(fAvrdudeId);
+				return entry.fParent != null;
+			} catch (AVRDudeException e) {
+			}
+			return false;
 		}
 	}
 }
