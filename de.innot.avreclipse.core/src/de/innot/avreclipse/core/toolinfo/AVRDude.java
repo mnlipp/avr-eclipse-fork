@@ -674,7 +674,7 @@ public class AVRDude implements IMCUProvider {
 	public static TargetInterface getInterface(String avrdudeid, String type) {
 
 		// Check the serial bootloader types
-		if (type.equals("avr910") || type.equals("butterfly")) {
+		if (type.equals("avr910") || type.equals("butterfly") || type.equals("butterfly_mk")) {
 			return TargetInterface.BOOTLOADER;
 		}
 
@@ -728,13 +728,16 @@ public class AVRDude implements IMCUProvider {
 	public static HostInterface[] getHostInterfaces(String avrdudeid, String avrdudetype) {
 
 		String type = avrdudetype.toLowerCase(); // just in case
-		if (type.equals("serial") || type.equals("serbb")) {
+		if (type.equals("serbb")) {
 			return Arrays.copyOf(SERIALBBPORT, SERIALBBPORT.length);
+		}
+		if (type.equals("serial")) {
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
 		if (type.equals("parallel") || type.equals("par")) {
 			return Arrays.copyOf(PARALLELPORT, PARALLELPORT.length);
 		}
-		if (type.contains("usb")) {
+		if (type.contains("usb") || type.contains("avrftdi")) {
 			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
 		if (avrdudeid.startsWith("stk500") || type.equals("stk500")) {
@@ -754,7 +757,7 @@ public class AVRDude implements IMCUProvider {
 		if (type.startsWith("stk600")) {
 			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
-		if (type.equals("avr910") || type.equals("butterfly")) {
+		if (type.equals("avr910") || type.equals("butterfly") || type.equals("butterfly_mk")) {
 			// Bootloader types
 			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
@@ -762,9 +765,22 @@ public class AVRDude implements IMCUProvider {
 			// AVR Dragon
 			return Arrays.copyOf(USBPORT, USBPORT.length);
 		}
-		if (type.startsWith("jtag")) {
+		if (avrdudeid.equals("jtag2dw")) {
+			// JTAG ICE mkII in debugWire mode
+			return Arrays.copyOf(USBPORT, USBPORT.length);
+		}
+		if (avrdudeid.equals("jtag1")) {
+			// Atmel JTAG ICE (mkI)
 			// AVR ICE MkI normally uses the Serial port, but some clones have an USB port as well
+			// AVRDUDE 6.x says that this is a "serial" connection_type.
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
+		}
+		if (avrdudeid.equals("jtagii") || avrdudeid.startsWith("jtagii_")) {
+			// Atmel JTAG ICE mkII
 			// AVR ICE MkII has both a serial and an usb port.
+			return Arrays.copyOf(USBPORT, USBPORT.length);
+		}
+		if (type.startsWith("jtag")) {
 			return Arrays.copyOf(SERIAL_USB_PORT, SERIAL_USB_PORT.length);
 		}
 		if (type.startsWith("arduino")) {
@@ -774,6 +790,12 @@ public class AVRDude implements IMCUProvider {
 		if (type.startsWith("buspirate")) {
 			// some very old Buspirate Boards have only a serial port, but I think we can ignore them.
 			return Arrays.copyOf(USBPORT, USBPORT.length);
+		}
+		if (type.equals("wiring")) {
+			// AVRDUDE doc says:
+			// Wiring boards are supported, utilizing STK500 V2.x protocol,
+			// but a simple DTR/RTS toggle to set the boards into programming mode
+			return Arrays.copyOf(SERIALPORT, SERIALPORT.length);
 		}
 
 		// TODO remove when testing is finished
@@ -1484,12 +1506,24 @@ public class AVRDude implements IMCUProvider {
 		String getType() {
 			String type = fType;
 			if (type == null || type == "") {
-				type = fConnectionType;
-			}
-			if (type == null || type == "") {
 				if (fParent != null) {
 					type = fParent.getType();
 				}
+			}
+			return type;
+		}
+
+		String getConnectionType() {
+			String type = fConnectionType;
+			if (type == null || type == "") {
+				if (fParent != null) {
+					type = fParent.getConnectionType();
+				}
+			}
+			// Connection type is a new avrdude 6.x property
+			// If it not present, fall back to getType
+			if (type == null || type == "") {
+				type = getType();
 			}
 			return type;
 		}
@@ -1526,6 +1560,8 @@ public class AVRDude implements IMCUProvider {
 		private TargetInterface	fTargetInterface;
 
 		private String			fType;
+
+		private String			fConnectionType;
 
 		private int[]			fClockFrequencies;
 
@@ -1581,7 +1617,7 @@ public class AVRDude implements IMCUProvider {
 		 */
 		public HostInterface[] getHostInterfaces() {
 			if (fHostInterface == null) {
-				String type = getType();
+				String type = getConnectionType();
 				fHostInterface = AVRDude.getHostInterfaces(fAvrdudeId, type);
 			}
 
@@ -1611,11 +1647,11 @@ public class AVRDude implements IMCUProvider {
 
 				ClockValuesType protocol = null;
 
-				if ("usbtiny".equals(type)) {
+				if (type.equals("usbtiny")) {
 					// USBTiny pogrammer
 					protocol = ClockValuesType.USBTINY;
 
-				} else if ("jtagmki".equals(type)) {
+				} else if (type.equals("jtagmki")) {
 					// AVR ICE MkI programmer
 					protocol = ClockValuesType.JTAG1;
 
@@ -1676,6 +1712,22 @@ public class AVRDude implements IMCUProvider {
 				}
 			}
 			return fType;
+		}
+
+		/**
+		 *
+		 */
+		private String getConnectionType() {
+			if (fConnectionType == null) {
+				ConfigProgrammerEntry entry;
+				try {
+					entry = getProgrammerInfo(fAvrdudeId);
+					fConnectionType = entry.getConnectionType();
+				} catch (AVRDudeException e) {
+					fConnectionType = "";
+				}
+			}
+			return fConnectionType;
 		}
 
 		@Override

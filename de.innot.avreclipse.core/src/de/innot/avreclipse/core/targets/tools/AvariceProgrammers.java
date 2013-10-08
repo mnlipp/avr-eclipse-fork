@@ -97,7 +97,9 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "serial" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.SERIAL };
 		}
 
 		@Override
@@ -126,7 +128,9 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "usb" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.USB };
 		}
 
 		@Override
@@ -155,7 +159,9 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "usb" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.USB };
 		}
 
 		@Override
