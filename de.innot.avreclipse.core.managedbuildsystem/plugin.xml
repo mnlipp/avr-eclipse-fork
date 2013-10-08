@@ -98,6 +98,12 @@
 				defaultValue="true"
 				command="-x assembler-with-cpp"
 				commandFalse="-x assembler" />
+			<option id="de.innot.avreclipse.asm.option.omitfcpu"
+				name="Omit F_CPU"
+				category="de.innot.avreclipse.asm.category.general"
+				valueType="boolean"
+				defaultValue="false"
+				tip="Select if F_CPU is already defined in the source" />
 			<option id="de.innot.avreclipse.asm.option.warnings.nowarn"
 				name="Suppress warnings (-W)"
 				category="de.innot.avreclipse.asm.category.general"
@@ -215,7 +221,19 @@
 				defaultValue="${AVRTARGETMCU}"
 				command="-mmcu=" >
 			</option>
-			
+			<option id="de.innot.avreclipse.asm.option.targetfcpu"
+				name="MCU Clock Frequency"
+				valueType="string"
+				defaultValue="${AVRTARGETFCPU}"
+				command="-DF_CPU=${value}UL" >
+				<enablement
+					type="CMD_USAGE">
+					<checkOption
+						optionId="de.innot.avreclipse.asm.option.omitfcpu"
+						value="false">
+					</checkOption>
+				</enablement>
+			</option>
 			
 			<inputType id="de.innot.avreclipse.tool.assembler.input"
 				sources="s,S,asm"
@@ -266,7 +284,7 @@
 				name="Symbols" >
 			</optionCategory>
 			<option id="de.innot.avreclipse.compiler.option.omitfcpu"
-				name="Omit F_CPU" 
+				name="Omit F_CPU"
 				category="de.innot.avreclipse.compiler.category.syms"
 				valueType="boolean"
 				defaultValue="false" 
@@ -501,18 +519,18 @@
 				defaultValue="${AVRTARGETMCU}"
 				command="-mmcu=" >
 			</option>
-			<option id="de.innot.avreclipse.compiler.option.targetfcpu" 
+			<option id="de.innot.avreclipse.compiler.option.targetfcpu"
 				name="MCU Clock Frequency"
-				valueType="string" 
+				valueType="string"
 				defaultValue="${AVRTARGETFCPU}"
 				command="-DF_CPU=${value}UL" >
-      			<enablement
-            		type="CMD_USAGE">
-         			<checkOption
-               			optionId="de.innot.avreclipse.compiler.option.omitfcpu"
-               			value="false">
-         			</checkOption>
-      			</enablement>
+				<enablement
+					type="CMD_USAGE">
+					<checkOption
+						optionId="de.innot.avreclipse.compiler.option.omitfcpu"
+						value="false">
+					</checkOption>
+				</enablement>
 			</option>
 				
 			<inputType id="de.innot.avreclipse.compiler.winavr.input"
@@ -567,10 +585,10 @@
 				  name="Symbols">
 			</optionCategory>
 			<option id="de.innot.avreclipse.cppcompiler.option.omitfcpu"
-				name="Omit F_CPU" 
+				name="Omit F_CPU"
 				category="de.innot.avreclipse.cppcompiler.category.syms"
 				valueType="boolean"
-				defaultValue="false" 
+				defaultValue="false"
 				tip="Select if F_CPU is already defined in the source" />
 			<option id="de.innot.avreclipse.cppcompiler.option.def"
 				name="Define Syms (-D)"
@@ -827,18 +845,18 @@
 				defaultValue="${AVRTARGETMCU}"
 				command="-mmcu=" >
 			</option>
-			<option id="de.innot.avreclipse.cppcompiler.option.targetfcpu" 
+			<option id="de.innot.avreclipse.cppcompiler.option.targetfcpu"
 				name="MCU Clock Frequency"
-				valueType="string" 
+				valueType="string"
 				defaultValue="${AVRTARGETFCPU}"
 				command="-DF_CPU=${value}UL" >
-      			<enablement
-            		type="CMD_USAGE">
-         			<checkOption
-               			optionId="de.innot.avreclipse.cppcompiler.option.omitfcpu"
-               			value="false">
-         			</checkOption>
-      			</enablement>
+				<enablement
+					type="CMD_USAGE">
+					<checkOption
+						optionId="de.innot.avreclipse.cppcompiler.option.omitfcpu"
+						value="false">
+					</checkOption>
+				</enablement>
 			</option>
 		
 			<inputType id="de.innot.avreclipse.cppcompiler.input"
