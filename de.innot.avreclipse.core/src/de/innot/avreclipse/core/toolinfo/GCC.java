@@ -142,24 +142,16 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 			return fMCUmap;
 		}
 
-		boolean start = false;
-
-		// The parsing is done by reading the output line by line until a line
-		// with "Known MCU names:" is found. Then the parsing starts and all
-		// following lines are split into the mcu ids until a line is reached
-		// that does not start with a space (the mcu id lines start always with
-		// a space).
-		//
-		// Maybe this could be done with a Pattern matcher, but I don't know how
-		// to do multiline pattern matching and this is probably faster anyway
+		// The parsing, if you can call it that, it done by looking at all the
+		// lines starting with " at" or " avr".  Then the line is split into the
+		// mcu ids.
 		for (String line : stdout) {
-			if ("Known MCU names:".equals(line)) {
-				start = true;
-			} else if (start && !line.startsWith(" ")) {
-				// finished
-				start = false;
-			} else if (start) {
-				String[] names = line.split(" ");
+			if (!line.startsWith(" ")) {
+				continue;
+			}
+			if (line.trim().startsWith("at") ||
+					line.trim().startsWith("avr")) {
+				String[] names = line.trim().split(" ");
 				for (String mcuid : names) {
 					String mcuname = AVRMCUidConverter.id2name(mcuid);
 					if (mcuname == null) {
@@ -169,8 +161,6 @@ public class GCC extends BaseToolInfo implements IMCUProvider {
 					}
 					fMCUmap.put(mcuid, mcuname);
 				}
-			} else {
-				// a line outside of the "Known MCU names:" section
 			}
 		}
 
