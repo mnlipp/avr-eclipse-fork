@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AVR Eclipse Development Utilities
 Bundle-SymbolicName: de.innot.avreclipse.utils;singleton:=true
-Bundle-Version: 0.0.0
+Bundle-Version: 2.4.2.qualifier
 Bundle-ClassPath: de.innot.avreclipse.utils/
 Bundle-Activator: de.innot.avreclipse.devutils.Activator
 Bundle-Vendor: Thomas Holland
