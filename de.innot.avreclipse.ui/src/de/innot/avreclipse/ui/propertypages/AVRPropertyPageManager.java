@@ -178,7 +178,9 @@ public class AVRPropertyPageManager {
 	 *            Originating page.
 	 */
 	public static void performCancel(PropertyPage page) {
-		fConfigPropertiesMap.clear();
+		if (fConfigPropertiesMap != null) {
+			fConfigPropertiesMap.clear();
+		}
 		fProjectProps = null;
 		removePage(page);
 	}
