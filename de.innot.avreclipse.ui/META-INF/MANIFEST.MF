@@ -21,7 +21,8 @@ Require-Bundle: de.innot.avreclipse.core,
  org.eclipse.cdt.managedbuilder.ui,
  org.eclipse.cdt.ui
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7,
+ JavaSE-1.6
 Export-Package: de.innot.avreclipse.ui.actions;
   uses:="org.eclipse.jface.action,
    org.eclipse.jface.resource,

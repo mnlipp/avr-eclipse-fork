@@ -4,7 +4,8 @@ Bundle-Name: %pluginName
 Bundle-SymbolicName: de.innot.avreclipse.core.managedbuildsystem;singleton:=true
 Bundle-Version: 2.4.2.qualifier
 Bundle-Vendor: %providerName
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7,
+ JavaSE-1.6
 Export-Package: de.innot.avreclipse.mbs;uses:="org.eclipse.cdt.managedbuilder.core,org.eclipse.cdt.managedbuilder.macros,org.eclipse.cdt.managedbuilder.envvar",
  de.innot.avreclipse.mbs.converter;uses:="org.eclipse.cdt.managedbuilder.core",
  de.innot.avreclipse.mbs.scannerconfig;
