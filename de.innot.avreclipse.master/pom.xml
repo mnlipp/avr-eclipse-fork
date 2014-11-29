@@ -5,7 +5,7 @@
 
 	<groupId>avreclipse</groupId>
 	<artifactId>master</artifactId>
-	<version>2.4.2-SNAPSHOT</version>
+	<version>2.4.2</version>
 	<packaging>pom</packaging>
 
 	<name>AVR Eclipse</name>

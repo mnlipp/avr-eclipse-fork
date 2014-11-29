@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Core.Test
 Bundle-SymbolicName: de.innot.avreclipse.core.test
-Bundle-Version: 2.4.2.qualifier
+Bundle-Version: 2.4.2
 Bundle-Vendor: Thomas Holland
 Fragment-Host: de.innot.avreclipse.core;bundle-version="0.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
