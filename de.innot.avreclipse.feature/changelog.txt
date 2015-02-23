@@ -289,7 +289,7 @@ Changed / Improved:
   - Changed to a working Dependency Calculator. Dependencies are now correctly handled
     during the build process.
   - Changed Debug format to default "stabs". "stabs" and "dwarf-2" have new descriptive texts.
-    Thanks to Jï¿½rg Wï¿½nsch for explaining the debug format options
+    Thanks to Jörg Wünsch for explaining the debug format options
   - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
   - included the same options as mfile (avr-gcc makefile generator)
     + Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
