@@ -57,6 +57,11 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	dragon_dw("Atmel AVR Dragon in debugWire mode") {
@@ -81,13 +86,20 @@ public enum AvariceProgrammers implements IProgrammer {
 			return false;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	jtag1("Atmel JTAG ICE (mkI)") {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "serial" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.SERIAL };
 		}
 
 		@Override
@@ -105,13 +117,20 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	jtag2("Atmel JTAG ICE mkII") {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "usb" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.USB };
 		}
 
 		@Override
@@ -129,13 +148,20 @@ public enum AvariceProgrammers implements IProgrammer {
 			return true;
 		}
 
+		@Override
+		public boolean hasParent() {
+			return false;
+		}
+
 	},
 
 	jtag2dw("Atmel JTAG ICE mkII in debugWire mode") {
 
 		@Override
 		public HostInterface[] getHostInterfaces() {
-			return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			// AVRDUDE 6.x says that this is a "usb" connection_type.
+			//return new HostInterface[] { HostInterface.SERIAL, HostInterface.USB };
+			return new HostInterface[] { HostInterface.USB };
 		}
 
 		@Override
@@ -150,6 +176,11 @@ public enum AvariceProgrammers implements IProgrammer {
 
 		@Override
 		public boolean isDaisyChainCapable() {
+			return false;
+		}
+
+		@Override
+		public boolean hasParent() {
 			return false;
 		}
 

@@ -537,7 +537,10 @@ public class AVRDudeProperties {
 
 		// add the other options field
 		if (fOtherOptions.length() > 0) {
-			arguments.add(fOtherOptions);
+			String[] options = fOtherOptions.split("\\s+");
+			for (String option : options) {
+				arguments.add(option);	
+			}
 		}
 
 		return arguments;
