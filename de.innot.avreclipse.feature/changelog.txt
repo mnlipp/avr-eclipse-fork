@@ -1,0 +1,373 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Change Log                           *
+*                                                                              *
+* A plugin supporting the development of applications for the AVR series       *
+* of Processors.                                                               *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+
+================================================================================
+Version 2.4.2
+
+Changed / Improved:
+-----------------------------
+
+Fixes (numbers as in https://sourceforge.net/p/avr-eclipse/bugs):
+-----------------------------
+
+
+
+================================================================================
+Version 2.4.1
+
+Changed / Improved:
+-----------------------------
+* The build process was updated to use tycho 0.16.0
+* The search for AVR tools on Linux has been modified a little. /usr was
+  replaced by /usr/bin and /home is removed.  This speeds up the discovery
+  of installed tools on systems that have large /usr/src directories.
+
+Fixes (numbers as in https://sourceforge.net/p/avr-eclipse/bugs):
+-----------------------------
+#59, #61        On MacOS with CrossPack-AVR the list of supported MCUs was
+                not given. And thus the user could not select any device.
+#60             Adding -v option for avrdude would abort device
+                communication
+#49             Default configuration adds more sections to exclude from
+                the flash .hex
+
+
+
+================================================================================
+Version 2.4.0 [04. March 2012]
+
+Changed / Improved:
+-----------------------------
+* S/R 3248913: Changed the license of the Plugin from the GPL to the EPL
+               (Eclipse Public License) so that the plugin can be bundled
+               and distributed together with Eclipse.
+* Fuse description files updated to AVR Studio 5.0.1223
+
+Fixes:
+-----------------------------
+* Bug 3417812: NullPointerExeption with AVRDeviceExplorer
+* Bug 3366241: avrdude "operation not permitted" error.
+* Bug 3304786: Symbols not found
+               The whole Symbol Discovery mess should now work correctly,
+               i.e. changing the MCU will clear all cached Paths and Symbols
+               and will rerun both Discovery and the indexer.
+
+
+================================================================================
+Version 2.3.4 [07. August 2010]
+
+Changed / Improved:
+-----------------------------
+* F/R 2905839: Upload Project To Target Device from any point in Project
+
+Fixes:
+-----------------------------
+* Bug 3023718: Errors when working with XMega MCUs
+* Bug 2872447: getWinAVRBasePath throws exception on Vista 64 (finally)
+  
+================================================================================
+Version 2.3.3 [01. July 2010]
+
+Fixes:
+-----------------------------
+* Bug 3023252: NullPointerException when opening the Properties of a "Makefile" 
+               AVR-GCC Toolchain project.
+  
+================================================================================
+Version 2.3.2 [29. June 2010]
+
+Changed / Improved:
+-----------------------------
+* Fuse description files updated to AVR Tools Build 700 (4.18 SP2)
+* Bug 2485661: Added a new Assembler tool settings option for assembler specific
+               paths (-Wa,-I)
+* F/R 2459280: gnu99 language standard now default for new projects
+* Plugin download is now a P2 repository which can be installed via "Install New Software..."
+               
+Fixes:
+-----------------------------
+* Bug 2453936: AVR specific GUI Elements visible in all Perspectives
+* Bug 2453946: ClassCastExceptions / [All Configurations]
+               Partial fix -- no Exceptions anymore but MultiConfig still not supported
+* Bug 2454094: Remove AVRDude settings from static library projects
+* Bug 2494131: Invalid optional paths block the Paths Preference page
+* Bug 2715567: Tool Settings: Assembler Debug Format not inhibited
+* Bug 2872447: getWinAVRBasePath throws exception on Vista 64
+* avr/io.h parser updated for recent changes in the avr/io.h format
+
+  
+================================================================================
+Version 2.3.1 [04. December 2008]
+
+Fixes:
+-----------------------------
+* Fixed Bug that could cause the plugin to fail completely under some circumstances.
+  (java.lang.NoClassDefFoundError)
+  
+================================================================================
+Version 2.3.0 [02. December 2008]
+
+New:
+-----------------------------
+* Support for Fuses / LockBits files
+  - Two new wizards to create fuse and lockbit files (New -> Other -> AVR -> ....)
+  - An editor to edit these files.
+  - The files can be selected as the fuses / lockbits source on the AVRDude property
+    Fuses / Lockbits pages.
+
+* Detailed preview of the selected fuse bytes on the project 
+  AVRDude property Fuses / Lockbits pages. 
+
+
+Changed / Improved:
+-----------------------------
+* ATXmega processors are now fully supported. (Except for the upload with 
+  avrdude because avrdude 5.5 does not yet support the ATXmega line.)
+  
+* The AVRDude project properties now have a new field "other options" to add
+  avrdude options not supported by the plugin. (As of version 2.3 the plugin
+  supports all options for avrdude version 5.5).
+
+* Improved path handling.
+  All system paths are now saved in a persistent cache, so they need to be
+  searched only once. 
+  By default the plugin will still search all paths at startup, but this can
+  be inhibited on the AVR preference page. Once inhibited any system 
+  reconfigurations (like a new avr-gcc toolchain in a different directory) 
+  are not automatically recognized any more.
+  In this case the new "Rescan" button on the AVR path preferences can be 
+  used to look for the new path.
+  
+  Improved since 2.3 Beta 1
+
+* "Upload to Target Hardware" method now uploads all memory segments with one call
+  to avrdude. This should speed up the upload significantly for most configurations.
+  
+* Fuse description files now based on AVR Tools 4.15 Build 623
+
+* Updated links to the datasheets.
+
+
+Fixes:
+-----------------------------
+
+* Bug 1962594: Searching for System Paths slow on Linux.
+  See above for a description of the fix.
+
+* Bug 2008171: Build System ignores .c files in C++ project - Fixed.
+  
+* Bug 2011424: Added a descriptive error message when the build directory is
+  not valid.
+  
+* Bug 2020689: avrdude option -D (Disable auto erase for flash) missing.
+  Fixed: added option to inhibit auto erase. 
+  
+* Bug 2050945: Read Back of "Enable Individual Settings ..."
+  Fixed: removed internal caching of project setting.
+  
+* Bug 2071415: Timing issue with USB / AVR Dragon
+  Fixed by adding a user selectable delay between avrdude programming calls.
+  The value is set on the Programmer Configuration dialog
+  (Window -> Preferences -> AVR -> AVRDude -> Programmer configurations -> Edit...)
+  
+* Signature based autorecognition of attached MCU will now use the MCU with the shortest
+  name when multiple MCUs share the same signature (e.g. ATmega169 / ATmega169P).
+  This makes working with the AVR Butterfly easier.
+
+  Fixed since 2.3 Beta 1:
+  
+* Bug 2136888: Custom path to avrdude executable not honored in build.
+  Fixed: The build process now takes custom avrdude paths into account.
+  
+* Bug 2347110: AVRDude "Upload to target hardware" fails silently when the project
+  name contains an "-U".
+  Fixed.
+  
+================================================================================
+Version 2.2.0 [18-June-2008]
+
+New:
+-----------------------------
+* AVRDude support
+  - A list of Programmers can be managed via the AVRDude preferences.
+  - AVRDude project properties to set all properties.
+  - (optional) avrdude tool in toolchain to auto-upload the project whenever the project is build.
+  - "Upload Project to Device" action in the project context menu to manually upload with avrdude.
+  - Optional upload via toolbar action or hotkey (Ctrl+Alt+U on Windows) (not in 2.2beta1)
+    
+* Target Hardware properties can now also be defined per build configuration.
+  - Enable in the project properties on the AVR page.
+
+* Supported MCU View
+  - Show a list of all MCUs supported by the plugin and various subsystems like gcc and avrdude.
+  - Clickable hyperlinks to the Atmel datasheets for most MCUs.
+  - Open with "Window > Show View -> Other... -> AVR -> AVR Supported MCUs"
+
+Changed / Improved:
+-----------------------------
+* AVR Device Explorer
+  The Device Explorer is now a "Selection Listener" and "Selection Provider".
+  When selecting a AVR project or a text which starts with a valid MCU name,
+  the associated MCU information is shown in the Device Explorer
+
+* Build variables
+  The build variables defined by the plugin (e.g. ${AVRTARGETMCU} and ${AVRTARGETFCPU}) can now 
+  have an optional argument to read the value from a different project or build configuration.
+  Example: ${AVRTARGETMCU:project01/release} gets the target mcu of the "release" configuration of 
+           project "project01".
+
+* Changed since 2.2beta1:
+  - Most of the user documentation updated to 2.2 incl. a tutorial on how to use avrdude.
+    Some features are still lack a user documentation (will be completed in one of the next releases)
+  - List of datasheets, signatures, fusebytes and lockbits updated to AVR Studio Build 589
+    (ATXmega MCUs only partially supported -- no fusebytes/Lockbits yet)
+
+Fixes:
+-----------------------------
+* Windows: Now the last installed version of winAVR is used when multiple winAVR
+  versions are installed
+  
+* Multiple failures when some / all of the paths were invalid. Fixed and replaced by error messages.
+  
+* Fixed since 2.2beta1:
+  - Plugin did not parse programmer ids with "-" or "_" from avrdude output (Bug 1984307)
+  - AVR popup menu was not shown in C/C++ Explorer
+  
+
+================================================================================
+Version 2.1.1 [25 March 2008]
+
+Fixes:
+-----------------------------
+* Bug 1892250: Error when showing the "AVR Target Hardware" Properties
+* Bug 1911201: No MCU Target Hardware options for Library Projects
+
+================================================================================
+Version 2.1.0 [10 February 2008]
+
+New:
+-----------------------------
+* C++ Support
+  - Added C++ Compiler and C++ Linker to the toolchain. 
+    (Feature Request 1861864)
+
+* AVR Paths preference page
+  - New preference page to manage the paths to the avr-gcc toolchain.
+
+* Project Update Converter. 
+  - Selectable via "Convert to..." in the project context menu.
+  - Updates the project to most changes for version 2.1
+
+* List of supported MCU types determined at runtime.
+  - The plugin executes "avr-gcc --target-help" to get a list of all AVR target 
+    processors the selected avr-gcc toolchain support.
+
+* Added an AVR Project Nature.
+  - Applied to all projects created with the new project wizard, and old projects 
+    updated with the project converter. 
+  - Restricts AVR GUI Elements to AVR Projects. 
+  
+* Added ScannerConfigurationDiscoveryProfile(s)
+  - avr-gcc build-in include paths and symbols are now correctly discovered
+    (Feature Request 1861866)
+
+Changed / Improved:
+-----------------------------
+* Target Hardware settings are now project settings. They apply to all Build Configurations
+  (Feature Requests 1861874 / 1751707)
+
+* Assembler Tool
+  - Added Dependency Calculator to the input. Dependencies on .h header files are now handled.
+  - Changed Debug format option to default "stabs" (the only format avr-gas can produce)
+
+* Compiler Tool
+  - Changed to a working Dependency Calculator. Dependencies are now correctly handled
+    during the build process.
+  - Changed Debug format to default "stabs". "stabs" and "dwarf-2" have new descriptive texts.
+    Thanks to J�rg W�nsch for explaining the debug format options
+  - removed -ggdb option because I don't really know what it does (mail me if you actually need this)
+  - included the same options as mfile (avr-gcc makefile generator)
+    + Added "-fpack-struct" and "-fshort-enums" options to the optimization flags.
+    + Added "-funsigned-char" and "-funsigned-bitfields" to the language flags
+  - -c (compile only) option now build in and not required under "other options".
+    This was actually changed for 2.0.1, but I forgot to document it.
+  - "UL" appended to the F_CPU value passed to the compiler (same behaviour as mfile)
+
+* Additional Tools
+  - Handling of additional Tools now done via <enablement> instead of manipulating 
+    ManagedBuildSystem internals. (=> Order of Add. Tools is now fixed and cannot
+    be changed)
+
+* Documentation
+  - Updated and slightly increased
+
+Fixes:
+-----------------------------
+* All Tools
+  - Changed toolnames from "winAVR ..." to "AVR ..." (Bug 1861870)
+
+* Compiler Tool
+  - Missing Compiler Options are fixed by the project update converter (Bug 1861293)
+
+* Linker Tool
+  - Changed default map filename to ${BuildArtifactFileBaseName}.map (Bug 1867615)
+
+* Size Tool
+  - Determine at runtime if "--format=avr" option is available and only use it if it is supported.
+
+* AVR Device Explorer
+  - Now displays an error message box on errors reading the <avr/io.h> file (Bug 1860840)
+
+================================================================================
+Version 2.0.1 [29 December 2007]
+
+The main point of this release is to fix the avr-size bug that made it impossible 
+to use the Size tool on non-winAVR toolchains (Linux / MacOSX). Some other fixes
+minor features are included as well.
+
+Features:
+* Assembler Tool
+   - Added options to use preprocessor and for debug information
+ * Compiler Tool
+   - Added option to omit the F_CPU definition from the commandline
+   - Added options for debug level and debug information format
+   - Added option to select the language standard (Bug 1783023)
+ * Size Tool
+   - Added option to display size in hex
+
+Fixes:
+* Assembler Tool
+   - Changed command from avr-as to avr-gcc to enable the preprocessor for assembler sources
+   - Extended the org.eclipse.cdt.core.asmSource contentType to include (uppercase) .S files
+* Size Tool
+   - fixed the bug that -mcu was always passed on to commandline, regardless of format
+   - Only the size formats applicable to the platform are shown
+* Other
+   - fixed wrong paths on non-Windows platforms, now looks in /usr/bin and /usr/local/bin.
+     The whole path managment will be rewritten in 2.1
+ 
+================================================================================
+Version 2.0.0 [27 December 2007]
+
+This is the first offical release of the completely rewritten AVR Eclipse Plugin. 
+The major changes to the last released version 20070813 are:
+
+Features:
+ * MCU Type and Clock Frequency set only once per configuration (request 1751707)
+ * Debug and Release build Configurations
+ * Application and Static Library build types (static lib not tested yet)
+ * Builds hex, eep and lss files (user selectable)
+ * Assembler integrated into toolchain. (request 1755284 / 1787770)
+ * A new viewer to show some information about AVR processors (based on patch 1701653)
+ * Basic documentation incl. a small tutorial on how to create a AVR application project
+ 
+Fixes:
+ * Works with CDT 4.0 / Eclipse 3.3 (CDT 3.0 / Eclipse 3.2 not supported anymore)
+ * Optimize for size included in compiler options (bug 1772860)
+ * Windows: Finds paths to the winAVR executables if they are not on the path.
+ * LIBS and USER_OBJS included in the linking process.

@@ -1,0 +1,161 @@
+********************************************************************************
+*                      AVR Eclipse Plugin Release Notes                        *
+*                                                                              *
+* A plugin supporting the development of applications for the                  *
+* AVR series of Processors.                                                    *
+* See details at http://avr-eclipse.sourceforge.net                            *
+********************************************************************************
+
+================================================================================
+Version 2.4.0
+
+The AVR Eclipse Plugin is now licensed under the EPL 1.0 instead of the GPL.
+This was done to facilitate bundling the plugin together with Eclipse and also
+to allow easier code "borrowing" from the Eclipse/CDT source code.
+
+Also the issues with the discovery of paths and symbols should be fixed, making 
+the plugin work better under Eclipse Indigo (3.7).
+Other than that there are no new features and only a few small bugfixes to make 
+the plugin more compatible with the latest releases of the AVR Toolchain.
+
+================================================================================
+Version 2.3.4
+
+This release fixes the long standing issues with running on 64bit Windows. Also
+XMegas are now fully supported (at least as far as WinAVR supports them)
+
+================================================================================
+Version 2.3.3
+
+This release fixes a single bug that caused failures with "makefile" AVR-GCC Projects.
+
+================================================================================
+Version 2.3.2
+
+This release fixes some bugs and minor issues. See Changelog.txt for details.
+
+================================================================================
+Version 2.3.1
+
+This is a major release with some new features
+
+1. What's new
+
+	* Support for Fuses / LockBits files
+		- Two new wizards to create fuse and lockbit files (New -> Other -> AVR -> ....)
+		- An editor to edit these files.
+		- The files can be selected as the fuses / lockbits source on the AVRDude property
+		  Fuses / Lockbits pages.
+
+	* Detailed preview of the selected fuse bytes on the project 
+	  AVRDude property Fuses / Lockbits pages. 
+
+	* Some improvements "under the hood" and some bugfixes. See the changelog for details.
+
+2. Information
+
+2.1. System Requirements
+
+   AVR Eclipse requires JRE 1.5 or higher and supports following versions of CDT:
+    * CDT 5.0.x (Eclipse 3.4 [Ganymede])
+    * CDT 6.0.x (Eclipse 3.5 [Galileo])
+    * CDT 7.0.x (Eclipse 3.6 [Helios])
+    
+    Note: The AVR Eclipse Plugin might work with CDT 4.0.x (Eclipse 3.3 [Europa]), but this
+    hasn't been tested for quite some time.
+   
+   older versions of the JRE or of Eclipse / CDT are not supported.
+   
+   It has been tested with
+   	- Windows XP + winAVR 20081124rc3 / 20080610
+   	- Linux X86 (Ubuntu 7.10 + Ubuntu supplied avr-gcc / custom build avr-gcc)
+   	
+   	- avrdude support has been tested against avrdude 5.5. Older version are untested.
+   	
+   	It should run on all platforms meeting the system requirements.
+
+2.2 Known issues
+
+	* When changing the MCU Type of a project, Eclipse will add the discovered symbols of
+	  the new MCU to the list of "build-in" symbols, but still keeps the symbols of the 
+	  previous MCU Types (Eclipse currently never forgets any discovered symbols).
+	  The same goes for discovered include paths in case the toolchain is changed.
+	  
+================================================================================
+Version 2.2.0 release date: 18 June 2008
+
+This is a major release with some new features.
+
+1. What's new
+
+	* Support for avrdude.
+	  The plugin now supports avrdude to upload projects to a target device.
+	  See the "Upload a project..." tutorial in the Getting Started section of the user 
+	  documentation on how to use avrdude to upload projects.
+	  
+	* New "AVR Supported MCUs" View
+	  A new view has been added to show all target MCUs supported by the plugin and the external
+	  tools used by the plugin.
+	  The view can be open via Window > Show View > Other... > AVR > AVR Supported MCUs
+	  
+	* AVR target hardware properties (and avrdude properties) can now be set for each build
+	  configuration (like in 2.0, but unlike 2.1)
+	  
+	* Some improvements "under the hood" and some bugfixes. See the changelog for details.
+
+
+
+================================================================================
+Version 2.1.1 release date: 25 March 2008
+
+This release fixes two bugs. See the Changelog.txt for details.
+
+================================================================================
+Version 2.1.0 release date: 10 February 2008
+
+This is an intermediate release with both bug fixes and new features.
+
+This release is not compatible with the 2.0 versions. To update projects created
+with a 2.0.x version, a project converter is available.
+To execute the converter right click on your project and select the "Convert To..."
+item.
+
+Avrdude - one of the most requested features - is still not supported, but there
+is already some framework code in place for the integration of avrdude in the next
+release.
+
+1. What's new
+
+	* C/C++ Support
+	  Just create a new "C++ Project" and select one of the "AVR Cross Target" items.
+
+	* Preference Page to manage the paths to the avr-gcc toolchain
+	  Use this if you have problems with the correct paths. The plugin still tries to
+	  determine the paths to the avr-gcc toolchain and some other files itself, but 
+	  the discovered paths can now be manually adjusted.
+
+	* The MCU type setting is now a project property setting
+	  Right click on an AVR Project and select the AVR Target Hardware item to set the 
+	  MCU Type and Frequency.
+	  Note: per configuration selection of the MCU / F_CPU will come back in one of the 
+	  next versions, but implemented differently than in the 2.0 version.
+
+	* A dedicated "Discovery Profile".
+	  On the project properties go to C/C++ Build --> Discovery Options and select
+	  "AVRGCCManagedMakePerProjectProfileC" or "AVRGCCManagedMakePerProjectProfileCPP".
+	  Then Eclipse will automatically determine the path to the system header filer (e.g. <avr/io.h>)
+	  This is very useful as now an F3 on any #include <....> will open the file. Also the source 
+	  editor will color #ifdef (__AVR_yourMCUtype__) sections correctly (see known issues below).
+
+	* Additional Options for the Compiler.
+	  A few options have been added that are also the default on mfile generated makefiles.
+
+	* Dependencies for the Compiler (and Assembler) work now, so any changes to a header file
+	  will cause all dependent source files to be rebuild.
+
+	* List of supported MCUs determined at runtime.
+	  Now the plugin is always in sync with your avr-gcc / winAVR version.
+
+	* Numerous improvements "under the hood" and some bugfixes. See the changelog for details.
+	
+
