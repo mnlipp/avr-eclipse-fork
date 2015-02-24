@@ -168,12 +168,12 @@ public class AVRDudeTest {
 
 			IProgrammer type = AVRDude.getDefault().getProgrammer(avrdudeid);
 
-			assertEquals(avrdudeid + ": # host interfaces", eNumHostInterfaces, type
-					.getHostInterfaces().length);
+			assertEquals(avrdudeid + ": # host interfaces", eNumHostInterfaces,
+					type.getHostInterfaces().length);
 			assertEquals(avrdudeid + ": host interface", eHostInterface,
 					type.getHostInterfaces()[0]);
-			assertEquals(avrdudeid + ": target interfaces", eTargetInterface, type
-					.getTargetInterface());
+			assertEquals(avrdudeid + ": target interfaces", eTargetInterface,
+					type.getTargetInterface());
 		}
 	}
 
