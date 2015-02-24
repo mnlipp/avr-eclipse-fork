@@ -53,17 +53,17 @@ public class AvariceProgrammersTest {
 			IProgrammer avrdudeprogger = AVRDude.getDefault().getProgrammer(id);
 
 			if (avrdudeprogger != null) {
-				assertEquals("Difference in Description: ", avrdudeprogger.getDescription(),
-						progger.getDescription());
-				assertArrayEquals("Difference in HostInterfaces: ", avrdudeprogger
-						.getHostInterfaces(), progger.getHostInterfaces());
-				assertEquals("Difference in TargetInterfaces: ", avrdudeprogger
-						.getTargetInterface(), progger.getTargetInterface());
-				assertArrayEquals("Difference in Target clocks: ", avrdudeprogger
-						.getTargetInterfaceClockFrequencies(), progger
-						.getTargetInterfaceClockFrequencies());
-				assertEquals("Difference in Daisy Chain: ", avrdudeprogger.isDaisyChainCapable(),
-						progger.isDaisyChainCapable());
+				assertEquals(id + ": Difference in Description: ",
+						avrdudeprogger.getDescription(), progger.getDescription());
+				assertArrayEquals(id + ": Difference in HostInterfaces: ",
+						avrdudeprogger.getHostInterfaces(), progger.getHostInterfaces());
+				assertEquals(id + ": Difference in TargetInterfaces: ",
+						avrdudeprogger.getTargetInterface(), progger.getTargetInterface());
+				assertArrayEquals(id + ": Difference in Target clocks: ",
+						avrdudeprogger.getTargetInterfaceClockFrequencies(),
+						progger.getTargetInterfaceClockFrequencies());
+				assertEquals(id + ": Difference in Daisy Chain: ",
+						avrdudeprogger.isDaisyChainCapable(), progger.isDaisyChainCapable());
 			}
 
 		}

@@ -136,7 +136,7 @@ public class AVRDudeTest {
 				{ "avr109", 1, HostInterface.SERIAL, TargetInterface.BOOTLOADER },
 				{ "avr910", 1, HostInterface.SERIAL, TargetInterface.BOOTLOADER },
 				{ "dragon_dw", 1, HostInterface.USB, TargetInterface.DW },
-				{ "jtag2dw", 2, HostInterface.SERIAL, TargetInterface.DW },
+				{ "jtag2dw", 1, HostInterface.USB, TargetInterface.DW },
 				{ "dragon_pp", 1, HostInterface.USB, TargetInterface.PP },
 				{ "stk500pp", 1, HostInterface.SERIAL, TargetInterface.PP },
 				{ "stk600pp", 1, HostInterface.USB, TargetInterface.PP },
@@ -144,15 +144,17 @@ public class AVRDudeTest {
 				{ "stk500hvsp", 1, HostInterface.SERIAL, TargetInterface.HVSP },
 				{ "stk600hvsp", 1, HostInterface.USB, TargetInterface.HVSP },
 				{ "dragon_jtag", 1, HostInterface.USB, TargetInterface.JTAG },
-				{ "jtag1", 2, HostInterface.SERIAL, TargetInterface.JTAG },
-				{ "jtag2", 2, HostInterface.SERIAL, TargetInterface.JTAG },
+				{ "jtag1", 1, HostInterface.SERIAL, TargetInterface.JTAG },
+				{ "jtag2", 1, HostInterface.USB, TargetInterface.JTAG },
 				{ "xil", 1, HostInterface.PARALLEL, TargetInterface.ISP },
 				{ "dragon_isp", 1, HostInterface.USB, TargetInterface.ISP },
-				{ "jtag2isp", 2, HostInterface.SERIAL, TargetInterface.ISP },
+				{ "jtag2isp", 1, HostInterface.USB, TargetInterface.ISP },
 				{ "bsd", 1, HostInterface.PARALLEL, TargetInterface.ISP },
 				{ "frank-stk200", 1, HostInterface.PARALLEL, TargetInterface.ISP },
-				{ "ponyser", 1, HostInterface.SERIAL_BB, TargetInterface.ISP },
-				{ "c2n232i", 1, HostInterface.SERIAL_BB, TargetInterface.ISP },
+				// avrdude 6.1 has serial, older avrdude has serbb
+				//{ "ponyser", 1, HostInterface.SERIAL_BB, TargetInterface.ISP },
+				// avrdude 6.1 has serial, older avrdude has serbb
+				//{ "c2n232i", 1, HostInterface.SERIAL_BB, TargetInterface.ISP },
 				{ "usbasp", 1, HostInterface.USB, TargetInterface.ISP },
 				{ "usbtiny", 1, HostInterface.USB, TargetInterface.ISP }
 
