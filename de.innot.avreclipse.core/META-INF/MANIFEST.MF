@@ -63,5 +63,6 @@ Export-Package: de.innot.avreclipse;uses:="org.eclipse.core.runtime,org.eclipse.
  de.innot.avreclipse.util;uses:="org.eclipse.core.runtime"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: de.innot.avreclipse.AVRPlugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7,
+ JavaSE-1.6
 Import-Package: org.eclipse.ui.preferences

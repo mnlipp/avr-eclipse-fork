@@ -11,8 +11,8 @@
 	<parent>
 		<version>2.5.0-SNAPSHOT</version>
 		<groupId>avreclipse</groupId>
-        <artifactId>master</artifactId>
-        <relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
+		<artifactId>master</artifactId>
+		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
 	</parent>
 
 	<artifactId>de.innot.avreclipse.debug.tests</artifactId>
