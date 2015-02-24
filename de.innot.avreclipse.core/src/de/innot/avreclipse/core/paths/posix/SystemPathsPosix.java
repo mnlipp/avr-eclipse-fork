@@ -33,12 +33,16 @@ import de.innot.avreclipse.core.paths.SystemPathHelper;
  * <li><code>find</code> command to search certain parts of the filesystem. Currently the
  * following paths are checked (in this order)
  * <ul>
- * <li><code>/usr/local/</code></li>
- * <li><code>/usr/</code></li>
+ * <li><code>/usr/bin</code></li>
+ * <li><code>/usr/lib</code></li>
+ * <li><code>disabled /usr/</code></li>
  * <li><code>/opt/</code></li>
- * <li><code>/etc/</code></li>
+ * <li><code>/usr/local/bin</code></li>
+ * <li><code>/usr/local/lib</code></li>
+ * <li><code>/usr/local/</code></li>
  * <li><code>~/</code></li>
- * <li><code>/home/</code></li>
+ * <li><code>disabled /home</code></li>
+ * <li><code>/etc/</code></li>
  * </ul>
  * </li>
  * </ol>
@@ -58,8 +62,19 @@ public class SystemPathsPosix {
 	// /etc/ was used to find the avrdude.conf file. While this is currently not
 	// required I leave it in just in case we will be looking for some other
 	// configuration file in a future version of the plugin.
-	private final static String[]	fSearchPaths	= { "/usr/local/", "/usr/", "/opt/", "~/",
-			"/home/", "/etc/"						};
+	// TODO Perhaps we can make this list configurable. Volunteers?
+	private final static String[]	fSearchPaths	= {
+		"/usr/bin",
+		"/usr/lib",
+		// no "/usr",
+		"/opt/",
+		"/usr/local/bin",
+		"/usr/local/lib",
+		"/usr/local/",
+		"~/",
+		// "/home/",
+		"/etc/",
+	};
 
 	private SystemPathsPosix() {
 		// prevent instantiation

@@ -252,7 +252,9 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 		// Translate ICResourceDescription to AVRProjectProperties and pass them
 		// to the subclass.
 		AVRProjectProperties props = AVRPropertyPageManager.getConfigProperties(resdesc);
-		updateData(props);
+		if (props != null) {
+			updateData(props);
+		}
 	}
 
 	/*

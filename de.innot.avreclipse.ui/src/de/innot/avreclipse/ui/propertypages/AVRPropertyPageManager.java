@@ -178,7 +178,9 @@ public class AVRPropertyPageManager {
 	 *            Originating page.
 	 */
 	public static void performCancel(PropertyPage page) {
-		fConfigPropertiesMap.clear();
+		if (fConfigPropertiesMap != null) {
+			fConfigPropertiesMap.clear();
+		}
 		fProjectProps = null;
 		removePage(page);
 	}
@@ -234,11 +236,13 @@ public class AVRPropertyPageManager {
 		// Syncing means that all changes made are lost, so we cache the objects in order to keep
 		// all modifications until either the performOK() or the performCancel() method is
 		// called.
-		if (fConfigPropertiesMap.containsKey(buildcfg.getId())) {
-			props = fConfigPropertiesMap.get(buildcfg.getId());
-		} else {
-			props = fPropertiesManager.getConfigurationProperties(buildcfg);
-			fConfigPropertiesMap.put(buildcfg.getId(), props);
+		if (fConfigPropertiesMap != null) {
+			if (fConfigPropertiesMap.containsKey(buildcfg.getId())) {
+				props = fConfigPropertiesMap.get(buildcfg.getId());
+			} else {
+				props = fPropertiesManager.getConfigurationProperties(buildcfg);
+				fConfigPropertiesMap.put(buildcfg.getId(), props);
+			}
 		}
 		return props;
 	}

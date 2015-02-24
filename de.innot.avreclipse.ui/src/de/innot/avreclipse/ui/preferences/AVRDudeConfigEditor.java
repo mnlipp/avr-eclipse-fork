@@ -53,6 +53,7 @@ import de.innot.avreclipse.core.avrdude.ProgrammerConfigManager;
 import de.innot.avreclipse.core.targets.IProgrammer;
 import de.innot.avreclipse.core.toolinfo.AVRDude;
 import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigEntry;
+import de.innot.avreclipse.core.toolinfo.AVRDude.ConfigProgrammerEntry;
 import de.innot.avreclipse.ui.dialogs.AVRDudeErrorDialog;
 
 /**
@@ -135,7 +136,12 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			fConfigNameMap = new HashMap<String, IProgrammer>(programmers.size());
 			for (IProgrammer type : programmers) {
 				fConfigIDMap.put(type.getId(), type);
-				fConfigNameMap.put(type.getDescription(), type);
+				if (type.hasParent()) {
+					// We need a unique string and the parent may have the same description
+					fConfigNameMap.put(type.getDescription() + " (" + type.getId() + ")", type);
+				} else {
+					fConfigNameMap.put(type.getDescription(), type);
+				}
 			}
 		} catch (AVRDudeException e) {
 			AVRDudeErrorDialog.openAVRDudeError(getShell(), e, null);
@@ -164,6 +170,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 		addPortControl(composite);
 
 		addBaudrateControl(composite);
+		
+		addOtherOptionsComposite(composite);
 
 		addExitspecComposite(composite);
 
@@ -407,6 +415,43 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			}
 		});
 	}
+	
+	/**
+	 * Add the other options controls.
+	 * 
+	 * <p>
+	 * This contains a single text field where any other options not covered by
+	 * the UI can be specified
+	 * </p>
+	 * 
+	 * @param parent
+	 */
+	private void addOtherOptionsComposite(Composite parent) {
+		Group group = new Group(parent, SWT.NONE);
+		group.setText("Other options");
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		group.setLayout(new GridLayout(1, false));
+
+		Label label = new Label(group, SWT.NONE);
+		label.setText("Use this field to add any avdude option not covered by the plugin.");
+		final Text options = new Text(group, SWT.BORDER);
+		options.setText(fConfig.getOtherOptions());
+		options.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
+		options.addModifyListener(new ModifyListener() {
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.
+			 * swt.events.ModifyEvent)
+			 */
+			public void modifyText(ModifyEvent e) {
+				String otheroptions = options.getText();
+				fConfig.setOtherOptions(otheroptions);
+				updateCommandPreview();
+			}
+		});
+	}
 
 	/**
 	 * Adds the Exitspec controls.
@@ -638,7 +683,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 	 *            The multiline <code>Text</code> control for the details
 	 */
 	private void updateDetails(IProgrammer type, Text from, Text details) {
-		ConfigEntry entry;
+		ConfigProgrammerEntry entry;
 		try {
 			entry = AVRDude.getDefault().getProgrammerInfo(type.getId());
 		} catch (AVRDudeException e) {
@@ -647,8 +692,8 @@ public class AVRDudeConfigEditor extends StatusDialog {
 			from.setText("Error reading avrdude.conf file");
 			return;
 		}
-		from.setText("Programmer details from [" + entry.configfile.toOSString() + ":"
-				+ entry.linenumber + "]");
+		from.setText("Programmer details from [" + entry.fConfigfile.toOSString() + ":"
+				+ entry.fLinenumber + "]");
 		Job job = new UpdateDetailsJob(entry, details);
 		job.setSystem(true);
 		job.setPriority(Job.SHORT);
@@ -716,7 +761,7 @@ public class AVRDudeConfigEditor extends StatusDialog {
 				// But just in case we log the Error
 				Status status = new Status(Status.ERROR, AVRPlugin.PLUGIN_ID,
 						"Can't access avrdude configuration file "
-								+ fConfigEntry.configfile.toOSString(), ioe);
+								+ fConfigEntry.fConfigfile.toOSString(), ioe);
 				AVRPlugin.getDefault().log(status);
 			} finally {
 				monitor.done();
