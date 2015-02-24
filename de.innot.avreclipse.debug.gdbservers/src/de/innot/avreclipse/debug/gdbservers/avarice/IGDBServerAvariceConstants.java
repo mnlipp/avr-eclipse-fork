@@ -69,7 +69,7 @@ public interface IGDBServerAvariceConstants {
 	 */
 	public static final String		ATTR_GDBSERVER_AVARICE_INTERFACE		= PLUGIN_ID
 																					+ ".avarice.interface";
-	public static final String		DEFAULT_GDBSERVER_AVARICE_INTERFACE		= "AVR Dragon";
+	public static final String		DEFAULT_GDBSERVER_AVARICE_INTERFACE		= "--dragon";
 
 	/** The host system port for the JTAG interface. Default: "usb". */
 	public static final String		ATTR_GDBSERVER_AVARICE_JTAGPORT			= PLUGIN_ID

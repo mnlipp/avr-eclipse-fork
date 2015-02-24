@@ -48,13 +48,9 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 	/** Name to be shown in the user interface. */
 	private final static String		COMMANDNAME				= "AVaRICE";
 
-	private final static Map<String, String> AVARICE_INTERFACES
-		= new LinkedHashMap<String, String>();
-	{
-		AVARICE_INTERFACES.put(DEFAULT_GDBSERVER_AVARICE_INTERFACE, "--dragon");
-		AVARICE_INTERFACES.put("AVRISP MkI or compatible", "--mkI");
-		AVARICE_INTERFACES.put("AVRICE MkII or compatible", "--mkII");
-	}
+	private final static String[][]	AVARICE_INTERFACES		= new String[][] {
+			{ "AVR Dragon", "--dragon" }, { "AVRISP MkI or compatible", "--mkI" },
+			{ "AVRICE MkII or compatible", "--mkII" }		};
 
 	/** The (fixed?) MkI bitrates. MkII bitrates can be between 22 and 6400 kHz */
 	private final static String[]	AVARICE_JTAG_BITRATES	= new String[] { "125kHz", "250kHz",
@@ -209,8 +205,8 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 		fInterface = new Combo(interfacegroup, SWT.READ_ONLY);
 		fInterface.setToolTipText("The JTAG adapter interface which is connected to this system");
 		fInterface.setLayoutData(new GridData(SWT.BEGINNING, SWT.NONE, false, false));
-		for (String itf : AVARICE_INTERFACES.keySet()) {
-			fInterface.add(itf);
+		for (String[] interfaces : AVARICE_INTERFACES) {
+			fInterface.add(interfaces[0]);
 		}
 		fInterface.addSelectionListener(new SelectionAdapter() {
 			/*
@@ -357,18 +353,15 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 			// The JTAG interface options
 			// //////////////////////////////////////////
 
-			String jtaginterface = configuration.getAttribute(ATTR_GDBSERVER_AVARICE_INTERFACE,
+			String jtaginterface = configuration
+						.getAttribute(ATTR_GDBSERVER_AVARICE_INTERFACE,
 					DEFAULT_GDBSERVER_AVARICE_INTERFACE);
-			int entryNb = 0;
-			int idx = 0;
-			for (Map.Entry<String, String> e: AVARICE_INTERFACES.entrySet()) {
-				if (jtaginterface.equals(e.getValue())) {
-					entryNb = idx;
+			for (String[] interfaces : AVARICE_INTERFACES) {
+				if (interfaces[1].equals(jtaginterface)) {
+					fInterface.select(fInterface.indexOf(interfaces[0]));
 					break;
 				}
-				idx += 1;
 			}
-			fInterface.select(entryNb);
 
 			String jtagport = configuration.getAttribute(ATTR_GDBSERVER_AVARICE_JTAGPORT,
 					DEFAULT_GDBSERVER_AVARICE_JTAGPORT);
@@ -454,8 +447,14 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 		// The JTAG interface options
 		// //////////////////////////////////////////
 
-		String jtaginterface = AVARICE_INTERFACES.get(fInterface.getText());
-		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_INTERFACE, jtaginterface);
+		String jtaginterface = fInterface.getText();
+		for (String[] interfaces : AVARICE_INTERFACES) {
+			if (interfaces[0].equals(jtaginterface)) {
+				configuration.setAttribute(ATTR_GDBSERVER_AVARICE_INTERFACE,
+						interfaces[1]);
+				break;
+			}
+		}
 
 		String jtagport = fJTAGPort.getText();
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_JTAGPORT, jtagport);
