@@ -9,12 +9,12 @@
 
 	<parent>
 		<groupId>avreclipse</groupId>
-		<artifactId>de.innot.avreclipse.releng</artifactId>
+		<artifactId>master</artifactId>
 		<version>2.4.0-SNAPSHOT</version>
-		<relativePath>../de.innot.avreclipse-releng/pom.xml</relativePath>
+		<relativePath>../de.innot.avreclipse.master/pom.xml</relativePath>
 	</parent>
 
-	<artifactId>de.innot.avreclipse.updatesite</artifactId>
+	<artifactId>de.innot.avreclipse-updatesite</artifactId>
 	<packaging>eclipse-update-site</packaging>
 
 	<name>AVR Eclipse Generate Update Site</name>
