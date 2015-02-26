@@ -5,7 +5,6 @@ Bundle-SymbolicName: de.innot.avreclipse.ui;singleton:=true
 Bundle-Version: 2.5.0.qualifier
 Bundle-Activator: de.innot.avreclipse.ui.AVRUIPlugin
 Require-Bundle: de.innot.avreclipse.core,
- de.innot.avreclipse.core.managedbuildsystem,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
  org.eclipse.core.filesystem,
@@ -19,7 +18,8 @@ Require-Bundle: de.innot.avreclipse.core,
  org.eclipse.cdt.make.ui,
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.cdt.managedbuilder.ui,
- org.eclipse.cdt.ui
+ org.eclipse.cdt.ui,
+ de.innot.avreclipse.core.managedbuildsystem
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: de.innot.avreclipse.ui.actions;
