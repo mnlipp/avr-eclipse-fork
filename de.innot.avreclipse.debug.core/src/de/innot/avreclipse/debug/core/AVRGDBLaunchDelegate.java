@@ -72,7 +72,8 @@ public class AVRGDBLaunchDelegate extends GDBJtagDSFLaunchConfigurationDelegate 
 		}		
 	}
 
-	protected IDsfDebugServicesFactory newServiceFactory(String version) {
+	protected IDsfDebugServicesFactory newServiceFactory
+				(ILaunchConfiguration config, String version) {
 		return new AVRDebugServicesFactory(version);
 	}
 	
