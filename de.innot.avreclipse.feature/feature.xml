@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.innot.avreclipse"
-      label="%featureName"
+      label="AVR Eclipse Plugin"
       version="2.5.0.qualifier"
-      provider-name="%providerName"
+      provider-name="AVR Eclipse Plugin"
       plugin="de.innot.avreclipse.core">
 
    <description>
@@ -19,20 +19,38 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
+      <update label="AVR Eclipse Plugin Update Site" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
       <discovery label="%discoverySiteName" url="http://avr-eclipse.sourceforge.net/updatesite/"/>
    </url>
 
    <requires>
       <import plugin="org.eclipse.cdt.core" version="4.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core"/>
-      <import plugin="org.eclipse.cdt.managedbuilder.ui"/>
-      <import plugin="org.eclipse.cdt.ui"/>
-      <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.core.filesystem"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.cdt.managedbuilder.ui"/>
+      <import plugin="org.eclipse.cdt.ui"/>
+      <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="org.eclipse.core.expressions"/>
+      <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.cdt.core" version="4.0.1" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.make.ui"/>
+      <import plugin="org.eclipse.cdt.debug.mi.core"/>
+      <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.debug.core"/>
+      <import plugin="org.eclipse.cdt.launch"/>
+      <import plugin="org.eclipse.cdt.dsf.gdb"/>
+      <import plugin="org.eclipse.cdt.dsf"/>
+      <import plugin="org.eclipse.cdt.debug.gdbjtag.core"/>
+      <import plugin="org.eclipse.core.variables"/>
+      <import plugin="org.eclipse.debug.ui"/>
    </requires>
 
    <plugin
