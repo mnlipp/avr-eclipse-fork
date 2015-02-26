@@ -251,7 +251,7 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 				String id = fNameToIdMap.get(name);
 				Composite page = fPages.get(id);
 				fPageBook.showPage(page);
-
+				updateDialog();
 			}
 		});
 
