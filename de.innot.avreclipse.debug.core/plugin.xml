@@ -15,7 +15,16 @@
 	</extension>
 	
 	
-	
+	<extension point="org.eclipse.cdt.debug.core.CDebugger">
+		<debugger
+			id="de.innot.avreclipse.debug.core.AVRGDBDebugger"
+			class="de.innot.avreclipse.debug.core.AVRGDBDebugger"
+			platform="*"
+			name="avr-gdb debugger"
+			modes="run"
+			cpu="*"
+		/>
+	</extension>
 	
 	
  <extension
