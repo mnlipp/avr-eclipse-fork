@@ -37,8 +37,8 @@ public class AVRGDBControl extends GDBControl {
 	}
 
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-		GdbLaunch launch = (GdbLaunch)getSession().getModelAdapter(ILaunch.class);
-		IGDBBackend backend = getServicesTracker().getService(IGDBBackend.class);
-		return new AVRGDBFinalLaunchSequence(getExecutor(), launch, backend.getSessionType(), backend.getIsAttachSession(), rm);
-	}
+//		GdbLaunch launch = (GdbLaunch)getSession().getModelAdapter(ILaunch.class);
+//		IGDBBackend backend = getServicesTracker().getService(IGDBBackend.class);
+//		return new AVRGDBFinalLaunchSequence(getExecutor(), launch, backend.getSessionType(), backend.getIsAttachSession(), rm);
+		return new GDBJtagDSFFinalLaunchSequence(getSession(), attributes, rm);	}
 }

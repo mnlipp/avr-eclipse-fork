@@ -10,9 +10,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.debug.gdbservers.avarice;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -432,10 +430,22 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
 			if (selectedServer.equals(this.getClass().getPackage().getName())) {
 				configuration.setAttribute
-					(IAVRGDBConstants.ATTR_GDBSERVER_IP_ADDRESS,
-							DEFAULT_GDBSERVER_AVARICE_HOSTNAME);
+					(IGDBJtagConstants.ATTR_JTAG_DEVICE, "Generic TCP/IP");
 				configuration.setAttribute
-					(IAVRGDBConstants.ATTR_GDBSERVER_PORT_NUMBER, portnumber);
+					(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_IP_ADDRESS,
+					 DEFAULT_GDBSERVER_AVARICE_HOSTNAME);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_PORT_NUMBER, portnumber);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_LOAD_IMAGE, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_DO_RESET, false);
 			}
 		} catch(CoreException e) {
 		}

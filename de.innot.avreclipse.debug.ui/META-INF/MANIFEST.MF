@@ -15,7 +15,8 @@ Require-Bundle: de.innot.avreclipse.debug.core;bundle-version="0.0.0",
  org.eclipse.cdt.ui,
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.dsf.gdb,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.eclipse.cdt.debug.gdbjtag.core
 Bundle-ActivationPolicy: lazy
 Export-Package: de.innot.avreclipse.debug.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7,

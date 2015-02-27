@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.cdt.debug.mi.core.IMILaunchConfigurationConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -100,8 +101,20 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 	 */
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(ATTR_GDBSERVER_ID, DEFAULT_GDBSERVER_ID);
-		configuration.setAttribute(ATTR_GDBSERVER_IP_ADDRESS, DEFAULT_GDBSERVER_IP_ADDRESS);
-		configuration.setAttribute(ATTR_GDBSERVER_PORT_NUMBER, DEFAULT_GDBSERVER_PORT_NUMBER);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_JTAG_DEVICE, "Generic TCP/IP");
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_IP_ADDRESS, DEFAULT_GDBSERVER_IP_ADDRESS);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_PORT_NUMBER, DEFAULT_GDBSERVER_PORT_NUMBER);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, true);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_LOAD_IMAGE, false);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_DO_RESET, false);
 
 		// pass the call to all subpages
 		for (IGDBServerSettingsPage settingspage : fSettingPages.values()) {
