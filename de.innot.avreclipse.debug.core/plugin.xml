@@ -4,7 +4,7 @@
    <extension-point id="de.innot.avreclipse.debug.core.gdbServer" name="GDBServer" schema="schema/de.innot.avreclipse.debug.GDBServer.exsd"/>
 	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
 		<launchConfigurationType
-			delegate="de.innot.avreclipse.debug.core.AVRGDBLaunchDelegate"
+			delegate="de.innot.avreclipse.debug.core.AVRGDBLaunchConfigurationDelegate"
 			id="de.innot.avreclipse.debug.lcTypeAVRGDBHardware"
 			modes="debug"
 			name="AVR Hardware Debugging"
@@ -30,7 +30,7 @@
  <extension
        point="org.eclipse.debug.core.launchDelegates">
     <launchDelegate
-          delegate="de.innot.avreclipse.debug.core.AVRGDBLaunchDelegate"
+          delegate="de.innot.avreclipse.debug.core.AVRGDBLaunchConfigurationDelegate"
           id="de.innot.avreclipse.debug.core.AVRGDBLaunchDelegate"
           modes="debug"
           name="AVRGDBLaunchDelegate"

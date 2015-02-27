@@ -32,7 +32,8 @@ import de.innot.avreclipse.debug.gdbserver.IGDBServerFactory;
  * @author Michael
  * 
  */
-public class AVRGDBLaunchDelegate extends GDBJtagDSFLaunchConfigurationDelegate {
+public class AVRGDBLaunchConfigurationDelegate 
+	extends GDBJtagDSFLaunchConfigurationDelegate {
 
 	@Override
 	public void launch( ILaunchConfiguration config, String mode, ILaunch launch, IProgressMonitor monitor ) throws CoreException {
