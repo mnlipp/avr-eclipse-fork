@@ -10,35 +10,17 @@
  *******************************************************************************/
 package de.innot.avreclipse.debug.core.service;
 
-import java.util.Map;
-
-import org.eclipse.cdt.debug.gdbjtag.core.GDBJtagDSFFinalLaunchSequence;
-import org.eclipse.cdt.dsf.concurrent.RequestMonitorWithProgress;
-import org.eclipse.cdt.dsf.concurrent.Sequence;
-import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
-import org.eclipse.cdt.dsf.gdb.service.IGDBBackend;
-import org.eclipse.cdt.dsf.gdb.service.command.GDBControl;
+import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GDBJtagControl;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
-import de.innot.avreclipse.debug.core.AVRGDBFinalLaunchSequence;
-
-
 /**
- * Jtag control service which selects the Jtag CompleteInitializationSequence.
- * Use for GDB < 7.0
+ * Jtag control which selects the Jtag CompleteInitializationSequence.
  */
-public class AVRGDBControl extends GDBControl {
+public class AVRGDBControl extends GDBJtagControl {
 
 	public AVRGDBControl(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {
 		super(session, config, factory);
 	}
-
-	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-//		GdbLaunch launch = (GdbLaunch)getSession().getModelAdapter(ILaunch.class);
-//		IGDBBackend backend = getServicesTracker().getService(IGDBBackend.class);
-//		return new AVRGDBFinalLaunchSequence(getExecutor(), launch, backend.getSessionType(), backend.getIsAttachSession(), rm);
-		return new GDBJtagDSFFinalLaunchSequence(getSession(), attributes, rm);	}
 }
