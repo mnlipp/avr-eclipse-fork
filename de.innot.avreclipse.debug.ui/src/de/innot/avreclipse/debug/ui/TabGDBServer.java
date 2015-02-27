@@ -42,8 +42,9 @@ import de.innot.avreclipse.debug.core.IAVRGDBConstants;
  * @since 2.4
  * 
  */
-public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVRGDBConstants,
-		IMILaunchConfigurationConstants, IGDBServerSettingsContext {
+public class TabGDBServer extends AbstractLaunchConfigurationTab 
+	implements IAVRGDBConstants, IMILaunchConfigurationConstants, 
+	IGDBServerSettingsContext, IGdbJtagMapper {
 
 	private static final String					TAB_NAME	= "GDBServer";
 
@@ -101,20 +102,7 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 	 */
 	public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 		configuration.setAttribute(ATTR_GDBSERVER_ID, DEFAULT_GDBSERVER_ID);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_JTAG_DEVICE, "Generic TCP/IP");
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_IP_ADDRESS, DEFAULT_GDBSERVER_IP_ADDRESS);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_PORT_NUMBER, DEFAULT_GDBSERVER_PORT_NUMBER);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, true);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_LOAD_IMAGE, false);
-		configuration.setAttribute
-			(IGDBJtagConstants.ATTR_DO_RESET, false);
+		updateGdbJagAttributes(configuration);
 
 		// pass the call to all subpages
 		for (IGDBServerSettingsPage settingspage : fSettingPages.values()) {
@@ -191,8 +179,23 @@ public class TabGDBServer extends AbstractLaunchConfigurationTab implements IAVR
 		String gdbservername = fGDBServerSelector.getText();
 		String gdbserverid = fNameToIdMap.get(gdbservername);
 		configuration.setAttribute(ATTR_GDBSERVER_ID, gdbserverid);
+		updateGdbJagAttributes(configuration);
 	}
 
+	@Override
+	public void updateGdbJagAttributes
+		(ILaunchConfigurationWorkingCopy configuration) {
+		// Settings for the GdbJtagFinalInitialization
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_JTAG_DEVICE, "Generic TCP/IP");
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+//		configuration.setAttribute
+//			(IGDBJtagConstants.ATTR_IP_ADDRESS, DEFAULT_GDBSERVER_IP_ADDRESS);
+//		configuration.setAttribute
+//			(IGDBJtagConstants.ATTR_PORT_NUMBER, DEFAULT_GDBSERVER_PORT_NUMBER);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#dispose()

@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.innot.avreclipse.debug.ui.IGDBServerSettingsContext;
 import de.innot.avreclipse.debug.ui.IGDBServerSettingsPage;
+import de.innot.avreclipse.debug.ui.IGdbJtagMapper;
 
 /**
  * Base implementation of the {@link IGDBServerSettingsPage} interface.
@@ -47,7 +48,8 @@ import de.innot.avreclipse.debug.ui.IGDBServerSettingsPage;
  * @since 2.4
  * 
  */
-public abstract class AbstractGDBServerSettingsPage implements IGDBServerSettingsPage {
+public abstract class AbstractGDBServerSettingsPage 
+	implements IGDBServerSettingsPage, IGdbJtagMapper {
 
 	/** The ID of the gdbserver for which this page manages the settings. */
 	private String						fGDBServerID;

@@ -127,6 +127,8 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_OTHEROPTIONS,
 				DEFAULT_GDBSERVER_AVARICE_OTHEROPTIONS);
+		
+		updateGdbJagAttributes(configuration);
 	}
 
 	/*
@@ -423,32 +425,6 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 			portnumber = -1;
 		}
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_PORT, portnumber);
-
-		try {
-			// If we're selected, adjust gdb's host and port number to ours
-			String selectedServer = configuration.getAttribute
-					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
-			if (selectedServer.equals(this.getClass().getPackage().getName())) {
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_JTAG_DEVICE, "Generic TCP/IP");
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_IP_ADDRESS,
-					 DEFAULT_GDBSERVER_AVARICE_HOSTNAME);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_PORT_NUMBER, portnumber);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, true);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_LOAD_IMAGE, true);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE, true);
-				configuration.setAttribute
-					(IGDBJtagConstants.ATTR_DO_RESET, false);
-			}
-		} catch(CoreException e) {
-		}
 		
 		boolean verbose = fVerbose.getSelection();
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_VERBOSE, verbose);
@@ -489,8 +465,35 @@ public class AvariceSettingsPage extends AbstractGDBServerSettingsPage implement
 		String otheroptions = fOtherOptions.getText();
 		configuration.setAttribute(ATTR_GDBSERVER_AVARICE_OTHEROPTIONS, otheroptions);
 
+		updateGdbJagAttributes(configuration);
 	}
 
+	@Override
+	public void updateGdbJagAttributes
+		(ILaunchConfigurationWorkingCopy configuration) {
+		// Settings for the GdbJtagFinalInitialization
+		try {
+			// If we're selected, adjust gdb's host and port number to ours
+			String selectedServer = configuration.getAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
+			if (selectedServer.equals(this.getClass().getPackage().getName())) {
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_IP_ADDRESS,
+					 configuration.getAttribute
+					 	(ATTR_GDBSERVER_AVARICE_HOSTNAME,
+					 	 DEFAULT_GDBSERVER_AVARICE_HOSTNAME));
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_PORT_NUMBER, 
+					 configuration.getAttribute
+					 	(ATTR_GDBSERVER_AVARICE_PORT,
+						 DEFAULT_GDBSERVER_AVARICE_PORT));
+			}
+		} catch(CoreException e) {
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see de.innot.avreclipse.debug.ui.IGDBServerSettingsPage#isValid(org.eclipse.debug.core.

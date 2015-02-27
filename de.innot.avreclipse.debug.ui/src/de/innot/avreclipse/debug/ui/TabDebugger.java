@@ -13,6 +13,7 @@ package de.innot.avreclipse.debug.ui;
 import java.io.File;
 
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.cdt.debug.mi.core.IMILaunchConfigurationConstants;
 import org.eclipse.cdt.debug.mi.core.MIPlugin;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryDescriptor;
@@ -51,7 +52,7 @@ import de.innot.avreclipse.debug.core.IAVRGDBConstants;
  * 
  */
 public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRGDBConstants,
-		IMILaunchConfigurationConstants {
+		IMILaunchConfigurationConstants, IGdbJtagMapper {
 
 	private static final String	TAB_NAME	= "Debugger";
 
@@ -104,13 +105,12 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 			boolean verboseModeAttr = configuration.getAttribute(ATTR_DEBUGGER_VERBOSE_MODE,
 					DEFAULT_VERBOSE_MODE);
 			fVerboseMode.setSelection(verboseModeAttr);
-			fStopInMain.setSelection(configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN,
-					ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_DEFAULT));
-			fStopInMainSymbol.setText(configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL,
-					ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_SYMBOL_DEFAULT));
+			fStopInMain.setSelection(configuration.getAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,
+					IGDBJtagConstants.DEFAULT_SET_STOP_AT));
+			fStopInMainSymbol.setText(configuration.getAttribute(IGDBJtagConstants.ATTR_STOP_AT,
+					IGDBJtagConstants.DEFAULT_STOP_AT));
 			fResume.setSelection(configuration.getAttribute(ATTR_SET_RESUME,
 					DEFAULT_SET_RESUME));
-
 		} catch (CoreException e) {
 			AVRGDBUIPlugin.log(e.getStatus());
 		}
@@ -129,11 +129,31 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY, DEFAULT_COMMAND_FACTORY);
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, DEFAULT_DEBUGGER_PROTOCOL);
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, fVerboseMode.getSelection());
-		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN, fStopInMain.getSelection());
-		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL, fStopInMainSymbol.getText());
+		configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT, fStopInMain.getSelection());
+		configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT, fStopInMainSymbol.getText());
 		configuration.setAttribute(ATTR_SET_RESUME, fResume.getSelection());
+		updateGdbJagAttributes(configuration);
 	}
 
+	@Override
+	public void updateGdbJagAttributes
+		(ILaunchConfigurationWorkingCopy configuration) {
+		// Settings for the GdbJtagFinalInitialization
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, true);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_LOAD_IMAGE, false);
+		configuration.setAttribute
+			(IGDBJtagConstants.ATTR_DO_RESET, false);
+		configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET, false);
+		try {
+			configuration.setAttribute(IGDBJtagConstants.ATTR_SET_RESUME,
+			    configuration.getAttribute(ATTR_SET_RESUME, DEFAULT_SET_RESUME));
+		} catch (CoreException e) {
+			AVRGDBUIPlugin.log(e.getStatus());
+		}
+	}
+	
 	public boolean isValid(ILaunchConfiguration config) {
 		if (fStopInMain != null && fStopInMainSymbol != null) {
 			// The "Stop on startup at" field must not be empty
@@ -165,11 +185,12 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, defDesc.getMIVersions()[0]);
 
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, DEFAULT_VERBOSE_MODE);
-		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN,
-				ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_DEFAULT);
-		configuration.setAttribute(ICDTLaunchConfigurationConstants.ATTR_DEBUGGER_STOP_AT_MAIN_SYMBOL,
-				ICDTLaunchConfigurationConstants.DEBUGGER_STOP_AT_MAIN_SYMBOL_DEFAULT);
+		configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,
+				IGDBJtagConstants.DEFAULT_SET_STOP_AT);
+		configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,
+				IGDBJtagConstants.DEFAULT_STOP_AT);
 		configuration.setAttribute(ATTR_SET_RESUME, DEFAULT_SET_RESUME);
+		updateGdbJagAttributes(configuration);
 	}
 
 	/*

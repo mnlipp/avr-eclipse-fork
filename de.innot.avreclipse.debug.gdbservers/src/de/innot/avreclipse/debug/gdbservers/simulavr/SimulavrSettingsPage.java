@@ -10,6 +10,7 @@
  *******************************************************************************/
 package de.innot.avreclipse.debug.gdbservers.simulavr;
 
+import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -112,6 +113,8 @@ public class SimulavrSettingsPage extends AbstractGDBServerSettingsPage implemen
 
 		configuration.setAttribute(ATTR_GDBSERVER_SIMULAVR_OTHEROPTIONS,
 				DEFAULT_GDBSERVER_SIMULAVR_OTHEROPTIONS);
+		
+		updateGdbJagAttributes(configuration);
 	}
 
 	/*
@@ -377,6 +380,33 @@ public class SimulavrSettingsPage extends AbstractGDBServerSettingsPage implemen
 		String otheroptions = fOtherOptions.getText();
 		configuration.setAttribute(ATTR_GDBSERVER_SIMULAVR_OTHEROPTIONS, otheroptions);
 
+		updateGdbJagAttributes(configuration);
+	}
+
+	@Override
+	public void updateGdbJagAttributes
+		(ILaunchConfigurationWorkingCopy configuration) {
+		// Settings for the GdbJtagFinalInitialization
+		try {
+			// If we're selected, adjust gdb's host and port number to ours
+			String selectedServer = configuration.getAttribute
+					(IAVRGDBConstants.ATTR_GDBSERVER_ID, "");
+			if (selectedServer.equals(this.getClass().getPackage().getName())) {
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_IP_ADDRESS,
+					 configuration.getAttribute
+					 	(ATTR_GDBSERVER_SIMULAVR_HOSTNAME,
+					 	 DEFAULT_GDBSERVER_SIMULAVR_HOSTNAME));
+				configuration.setAttribute
+					(IGDBJtagConstants.ATTR_PORT_NUMBER, 
+					 configuration.getAttribute
+					 	(ATTR_GDBSERVER_SIMULAVR_PORT,
+						 DEFAULT_GDBSERVER_SIMULAVR_PORT));
+			}
+		} catch(CoreException e) {
+		}
 	}
 
 	/*
