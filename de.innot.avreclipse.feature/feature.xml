@@ -7,15 +7,11 @@
       plugin="de.innot.avreclipse.core">
 
    <description>
-      %description
+      The AVR Eclipse Plugin is an extension to the C/C++ Development Toolkit (CDT) to develop applications for the ATMEL AVR series of embedded processors.
    </description>
 
-   <copyright>
-      %copyright
-   </copyright>
-
    <license url="http://www.eclipse.org/legal/epl-v10.html">
-      %license
+      Eclipse Public License - v 1.0
    </license>
 
    <url>
