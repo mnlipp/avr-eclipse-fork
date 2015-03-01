@@ -18,7 +18,11 @@ import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GDBJtagControl_7_2;
 import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GDBJtagControl_7_4;
 import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GDBJtagControl_7_7;
 import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GdbJtagDebugServicesFactory;
+import org.eclipse.cdt.dsf.debug.service.IMemory;
 import org.eclipse.cdt.dsf.debug.service.command.ICommandControl;
+import org.eclipse.cdt.dsf.gdb.service.GDBMemory;
+import org.eclipse.cdt.dsf.gdb.service.GDBMemory_7_0;
+import org.eclipse.cdt.dsf.gdb.service.GDBMemory_7_6;
 import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
@@ -51,6 +55,22 @@ public class AVRDebugServicesFactory extends GdbJtagDebugServicesFactory {
 			return new GDBJtagControl_7_0(session, config, new PatchedCommandFactory_6_8());
 		}
 		return new GDBJtagControl(session, config, new PatchedCommandFactory());
+	}
+
+	@Override
+	protected IMemory createMemoryService(DsfSession session) {
+		StringTokenizer versionParts = new StringTokenizer(getVersion(), ".");
+		int major = Integer.parseInt(versionParts.nextToken());
+		int minor = Integer.parseInt(versionParts.nextToken());
+		if (major == 7 && minor >= 6) {
+			return new PatchedGDBMemory_7_6(session);
+		}
+
+		if (major >= 7) {
+			return new PatchedGDBMemory_7_0(session);
+		}
+
+		return new GDBMemory(session);
 	}
 
 }
