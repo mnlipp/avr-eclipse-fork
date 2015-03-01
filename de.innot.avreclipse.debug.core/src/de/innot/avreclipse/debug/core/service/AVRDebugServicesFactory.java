@@ -21,10 +21,6 @@ import org.eclipse.cdt.debug.gdbjtag.core.dsf.gdb.service.GdbJtagDebugServicesFa
 import org.eclipse.cdt.dsf.debug.service.IMemory;
 import org.eclipse.cdt.dsf.debug.service.command.ICommandControl;
 import org.eclipse.cdt.dsf.gdb.service.GDBMemory;
-import org.eclipse.cdt.dsf.gdb.service.GDBMemory_7_0;
-import org.eclipse.cdt.dsf.gdb.service.GDBMemory_7_6;
-import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
-import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
 

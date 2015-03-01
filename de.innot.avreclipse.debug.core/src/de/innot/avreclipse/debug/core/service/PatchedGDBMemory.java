@@ -3,7 +3,6 @@
  */
 package de.innot.avreclipse.debug.core.service;
 
-import org.eclipse.cdt.dsf.debug.service.IMemory.IMemoryDMContext;
 import org.eclipse.cdt.dsf.gdb.service.GDBMemory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 

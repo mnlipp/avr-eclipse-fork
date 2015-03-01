@@ -13,7 +13,6 @@
  */
 package de.innot.avreclipse.debug.core;
 
-import org.eclipse.cdt.core.settings.model.CConfigurationStatus;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.debug.gdbjtag.core.GDBJtagDSFLaunchConfigurationDelegate;
 import org.eclipse.cdt.dsf.debug.service.IDsfDebugServicesFactory;
