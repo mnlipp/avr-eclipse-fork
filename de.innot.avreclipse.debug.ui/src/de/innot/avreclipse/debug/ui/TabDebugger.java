@@ -185,10 +185,8 @@ public class TabDebugger extends AbstractLaunchConfigurationTab implements IAVRG
 		configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL, defDesc.getMIVersions()[0]);
 
 		configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE, DEFAULT_VERBOSE_MODE);
-		configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,
-				IGDBJtagConstants.DEFAULT_SET_STOP_AT);
-		configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,
-				IGDBJtagConstants.DEFAULT_STOP_AT);
+		configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT, true);
+		configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT, "main");
 		configuration.setAttribute(ATTR_SET_RESUME, DEFAULT_SET_RESUME);
 		updateGdbJagAttributes(configuration);
 	}
