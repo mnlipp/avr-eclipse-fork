@@ -72,7 +72,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 	        + "Set this to > 1.0 for target MCUs running with less than 4MHz on a JTAG ICE.\n"
 	        + "Leave the field empty to use the preset bit clock period of the selected Programmer.";
 	private final static String TEXT_BITCLOCK = "JTAG ICE bitclock";
-	private final static String LABEL_BITCLOCK_UNIT = "µs";
+	private final static String LABEL_BITCLOCK_UNIT = "\u03bcs";
 
 	// BitBang delay group
 	private final static String GROUP_DELAY = "BitBang Programmer Bit State Change Delay";
@@ -80,7 +80,7 @@ public class TabAVRDudeProgrammer extends AbstractAVRDudePropertyTab {
 	        + "Set this when the the host system is very fast, or the target runs off a slow clock\n"
 	        + "Leave the field empty to run the ISP connection at max speed.";
 	private final static String TEXT_DELAY = "Bit state change delay";
-	private final static String LABEL_DELAY_UNIT = "µs";
+	private final static String LABEL_DELAY_UNIT = "\u03bcs";
 
 	// The GUI widgets
 	private Combo fProgrammerCombo;
