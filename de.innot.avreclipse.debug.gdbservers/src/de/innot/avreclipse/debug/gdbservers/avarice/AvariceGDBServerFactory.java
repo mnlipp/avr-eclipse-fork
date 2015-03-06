@@ -44,6 +44,8 @@ public class AvariceGDBServerFactory implements IGDBServerFactory,
 				DEFAULT_GDBSERVER_AVARICE_IGNOREINTR);
 		int portNumber = config.getAttribute(ATTR_GDBSERVER_AVARICE_PORT,
 				DEFAULT_GDBSERVER_AVARICE_PORT);
+		boolean verbose = config.getAttribute(ATTR_GDBSERVER_AVARICE_VERBOSE,
+				DEFAULT_GDBSERVER_AVARICE_VERBOSE);
 		
 		List<String> args = new ArrayList<String>();
 		args.add(itf);
@@ -58,6 +60,9 @@ public class AvariceGDBServerFactory implements IGDBServerFactory,
 		}
 		if (ignoreIntr) {
 			args.add("-I");
+		}
+		if (verbose) {
+			args.add("-d");
 		}
 		
 		String oopts = config.getAttribute(ATTR_GDBSERVER_AVARICE_OTHEROPTIONS, 

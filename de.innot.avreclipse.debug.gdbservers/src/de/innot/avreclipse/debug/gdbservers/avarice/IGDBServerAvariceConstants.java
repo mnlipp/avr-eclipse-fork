@@ -43,7 +43,7 @@ public interface IGDBServerAvariceConstants {
 	public static final String		ATTR_GDBSERVER_AVARICE_VERBOSE			= PLUGIN_ID
 																					+ ".avarice.verbose";
 	// FIXME: Change this to false for the release
-	public static final boolean		DEFAULT_GDBSERVER_AVARICE_VERBOSE		= true;
+	public static final boolean		DEFAULT_GDBSERVER_AVARICE_VERBOSE		= false;
 
 	/** The hostname for the avarice gdbserver. Default: "localhost". Should not be changed. */
 	public static final String		ATTR_GDBSERVER_AVARICE_HOSTNAME			= PLUGIN_ID
