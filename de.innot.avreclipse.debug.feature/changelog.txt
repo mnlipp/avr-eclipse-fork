@@ -11,7 +11,9 @@ Version 2.5.0-SNAPSHOT
 
 Changed / Improved:
 -----------------------------
-Merged master and R2.4.2. Split core and debug feature.
+Merged master and R2.4.2. Split core and debug feature. 
+Debug launch configurations now based on
+GDB hardware debugger. Tested with Eclipse Luna.
 
 
 ================================================================================

@@ -3,12 +3,15 @@
    <description name="AVR Eclipse Plugin Update Site" url="http://avr-eclipse.sourceforge.net">
       AVR Eclipse Plugin update site
    </description>
-   <feature url="features/de.innot.avreclipse_0.0.0.qualifier.jar" id="de.innot.avreclipse" version="0.0.0">
+   <feature url="features/de.innot.avreclipse_2.5.0.201503071520.jar" id="de.innot.avreclipse" version="2.5.0.201503071520">
       <category name="de.innot.avreclipse"/>
    </feature>
-   <category-def name="de.innot.avreclipse" label="AVR Eclipse Plugin">
+   <feature url="features/de.innot.avreclipse.debug_2.5.0.201503071520.jar" id="de.innot.avreclipse.debug" version="2.5.0.201503071520">
+      <category name="de.innot.avreclipse"/>
+   </feature>
+   <category-def name="de.innot.avreclipse" label="AVR Eclipse Develpment">
       <description>
-         Plugin for developing C/C++ programs for the Atmel AVR series of embedded microprocessors.
+         Plugins for developing C/C++ programs for the Atmel AVR series of embedded microprocessors.
       </description>
    </category-def>
 </site>
