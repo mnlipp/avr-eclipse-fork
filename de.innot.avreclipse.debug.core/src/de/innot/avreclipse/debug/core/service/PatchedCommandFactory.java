@@ -3,10 +3,13 @@
  */
 package de.innot.avreclipse.debug.core.service;
 
+import org.eclipse.cdt.dsf.debug.service.IBreakpoints.IBreakpointsTargetDMContext;
 import org.eclipse.cdt.dsf.debug.service.IDisassembly.IDisassemblyDMContext;
 import org.eclipse.cdt.dsf.debug.service.command.ICommand;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
+import org.eclipse.cdt.dsf.mi.service.command.commands.MIBreakInsert;
 import org.eclipse.cdt.dsf.mi.service.command.commands.MIDataDisassemble;
+import org.eclipse.cdt.dsf.mi.service.command.output.MIBreakInsertInfo;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIDataDisassembleInfo;
 
 /**
@@ -31,4 +34,14 @@ public class PatchedCommandFactory extends CommandFactory {
 		return new MIDataDisassemble(ctx, start, end, mode);
 	}
 
+	@Override
+	public ICommand<MIBreakInsertInfo> createMIBreakInsert(IBreakpointsTargetDMContext ctx, boolean isTemporary,
+			boolean isHardware, String condition, int ignoreCount, String location, int tid, boolean disabled, boolean isTracepoint) {
+		if (location.startsWith("*")) {
+			location = location.substring(0, 1)
+					+ "(void (*)())"
+					+ location.substring(1);
+		}
+		return new MIBreakInsert(ctx, isTemporary, isHardware, condition, ignoreCount, location, tid, disabled, isTracepoint, true);
+	}
 }
