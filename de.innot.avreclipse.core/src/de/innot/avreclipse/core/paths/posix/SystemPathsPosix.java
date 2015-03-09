@@ -66,6 +66,7 @@ public class SystemPathsPosix {
 	private final static String[]	fSearchPaths	= {
 		"/usr/bin",
 		"/usr/lib",
+		"/usr/avr", // Arch Linux, Fedora
 		// no "/usr",
 		"/opt/",
 		"/usr/local/bin",
