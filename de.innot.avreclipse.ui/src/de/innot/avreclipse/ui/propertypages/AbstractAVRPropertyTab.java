@@ -288,8 +288,16 @@ public abstract class AbstractAVRPropertyTab extends AbstractCBuildPropertyTab {
 			// Set the rebuild flag for the current configuration
 			getCfg().setRebuildState(rebuild);
 		} else {
+			// MNL: This doesn't work, rebuild state for project isn't reset by builder
+			// ----
 			// Set the rebuild flag for the complete project
-			ManagedBuildManager.getBuildInfo(getCfg().getOwner()).setRebuildState(rebuild);
+			// ManagedBuildManager.getBuildInfo(getCfg().getOwner()).setRebuildState(rebuild);
+			// ----
+			// Make sure that all configurations are loaded 
+			getCfg();
+			for (ICConfigurationDescription cfgd: page.getCfgsEditable()) {
+				getCfg(cfgd).setRebuildState(rebuild);
+			}
 		}
 	}
 

@@ -413,12 +413,11 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 	 * flag for the configuration / project if yes.
 	 */
 	private boolean setRebuildRequired() {
-		if (fOldMCUid != null) {
-			if (!(fTargetProps.getMCUId().equals(fOldMCUid))
-					|| !(fTargetProps.getFCPU().equals(fOldFCPU))) {
-				setRebuildState(true);
-				return true;
-			}
+		if (fOldMCUid == null || fOldFCPU == null
+				|| !(fTargetProps.getMCUId().equals(fOldMCUid))
+				|| !(fTargetProps.getFCPU().equals(fOldFCPU))) {
+			setRebuildState(true);
+			return true;
 		}
 		return false;
 	}

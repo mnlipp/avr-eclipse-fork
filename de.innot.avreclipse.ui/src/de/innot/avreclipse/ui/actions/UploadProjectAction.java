@@ -97,6 +97,8 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 																+ "Please check the fuse byte settings.\n"
 																+ "(Properties -> AVRDude -> {0})";
 
+	private final static String MSG_NEEDS_REBUILD       = "A rebuild is required before upload.";
+	
 	private IProject			fProject;
 
 	/**
@@ -176,6 +178,12 @@ public class UploadProjectAction extends ActionDelegate implements IWorkbenchWin
 		// Get the active build configuration
 		IManagedBuildInfo bi = ManagedBuildManager.getBuildInfo(fProject);
 		IConfiguration activecfg = bi.getDefaultConfiguration();
+		
+		// Check if project needs to be rebuild (e.g. MCU type changed)
+		if (activecfg.needsRebuild()) {
+			MessageDialog.openError(getShell(), TITLE_UPLOAD, MSG_NEEDS_REBUILD);			
+			return;
+		}
 
 		// Get the avr properties for the active configuration
 		AVRProjectProperties targetprops = ProjectPropertyManager.getPropertyManager(fProject)
