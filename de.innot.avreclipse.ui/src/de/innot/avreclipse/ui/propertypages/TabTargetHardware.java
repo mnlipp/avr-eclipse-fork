@@ -179,9 +179,6 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 				// Check fuse byte settings and pop a message if the settings
 				// are not compatible
 				checkFuseBytes(mcuid);
-
-				// Set the rebuild flag for the configuration
-				getCfg().setRebuildState(true);
 			}
 		});
 
@@ -336,9 +333,10 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 
 		// Save the original values, so we can set the rebuild flag when any
 		// changes are applied.
-		fOldMCUid = mcuid;
-		fOldFCPU = fcpu;
-
+		if (fOldMCUid == null) {
+			fOldMCUid = mcuid;
+			fOldFCPU = fcpu;
+		}
 	}
 
 	/**
@@ -461,10 +459,6 @@ public class TabTargetHardware extends AbstractAVRPropertyTab {
 								// Check fuse byte settings and pop a message if the settings
 								// are not compatible
 								checkFuseBytes(mcuid);
-
-								// Set the rebuild flag for the configuration
-								getCfg().setRebuildState(true);
-
 							}
 						});
 					}
