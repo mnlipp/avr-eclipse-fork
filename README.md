@@ -25,3 +25,5 @@ the export wizard (or click on "Build" in the update site project).
 
 The "test plugins" have also not been tested. I have no idea what they actually do and whether they have
 ever worked properly.
+
+The p2 repository is kept in a branch. You can add it as update site using the [https://raw.githubusercontent.com/mnlipp/avr-eclipse-fork/updatesite/](https://raw.githubusercontent.com/mnlipp/avr-eclipse-fork/updatesite/) as URL.
