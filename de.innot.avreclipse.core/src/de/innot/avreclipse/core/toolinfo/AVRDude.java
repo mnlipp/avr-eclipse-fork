@@ -357,7 +357,7 @@ public class AVRDude implements IMCUProvider {
 
 					// Parse the output and look for a line "avrdude: Device signature =
 					// 0x123456"
-					Pattern mcuPat = Pattern.compile(".+ signature .+ (0x[\\da-fA-F]{6})", Pattern.COMMENTS);
+					Pattern mcuPat = Pattern.compile(".+ signature .+ (0x[\\da-fA-F]{6})( .+)*", Pattern.COMMENTS);
 					Matcher m;
 
 					for (String line : stdout) {
